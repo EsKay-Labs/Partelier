@@ -1,0 +1,12 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "script",
+  "id": "b4bc1275-9936-4a79-8bcd-08238ae7d535",
+  "author": "SKTech",
+  "description": {
+    "": "Partelier fixed snap-fit checks on owned rollback-only fixtures."
+  },
+  "version": "1.0.0",
+  "supportedOS": "windows",
+  "editEnabled": true
+}

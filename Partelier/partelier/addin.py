@@ -9,6 +9,7 @@ import adsk.fusion
 from .settings import HoneycombSettings
 from .palette import ToolLibrary
 from .tools.hinge.command import HingeCommands
+from .tools.snap_fit.command import SnapCommands
 
 
 COMMAND_ID = "sktech_partelier_honeycomb_inputs_7947c039"
@@ -20,6 +21,7 @@ _created_handler = None
 _sessions = []
 _tool_library = ToolLibrary()
 _hinge_commands = None
+_snap_commands = None
 
 
 def report_error(summary):
@@ -49,7 +51,7 @@ def report_error(summary):
 
 def start():
     """Register exactly one command and keep its creation handler alive."""
-    global _created_handler, _hinge_commands
+    global _created_handler, _hinge_commands, _snap_commands
     if _created_handler is not None:
         return
     ui = adsk.core.Application.get().userInterface
@@ -71,9 +73,11 @@ def start():
             panel.controls.addCommand(definition)
         _hinge_commands = HingeCommands(report_error=report_error)
         _hinge_commands.start()
+        _snap_commands = SnapCommands(report_error=report_error)
+        _snap_commands.start()
         _tool_library.start(
             WORKSPACE_ID, PANEL_ID, COMMAND_ID, report_error,
-            hinge_commands=_hinge_commands,
+            hinge_commands=_hinge_commands, snap_commands=_snap_commands,
         )
     except Exception:
         stop()
@@ -82,7 +86,7 @@ def start():
 
 def stop():
     """Remove only this add-in's command, controls, and retained handlers."""
-    global _created_handler, _hinge_commands
+    global _created_handler, _hinge_commands, _snap_commands
     app = adsk.core.Application.get()
     ui = app.userInterface
     errors = []
@@ -100,6 +104,8 @@ def stop():
         attempt(_tool_library.stop)
         if _hinge_commands is not None:
             attempt(_hinge_commands.stop)
+        if _snap_commands is not None:
+            attempt(_snap_commands.stop)
         workspace = attempt(lambda: ui.workspaces.itemById(WORKSPACE_ID))
         panel = attempt(lambda: workspace.toolbarPanels.itemById(PANEL_ID)) if workspace else None
         control = attempt(lambda: panel.controls.itemById(COMMAND_ID)) if panel else None
@@ -113,6 +119,7 @@ def stop():
     finally:
         _created_handler = None
         _hinge_commands = None
+        _snap_commands = None
         _sessions.clear()
     for error in errors:
         app.log(f"Partelier shutdown cleanup failed:\n{error}")

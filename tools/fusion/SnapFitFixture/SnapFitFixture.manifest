@@ -1,0 +1,12 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "script",
+  "id": "9e4db845-8213-4666-a816-75aa2c2af77a",
+  "author": "SKTech",
+  "description": {
+    "": "Create two disposable coplanar snap-fit walls in a new unsaved parametric Design."
+  },
+  "version": "0.0.1",
+  "supportedOS": "windows",
+  "editEnabled": true
+}

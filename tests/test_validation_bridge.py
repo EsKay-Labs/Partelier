@@ -190,6 +190,9 @@ class ValidationBridgeTests(unittest.TestCase):
         probe = root / "tools/fusion/JoinFinishProbe/JoinFinishProbe.py"
         hinge.mkdir(parents=True)
         probe.parent.mkdir(parents=True)
+        snap_probe = root / "tools/fusion/SnapFitProbe/SnapFitProbe.py"
+        snap_probe.parent.mkdir(parents=True)
+        snap_probe.write_text("snap probe", encoding="utf-8")
         (hinge / "planner.py").write_text("first", encoding="utf-8")
         probe.write_text("probe", encoding="utf-8")
         first = bridge.source_manifest(root)
@@ -234,6 +237,90 @@ class ValidationBridgeTests(unittest.TestCase):
         result = bridge.read_json(self.queue / "results" / (request["request_id"] + ".json"))
         self.assertEqual(result["state"], "error")
         self.assertIn("could not start", result["detail"])
+
+    def test_snap_fit_allowlist_keeps_joined_finish_default_and_rejects_arbitrary_dispatch(self):
+        self.assertEqual(bridge.PROTOCOL_VERSION, 2)
+        self.assertEqual(bridge.SCENARIO, "joined_finish")
+        self.assertEqual(bridge.SCENARIOS, {"joined_finish", "snap_fit"})
+        request = self.request()
+        request["scenario"] = "snap_fit"
+        self.assertEqual(bridge.validate_request(request, request["request_id"]), request)
+        self.assertEqual(bridge.PROBES["snap_fit"],
+                         ("tools", "fusion", "SnapFitProbe", "SnapFitProbe.py"))
+        for scenario in ("../SnapFitProbe", "snap_fit.py", "print(1)", [], None):
+            candidate = dict(request, scenario=scenario)
+            with self.subTest(scenario=scenario), self.assertRaises(ValueError):
+                bridge.validate_request(candidate, request["request_id"])
+
+    def test_cli_snap_fit_submit_poll_and_timeout_preserve_scenario(self):
+        with patch.object(bridge, "queue_root", return_value=self.queue):
+            request_id = cli.submit(bridge, "snap_fit")
+            request = bridge.read_json(self.queue / "requests" / (request_id + ".json"))
+            self.assertEqual(request["scenario"], "snap_fit")
+            self.assertEqual(cli.poll(bridge, request_id, 0)["scenario"], "snap_fit")
+            bridge.atomic_json(self.queue / "results" / (request_id + ".json"),
+                               {"version": 2, "scenario": "snap_fit", "request_id": request_id,
+                                "success": True, "state": "complete"})
+            self.assertTrue(cli.poll(bridge, request_id, 0)["success"])
+            with self.assertRaisesRegex(ValueError, "mismatched"):
+                cli.poll(bridge, request_id, 0, expected_scenario="joined_finish")
+
+    def test_cli_snap_fit_refuses_old_loaded_bridge_before_enqueuing(self):
+        status_path = self.queue / "status.json"
+        status = bridge.read_json(status_path)
+        status.pop("scenarios")
+        bridge.atomic_json(status_path, status)
+        with patch.object(bridge, "queue_root", return_value=self.queue):
+            with self.assertRaisesRegex(ValueError, "Reload"):
+                cli.submit(bridge, "snap_fit")
+            self.assertFalse(list((self.queue / "requests").glob("*.json")))
+            self.assertTrue(cli.submit(bridge, "joined_finish"))
+
+    def test_snap_fit_completion_cancel_and_blocked_results_keep_the_request_scenario(self):
+        request = self.request()
+        request["scenario"] = "snap_fit"
+        bridge.atomic_json(self.queue / "requests" / (request["request_id"] + ".json"), request)
+        bridge.STATE["app"].userInterface.activeCommand = "SomeUserCommand"
+        bridge._tick()
+        bridge.STATE["busy"]["since"] -= bridge.MAX_BUSY_SECONDS + 1
+        bridge._tick()
+        result = bridge.read_json(self.queue / "results" / (request["request_id"] + ".json"))
+        self.assertEqual((result["scenario"], result["state"]), ("snap_fit", "blocked"))
+        active = {"request_id": str(uuid.uuid4()), "scenario": "snap_fit",
+                  "module_name": "fixed_snap_test_module", "sources": {"sha256": "same"},
+                  "repo": object(), "session_id": bridge.STATE["session_id"]}
+        bridge.STATE["active"] = active
+        with patch.object(bridge, "source_manifest", return_value={"sha256": "same"}):
+            bridge._complete(active["request_id"], {"success": True}, active)
+        result = bridge.read_json(self.queue / "results" / (active["request_id"] + ".json"))
+        self.assertEqual((result["scenario"], result["success"]), ("snap_fit", True))
+
+    def test_manifest_covers_all_runtime_shared_code_and_both_fixed_probes(self):
+        root = self.queue / "wide_repo"
+        runtime = root / "Partelier/partelier"
+        runtime.mkdir(parents=True)
+        (runtime / "palette.py").write_text("palette", encoding="utf-8")
+        shared = runtime / "tools/solid_pair.py"
+        shared.parent.mkdir()
+        shared.write_text("shared", encoding="utf-8")
+        snap = shared.parent / "snap_fit/fusion.py"
+        snap.parent.mkdir()
+        snap.write_text("snap", encoding="utf-8")
+        for relative in bridge.PROBES.values():
+            probe = root.joinpath(*relative)
+            probe.parent.mkdir(parents=True)
+            probe.write_text("fixed probe", encoding="utf-8")
+        first = bridge.source_manifest(root)
+        self.assertEqual(len(first["files"]), 5)
+        for path in (shared, snap, runtime / "palette.py", root.joinpath(*bridge.PROBES["snap_fit"])):
+            old = path.read_text(encoding="utf-8")
+            path.write_text("changed", encoding="utf-8")
+            with self.subTest(path=path):
+                self.assertNotEqual(bridge.source_manifest(root)["sha256"], first["sha256"])
+            path.write_text(old, encoding="utf-8")
+        root.joinpath(*bridge.PROBES["snap_fit"]).unlink()
+        with self.assertRaisesRegex(ValueError, "missing"):
+            bridge.source_manifest(root)
 
     def test_worker_uses_only_file_checks_and_custom_event_queue(self):
         stop_event = Mock()

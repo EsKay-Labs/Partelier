@@ -904,14 +904,23 @@ def _preview_outlines(group, body, core, fusion):
 def preview_hinge(prepared):
     """Draw the complete result candidate; the session owns source visibility."""
     _require_main_thread()
-    core, fusion = _api()
     _assert_fresh(prepared.design, prepared)
-    group = prepared.design.rootComponent.customGraphicsGroups.add()
+    return draw_solid_preview(prepared.design, prepared.result_bodies, _preview_appearances(prepared))
+
+
+def draw_solid_preview(design, result_bodies, appearances):
+    """Draw transient paired solids using existing appearances and crisp edges.
+
+    The caller owns this graphics group and source visibility. No materials or
+    persistent bodies are created. Roles may include numbered repeat suffixes.
+    """
+    _require_main_thread()
+    core, fusion = _api()
+    group = design.rootComponent.customGraphicsGroups.add()
     if group is None:
         raise HingeGeometryError("Could not create the hinge preview.")
     try:
-        appearances = _preview_appearances(prepared)
-        for role, body in prepared.result_bodies:
+        for role, body in result_bodies:
             graphic = group.addBRepBody(body)
             if graphic is None:
                 raise HingeGeometryError("Could not draw the hinge preview.")

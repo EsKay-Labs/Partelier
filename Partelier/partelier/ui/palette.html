@@ -4,11 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
-    <title>Partelier · Hinges</title>
-    <link rel="stylesheet" href="palette.css?v=0.5.2">
-    <script src="catalog.js?v=0.5.2" defer></script>
-    <script src="illustrations.js?v=0.5.2" defer></script>
-    <script src="palette.js?v=0.5.2" defer></script>
+    <title>Partelier · CAD details</title>
+    <link rel="stylesheet" href="palette.css?v=0.6.0">
+    <script src="catalog.js?v=0.6.0" defer></script>
+    <script src="illustrations.js?v=0.6.0" defer></script>
+    <script src="snap.js?v=0.6.0" defer></script>
+    <script src="palette.js?v=0.6.0" defer></script>
 </head>
 <body>
     <header class="app-header">
@@ -48,6 +49,36 @@
                 <details class="guide-disclosure" id="hinge-holes"><summary>Screw holes</summary><div id="hinge-hole-toggle"></div><div id="hinge-hole-fields" class="parameter-list"></div><p class="helper-copy">Two straight through-holes per leaf.</p></details>
             </details>
         </form>
+        <div id="snap-tool" hidden>
+            <form id="snap-settings" novalidate>
+                <section class="hinge-input-group" aria-labelledby="snap-geometry-title">
+                    <div class="section-heading"><h2 id="snap-geometry-title">Geometry</h2><button id="edit-snap-button" class="text-button" type="button" disabled>Edit existing</button></div>
+                    <div class="geometry-start"><button id="begin-snap-button" class="secondary-button" type="button" disabled>Select faces &amp; edge</button><p id="snap-selection-help" class="helper-copy">Pick the base wall, lid wall, then their straight seam edge.</p></div>
+                    <div class="selection-grid" id="snap-selections"></div>
+                    <p id="snap-availability" class="helper-copy">Open Partelier in Fusion to select geometry.</p>
+                </section>
+                <section class="hinge-input-group" aria-labelledby="snap-size-title">
+                    <div class="section-heading"><h2 id="snap-size-title">Tab size</h2><span class="unit-label">mm</span></div>
+                    <div id="snap-size-fields" class="parameter-list basic-grid"></div>
+                </section>
+                <section class="hinge-input-group" aria-labelledby="snap-fit-title">
+                    <div class="section-heading"><h2 id="snap-fit-title">Fit &amp; engagement</h2><span class="unit-label">mm</span></div>
+                    <div id="snap-fit-fields" class="parameter-list"></div>
+                </section>
+                <details class="guide-disclosure" id="snap-options">
+                    <summary>Advanced settings</summary>
+                    <details class="guide-disclosure"><summary>Count &amp; placement</summary><div id="snap-layout-fields" class="parameter-list basic-grid"></div><p class="helper-copy">One snap is centered. Multiple snaps use the end margins and equal gaps.</p></details>
+                    <details class="guide-disclosure"><summary>Root &amp; lead-in</summary><div id="snap-construction-fields" class="parameter-list basic-grid"></div></details>
+                </details>
+            </form>
+            <details class="guide-disclosure" id="snap-help">
+                <summary>Help &amp; example</summary>
+                <p>Select two coplanar exterior wall faces facing the same way: A on the base, B on the lid. Pick their straight seam edge. The cantilever sits outside the walls and reaches from A toward B. All of A must lie below the seam, all of B above it. Leave enough wall height and thickness for the recess.</p>
+                <div class="illustration-stage"><div class="stage-heading"><span>ILLUSTRATION · NOT MODEL PREVIEW</span></div><div id="snap-illustration"></div><div class="stage-key"><span><i class="part-a"></i>Hook body A</span><span><i class="part-b"></i>Receiver B</span></div></div>
+                <p>Tab reach controls the flexible arm. Hook engagement controls how far the catch enters the receiving opening. The lead-in helps guide assembly.</p>
+                <p>Create joins the hook to body A and cuts a blind receiving recess in body B. The two parts are printed separately; this tool preserves their original seam. Cancel restores the model. Fit and flex depend on material, print direction and actual dimensions.</p>
+            </details>
+        </div>
         <div id="planned-tool"><div id="parameter-list" class="parameter-list"></div><p id="inputs-note" class="helper-copy">Planned tool · creation is not available yet.</p></div>
         <details class="guide-disclosure" id="hinge-help">
             <summary>Help &amp; examples</summary>
@@ -65,12 +96,17 @@
             <details class="guide-disclosure"><summary>Planned hinge families</summary><p>Barrel, concealed and print-in-place mechanisms are planned. They cannot be created yet.</p></details>
         </details>
     </main>
-    <section class="action-dock" aria-label="Hinge actions">
+    <section class="action-dock" id="hinge-action-dock" aria-label="Hinge actions">
         <div class="dock-status"><p id="live-preview-status" class="live-preview-status" role="status">Live preview · Fusion required</p><button id="preview-hinge-button" class="text-button" disabled>Refresh</button></div>
         <p id="operation-status" role="status" aria-live="polite" hidden></p>
         <p id="create-hint" class="helper-copy" hidden>Open Partelier in Fusion.</p>
         <div class="action-buttons"><button id="cancel-hinge-button" class="secondary-button" disabled>Cancel</button><button id="create-hinge-button" class="create-button" disabled>Create hinge</button></div>
     </section>
-    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.5.2</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure your hinge here and select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached hinges become part of your two selected bodies. Only optional pins add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
+    <section class="action-dock" id="snap-action-dock" aria-label="Snap-fit actions" hidden>
+        <div class="dock-status"><p id="snap-live-preview-status" class="live-preview-status" role="status">Live preview · Fusion required</p><button id="preview-snap-button" class="text-button" disabled>Refresh</button></div>
+        <p id="snap-operation-status" role="status" aria-live="polite" hidden></p>
+        <div class="action-buttons"><button id="cancel-snap-button" class="secondary-button" disabled>Cancel</button><button id="create-snap-button" class="create-button" disabled>Create snap-fit</button></div>
+    </section>
+    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.6.0</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure a hinge or snap-fit here and select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached hinges become part of your two selected bodies. Only optional pins add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
 </body>
 </html>

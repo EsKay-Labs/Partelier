@@ -1,0 +1,541 @@
+{
+  "version": 2,
+  "request_id": "54536e93-be12-418f-86c9-9f83d0bbe872",
+  "scenario": "snap_fit",
+  "session_id": "c550fb18-db23-4d10-8dde-7d9c105473b2",
+  "state": "complete",
+  "success": true,
+  "sources": {
+    "files": {
+      "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+      "Partelier/partelier/addin.py": "312f35b22e4e536ed89df453ad42701dd2263610b06cbf180d0057bc680e25dd",
+      "Partelier/partelier/palette.py": "1b59c6be03207b51fc3940daec973edc238272d1ca4ba68a0e905e30a8383a2d",
+      "Partelier/partelier/palette_protocol.py": "a7cc62f8261d7a16e81813cd37b2494dd264b32f573f78a011f270ed11022df5",
+      "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+      "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+      "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+      "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+      "Partelier/partelier/tools/hinge/finish.py": "f736bc28dcc140edc1d1c9bf810d2223ad2b906c189fcc7e73754b3eeca24280",
+      "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+      "Partelier/partelier/tools/hinge/inplace.py": "78df843a438c6a374d7d66bb9d4bbbd4b353ed11c75ed60cbeda987b16c450d5",
+      "Partelier/partelier/tools/hinge/layout.py": "696a4b9113a49a134cd1dfb165fa05e8089a705d8b3ec7ffb5c9fc350f21627f",
+      "Partelier/partelier/tools/hinge/native_finish.py": "45ca7cfb58e7b7932d9b32370aa7e49d4588122e1ce046f5449f487e76e95979",
+      "Partelier/partelier/tools/hinge/native_preview.py": "f857535bf785bed2fbb3c6f52ed69978f1aaf78518ccd67a926b236d5a781fcb",
+      "Partelier/partelier/tools/hinge/planner.py": "f1c978f6b841dd39990fb20fa6c74852329d8eb02dbc3a008cb89eee0696aa6d",
+      "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+      "Partelier/partelier/tools/hinge/roof_finish.py": "11d0b8f2a57c54638791aae4b09f83037d9705a3798756f1836c80148fe16753",
+      "Partelier/partelier/tools/hinge/rounding.py": "f252f54702466ecbf655314158698a3c48bf39a0a8b9d5f9a2960c968f7076f0",
+      "Partelier/partelier/tools/hinge/seam.py": "1c941780290a90677a82a9c4c4859d70d62d0bdba616bf25a4274f55fc34b9f2",
+      "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+      "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+      "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+      "Partelier/partelier/tools/snap_fit/__init__.py": "eb5c848189a6bf9a69b3b690268679a681c2e5a8397582ff099565b0f10a8804",
+      "Partelier/partelier/tools/snap_fit/command.py": "3a0c1f6b98560b95829794dbe643db20d5e95b7f39d221d75185bb5d31342574",
+      "Partelier/partelier/tools/snap_fit/fusion.py": "3f2b62fd43fbf9c2871bf06b7d0897704158bcb329f335dba356709d7e133542",
+      "Partelier/partelier/tools/snap_fit/planner.py": "d620bc981fe7b04e6aa3e23e348eadc18747fcc0eb0544a765a52c0811de11fc",
+      "Partelier/partelier/tools/snap_fit/settings.py": "79c5b576de3d5cb642ad0cd2b6792fc32038816f390167ecd846c909c357ae24",
+      "Partelier/partelier/tools/solid_pair.py": "81d427d5c9cc6b60da1d6fa19f226ac73cfe81ba72ddbd2a51ff1f9dc684ece5",
+      "tools/fusion/JoinFinishProbe/JoinFinishProbe.py": "8e9c49317dcdbf28ee21bdd1c8aabdd221bb9f657162364d4e4fc6f8a302d584",
+      "tools/fusion/SnapFitProbe/SnapFitProbe.py": "e0e69223822863e18c8e0046cfaaab90467cec023fc78be3c0388f4afd1b565d"
+    },
+    "sha256": "252d81b2011a272517dd315f8d0f76670d38a1b7c37941190c4593f1463f65d7"
+  },
+  "native": {
+    "fusion_version": "2705.1.30",
+    "geometry_checks_passed": true,
+    "noop_execute": true,
+    "unchanged": true,
+    "original_references_valid": true,
+    "detached_survived_rollback": true
+  },
+  "cases": [
+    {
+      "name": "default_preview",
+      "success": true,
+      "witnesses": [
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "beam",
+          "point_mm": [
+            1.05,
+            0.0,
+            6.5
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_gap",
+          "point_mm": [
+            0.15,
+            0.0,
+            6.5
+          ]
+        },
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "hook",
+          "point_mm": [
+            -0.5,
+            0.0,
+            13.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "pocket_side",
+          "point_mm": [
+            -0.5,
+            4.15,
+            13.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": true,
+          "label": "back_wall",
+          "point_mm": [
+            -1.5,
+            0.0,
+            13.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_outer_gap",
+          "point_mm": [
+            1.95,
+            0.0,
+            13.15
+          ]
+        }
+      ]
+    },
+    {
+      "name": "three_clasp_preview",
+      "success": true,
+      "witnesses": [
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "beam",
+          "point_mm": [
+            1.05,
+            -20.7,
+            6.5
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_gap",
+          "point_mm": [
+            0.15,
+            -20.7,
+            6.5
+          ]
+        },
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "hook",
+          "point_mm": [
+            -0.5,
+            -20.7,
+            13.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "pocket_side",
+          "point_mm": [
+            -0.5,
+            -16.55,
+            13.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": true,
+          "label": "back_wall",
+          "point_mm": [
+            -1.5,
+            -20.7,
+            13.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_outer_gap",
+          "point_mm": [
+            1.95,
+            -20.7,
+            13.15
+          ]
+        },
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "beam",
+          "point_mm": [
+            1.05,
+            0.0,
+            6.5
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_gap",
+          "point_mm": [
+            0.15,
+            0.0,
+            6.5
+          ]
+        },
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "hook",
+          "point_mm": [
+            -0.5,
+            0.0,
+            13.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "pocket_side",
+          "point_mm": [
+            -0.5,
+            4.15,
+            13.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": true,
+          "label": "back_wall",
+          "point_mm": [
+            -1.5,
+            0.0,
+            13.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_outer_gap",
+          "point_mm": [
+            1.95,
+            0.0,
+            13.15
+          ]
+        },
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "beam",
+          "point_mm": [
+            1.05,
+            20.7,
+            6.5
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_gap",
+          "point_mm": [
+            0.15,
+            20.7,
+            6.5
+          ]
+        },
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "hook",
+          "point_mm": [
+            -0.5,
+            20.7,
+            13.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "pocket_side",
+          "point_mm": [
+            -0.5,
+            24.849999999999998,
+            13.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": true,
+          "label": "back_wall",
+          "point_mm": [
+            -1.5,
+            20.7,
+            13.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_outer_gap",
+          "point_mm": [
+            1.95,
+            20.7,
+            13.15
+          ]
+        }
+      ]
+    },
+    {
+      "body_count": 5,
+      "name": "create_in_place",
+      "success": true
+    },
+    {
+      "name": "rebuild_same_history",
+      "native_combines": 4,
+      "success": true,
+      "witnesses": [
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "beam",
+          "point_mm": [
+            1.05,
+            -21.7,
+            5.5
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_gap",
+          "point_mm": [
+            0.15,
+            -21.7,
+            5.5
+          ]
+        },
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "hook",
+          "point_mm": [
+            -0.5,
+            -21.7,
+            11.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "pocket_side",
+          "point_mm": [
+            -0.5,
+            -18.55,
+            11.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": true,
+          "label": "back_wall",
+          "point_mm": [
+            -1.5,
+            -21.7,
+            11.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_outer_gap",
+          "point_mm": [
+            1.95,
+            -21.7,
+            11.15
+          ]
+        },
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "beam",
+          "point_mm": [
+            1.05,
+            0.0,
+            5.5
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_gap",
+          "point_mm": [
+            0.15,
+            0.0,
+            5.5
+          ]
+        },
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "hook",
+          "point_mm": [
+            -0.5,
+            0.0,
+            11.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "pocket_side",
+          "point_mm": [
+            -0.5,
+            3.15,
+            11.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": true,
+          "label": "back_wall",
+          "point_mm": [
+            -1.5,
+            0.0,
+            11.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_outer_gap",
+          "point_mm": [
+            1.95,
+            0.0,
+            11.15
+          ]
+        },
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "beam",
+          "point_mm": [
+            1.05,
+            21.7,
+            5.5
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_gap",
+          "point_mm": [
+            0.15,
+            21.7,
+            5.5
+          ]
+        },
+        {
+          "inside_a": true,
+          "inside_b": false,
+          "label": "hook",
+          "point_mm": [
+            -0.5,
+            21.7,
+            11.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "pocket_side",
+          "point_mm": [
+            -0.5,
+            24.849999999999998,
+            11.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": true,
+          "label": "back_wall",
+          "point_mm": [
+            -1.5,
+            21.7,
+            11.15
+          ]
+        },
+        {
+          "inside_a": false,
+          "inside_b": false,
+          "label": "beam_outer_gap",
+          "point_mm": [
+            1.95,
+            21.7,
+            11.15
+          ]
+        }
+      ]
+    },
+    {
+      "expected_refusal": true,
+      "message": "Selected rim is too short for the snap width, clearance and end margins.",
+      "name": "short_rim_refused",
+      "success": true
+    },
+    {
+      "expected_refusal": true,
+      "message": "Face B must contain the full blind recess plus remaining wall on its back, sides and top. Increase wall thickness/height or reduce reach, hook depth or clearance.",
+      "name": "thin_wall_refused",
+      "success": true
+    },
+    {
+      "expected_refusal": true,
+      "message": "Face B must contain the full blind recess plus remaining wall on its back, sides and top. Increase wall thickness/height or reduce reach, hook depth or clearance.",
+      "name": "short_receiver_refused",
+      "success": true
+    },
+    {
+      "name": "session_preview_update_cancel",
+      "success": true
+    },
+    {
+      "name": "session_create_edit_rebuild",
+      "settings": {
+        "attachment_overlap_mm": 0.5,
+        "clearance_mm": 0.3,
+        "end_margin_mm": 5.0,
+        "hook_depth_mm": 1.0,
+        "lead_in_mm": 3.0,
+        "reach_mm": 16.0,
+        "root_length_mm": 4.0,
+        "snap_count": 2,
+        "start_margin_mm": 5.0,
+        "thickness_mm": 1.5,
+        "width_mm": 6.0
+      },
+      "success": true
+    }
+  ],
+  "limits": [
+    "Production logical sessions run inside the outer rollback command; no manual CEF picks or Create-button clicks are simulated.",
+    "No manual save/reopen, Undo/Redo, material deformation or physical printing validation.",
+    "The native checks use bounded fixtures and do not establish arbitrary enclosure compatibility."
+  ]
+}

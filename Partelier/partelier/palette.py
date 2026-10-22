@@ -7,8 +7,9 @@ from urllib.parse import quote
 
 import adsk.core
 
-from .palette_protocol import PROTOCOL_VERSION, SESSION_ACTIONS, read_request
+from .palette_protocol import PROTOCOL_VERSION, SESSION_ACTIONS, SNAP_SESSION_ACTIONS, read_request
 from .tools.hinge.settings import HingeSettings
+from .tools.snap_fit.settings import SnapFitSettings
 
 
 COMMAND_ID = "sktech_partelier_library_b520ea78"
@@ -27,8 +28,9 @@ class ToolLibrary:
         self._input_check_id = None
         self._report_error = None
         self._hinge_commands = None
+        self._snap_commands = None
 
-    def start(self, workspace_id, panel_id, input_check_id, report_error, hinge_commands=None):
+    def start(self, workspace_id, panel_id, input_check_id, report_error, hinge_commands=None, snap_commands=None):
         if self._created_handler is not None:
             return
         self._workspace_id = workspace_id
@@ -36,6 +38,7 @@ class ToolLibrary:
         self._input_check_id = input_check_id
         self._report_error = report_error
         self._hinge_commands = hinge_commands
+        self._snap_commands = snap_commands
         ui = adsk.core.Application.get().userInterface
         panel = self._panel(ui)
         if panel is None:
@@ -45,7 +48,7 @@ class ToolLibrary:
             definition = ui.commandDefinitions.addButtonDefinition(
                 COMMAND_ID,
                 "Partelier: Tool library",
-                "Configure a pin hinge or explore the planned CAD helpers.",
+                "Configure pin hinges and snap-fits, or explore the planned CAD helpers.",
             )
         self._created_handler = _LauncherCreated(self)
         definition.commandCreated.add(self._created_handler)
@@ -53,14 +56,38 @@ class ToolLibrary:
             panel.controls.addCommand(definition)
         if self._has_palette_hinge():
             self._hinge_commands.set_state_callback(self._publish_hinge_state)
+        if self._has_palette_snap():
+            self._snap_commands.set_state_callback(self._publish_snap_state)
 
-    def _has_palette_hinge(self):
-        return self._hinge_commands is not None and all(
-            callable(getattr(self._hinge_commands, name, None)) for name in
+    @staticmethod
+    def _has_palette_manager(manager):
+        return manager is not None and all(
+            callable(getattr(manager, name, None)) for name in
             ("set_state_callback", "begin_palette", "palette_action", "palette_state")
         )
 
+    def _has_palette_hinge(self):
+        return self._has_palette_manager(self._hinge_commands)
+
+    def _has_palette_snap(self):
+        return self._has_palette_manager(self._snap_commands)
+
+    def _require_idle_other_tool(self, manager, name):
+        """One palette selection/preview owner at a time, including error recovery."""
+        if not self._has_palette_manager(manager):
+            return
+        snapshot = manager.palette_state()
+        if (isinstance(snapshot, dict) and isinstance(snapshot.get("sessionId"), str)
+                and snapshot["sessionId"] and snapshot.get("phase") not in {"idle", "created", "cancelled"}):
+            raise ValueError(f"Finish or cancel the current {name} before starting another tool.")
+
     def _publish_hinge_state(self, snapshot):
+        self._publish_state("hinge_state", snapshot)
+
+    def _publish_snap_state(self, snapshot):
+        self._publish_state("snap_state", snapshot)
+
+    def _publish_state(self, action, snapshot):
         """Best-effort UI notification; a closed palette cannot fail geometry."""
         palette = self._palette
         if self._created_handler is None or palette is None or not palette.isValid:
@@ -68,7 +95,7 @@ class ToolLibrary:
         try:
             # Qt sends an asynchronous 'response' acknowledgement. An empty
             # immediate return is normal and must not be treated as failure.
-            palette.sendInfoToHTML("hinge_state", json.dumps(snapshot))
+            palette.sendInfoToHTML(action, json.dumps(snapshot))
         except Exception:
             adsk.core.Application.get().log("Partelier could not update the tool library state.")
 
@@ -117,6 +144,7 @@ class ToolLibrary:
             raise RuntimeError("The tool library has stopped. Run the add-in again.")
         request = read_request(action, raw_data)
         snapshot = None
+        snap_snapshot = None
         if action == "open_input_check":
             ui = adsk.core.Application.get().userInterface
             command = ui.commandDefinitions.itemById(self._input_check_id)
@@ -126,6 +154,7 @@ class ToolLibrary:
             if not self._has_palette_hinge():
                 raise RuntimeError("The palette hinge session is unavailable. Stop and Run the add-in.")
             if action == "hinge_begin":
+                self._require_idle_other_tool(self._snap_commands, "snap-fit")
                 snapshot = self._hinge_commands.begin_palette(request.settings.to_dict(), editing=request.editing)
             else:
                 snapshot = self._hinge_commands.palette_action(
@@ -133,6 +162,22 @@ class ToolLibrary:
                     settings_dict=request.settings.to_dict() if request.settings is not None else None,
                     target=request.target,
                 )
+        elif action == "snap_begin" or action in SNAP_SESSION_ACTIONS:
+            if not self._has_palette_snap():
+                raise RuntimeError("The palette snap-fit session is unavailable. Stop and Run the add-in.")
+            if action == "snap_begin":
+                self._require_idle_other_tool(self._hinge_commands, "hinge")
+                snap_snapshot = self._snap_commands.begin_palette(request.settings.to_dict(), editing=request.editing)
+            else:
+                snap_snapshot = self._snap_commands.palette_action(
+                    action, request.session_id, revision=request.revision,
+                    settings_dict=request.settings.to_dict() if request.settings is not None else None,
+                    target=request.target,
+                )
+        elif action == "snap_status":
+            if not self._has_palette_snap():
+                raise RuntimeError("The palette snap-fit session is unavailable. Stop and Run the add-in.")
+            snap_snapshot = self._snap_commands.palette_state()
         elif action == "hinge_status":
             if not self._has_palette_hinge():
                 raise RuntimeError("The palette hinge session is unavailable. Stop and Run the add-in.")
@@ -140,6 +185,7 @@ class ToolLibrary:
         elif action in {"hinge_create", "hinge_edit"}:
             if self._hinge_commands is None:
                 raise RuntimeError("The hinge tool is unavailable. Stop and Run the add-in.")
+            self._require_idle_other_tool(self._snap_commands, "snap-fit")
             if action == "hinge_create":
                 self._hinge_commands.launch_create(request.settings.to_dict())
             else:
@@ -151,6 +197,10 @@ class ToolLibrary:
             capabilities.append("hinge-palette")
             if snapshot is None:
                 snapshot = self._hinge_commands.palette_state()
+        if self._has_palette_snap():
+            capabilities.extend(["snap-palette", "snap-edit"])
+            if snap_snapshot is None:
+                snap_snapshot = self._snap_commands.palette_state()
         return json.dumps({
             "protocol": PROTOCOL_VERSION,
             "requestId": request.request_id,
@@ -158,6 +208,8 @@ class ToolLibrary:
             "capabilities": capabilities,
             "hingeDefaults": HingeSettings().to_dict(),
             "hingeState": snapshot,
+            "snapDefaults": SnapFitSettings().to_dict(),
+            "snapState": snap_snapshot,
         })
 
     def stop(self):
@@ -174,6 +226,8 @@ class ToolLibrary:
             attempt(ui.terminateActiveCommand)
         if self._has_palette_hinge():
             attempt(lambda: self._hinge_commands.set_state_callback(None))
+        if self._has_palette_snap():
+            attempt(lambda: self._snap_commands.set_state_callback(None))
         attempt(self._release_palette)
         panel = self._panel(ui) if self._workspace_id else None
         control = panel.controls.itemById(COMMAND_ID) if panel else None
@@ -186,6 +240,7 @@ class ToolLibrary:
             attempt(definition.deleteMe)
         self._created_handler = None
         self._hinge_commands = None
+        self._snap_commands = None
         for error in errors:
             adsk.core.Application.get().log(f"Partelier UI cleanup failed:\n{error}")
 

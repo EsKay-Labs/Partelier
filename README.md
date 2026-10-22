@@ -5,8 +5,10 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 later reinforcement/pattern tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current code:** experimental 0.5.2 provides a separate-pin hinge with direct
-model selection, five presets, full-result live preview and manual Edit/Rebuild.
+**Current code:** experimental 0.6.0 provides an editable separate-pin hinge
+and an exterior cantilever snap-fit with a matching blind recess. Both tools use
+direct model selection, full-result live preview and manual Edit/Rebuild. Hinges
+include five presets.
 Attached output integrates the hinge into the two selected root bodies, retaining
 their identities, names and visibility. Only optional pins add separate bodies.
 Separate-leaf output creates independent hinge parts.
@@ -27,12 +29,23 @@ The final 0.5.0 native report passes 53 stated expectations: 40 generated
 geometry cases, six explicit larger-fillet refusals, six in-place/migration
 cases and one production-session workflow. Four attached fixture treatments each
 pass four Rebuilds without replacing the selected bodies or accumulating history.
-Current local checks pass 491 Python tests, the Node DOM suite and
+Current local checks pass 606 Python tests, both Node DOM suites and
 syntax/compilation checks. The current hinge workflow has been user-confirmed
 in Fusion. Broader interaction coverage, save/reopen, Undo/Redo, motion and
 physical printing remain acceptance items. See
-[native evidence and limits](docs/fusion-validation.md). Other tools remain
-planned; the honeycomb input checker creates no geometry.
+[native evidence and limits](docs/fusion-validation.md). The snap-fit passes
+nine native geometry/persistence/refusal/session cases, including source rollback
+and stable body identities. Other tools remain planned; the honeycomb input
+checker creates no geometry.
+
+**Try snap-fits:** Stop then Run Partelier to load 0.6.0, open the tool library
+and choose **Snap-fit**. Pick the base exterior wall A, the coplanar lid wall B,
+then their straight seam edge. The first family requires A below the seam and B
+above it, with enough material for the root and blind recess. Size and fit stay
+visible; count, margins and root dimensions are under Advanced. The source seam
+is preserved and the two parts are printed separately.
+For a new unsaved reference model, run **tools/fusion/SnapFitFixture** as a Fusion
+script. See the [snap-fit specification](docs/snap-fit-design.md).
 
 ## Direction
 
@@ -64,8 +77,8 @@ tool dropdown, favorites, guides and illustration controls work without Fusion.
 The selected tool opens immediately. Up to 720 px the image and inputs stack;
 wider views place them alongside one another. Workflow and design notes are
 collapsed until requested. Ctrl/Cmd+K focuses the tool menu. Favorites move to a
-menu group without duplicating entries and are session-only. Hinge dimensions
-are editable here, but launching Create/Edit requires a live Fusion connection.
+menu group without duplicating entries and are session-only. Hinge and snap-fit
+dimensions are editable here, but launching Create/Edit requires a live Fusion connection.
 The drawing is a concept illustration, not the native geometry preview.
 
 For local browser development, an optional loopback-only preview server can be

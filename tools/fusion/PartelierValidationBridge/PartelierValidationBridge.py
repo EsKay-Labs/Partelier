@@ -1,4 +1,4 @@
-"""Development-only file queue for one allowlisted native Fusion probe.
+"""Development-only file queue for fixed allowlisted native Fusion probes.
 
 The watcher performs file I/O and fireCustomEvent only. Fusion model/UI reads and
 the fixed probe run exclusively in a main-thread custom-event callback. This is
@@ -20,6 +20,11 @@ import uuid
 
 PROTOCOL_VERSION = 2
 SCENARIO = "joined_finish"
+PROBES = {
+    "joined_finish": ("tools", "fusion", "JoinFinishProbe", "JoinFinishProbe.py"),
+    "snap_fit": ("tools", "fusion", "SnapFitProbe", "SnapFitProbe.py"),
+}
+SCENARIOS = frozenset(PROBES)
 EVENT_ID = "sktech_partelier_validation_bridge_tick_946fef9c"
 MAX_REQUEST_BYTES = 2048
 MAX_BUSY_SECONDS = 30.0
@@ -52,8 +57,8 @@ def validate_request(value, filename_id):
     if canonical_request_id(value["request_id"]) != filename_id:
         raise ValueError("Request identifier must match its queue filename.")
     canonical_request_id(value["session_id"])
-    if value["scenario"] != SCENARIO:
-        raise ValueError("Only the joined_finish scenario is allowed.")
+    if not isinstance(value["scenario"], str) or value["scenario"] not in SCENARIOS:
+        raise ValueError("Only the fixed joined_finish and snap_fit scenarios are allowed.")
     submitted = value["submitted_at"]
     try:
         finite = not isinstance(submitted, bool) and isinstance(submitted, (int, float)) and math.isfinite(submitted)
@@ -101,15 +106,18 @@ def read_json(path, max_bytes=MAX_REQUEST_BYTES):
 
 
 def source_manifest(repo_root):
-    """Hash only the fixed runtime hinge files and the fixed probe source."""
-    repo_root = Path(repo_root)
-    hinge_root = repo_root / "Partelier" / "partelier" / "tools" / "hinge"
-    probe_path = repo_root / "tools" / "fusion" / "JoinFinishProbe" / "JoinFinishProbe.py"
-    paths = sorted(hinge_root.rglob("*.py")) + [probe_path]
-    if not paths or not hinge_root.is_dir() or not probe_path.is_file():
+    """Hash the complete local product runtime and both fixed probe sources."""
+    repo_root = Path(repo_root).resolve()
+    runtime_root = repo_root / "Partelier" / "partelier"
+    probes = [repo_root.joinpath(*relative) for relative in PROBES.values()]
+    paths = sorted(runtime_root.rglob("*.py")) + probes
+    if not runtime_root.is_dir() or not paths or any(not path.is_file() for path in probes):
         raise ValueError("The fixed validation source files are missing.")
-    files = {path.relative_to(repo_root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
-             for path in paths}
+    files = {}
+    for path in paths:
+        if path.is_symlink() or not path.resolve().is_relative_to(repo_root):
+            raise ValueError("Validation source files must stay inside the local project.")
+        files[path.relative_to(repo_root).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
     digest = hashlib.sha256()
     for name, value in sorted(files.items()):
         digest.update((name + "\0" + value + "\n").encode("utf-8"))
@@ -119,14 +127,16 @@ def source_manifest(repo_root):
 def _status(state, detail="", request_id=None):
     value = {"version": PROTOCOL_VERSION, "state": state, "detail": detail,
              "request_id": request_id, "updated_at": time.time(),
-             "pid": os.getpid(), "scenario": SCENARIO, "session_id": STATE.get("session_id")}
+             "pid": os.getpid(), "scenario": (STATE.get("active") or {}).get("scenario", SCENARIO),
+             "scenarios": sorted(SCENARIOS), "session_id": STATE.get("session_id")}
     atomic_json(STATE["queue"] / "status.json", value)
 
 
-def _write_result(request_id, state, detail="", report=None, manifest=None, *, queue=None, session_id=None):
+def _write_result(request_id, state, detail="", report=None, manifest=None, *, queue=None, session_id=None,
+                  scenario=SCENARIO):
     queue = Path(queue) if queue is not None else STATE["queue"]
     value = {"version": PROTOCOL_VERSION, "request_id": request_id,
-             "scenario": SCENARIO, "state": state, "detail": detail,
+             "scenario": scenario, "state": state, "detail": detail,
              "completed_at": time.time(), "success": False,
              "session_id": session_id or STATE.get("session_id")}
     if report is not None:
@@ -153,7 +163,7 @@ def _next_request():
             request = validate_request(read_json(path), request_id)
             if request["session_id"] != STATE["session_id"]:
                 _write_result(request_id, "cancelled", "Request belongs to an earlier bridge Run; resubmit it.",
-                              session_id=request["session_id"])
+                              session_id=request["session_id"], scenario=request["scenario"])
                 continue
             return request
         except (ValueError, OSError, UnicodeError) as error:
@@ -181,7 +191,7 @@ def _complete(request_id, report, job=None):
         detail = "Validation cancelled by bridge Stop; probe cleanup finished." if cancelled else (
             "Source changed while the probe was running; rerun validation." if changed else "")
         value = _write_result(request_id, state, detail, report, active["sources"],
-                              queue=queue, session_id=session_id)
+                              queue=queue, session_id=session_id, scenario=active.get("scenario", SCENARIO))
         if changed:
             value["sources_after"] = after
             atomic_json(queue / "results" / (request_id + ".json"), value)
@@ -189,7 +199,7 @@ def _complete(request_id, report, job=None):
         failure = "Could not finalize validation: " + str(error)
         try:
             _write_result(request_id, "error", failure, manifest=active["sources"],
-                          queue=queue, session_id=session_id)
+                          queue=queue, session_id=session_id, scenario=active.get("scenario", SCENARIO))
         except Exception:
             pass
     finally:
@@ -212,23 +222,24 @@ def _start_request(request):
     manifest = None
     try:
         manifest = source_manifest(STATE["repo"])
-        probe_path = STATE["repo"] / "tools" / "fusion" / "JoinFinishProbe" / "JoinFinishProbe.py"
+        probe_path = STATE["repo"].joinpath(*PROBES[request["scenario"]])
         spec = importlib.util.spec_from_file_location(module_name, probe_path)
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module
-        job = {"request_id": request_id, "module_name": module_name,
+        job = {"request_id": request_id, "scenario": request["scenario"], "module_name": module_name,
                "sources": manifest, "started": time.monotonic(), "module": module,
                "session_id": STATE["session_id"], "queue": STATE["queue"], "repo": STATE["repo"],
                "cancel_event": threading.Event(), "finalized": False}
         STATE["active"] = job
-        _status("running", "Running joined_finish in the current document.", request_id)
+        _status("running", "Running " + request["scenario"] + " in the current document.", request_id)
         spec.loader.exec_module(module)
         report_path = STATE["queue"] / "probe" / (request_id + ".json")
         module.run({"quiet": True, "no_auto_terminate": True, "report_path": str(report_path),
                     "cancel_requested": job["cancel_event"].is_set,
                     "on_complete": lambda report: _complete(request_id, report, job)})
     except Exception as error:
-        _write_result(request_id, "error", "Probe could not start: " + str(error), manifest=manifest)
+        _write_result(request_id, "error", "Probe could not start: " + str(error), manifest=manifest,
+                      scenario=request["scenario"])
         sys.modules.pop(module_name, None)
         STATE["active"] = None
         _status("error", "The previous validation could not start.", request_id)
@@ -256,7 +267,7 @@ def _tick():
             STATE["busy"] = busy
         detail = "Fusion active command " + repr(command) + " is busy; leave it idle to allow script validation."
         if time.monotonic() - busy["since"] >= MAX_BUSY_SECONDS:
-            _write_result(request_id, "blocked", detail)
+            _write_result(request_id, "blocked", detail, scenario=request["scenario"])
             STATE["busy"] = None
         _status("blocked", detail, request_id)
         return
@@ -348,7 +359,8 @@ def stop(context):
                 continue
             request = validate_request(read_json(path), request_id)
             if request["session_id"] == STATE["session_id"]:
-                _write_result(request_id, "cancelled", "Bridge stopped before this validation started.")
+                _write_result(request_id, "cancelled", "Bridge stopped before this validation started.",
+                              scenario=request["scenario"])
         except (ValueError, OSError, UnicodeError):
             continue
     try:

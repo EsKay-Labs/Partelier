@@ -4,9 +4,9 @@
   "id": "7947c039-0f77-43fb-a7c3-2ce8b118dc28",
   "author": "SKTech",
   "description": {
-    "": "Partelier compact blue HTML toolkit with automatic live preview, universal tapered supports and body movement relief, five pin-hinge presets, round/square housings, chamfer/fillet treatment and guarded Preview/Create/Edit."
+    "": "Partelier HTML toolkit for editable pin hinges and exterior cantilever snap-fits, with live Fusion material previews and guarded in-place Create/Rebuild."
   },
-  "version": "0.5.2",
+  "version": "0.6.0",
   "runOnStartup": false,
   "supportedOS": "windows",
   "editEnabled": true

@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from Partelier.partelier.tools.hinge.settings import HingeSettings
+from Partelier.partelier.tools.snap_fit.settings import SnapFitSettings
 
 
 class Event:
@@ -290,6 +291,173 @@ class PaletteLifecycleTests(unittest.TestCase):
         self.library.show()
         self.assertEqual(len(self.controls.items), 1)
         self.assertEqual(self.ui.palettes.creations, 2)
+
+
+    def dual_palette_managers(self):
+        def manager(settings):
+            snapshot = {"sessionId": None, "revision": 0, "phase": "idle", "editing": False,
+                        "settings": settings.to_dict(), "selections": {}, "message": "Select geometry."}
+            return SimpleNamespace(
+                set_state_callback=Mock(), begin_palette=Mock(return_value=snapshot),
+                palette_action=Mock(return_value=snapshot), palette_state=Mock(return_value=snapshot),
+                launch_create=Mock(), launch_edit=Mock(),
+            ), snapshot
+        hinge, hinge_state = manager(HingeSettings())
+        snap, snap_state = manager(SnapFitSettings())
+        self.library.stop()
+        self.library.start("workspace", "panel", "diagnostic", self.fail, hinge, snap)
+        return hinge, hinge_state, snap, snap_state
+
+    def test_snap_ready_and_status_are_read_only_and_expose_matching_defaults(self):
+        hinge, hinge_state, snap, snap_state = self.dual_palette_managers()
+        ready = json.loads(self.library.handle_message("ready", self.request))
+        self.assertIn("snap-palette", ready["capabilities"])
+        self.assertIn("snap-edit", ready["capabilities"])
+        self.assertEqual(ready["snapDefaults"], SnapFitSettings().to_dict())
+        self.assertEqual(ready["snapState"], snap_state)
+        self.assertEqual(ready["hingeState"], hinge_state)
+        self.assertEqual(json.loads(self.library.handle_message("snap_status", self.request))["snapState"], snap_state)
+        for manager in (hinge, snap):
+            manager.begin_palette.assert_not_called()
+            manager.palette_action.assert_not_called()
+            manager.launch_create.assert_not_called()
+            manager.launch_edit.assert_not_called()
+
+    def test_snap_begin_dispatches_only_snap_settings_and_preserves_hinge_contract(self):
+        hinge, _, snap, snap_state = self.dual_palette_managers()
+        reply = json.loads(self.library.handle_message("snap_begin", json.dumps({
+            "protocol": 1, "requestId": "snap-begin", "settings": {"width_mm": 10}, "editing": True,
+        })))
+        settings = snap.begin_palette.call_args.args[0]
+        self.assertEqual(settings, SnapFitSettings(width_mm=10).to_dict())
+        self.assertEqual(snap.begin_palette.call_args.kwargs, {"editing": True})
+        self.assertEqual(reply["snapState"], snap_state)
+        hinge.begin_palette.assert_not_called()
+        hinge.palette_action.assert_not_called()
+        hinge.launch_create.assert_not_called()
+
+    def test_snap_atomic_actions_focus_and_cancel_dispatch_only_to_snap_manager(self):
+        hinge, _, snap, snap_state = self.dual_palette_managers()
+        identity = "caf51e65-f35b-44fc-b748-56ee3e879ae6"
+        settings = SnapFitSettings(width_mm=10).to_dict()
+        for action in ("snap_update", "snap_preview", "snap_commit"):
+            result = json.loads(self.library.handle_message(action, json.dumps({
+                "protocol": 1, "requestId": action, "sessionId": identity,
+                "revision": 4, "settings": settings,
+            })))
+            self.assertEqual(result["snapState"], snap_state)
+            self.assertEqual(snap.palette_action.call_args.args, (action, identity))
+            self.assertEqual(snap.palette_action.call_args.kwargs, {"revision": 4, "settings_dict": settings, "target": None})
+        self.library.handle_message("snap_focus", json.dumps({
+            "protocol": 1, "requestId": "snap-focus", "sessionId": identity, "target": "face_b",
+        }))
+        self.assertEqual(snap.palette_action.call_args.kwargs["target"], "face_b")
+        self.library.handle_message("snap_cancel", json.dumps({
+            "protocol": 1, "requestId": "snap-cancel", "sessionId": identity,
+        }))
+        self.assertEqual(snap.palette_action.call_args.args, ("snap_cancel", identity))
+        hinge.palette_action.assert_not_called()
+
+    def test_invalid_snap_and_expired_sessions_do_not_launch_or_fall_back(self):
+        hinge, _, snap, _ = self.dual_palette_managers()
+        identity = "caf51e65-f35b-44fc-b748-56ee3e879ae6"
+        with self.assertRaises(ValueError):
+            self.library.handle_message("snap_commit", json.dumps({
+                "protocol": 1, "requestId": "invalid", "sessionId": identity,
+                "revision": 1, "settings": {"width_mm": 10},
+            }))
+        snap.palette_action.assert_not_called()
+        snap.palette_action.side_effect = ValueError("The snap-fit session is no longer active.")
+        args = SimpleNamespace(action="snap_commit", data=json.dumps({
+            "protocol": 1, "requestId": "expired", "sessionId": identity,
+            "revision": 1, "settings": SnapFitSettings().to_dict(),
+        }))
+        self.module._HTMLMessage(self.library).notify(args)
+        self.assertFalse(json.loads(args.returnData)["ok"])
+        self.assertIn("no longer active", json.loads(args.returnData)["message"])
+        for manager in (hinge, snap):
+            manager.begin_palette.assert_not_called()
+            manager.launch_create.assert_not_called()
+
+    def test_begin_refuses_another_active_tool_in_all_recoverable_and_busy_phases(self):
+        hinge, hinge_state, snap, snap_state = self.dual_palette_managers()
+        identity = "caf51e65-f35b-44fc-b748-56ee3e879ae6"
+        phases = ("selecting", "ready", "invalid", "previewing", "committing", "preview", "computing", "opening", "error")
+        for phase in phases:
+            with self.subTest(phase=phase, active="hinge"):
+                hinge_state.update(sessionId=identity, phase=phase)
+                with self.assertRaisesRegex(ValueError, "current hinge"):
+                    self.library.handle_message("snap_begin", json.dumps({
+                        "protocol": 1, "requestId": "snap-begin", "settings": {}, "editing": False,
+                    }))
+                snap.begin_palette.assert_not_called()
+            hinge_state.update(sessionId=None, phase="idle")
+            with self.subTest(phase=phase, active="snap"):
+                snap_state.update(sessionId=identity, phase=phase)
+                for action, fields in (("hinge_begin", {"settings": {}, "editing": False}),
+                                       ("hinge_create", {"settings": {}}), ("hinge_edit", {})):
+                    with self.assertRaisesRegex(ValueError, "current snap-fit"):
+                        self.library.handle_message(action, json.dumps({"protocol": 1, "requestId": action, **fields}))
+                hinge.begin_palette.assert_not_called()
+                hinge.launch_create.assert_not_called()
+                hinge.launch_edit.assert_not_called()
+            snap_state.update(sessionId=None, phase="idle")
+
+    def test_terminal_other_tool_does_not_block_begin_even_with_retired_id(self):
+        hinge, hinge_state, snap, snap_state = self.dual_palette_managers()
+        for phase in ("idle", "created", "cancelled"):
+            with self.subTest(phase=phase):
+                hinge_state.update(sessionId="caf51e65-f35b-44fc-b748-56ee3e879ae6", phase=phase)
+                self.library.handle_message("snap_begin", json.dumps({"protocol": 1, "requestId": phase, "settings": {}, "editing": False}))
+        self.assertEqual(snap.begin_palette.call_count, 3)
+        self.assertEqual(snap_state["sessionId"], None)
+
+    def test_other_tool_guard_handles_missing_or_incomplete_manager_state(self):
+        for manager in (None, SimpleNamespace(), SimpleNamespace(palette_state=Mock())):
+            self.library._require_idle_other_tool(manager, "other")
+        for snapshot in (None, {}, SimpleNamespace(), {"sessionId": None, "phase": "selecting"}):
+            manager = SimpleNamespace(set_state_callback=Mock(), begin_palette=Mock(), palette_action=Mock(), palette_state=Mock(return_value=snapshot))
+            self.library._require_idle_other_tool(manager, "other")
+
+    def test_same_tool_actions_can_finish_even_when_other_state_is_active(self):
+        hinge, hinge_state, snap, snap_state = self.dual_palette_managers()
+        identity = "caf51e65-f35b-44fc-b748-56ee3e879ae6"
+        hinge_state.update(sessionId=identity, phase="preview")
+        snap_state.update(sessionId=identity, phase="preview")
+        self.library.handle_message("snap_cancel", json.dumps({"protocol": 1, "requestId": "cancel", "sessionId": identity}))
+        snap.palette_action.assert_called_once()
+        self.library.handle_message("hinge_cancel", json.dumps({"protocol": 1, "requestId": "cancel", "sessionId": identity}))
+        hinge.palette_action.assert_called_once()
+
+    def test_snap_requires_the_full_manager_contract_and_running_library(self):
+        self.library._snap_commands = SimpleNamespace(begin_palette=Mock())
+        self.assertNotIn("snap-palette", json.loads(self.library.handle_message("ready", self.request))["capabilities"])
+        with self.assertRaises(RuntimeError):
+            self.library.handle_message("snap_status", self.request)
+        self.assertIsNone(json.loads(self.library.handle_message("ready", self.request))["snapState"])
+        self.library.stop()
+        with self.assertRaises(RuntimeError):
+            self.library.handle_message("snap_status", self.request)
+
+    def test_snap_push_and_both_callback_cleanup_survive_palette_failure(self):
+        hinge, hinge_state, snap, snap_state = self.dual_palette_managers()
+        callback = snap.set_state_callback.call_args.args[0]
+        self.assertTrue(callable(callback))
+        self.library.start("workspace", "panel", "diagnostic", self.fail, hinge, snap)
+        self.assertEqual(snap.set_state_callback.call_count, 1, "repeated start does not register callbacks twice")
+        callback(snap_state)
+        self.library.show()
+        palette = self.ui.palettes.itemById(self.module.PALETTE_ID)
+        callback(snap_state)
+        self.assertEqual(palette.sent_messages, [("snap_state", snap_state)])
+        palette.incomingFromHTML.fail_remove = True
+        self.library.stop()
+        for manager in (hinge, snap):
+            self.assertEqual(manager.set_state_callback.call_args.args, (None,))
+        self.assertIsNone(self.library._snap_commands)
+        self.assertIsNone(self.library._hinge_commands)
+        callback(snap_state)
+        self.assertEqual(len(palette.sent_messages), 1)
 
 
 if __name__ == "__main__":

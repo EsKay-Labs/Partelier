@@ -24,6 +24,8 @@ def submit(bridge, scenario):
             or not isinstance(status.get("updated_at"), (int, float))
             or not 0 <= time.time() - status["updated_at"] <= 20):
         raise ValueError("Load/run the current development validation bridge before submitting.")
+    if scenario != bridge.SCENARIO and scenario not in status.get("scenarios", ()):
+        raise ValueError("Reload the development validation bridge to enable the snap_fit scenario.")
     session_id = bridge.canonical_request_id(status.get("session_id"))
     request_id = str(uuid.uuid4())
     request = {"version": bridge.PROTOCOL_VERSION, "request_id": request_id,
@@ -33,8 +35,14 @@ def submit(bridge, scenario):
     return request_id
 
 
-def poll(bridge, request_id, timeout):
+def poll(bridge, request_id, timeout, expected_scenario=None):
     bridge.canonical_request_id(request_id)
+    if expected_scenario is not None and expected_scenario not in bridge.SCENARIOS:
+        raise ValueError("Unsupported validation scenario.")
+    queued_path = bridge.queue_root() / "requests" / (request_id + ".json")
+    if expected_scenario is None and queued_path.exists():
+        request = bridge.validate_request(bridge.read_json(queued_path), request_id)
+        expected_scenario = request["scenario"]
     deadline = time.monotonic() + timeout
     result_path = bridge.queue_root() / "results" / (request_id + ".json")
     while True:
@@ -43,7 +51,9 @@ def poll(bridge, request_id, timeout):
             if (not isinstance(result, dict) or result.get("request_id") != request_id
                     or type(result.get("version")) is not int
                     or result.get("version") != bridge.PROTOCOL_VERSION
-                    or result.get("scenario") != bridge.SCENARIO
+                    or not isinstance(result.get("scenario"), str)
+                    or result["scenario"] not in bridge.SCENARIOS
+                    or (expected_scenario is not None and result["scenario"] != expected_scenario)
                     or result.get("state") not in {"complete", "blocked", "error", "cancelled"}
                     or type(result.get("success")) is not bool
                     or (result["success"] and result["state"] != "complete")):
@@ -57,7 +67,7 @@ def poll(bridge, request_id, timeout):
             except (OSError, ValueError, UnicodeError):
                 status = {"state": "unavailable"}
             return {"version": bridge.PROTOCOL_VERSION, "request_id": request_id,
-                    "scenario": bridge.SCENARIO, "state": "timeout", "success": False,
+                    "scenario": expected_scenario or bridge.SCENARIO, "state": "timeout", "success": False,
                     "detail": "No result before the CLI timeout; the queued request was not cancelled.",
                     "bridge_status": status}
         time.sleep(min(0.25, remaining))
@@ -67,7 +77,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     submit_parser = commands.add_parser("submit", help="Queue the allowlisted probe and wait for its result.")
-    submit_parser.add_argument("--scenario", choices=["joined_finish"], default="joined_finish")
+    submit_parser.add_argument("--scenario", choices=["joined_finish", "snap_fit"], default="joined_finish")
     submit_parser.add_argument("--timeout", type=float, default=240)
     submit_parser.add_argument("--no-wait", action="store_true", help="Return the request UUID immediately.")
     poll_parser = commands.add_parser("poll", help="Wait for one previously submitted request UUID.")
@@ -96,7 +106,8 @@ def main(argv=None):
         if args.command == "submit" and args.no_wait:
             print(json.dumps({"request_id": request_id, "state": "queued"}, indent=2))
             return 0
-        result = poll(bridge, request_id, args.timeout)
+        result = poll(bridge, request_id, args.timeout,
+                      expected_scenario=args.scenario if args.command == "submit" else None)
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0 if result.get("success") is True else 2 if result.get("state") == "timeout" else 1
     except (OSError, ValueError, UnicodeError) as error:

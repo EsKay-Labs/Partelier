@@ -9,6 +9,8 @@ installable Partelier bundle and starts only when explicitly run in Fusion.
 In Fusion, open Utilities > Scripts and Add-Ins > + > Script or add-in from device.
 Select the folder `tools/fusion/PartelierValidationBridge` in this repository and
 Run **PartelierValidationBridge**. Leave Fusion idle between ordinary commands.
+After updating a loaded bridge, Stop then Run it once. The status advertises its
+supported scenarios; the CLI rejects snap_fit against an older loaded bridge.
 There is no need to reload the product add-in to load the development bridge.
 
 From the repository, using the same normal user temporary directory as Fusion:
@@ -16,6 +18,7 @@ From the repository, using the same normal user temporary directory as Fusion:
 ```powershell
 py tools/run_fusion_validation.py status
 py tools/run_fusion_validation.py submit --scenario joined_finish --no-wait
+py tools/run_fusion_validation.py submit --scenario snap_fit --no-wait
 py tools/run_fusion_validation.py poll REQUEST_UUID --timeout 60
 ```
 
@@ -37,6 +40,45 @@ report is published after owned-command cleanup and rollback checks. An old
 completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
+
+## Exterior snap-fit (0.6.0)
+
+Final native request `54536e93-be12-418f-86c9-9f83d0bbe872` passes nine named
+cases on Fusion 2705.1.30. The
+[committed evidence](validation/snap-fit-0.6.0.json) contains inputs, native
+point-containment witnesses, outcomes and exact runtime/probe source hashes.
+Hashes describe the exact tested working files; Git checkout line-ending
+conversion can change raw-byte hashes without changing the Python code.
+The combined SHA256 is
+`252d81b2011a272517dd315f8d0f76670d38a1b7c37941190c4593f1463f65d7`.
+The bridge hashes all 28 runtime Python files and both fixed probes, verifies
+that they are unchanged when the run completes, and rejects arbitrary paths or
+code in requests. The full local envelope is in ignored
+`output/native/snap-fit-0.6.0-full.json`.
+
+| Cases | Verified result |
+| --- | --- |
+| Default / three clasps | Beam material, exterior gap, hook engagement, receiving clearance and remaining back wall at stated sample points |
+| Create in place | Same two selected bodies, names and visibility; no duplicate final bodies |
+| Rebuild with later independent history | Same BaseFeature and four Combine references, changed dimensions/count saved |
+| Short rim / thin wall / short receiving face | Explicit refusal before persistent changes |
+| Production logical session preview/update/Cancel | New dimensions reach the preview; exact snapshot and visibility restored |
+| Production logical session Create/Edit/Rebuild | Body selection loads saved dimensions; new count reaches rebuilt geometry; no remaining preview groups |
+
+All native persistent work runs inside one outer rollback-only command. After
+its empty execute/destroy, original bodies, topology counts, timeline, marker,
+appearance count and graphics flags match their original snapshot. Original
+body/face/edge references remain valid; detached temporary results remain valid
+solids after rollback. No document is saved.
+
+606 Python tests and both Node DOM suites pass separately, with JavaScript
+syntax and Python compilation checks. The session probe calls production
+logical sessions inside its outer transaction; it does not simulate manual CEF
+picking or clicking the Create button. Unit/DOM checks cover the zero-input
+commit wiring, request ordering, stale settings and cleanup failures. Manual
+CEF behavior, save/reopen, Undo/Redo, arbitrary enclosure geometry, assembly
+force and physical printing remain outside this result. The tool's first family
+and its geometric limits are specified in [snap-fit-design.md](snap-fit-design.md).
 
 ## Preview appearance correction (0.5.2)
 

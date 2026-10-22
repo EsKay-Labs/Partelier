@@ -96,6 +96,25 @@ class AddinLifecycleTests(unittest.TestCase):
                 manager.stop_count += 1
 
         self.manager_type = Manager
+        self.snap_managers = []
+
+        class SnapManager:
+            fail_start = False
+
+            def __init__(manager, report_error=None):
+                manager.start_count = 0
+                manager.stop_count = 0
+                self.snap_managers.append(manager)
+
+            def start(manager):
+                manager.start_count += 1
+                if manager.fail_start:
+                    raise RuntimeError("Simulated snap registration failure")
+
+            def stop(manager):
+                manager.stop_count += 1
+
+        self.snap_manager_type = SnapManager
 
         class Library:
             def __init__(library):
@@ -120,6 +139,9 @@ class AddinLifecycleTests(unittest.TestCase):
         hinge_name = "Partelier.partelier.tools.hinge.command"
         hinge = ModuleType(hinge_name)
         hinge.HingeCommands = Manager
+        snap_name = "Partelier.partelier.tools.snap_fit.command"
+        snap = ModuleType(snap_name)
+        snap.SnapCommands = SnapManager
         path = Path(__file__).parents[1] / "Partelier/partelier/addin.py"
         spec = importlib.util.spec_from_file_location(
             "Partelier.partelier._addin_lifecycle_test", path,
@@ -127,7 +149,7 @@ class AddinLifecycleTests(unittest.TestCase):
         self.module = importlib.util.module_from_spec(spec)
         with patch.dict("sys.modules", {
             "adsk": adsk, "adsk.core": core, "adsk.fusion": fusion,
-            palette_name: palette, hinge_name: hinge,
+            palette_name: palette, hinge_name: hinge, snap_name: snap,
         }):
             spec.loader.exec_module(self.module)
         self.library = self.module._tool_library
@@ -143,9 +165,30 @@ class AddinLifecycleTests(unittest.TestCase):
     def assert_stopped(self):
         self.assertIsNone(self.module._created_handler)
         self.assertIsNone(self.module._hinge_commands)
+        self.assertIsNone(self.module._snap_commands)
         self.assertEqual(self.module._sessions, [])
         self.assertIsNone(self.ui.commandDefinitions.itemById(self.module.COMMAND_ID))
         self.assertIsNone(self.controls.itemById(self.module.COMMAND_ID))
+
+    def test_snap_start_failure_stops_both_and_allows_retry(self):
+        self.snap_manager_type.fail_start = True
+        with self.assertRaisesRegex(RuntimeError, "snap registration"):
+            self.module.start()
+        self.assert_stopped()
+        self.assertEqual(self.managers[0].stop_count, 1)
+        self.assertEqual(self.snap_managers[0].stop_count, 1)
+        self.assertEqual(self.library.start_calls, [])
+        self.snap_manager_type.fail_start = False
+        self.module.start()
+        self.assertEqual(self.snap_managers[-1].start_count, 1)
+
+    def test_snap_stop_failure_does_not_skip_owned_ui_cleanup(self):
+        self.module.start()
+        self.snap_managers[0].stop = Mock(side_effect=RuntimeError("snap stop"))
+        self.module.stop()
+        self.assert_stopped()
+        self.assertEqual(self.managers[0].stop_count, 1)
+        self.assertTrue(self.logs)
 
     def test_report_error_exposes_original_reason_and_full_traceback(self):
         palette = SimpleNamespace(isVisible=False)
@@ -184,6 +227,8 @@ class AddinLifecycleTests(unittest.TestCase):
             self.module.WORKSPACE_ID, self.module.PANEL_ID, self.module.COMMAND_ID,
         ))
         self.assertIs(keywords["hinge_commands"], manager)
+        self.assertIs(keywords["snap_commands"], self.snap_managers[0])
+        self.assertEqual(self.snap_managers[0].start_count, 1)
         self.assertEqual(len(self.ui.commandDefinitions.items), 1)
         self.assertEqual(len(self.controls.items), 1)
         self.assertEqual(len(self.ui.commandDefinitions.itemById(self.module.COMMAND_ID).commandCreated.handlers), 1)

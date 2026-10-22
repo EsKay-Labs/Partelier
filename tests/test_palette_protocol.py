@@ -6,6 +6,7 @@ import unittest
 
 from Partelier.partelier.palette_protocol import read_request
 from Partelier.partelier.tools.hinge.settings import HingeSettings
+from Partelier.partelier.tools.snap_fit.settings import SnapFitSettings
 
 
 class PaletteProtocolTests(unittest.TestCase):
@@ -176,6 +177,75 @@ class PaletteProtocolTests(unittest.TestCase):
     def test_additional_parameters_cannot_reach_host(self):
         with self.assertRaises(ValueError):
             read_request("open_input_check", self.request(commandId="unrelated-command"))
+
+
+class SnapPaletteProtocolTests(unittest.TestCase):
+    identity = "caf51e65-f35b-44fc-b748-56ee3e879ae6"
+
+    def request(self, **updates):
+        return json.dumps({"protocol": 1, "requestId": "snap-ui-1", **updates})
+
+    def test_begin_merges_only_snap_defaults_and_boolean_edit_mode(self):
+        request = read_request("snap_begin", self.request(settings={"width_mm": 10}, editing=True))
+        self.assertIsInstance(request.settings, SnapFitSettings)
+        self.assertEqual(request.settings.width_mm, 10)
+        self.assertEqual(request.settings.reach_mm, 16)
+        self.assertTrue(request.editing)
+        for editing in (0, 1, "true", None):
+            with self.subTest(editing=editing), self.assertRaises(ValueError):
+                read_request("snap_begin", self.request(settings={}, editing=editing))
+        for supplied in ({"length_mm": 40}, {"commandId": "other"}, None, []):
+            with self.subTest(supplied=supplied), self.assertRaises(ValueError):
+                read_request("snap_begin", self.request(settings=supplied, editing=False))
+
+    def test_live_actions_require_complete_atomic_snap_settings(self):
+        settings = SnapFitSettings(width_mm=12, snap_count=3).to_dict()
+        for action in ("snap_update", "snap_preview", "snap_commit"):
+            with self.subTest(action=action):
+                request = read_request(action, self.request(settings=settings, sessionId=self.identity, revision=9))
+                self.assertEqual(request.settings.to_dict(), settings)
+                self.assertEqual((request.session_id, request.revision), (self.identity, 9))
+                for missing in settings:
+                    incomplete = {key: value for key, value in settings.items() if key != missing}
+                    with self.subTest(missing=missing), self.assertRaisesRegex(ValueError, "exactly"):
+                        read_request(action, self.request(settings=incomplete, sessionId=self.identity, revision=9))
+                with self.assertRaises(ValueError):
+                    read_request(action, self.request(settings=HingeSettings().to_dict(), sessionId=self.identity, revision=9))
+
+    def test_revision_and_settings_type_validation_precedes_native_operations(self):
+        settings = SnapFitSettings().to_dict()
+        for revision in (-1, 1_000_000_001, True, 1.0, "1", None):
+            with self.subTest(revision=revision), self.assertRaises(ValueError):
+                read_request("snap_preview", self.request(settings=settings, sessionId=self.identity, revision=revision))
+        for name, value in (("snap_count", 1.0), ("snap_count", True), ("width_mm", "8"),
+                            ("width_mm", math.inf), ("clearance_mm", math.nan), ("thickness_mm", 0)):
+            with self.subTest(name=name, value=value), self.assertRaises(ValueError):
+                read_request("snap_preview", self.request(settings={**settings, name: value}, sessionId=self.identity, revision=0))
+
+    def test_only_canonical_current_session_identifiers_are_accepted(self):
+        for identity in (None, "", 1, "other-command", self.identity.upper(), self.identity.replace("-", "")):
+            with self.subTest(identity=identity), self.assertRaises(ValueError):
+                read_request("snap_cancel", self.request(sessionId=identity))
+        self.assertEqual(read_request("snap_cancel", self.request(sessionId=self.identity)).session_id, self.identity)
+
+    def test_focus_targets_are_explicit_geometry_slots(self):
+        for target in ("face_a", "face_b", "axis_edge", "edit_target"):
+            self.assertEqual(read_request("snap_focus", self.request(sessionId=self.identity, target=target)).target, target)
+        for target in ("body", "delete", [], None, 1):
+            with self.subTest(target=target), self.assertRaises(ValueError):
+                read_request("snap_focus", self.request(sessionId=self.identity, target=target))
+
+    def test_status_cancel_and_focus_reject_extra_host_instructions(self):
+        for action, fields in (("snap_status", {}), ("snap_cancel", {"sessionId": self.identity}),
+                               ("snap_focus", {"sessionId": self.identity, "target": "face_a"})):
+            with self.subTest(action=action):
+                self.assertEqual(read_request(action, self.request(**fields)).request_id, "snap-ui-1")
+                for injected in ({"entityToken": "untrusted"}, {"path": "other.py"}, {"settings": {}}):
+                    with self.assertRaises(ValueError):
+                        read_request(action, self.request(**fields, **injected))
+        for action in ("snap_create", "snap_edit", "snap_delete", "snap_run_script"):
+            with self.subTest(action=action), self.assertRaises(ValueError):
+                read_request(action, self.request())
 
 
 if __name__ == "__main__":

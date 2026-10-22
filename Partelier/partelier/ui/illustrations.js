@@ -145,12 +145,17 @@ window.PartelierIllustrations = (() => {
             if (filletEdges) roundedTube(0,-span/2-(exploded?22:3),5,1.4,0,span+6,"#e9bd83",.35);
             else tube(0,-span/2-(exploded?22:3),5,1.4,0,span+6,"#e9bd83",16);
         } else if (id === "snap") {
-            box(-34-shift,-15,0,21,30,5,A);
-            box(-16-shift,-5,4,32,9,3,A);
-            prism([[10-shift,7],[17-shift,7],[17-shift,13],[10-shift,10]],-5,9,B);
-            box(20+shift,-18,0,15,36,4,B);
-            box(20+shift,-18,4,15,11,13,B); box(20+shift,8,4,15,10,13,B);
-            box(20+shift,-7,14,15,15,3,B);
+            // Exterior vertical clasp: base below the seam, lid above it.
+            const lift = exploded ? 22 : 0;
+            box(-3,-20,-18,3,40,18,A);
+            box(-3,-20,lift,1.7,40,22,B); // back of the blind receiver
+            box(-1.3,-20,lift,1.3,40,12.7,B);
+            box(-1.3,-20,16.3+lift,1.3,40,5.7,B);
+            box(-1.3,-20,12.7+lift,1.3,15.7,3.6,B);
+            box(-1.3,4.3,12.7+lift,1.3,15.7,3.6,B);
+            box(-.5,-4,-4,2.3,8,4,A);
+            box(.3,-4,-4,1.5,8,20,A);
+            prism([[-1,13],[1.8,13],[1.8,16],[.3,16]],-4,8,A);
         } else if (id === "slider") {
             box(-17,-35,0,34,70,4,A);
             prism([[-8,4],[8,4],[12,12],[-12,12]],-33,66,A);

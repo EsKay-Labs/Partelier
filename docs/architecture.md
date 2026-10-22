@@ -4,7 +4,8 @@
 
 Use Python with Fusion's supplied `adsk.core` and `adsk.fusion` API and a local
 HTML/CSS/JavaScript palette, as explicitly requested by the user. Native command
-inputs handle the existing diagnostic and the hinge's geometry selection.
+inputs handle the existing diagnostic. Hinge and snap-fit picking run directly
+from the palette with selectEntity; commits use zero-input native commands.
 No frontend framework, backend, database, external geometry library or dependency
 installer is needed for the foundation.
 The initial supported platform is Windows. The Fusion-embedded Python version
@@ -31,7 +32,11 @@ must be recorded during native validation; developer checks use local Python.
 | `Partelier/partelier/tools/hinge/roof_finish.py` | Read-only round/tapered cap-contour witnesses; refusal without geometry repair |
 | `Partelier/partelier/tools/hinge/relief.py` | Pure movement-envelope plan and temporary source/leaf relief |
 | `Partelier/partelier/tools/hinge/visibility.py` | Scoped persistent-body light-bulb leases; no geometry edits or deletions |
-| `tools/fusion/HingeFixture/` | Standalone new-document fixture for native checks |
+| `Partelier/partelier/tools/snap_fit/` | Independent settings, pure placement, bounded transient clasp geometry, recipe and palette command lifecycle |
+| `Partelier/partelier/tools/solid_pair.py` | Shared two-target in-place persistence; strict owned BaseFeature/four-Combine records and historical source scope |
+| `Partelier/partelier/ui/snap.js` | Independent snap-fit form/session controller; library shell forwards host messages |
+| `tools/fusion/HingeFixture/` / `SnapFitFixture/` | Standalone new-document reference fixtures |
+| `tools/fusion/SnapFitProbe/` | Fixed rollback-only snap-fit native checks |
 
 Fusion requires a matching Python entry point and manifest in the add-in folder.
 The bundle uses package-relative imports, following Autodesk's
@@ -452,3 +457,25 @@ On this host, custom-event queue calls return `False` despite delivered handlers
 The runtime does not treat that return alone as failure; registration/event-ID
 checks and real API exception handling remain. The product adds no worker or
 generic scheduling framework.
+
+
+## Second geometry tool (0.6.0)
+
+Snap-fit is a separate tool module and UI controller. Palette requests retain
+UUID/revision/full-settings guards; capability flags depend on started managers.
+Only one tool owns picking/preview at a time. The existing hinge controller and
+persistence remain in place. Snap reuses the proven transient box/prism and
+appearance/outline rendering helpers, plus scoped visibility leases.
+
+`SolidPairStore` provides tool-neutral persistence for two existing root solids.
+Each tool gets its own attribute namespace and tool ID; pair ownership metadata
+is separate from its settings/source recipe. Native history updates the same
+selected bodies through a two-tool BaseFeature and four Combines, rather than
+creating final copies. Rebuild replaces the two source shapes without appending
+history. Historical reads always restore the previous marker.
+
+The fixed development bridge now allowlists joined_finish and snap_fit and
+hashes all runtime Python plus both static probes. Its watcher still handles
+only files and queued events. Every snap native fixture/persistence test runs
+in a rollback-only host command and checks the original document afterwards.
+See [snap-fit geometry and limits](snap-fit-design.md).

@@ -218,6 +218,7 @@
         $("live-preview-status").classList.toggle("is-current", !!ready && currentPreview());
         $("live-preview-status").classList.toggle("needs-attention", !!ready && (!valid || state.liveError || (state.session?.phase === "error" && state.session.revision === state.revision)));
         renderSelections();
+        window.PartelierSnap?.setHingeActive(active || busy);
     }
     function operationStatus(message, error = false) {
         $("operation-status").textContent = message;
@@ -244,7 +245,7 @@
         updateActions();
         return true;
     }
-    window.fusionJavaScriptHandler = { handle(action, data) { try { if (action === "hinge_state" && applyHingeState(JSON.parse(data))) pushedStateVersion++; return "OK"; } catch (_) { return "FAILED"; } } };
+    window.fusionJavaScriptHandler = { handle(action, data) { try { if (action === "hinge_state" && applyHingeState(JSON.parse(data))) pushedStateVersion++; else window.PartelierSnap?.handle(action, data); return "OK"; } catch (_) { return "FAILED"; } } };
 
     function renderFavorite() {
         const favorite = state.favorites.has(state.selected); $("favorite-button").textContent = favorite ? "★" : "☆";
@@ -253,7 +254,11 @@
     function renderDetail() {
         const tool = tools.find(item => item.id === state.selected);
         $("tool-workspace").classList.toggle("hinge-workspace", tool.id === "hinge");
-        $("planned-tool").hidden = tool.id === "hinge";
+        const snapTool = tool.id === "snap" && !!window.PartelierSnap;
+        $("planned-tool").hidden = tool.id === "hinge" || snapTool;
+        $("hinge-action-dock").hidden = snapTool;
+        $("hinge-help").hidden = snapTool;
+        window.PartelierSnap?.select(tool.id);
         $("detail-category").textContent = categories.find(([id]) => id === tool.category)[1];
         $("detail-title").textContent = tool.name; $("detail-description").textContent = tool.description; $("detail-outcome").textContent = tool.outcome; $("detail-stage").textContent = tool.stage; $("detail-note").textContent = tool.note;
         $("parameter-list").replaceChildren(...tool.inputs.map(([label, value]) => { const item = document.createElement("div"); item.className = "parameter-item"; const key = document.createElement("span"); key.textContent = label; const content = document.createElement("strong"); content.textContent = value; item.append(key, content); return item; }));
@@ -340,7 +345,8 @@
             const result = await send("ready"); state.connected = true; state.capabilities = new Set(Array.isArray(result.capabilities) ? result.capabilities : []);
             if (!state.dirty && result.hingeDefaults && !result.hingeState?.settings) { state.hingeSettings = { ...hingeDefaults, ...result.hingeDefaults }; syncHingeFields(); }
             $("connection-status").classList.add("connected"); $("connection-status").replaceChildren(); $("connection-status").append(document.createElement("i"), "Fusion connected");
-            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.5.2";
+            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.6.0";
+            if (window.PartelierSnap?.connect(result)) { state.selected = "snap"; renderToolMenu(); renderDetail(); }
             updateActions();
             if (sessionId() && selectionsReady() && !currentPreview()) scheduleUpdate();
         } catch (error) { $("connection-status").replaceChildren(document.createElement("i"), "Fusion connection unavailable"); $("bridge-message").textContent = error.message; }
