@@ -1,0 +1,11 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "addin",
+  "id": "7f74207f-ad19-4cb0-950e-4d35f2ff04b6",
+  "author": "SKTech",
+  "description": {"": "Development-only Partelier validation file queue. No UI automation."},
+  "version": "1.0.0",
+  "supportedOS": "windows",
+  "runOnStartup": false,
+  "editEnabled": true
+}

@@ -1,0 +1,13 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "addin",
+  "id": "7947c039-0f77-43fb-a7c3-2ce8b118dc28",
+  "author": "SKTech",
+  "description": {
+    "": "Partelier compact blue HTML toolkit with automatic live preview, universal tapered supports and body movement relief, five pin-hinge presets, round/square housings, chamfer/fillet treatment and guarded Preview/Create/Edit."
+  },
+  "version": "0.5.2",
+  "runOnStartup": false,
+  "supportedOS": "windows",
+  "editEnabled": true
+}

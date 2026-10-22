@@ -1,0 +1,12 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "script",
+  "id": "b7a284c6-88e3-4de0-8b0b-c904f4a07611",
+  "author": "SKTech",
+  "description": {
+    "": "Create a disposable two-body hinge fixture in a new unsaved parametric Design."
+  },
+  "version": "0.0.1",
+  "supportedOS": "windows",
+  "editEnabled": true
+}

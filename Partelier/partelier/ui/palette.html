@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
+    <title>Partelier · Hinges</title>
+    <link rel="stylesheet" href="palette.css?v=0.5.2">
+    <script src="catalog.js?v=0.5.2" defer></script>
+    <script src="illustrations.js?v=0.5.2" defer></script>
+    <script src="palette.js?v=0.5.2" defer></script>
+</head>
+<body>
+    <header class="app-header">
+        <a class="brand" href="#tool-select" aria-label="Partelier tool selector">
+            <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true"><path fill-rule="evenodd" d="M6 4h14c7 0 11 4 11 11S27 26 20 26h-7v6H6Zm7 7v8h7c3 0 4-1 4-4s-1-4-4-4Z" fill="currentColor"/></svg>
+            <span class="brand-name">partelier</span>
+        </a>
+        <div class="header-meta"><span id="connection-status"><i></i>Browser preview</span><button class="icon-button" id="about-button" aria-label="About Partelier">?</button></div>
+    </header>
+    <section class="tool-picker" aria-label="Tool selection">
+        <label for="tool-select">Tool</label>
+        <div class="picker-row"><div class="select-wrap"><select id="tool-select" aria-keyshortcuts="Control+k Meta+k"></select></div><button id="favorite-button" class="icon-button favorite-button" aria-label="Add to favorites" aria-pressed="false">☆</button></div>
+        <span id="tool-count" hidden></span>
+    </section>
+    <main id="tool-workspace" class="workspace">
+        <div class="tool-heading"><div><p id="detail-category" class="eyebrow"></p><h1 id="detail-title"></h1></div><span id="detail-stage" class="stage-badge"></span></div>
+        <form id="hinge-settings" novalidate>
+            <section class="hinge-input-group" id="hinge-selection-section" aria-labelledby="geometry-title">
+                <div class="section-heading"><h2 id="geometry-title">Geometry</h2><button id="edit-hinge-button" class="text-button" type="button" disabled>Edit existing</button></div>
+                <div class="geometry-start"><button id="begin-hinge-button" class="secondary-button" type="button" disabled>Select faces &amp; edge</button><p id="selection-help" class="helper-copy">Pick Face A, Face B, then the shared edge.</p></div>
+                <div class="selection-grid" id="hinge-selections"></div>
+            </section>
+            <section class="hinge-input-group" id="hinge-design-section" aria-labelledby="design-title">
+                <div class="section-heading"><h2 id="design-title">Design</h2></div>
+                <div class="design-row"><div id="hinge-design-fields" class="parameter-list"></div><div id="hinge-output-fields" class="parameter-list"></div></div>
+            </section>
+            <section class="hinge-input-group" id="hinge-basic-section" aria-labelledby="size-title">
+                <div class="section-heading"><h2 id="size-title">Size &amp; placement</h2><span class="unit-label">mm</span></div>
+                <div id="hinge-fields" class="parameter-list basic-grid"></div>
+                <div id="hinge-layout-fields" class="parameter-list basic-grid"></div>
+            </section>
+            <details class="guide-disclosure" id="hinge-options">
+                <summary>Advanced settings</summary>
+                <details class="guide-disclosure" id="hinge-fit"><summary>Fit &amp; pin</summary><div id="hinge-fit-fields" class="parameter-list"></div><p class="helper-copy">Movement clearance separates the rotating housing from nearby material. Bore clearance is the hole diameter minus pin diameter.</p></details>
+                <details class="guide-disclosure" id="hinge-finish"><summary>Housing &amp; edges</summary><div id="hinge-finish-choice" class="parameter-list"></div><div id="hinge-finish-fields" class="parameter-list"></div><div id="hinge-fillet-fields" class="parameter-list"></div></details>
+                <details class="guide-disclosure" id="hinge-advanced"><summary id="hinge-advanced-title">Attachment &amp; seam</summary><div id="hinge-mode" class="hinge-mode"></div><div id="hinge-advanced-fields" class="parameter-list"></div></details>
+                <details class="guide-disclosure" id="hinge-holes"><summary>Screw holes</summary><div id="hinge-hole-toggle"></div><div id="hinge-hole-fields" class="parameter-list"></div><p class="helper-copy">Two straight through-holes per leaf.</p></details>
+            </details>
+        </form>
+        <div id="planned-tool"><div id="parameter-list" class="parameter-list"></div><p id="inputs-note" class="helper-copy">Planned tool · creation is not available yet.</p></div>
+        <details class="guide-disclosure" id="hinge-help">
+            <summary>Help &amp; examples</summary>
+            <p id="detail-description" class="detail-description"></p>
+            <section class="visual-pane" aria-label="Concept illustration">
+                <div class="illustration-stage"><div class="stage-heading"><span>ILLUSTRATION · NOT MODEL PREVIEW</span><span id="view-label">ISOMETRIC</span></div><div id="detail-illustration"></div><div class="stage-key"><span><i class="part-a"></i>Part A</span><span><i class="part-b"></i>Part B</span></div></div>
+                <div class="view-controls" role="group" aria-label="Illustration view"><button id="assembled-button" class="selected" aria-pressed="true">Assembled</button><button id="exploded-button" aria-pressed="false">Exploded</button><button id="reset-view" class="reset-view" aria-label="Reset illustration">↺</button></div>
+                <p id="detail-outcome"></p>
+            </section>
+            <p id="hinge-design-note"></p><p id="hinge-output-note"></p><p id="hinge-web-profile-note"></p>
+            <h2>Placement</h2><p>Pick coplanar exterior faces facing the same way, then their straight boundary edge. Supported touching seams are detected automatically. Esc stops picking.</p>
+            <div id="hinge-layout-illustration" class="layout-illustration"></div>
+            <p>Margins measure to barrel ends; pins can extend beyond them. One hinge is centered. Multiple hinges use exact end margins and equal gaps.</p>
+            <ol id="workflow" class="workflow"></ol><p id="detail-note"></p>
+            <details class="guide-disclosure"><summary>Planned hinge families</summary><p>Barrel, concealed and print-in-place mechanisms are planned. They cannot be created yet.</p></details>
+        </details>
+    </main>
+    <section class="action-dock" aria-label="Hinge actions">
+        <div class="dock-status"><p id="live-preview-status" class="live-preview-status" role="status">Live preview · Fusion required</p><button id="preview-hinge-button" class="text-button" disabled>Refresh</button></div>
+        <p id="operation-status" role="status" aria-live="polite" hidden></p>
+        <p id="create-hint" class="helper-copy" hidden>Open Partelier in Fusion.</p>
+        <div class="action-buttons"><button id="cancel-hinge-button" class="secondary-button" disabled>Cancel</button><button id="create-hinge-button" class="create-button" disabled>Create hinge</button></div>
+    </section>
+    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.5.2</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure your hinge here and select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached hinges become part of your two selected bodies. Only optional pins add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
+</body>
+</html>

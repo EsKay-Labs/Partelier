@@ -1,0 +1,12 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "script",
+  "id": "89eec011-7af3-48c1-8934-0ebff5db757c",
+  "author": "SKTech",
+  "description": {
+    "": "Create an unsaved touching-split hinge fixture with exact source bounds and volumes."
+  },
+  "version": "0.0.1",
+  "supportedOS": "windows",
+  "editEnabled": true
+}

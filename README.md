@@ -1,0 +1,284 @@
+# Partelier
+
+An Autodesk Fusion add-in foundation for automating small, repetitive CAD tasks
+on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
+later reinforcement/pattern tools. **Partelier is the approved product name**,
+combining part and atelier: a workshop for the details that complete a design.
+
+**Current code:** experimental 0.5.2 provides a separate-pin hinge with direct
+model selection, five presets, full-result live preview and manual Edit/Rebuild.
+Attached output integrates the hinge into the two selected root bodies, retaining
+their identities, names and visibility. Only optional pins add separate bodies.
+Separate-leaf output creates independent hinge parts.
+Preview uses the existing Fusion body appearances at full opacity and crisp
+black outlines; plain Shaded display omits those outlines. It adds no document
+appearances or permanent display overrides.
+Edit accepts a hinge body, face, edge, or a Part containing exactly one owned
+hinge. One existing selection is reused when Edit opens. If a Part contains
+several hinges, choose a specific hinge body or pin. Failed selection loads
+retain their actual error through automatic previews and parameter changes.
+
+Version 9 recipes support this attached persistence model. A safe deliberate
+Rebuild migrates earlier attached copy-based results; it never deletes unrelated
+bodies. Upstream geometry changes require explicit Rebuild to recalculate the
+stored tool shapes. Preview and Cancel leave no persisted changes.
+
+The final 0.5.0 native report passes 53 stated expectations: 40 generated
+geometry cases, six explicit larger-fillet refusals, six in-place/migration
+cases and one production-session workflow. Four attached fixture treatments each
+pass four Rebuilds without replacing the selected bodies or accumulating history.
+Current local checks pass 491 Python tests, the Node DOM suite and
+syntax/compilation checks. The current hinge workflow has been user-confirmed
+in Fusion. Broader interaction coverage, save/reopen, Undo/Redo, motion and
+physical printing remain acceptance items. See
+[native evidence and limits](docs/fusion-validation.md). Other tools remain
+planned; the honeycomb input checker creates no geometry.
+
+## Direction
+
+Select relevant geometry on an existing design, enter a few dimensions, preview
+the detail, and create it. The proposed first release contains a pin hinge,
+snap-fit pair and sliding guide. Hardware pockets, clips, pivots, bayonet closures,
+ribs, trusses and honeycomb follow in scoped stages. Read the
+[MVP plan](docs/mvp-plan.md) for the consolidated feature set and priorities.
+Its ordered delivery gates start with one editable hinge, then verify that the
+same architecture accommodates snap-fit and sliding-guide tools. The
+[architecture](docs/architecture.md) records module boundaries, the performance
+approach and the selected StructForge reference techniques.
+
+This clarified direction supersedes the original honeycomb-first proposal. The
+existing honeycomb input check remains a diagnostic; the hinge is an independent
+tool module. Its supported scenario and exact fixture are in the
+[hinge specification](docs/hinge-design.md).
+
+The user selected an HTML palette inspired by StructForge instead of the earlier
+native-only UI proposal. Its event bridge and palette lifetime informed this
+implementation; its HTML/styles were not copied. StructForge is not a runtime
+dependency. All artwork, styles and scripts are local; no account or remote asset
+is required.
+
+## Explore the UI prototype
+
+Open `Partelier/partelier/ui/palette.html` in a desktop browser. The grouped
+tool dropdown, favorites, guides and illustration controls work without Fusion.
+The selected tool opens immediately. Up to 720 px the image and inputs stack;
+wider views place them alongside one another. Workflow and design notes are
+collapsed until requested. Ctrl/Cmd+K focuses the tool menu. Favorites move to a
+menu group without duplicating entries and are session-only. Hinge dimensions
+are editable here, but launching Create/Edit requires a live Fusion connection.
+The drawing is a concept illustration, not the native geometry preview.
+
+For local browser development, an optional loopback-only preview server can be
+run from the repository root:
+
+```powershell
+py -m http.server 8766 --bind 127.0.0.1 --directory Partelier/partelier/ui
+```
+
+Visit `http://127.0.0.1:8766/palette.html`. This is a development convenience, not
+an add-in backend or distribution requirement. Stop it after development.
+
+## Run inside Fusion on Windows
+
+Clone or download this repository:
+
+```powershell
+git clone https://github.com/EsKay-Labs/Partelier.git
+```
+
+The repository root contains the source, tests and development tools. The add-in
+folder to link in Fusion is the **Partelier** subfolder inside that checkout:
+
+```text
+<checkout>/Partelier/
+    Partelier.py
+    Partelier.manifest
+    partelier/
+```
+
+Renaming the project does not update Fusion's existing installation links.
+If an earlier development bundle is already linked, Stop it and remove its old
+link before adding this folder. Restart Fusion if the previous modules remain
+loaded. Existing saved hinge recipes remain readable; a successful Edit/Rebuild
+saves its replacement under Partelier. Native save/reopen validation is pending.
+
+1. Start Fusion with a history-based Design. For the first test, add/run the
+   standalone **tools/fusion/HingeFixture** folder under **Scripts**. It creates
+   a new unsaved document with two exact reference boxes; it does not change
+   the previously open model.
+2. Open **Utilities > Scripts and Add-Ins** and use **Add / Link** (or **+** in
+   the older dialog) to select this repository's **Partelier** subfolder. Select
+   the folder containing `Partelier.py` and `Partelier.manifest`, not the repo
+   root. Under **Add-Ins**, select **Partelier** and click **Run**.
+3. In the Design workspace's **Add-Ins** panel, open
+   **Partelier: Tool library** for the HTML palette. It opens on the right and
+   can be resized or closed/reopened.
+4. Select **Pin hinge**, choose a **Design preset**, then **Attached to parts**
+   or **Separate hinge leaves**. Set dimensions in the HTML panel; fit, attachment
+   and holes are in grouped sections. Separate leaves can have rectangular or rounded free corners
+   and optional two through-holes per leaf.
+5. Click **Select geometry**, then pick Face A, Face B and the reference edge
+   directly in the model, following Fusion's prompts. No second parameter or
+   selection panel is created. Esc stops the sequence and keeps earlier picks;
+   use the Face A / Face B / Reference edge buttons to retry or replace a pick.
+   Changing a face clears the reference edge. In the reference fixture, select
+   the top faces and A's inner top edge at X=-4 mm. **Edit existing** prompts for
+   one generated hinge body and loads its saved dimensions here.
+6. **Live preview** starts after the geometry is selected and updates as you
+   change designs or dimensions. **Refresh preview** is available for retry;
+   **Create** / **Rebuild** confirms the current valid preview. **Cancel**
+   clears the temporary preview and selections. Create/Rebuild runs a zero-input
+   native command for a single undoable transaction; its panel is not opened.
+   Attached creation uses owned tool geometry and native combines in the root;
+   the selected A/B bodies become the final hinge-bearing bodies. Only optional
+   pins increase the final body count. Full-result preview temporarily hides
+   the current geometry; Cancel restores its prior visibility. Separate leaves
+   retain their independent Part/Hybrid output path.
+7. The original **Partelier: Check honeycomb inputs** remains available directly
+   or through **? > Open input checker in Fusion**. Stop the add-in when finished.
+
+Fusion supplies Python and `adsk` for the add-in. There is no package install,
+web server, API key, database, or separate build step. Running `Partelier.py`
+with an ordinary Python interpreter is not the application launch method.
+
+## Pin-hinge designs and edge treatment
+
+The blue light palette uses darker text, white cards, stronger field outlines
+and distinct selection/focus states. The **Design preset** dropdown configures
+actual geometry, not just the concept drawing:
+
+| Preset | Housing / knuckles | Treatment |
+| --- | --- | --- |
+| Classic | Round / 5 | Sharp |
+| Soft | Round / 5 | 0.6 mm fillets |
+| Linear | Square within the circular envelope / 5 | 0.3 mm chamfers |
+| Compact | Round / 3 | 0.6 mm fillets |
+| Piano | Round / 11 | 0.3 mm chamfers |
+
+Live preview is always enabled during the hinge session. Parameter edits are
+grouped over 160 ms and render the newest complete values. The last valid
+graphics stay visible until a replacement is ready; an invalid request is
+marked clearly and cannot enable Create.
+
+Presets keep your dimensions, placement, output and hole choices. **Housing &
+edge treatment** lets you customize the profile, finish and size. The housing
+envelope is the circular outside diameter; square housings fit inside that same
+circle. Fillets round generated webs/leaves, housing/pin ends and hole mouths;
+they do not blend concave intersections between joined solids or alter source
+edges. In separate mode, fillet treatment rounds all corners of the flat leaf
+outline. The older two-free-corner outline remains available with sharp/chamfer
+finish. Invalid combinations explain what needs changing rather than skipping
+a requested finish. Declared native fixtures pass; some 0.6 mm round fillets
+remain explicit limits rather than being silently reduced. Exact sizes and
+refusals are in [fusion-validation.md](docs/fusion-validation.md).
+
+Barrel, concealed and print-in-place remain separate planned families under
+**More hinge families**; they are not enabled Create options. See the
+[family plan](docs/hinge-families.md).
+
+## Hinge on two touching split parts
+
+The reported first-use case selects the lower block's large front face and the
+lid's narrow front strip above it. These exterior faces must be coplanar and
+point outward together. Select their shared straight edge; a full shared seam
+automatically activates **Split seam (touching parts)**. Either coincident A/B edge is accepted. The mode centers
+the hinge and opens the adjustable **Seam clearance** in the selected bodies,
+across the complete matching rectangular interface. Axis offset is disabled.
+The first split mode requires planar polyhedral sources and rectangular mating
+faces; other shapes are refused with an actionable message.
+
+Full-result preview shows the cleared gap without persisting cuts. The selected
+bodies are temporarily hidden; Cancel restores their captured visibility.
+Successful attached Create applies the gap and hinge to those same bodies.
+The standalone **tools/fusion/HingeSplitFixture** script provides exact touching
+blocks for validation. Full dimensions and limits are in the
+[hinge specification](docs/hinge-design.md). Restart the add-in to load this
+increment; if the new checkbox is missing, restart Fusion after saving your work.
+The historical 0.4.3 native matrix checks fixture seam separation; actual interactive
+picking and the standalone split-fixture workflow still need acceptance.
+
+For a general aesthetic finish, open **Edge finish**, enable **Chamfer exposed
+edges** and set **Chamfer size** (0.3 mm is the initial value). It covers
+generated leaves/webs, barrel/pin ends and hole entries; source-body edges stay
+as designed. Overlarge values are refused rather than silently reduced.
+
+The preview uses neutral lit gray shading. Fusion may still highlight selected
+source faces separately. Additional barrel, concealed and print-in-place styles
+are planned in [hinge families](docs/hinge-families.md), not implemented choices.
+
+For multiple mechanisms, set **Number of hinges**, **Length per hinge**,
+**Start margin** and **End margin**. Two or more hinges use exact barrel-end
+margins and equal gaps; a single hinge is centered between the minimum margins.
+Pins extend beyond the barrels. For example, a 50 mm edge fits three 10 mm
+hinges with 5 mm margins and equal 5 mm gaps. Impossible layouts are refused
+with a fit message. **Knuckles per hinge** controls fingers inside each hinge.
+
+A Part Design supports results in its existing component. Partelier does not
+convert it into a Hybrid/Assembly document. Error dialogs now show the native
+reason and expose the full traceback in **View > Show Text Commands**.
+
+Edit loads an owned hinge recipe. For attached version 9 results, Rebuild updates
+the owned tool BaseFeature and recomputes the native combines on the same target
+bodies. Earlier attached recipes migrate only after strict ownership, topology
+and dependency checks. Independent earlier Part Design results may be handled
+when those checks permit it; separate Hybrid results retain their last-feature
+restriction. No automatic recalculation of generated tool shapes is promised.
+
+During repicking, current geometry is temporarily revealed. Output-mode changes
+transfer the preview visibility lease. Cancel, failed creation and Stop restore
+captured preview flags. Successful attached commits preserve the selected
+bodies' names and visibility; no hidden source backups are added.
+
+## Check locally
+
+A separate Python installation is only needed for development checks:
+
+```powershell
+py -m unittest discover -s tests -v
+node tests/test_palette_ui.cjs
+py -m compileall -q Partelier tests tools/fusion
+git diff --check
+```
+
+On systems without the Windows Python launcher, use `python` instead of `py`.
+There is no configured linter. Local tests check inputs, units, the bridge
+allowlist and lifecycle behavior against a fake UI. They do not validate the
+actual Fusion browser/events or generated geometry. See
+[development and manual checks](docs/development.md).
+
+For unattended native checks, run the opt-in development bridge once in Fusion,
+then use `tools/run_fusion_validation.py status`, `submit --scenario joined_finish`
+and `poll REQUEST_UUID`. This never controls mouse/keyboard or launches Fusion.
+See [bridge setup and final native report](docs/fusion-validation.md).
+
+The 0.5.0 architecture changes attached persistence and recipe versioning. The
+[architecture](docs/architecture.md) describes the owned tool/native-combine
+boundary and [hinge specification](docs/hinge-design.md) records the supported
+selection, migration and acceptance contract.
+
+## Repository map
+
+```text
+Partelier/                 Self-contained Fusion add-in bundle
+  Partelier.py             Fusion run/stop entry points
+  Partelier.manifest       Add-in metadata
+  partelier/
+    addin.py                Native dialog and Fusion event lifecycle
+    settings.py             Pure, immutable honeycomb input contract
+    palette.py              Tool-library launcher, palette and HTML bridge
+    palette_protocol.py     Pure allowlist and message validation
+    ui/                     Local HTML, CSS, catalogue, SVG rendering and UI logic
+    tools/hinge/            Pure hinge plan, native commands and Fusion adapter
+tests/                      Host-independent unit tests
+tools/fusion/HingeFixture/  Standalone reference-document script
+docs/                       Plan, architecture, development and AI workflow
+.ai/templates/              Six reusable scoped task prompt templates
+.ai/next-task.md             Ready-to-copy next implementation prompt
+AGENTS.md                   Persistent repository instructions
+```
+
+Use the [AI workflow](docs/ai-workflow.md) for the ChatGPT/GitHub/Codex loop and
+copy the [Custom GPT instructions](docs/chatgpt-bot-instructions.md) manually.
+No GitHub remote or Custom GPT has been configured. The
+[bootstrap report](docs/bootstrap-report.md) records what was delivered and what
+remains unverified.

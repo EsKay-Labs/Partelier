@@ -1,0 +1,12 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "script",
+  "id": "adc4ce88-9c53-47f0-a154-ef920af387b7",
+  "author": "SKTech",
+  "description": {
+    "": "Read-only native check of temporary Partelier tapered hinge geometry."
+  },
+  "version": "1.0.0",
+  "supportedOS": "windows",
+  "editEnabled": true
+}
