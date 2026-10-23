@@ -149,7 +149,7 @@ def _build_legacy(settings, bounds, period_u_mm=None):
 
 @dataclass(frozen=True)
 class Layout:
-    """Complete cells with one resolved, isotropic pitch for this face."""
+    """Cells with resolved center spacing; opening size may be independent."""
     cells: tuple
     effective_pitch_mm: float
     requested_pitch_mm: float
@@ -218,9 +218,9 @@ def _complete(center, polygon, bounds, periodic):
     return True
 
 
-def _fit_grid(settings, bounds, pitch, period, phase, *, preserve_size=False):
+def _fit_grid(settings, bounds, pitch, period, phase, *, preserve_size=False, spread=False):
     if settings.edge_mode=='clip':
-        return _clipped_grid(settings,bounds,pitch,period,phase,preserve_size=preserve_size)
+        return _clipped_grid(settings,bounds,pitch,period,phase,preserve_size=preserve_size,spread=spread)
     periodic = period is not None
     if periodic:
         columns = int(math.floor(period/pitch)) if preserve_size else max(3, int(round(period/pitch)))
@@ -237,7 +237,7 @@ def _fit_grid(settings, bounds, pitch, period, phase, *, preserve_size=False):
     opening_u = opening_v = 2*reserve
     triangular = settings.pattern in ("hexagon", "circle")
     factor = math.sqrt(3)/2 if triangular else 1.0
-    step_v = factor*(settings.pitch_mm if preserve_size else pitch)
+    step_v = factor*(settings.pitch_mm if preserve_size and not spread else pitch)
     angle = math.radians(settings.rotation_deg)
     width, height = _projected_size(bounds, angle) if not periodic else (period, bounds[3]-bounds[2])
     if not periodic:
@@ -277,7 +277,7 @@ def _fit_grid(settings, bounds, pitch, period, phase, *, preserve_size=False):
     return tuple(result), pitch
 
 
-def _clipped_grid(settings,bounds,pitch,period,phase,*,preserve_size=False):
+def _clipped_grid(settings,bounds,pitch,period,phase,*,preserve_size=False,spread=False):
     periodic=period is not None
     columns=None
     if periodic:
@@ -287,7 +287,7 @@ def _clipped_grid(settings,bounds,pitch,period,phase,*,preserve_size=False):
     effective=settings if preserve_size else replace(settings,pitch_mm=pitch)
     polygon=_polygon(effective)
     triangular=settings.pattern in ('hexagon','circle')
-    step_v=(settings.pitch_mm if preserve_size else pitch)*(math.sqrt(3)/2 if triangular else 1)
+    step_v=(settings.pitch_mm if preserve_size and not spread else pitch)*(math.sqrt(3)/2 if triangular else 1)
     angle=math.radians(settings.rotation_deg)
     width,height=_projected_size(bounds,angle) if not periodic else (period,bounds[3]-bounds[2])
     columns=columns if periodic else math.ceil(width/pitch)+3
@@ -410,9 +410,14 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
     candidate_overflow = False
     triangular = settings.pattern in ("hexagon", "circle")
     pitches = (settings.pitch_mm,) if mode in ('fill','fixed') else _pitch_candidates(settings, available, period_u_mm, max_cells)
+    if mode=='balanced':
+        # Cell size is a user dimension, not a target overridden by the soft
+        # budget. Spread centers farther apart instead of enlarging openings.
+        pitches=tuple(pitch for pitch in pitches if pitch>=settings.pitch_mm-1e-9)
     for pitch in pitches:
         for phase in ((0,1) if triangular else (0,)):
-            cells, actual = _fit_grid(settings, available, pitch, period_u_mm, phase, preserve_size=mode in ('fill','fixed'))
+            cells, actual = _fit_grid(settings, available, pitch, period_u_mm, phase,
+                preserve_size=mode in ('balanced','fill','fixed'),spread=mode=='balanced')
             if mode in ('fill','fixed') and (cells is None or len(cells) > max_cells):
                 candidate_overflow |= cells is None
                 dense_count = max(dense_count, len(cells) if cells is not None else 0)

@@ -11,6 +11,35 @@ from test_pattern_fit_layout import opening_distance, envelope
 
 
 class PatternFillLayoutTests(unittest.TestCase):
+    def test_balanced_cell_size_changes_below_the_same_soft_budget_floor(self):
+        for shape in ('hexagon','circle','diamond','square','slot'):
+            for edge in ('clip','whole'):
+                layouts=[]
+                for size in (5,10,20):
+                    with self.subTest(shape=shape,edge=edge,size=size):
+                        settings=PatternSettings(pattern=shape,pitch_mm=size+5,edge_mode=edge)
+                        layout=build_layout(settings,(0,300,0,170))
+                        self.assertTrue(0<layout.cell_count<=48)
+                        self.assertGreaterEqual(layout.pitch_mm,settings.pitch_mm-1e-7)
+                        width=max(max(x for x,y in c.polygon_mm)-min(x for x,y in c.polygon_mm) for c in layout.cells)
+                        self.assertAlmostEqual(width,size)
+                        layouts.append(layout)
+                self.assertNotEqual(layouts[0].cells,layouts[1].cells)
+                self.assertNotEqual(layouts[1].cells,layouts[2].cells)
+
+    def test_balanced_size_and_minimum_gap_survive_wrap_spacing_adjustment(self):
+        period=200
+        for size in (5,10,15):
+            settings=PatternSettings(pitch_mm=size+5,edge_mode='whole')
+            layout=build_layout(settings,(0,period,0,100),period)
+            self.assertTrue(0<layout.cell_count<=48)
+            self.assertGreaterEqual(layout.pitch_mm,settings.pitch_mm-1e-7)
+            width=max(x for x,y in layout.cells[0].polygon_mm)-min(x for x,y in layout.cells[0].polygon_mm)
+            self.assertAlmostEqual(width,size)
+            for one,two in itertools.combinations(layout.cells,2):
+                if math.dist(one.center_mm,two.center_mm)<layout.pitch_mm*1.1:
+                    self.assertGreaterEqual(opening_distance(one,two),5-1e-7)
+
     def test_default_is_less_dense_than_legacy_auto_on_a_large_face(self):
         settings = PatternSettings()
         sparse = build_layout(settings, (0,200,0,160))

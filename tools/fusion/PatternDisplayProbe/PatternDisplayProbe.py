@@ -188,7 +188,9 @@ def _start_workflow(package,design,box,checkpoint,report,finish,runtime):
     Runner=importlib.import_module(package+'.tools.patterns.preview').PatternPreviewRunner
     root=design.rootComponent
     feature=root.features.baseFeatures.add()
-    feature.startEdit();root.bRepBodies.add(box(0,0,3.2,2.4,.3),feature);feature.finishEdit()
+    # This broad face reproduces a requested size below Balanced's 48-cell
+    # spacing floor. The previous small box could not expose that regression.
+    feature.startEdit();root.bRepBodies.add(box(0,0,20,16,.3),feature);feature.finishEdit()
     source=feature.bodies.item(0)
     faces=[]
     for i in range(source.faces.count):
@@ -222,11 +224,21 @@ def _start_workflow(package,design,box,checkpoint,report,finish,runtime):
             if native.CustomGraphicsMesh.cast(group.item(0)) is None:raise RuntimeError('Production preview still used BRep graphics.')
             app.activeViewport.refresh()
         finally:group.deleteMe()
+    def record_balanced_size(prepared):
+        expected=prepared.settings.pitch_mm-prepared.settings.web_mm
+        widths=[max(x for x,y in cell.polygon_mm)-min(x for x,y in cell.polygon_mm)
+                for layout in prepared.layouts for cell in layout.cells]
+        if not widths or abs(max(widths)-expected)>1e-7:
+            raise RuntimeError('Balanced ignored the requested cell size below its density floor.')
+        if not 0<prepared.cell_count<=48:raise RuntimeError('Balanced exceeded its soft work budget.')
+        report.setdefault('balanced_sizes',[]).append({'requested_size_mm':expected,'actual_size_mm':max(widths),
+            'cells':prepared.cell_count,'center_pitch_mm':[layout.effective_pitch_mm for layout in prepared.layouts if layout.cell_count]})
     def created(prepared):
         try:
             checkpoint('workflow.create.after_rollback')
             if (root.bRepBodies.count,design.timeline.count)!=before:raise RuntimeError('Preview display capture failed to roll back its scratch history.')
             draw_checked(prepared)
+            record_balanced_size(prepared)
             runtime['anchor']=recipe.create_pattern(design,prepared)
             if root.bRepBodies.count!=before[0] or design.timeline.count!=before[1]+3:raise RuntimeError('Create did not preserve body count and three owned features.')
             runtime['target']=recipe.read_edit_target(design,source)
@@ -238,8 +250,12 @@ def _start_workflow(package,design,box,checkpoint,report,finish,runtime):
         try:
             checkpoint('workflow.rebuild.after_rollback')
             draw_checked(prepared)
+            record_balanced_size(prepared)
             if recipe.rebuild_pattern(design,runtime['target'],prepared)!=runtime['anchor']:raise RuntimeError('Rebuild replaced its owned anchor.')
             if root.bRepBodies.count!=before[0] or design.timeline.count!=before[1]+3:raise RuntimeError('Rebuild changed body count or owned history.')
+            if abs(report['balanced_sizes'][0]['actual_size_mm']-report['balanced_sizes'][1]['actual_size_mm'])<1:
+                raise RuntimeError('Rebuild did not change the actual Balanced opening size.')
+            report['balanced_size_control_passed']=True
             report['workflow_passed']=True
             report['rollback_export_create_edit_rebuild']=True
             queue('finish')

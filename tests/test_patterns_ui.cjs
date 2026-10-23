@@ -100,6 +100,13 @@ function fixture(options = {}) {
     }
     assert.equal(guide.$("pattern-pitch_mm").parentElement.hidden,true);
     guide.config.completePick=true;await guide.click("begin-pattern-button");
+    await guide.input("layout_mode","balanced");
+    for(const size of [5,10,20]) {
+        const previous=guide.requests.filter(([action])=>action==="pattern_preview").length;
+        await guide.input("cell_size_mm",size);
+        assert.equal(guide.snapshot().settings.pitch_mm-guide.snapshot().settings.web_mm,size);
+        assert.equal(guide.requests.filter(([action])=>action==="pattern_preview").length,previous+1,"each Balanced size edit requests a current preview");
+    }
     await guide.input("layout_mode","fill");await guide.input("web_mm",1.5);await guide.input("cell_size_mm",10);
     assert.equal(guide.snapshot().settings.pitch_mm,11.5);
     await guide.input("web_mm",2);
@@ -230,9 +237,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.10.7"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.10.8"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.10.7"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.10.8"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.click("begin-pattern-button");await logged.click("pattern-select-surface");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.click("begin-pattern-button");const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));

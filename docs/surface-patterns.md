@@ -22,16 +22,19 @@ selection. Multiple preselected faces are reused. Start with **Layout > Balanced
 layout and action modes. Through holes hide the unused **Depth / height** field.
 Rotation, offsets and **Edge cells** live under Advanced.
 
-Version **0.10.7** starts new patterns with a **12.5 mm Cell size**, **5 mm Minimum
+Version **0.10.8** starts new patterns with a **12.5 mm Cell size**, **5 mm Minimum
 gap**, **2 mm Border** and **Clip at border**. The local **?** dialogs explain
 every field in Greek with an original SVG comparison; they do not request CAD
 geometry or change settings. Close with Esc, the close button or a backdrop
 click; focus returns to the help trigger.
 
-**Balanced** centers the grid and adjusts Cell size to a soft limit of **48
-cells per face**. **Automatic size** uses the full bounded work budget. Their
-Cell size field is a target; the preview reports the resolved size (or range
-across faces) with the same name. **Fill face** preserves size and minimum gap.
+**Balanced** preserves the requested Cell size and centers a sparse grid with a
+soft limit of **48 cells per face**. It increases center spacing when needed,
+so the gaps may exceed Minimum gap. Its preview reports the requested size and
+approximate nominal grid gap; curved surfaces still undergo physical gap checks.
+**Automatic size** uses the full bounded work budget and treats Cell size as a
+target; the preview reports the resolved size (or range across faces).
+**Fill face** preserves size and minimum gap.
 **Exact pitch** retains the fixed-spacing algorithm for old whole-cell recipes;
 with clipped cells it uses the same fixed-size centered lattice as Fill face.
 
@@ -52,7 +55,7 @@ when clipping splits it into several convex pieces.
 
 A periodic cylinder seam is not an edge border. The grid wraps around it, with
 at least the requested gap; cells can be clipped at its true end rims. Cell
-size remains fixed in Fill, while circumferential center spacing may increase
+size remains fixed in Balanced and Fill, while circumferential center spacing may increase
 slightly to close the seam. Each selected face of a faceted solid is clipped
 independently; there is no promise of continuity over a sharp ridge.
 

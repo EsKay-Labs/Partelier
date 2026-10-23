@@ -295,7 +295,12 @@ class _Session:
                             ' '.join(f'{key}={value:.3f}' for key,value in timings.items() if type(value) in (int,float)))
                     except Exception:pass
                 self.phase='preview';self.message=str(prepared.cell_count)+' cells. Review the pattern before Create.'
-                if self.settings.layout_mode in ('fit','balanced'):
+                if self.settings.layout_mode=='balanced':
+                    size=self.settings.pitch_mm-self.settings.web_mm
+                    pitches=[layout.effective_pitch_mm for layout in getattr(prepared,'layouts',()) if layout.cell_count]
+                    gap=min(pitches)-size if pitches else self.settings.web_mm
+                    self.message=f'{prepared.cell_count} cells · cell size {size:g} mm · grid gap ≈ {gap:.2f} mm'
+                elif self.settings.layout_mode=='fit':
                     pitches=[layout.effective_pitch_mm for layout in getattr(prepared,'layouts',()) if layout.cell_count]
                     if pitches:
                         low,high=min(pitches),max(pitches)

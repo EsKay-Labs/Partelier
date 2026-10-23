@@ -459,7 +459,8 @@ class PatternCommandTests(unittest.TestCase):
         self.fusion.prepare_pattern.side_effect = prepare
         session = self.begin(PatternSettings(web_mm=1.5))
         self.preview(session)
-        self.assertIn('cell size 18.50–20.50 mm', session.message)
+        self.assertIn('cell size 16 mm', session.message)
+        self.assertIn('grid gap ≈ 4.00 mm', session.message)
         self.assertNotIn('pitch', session.message)
 
     def test_fill_preview_reports_the_three_user_dimensions(self):

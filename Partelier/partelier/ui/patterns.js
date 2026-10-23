@@ -134,7 +134,7 @@
         $("pattern-web_mm").parentElement.children[0].textContent = "Minimum gap";
         $("pattern-layout-note").textContent = state.settings.layout_mode === "fill"
             ? "Σταθερό μέγεθος · γέμισμα μέχρι το border. Έως 200/face."
-            : state.settings.layout_mode === "balanced" ? "Πιο αραιή αρχή · έως 48/face. Το μέγεθος προσαρμόζεται."
+            : state.settings.layout_mode === "balanced" ? "Σταθερό μέγεθος · έως 48/face, με μεγαλύτερα κενά όπου χρειάζεται."
             : "Το Automatic size προσαρμόζει το μέγεθος· το Exact pitch το διατηρεί.";
         $("pattern-depth_mm").parentElement.children[0].textContent = "Depth / height";
     }
@@ -380,5 +380,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.10.7" }); renderArt(); render();
+    trace("boot", { build:"0.10.8" }); renderArt(); render();
 })();

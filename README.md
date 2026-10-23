@@ -5,7 +5,7 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current code:** experimental 0.10.7 provides surface patterns, an editable separate-pin hinge
+**Current code:** experimental 0.10.8 provides surface patterns, an editable separate-pin hinge
 and four snap-fit families: Hook latch, Ball detent, Torsion latch and Annular
 ring. Hook latch also offers straight, tapered or twin arms. Snap-fits include
 optional 45-degree root/receiver roofs and complete eligible outer-edge chamfers;
@@ -44,7 +44,11 @@ creation after rollback. The original model, document and camera are restored.
 Other tools remain planned. The older honeycomb input checker remains a separate
 diagnostic and creates no geometry.
 
-**New in 0.10.7:** **5 mm Minimum gap** by default, stable **Cell size / Minimum
+**New in 0.10.8:** **Balanced** now preserves the requested **Cell size** and
+uses wider gaps to keep its sparse layout within 48 cells per face. Changing
+Cell size updates the actual openings even on large faces.
+
+Version 0.10.7 introduced **5 mm Minimum gap** by default, stable **Cell size / Minimum
 gap / Border** labels in every layout mode, and **Clip at border** for partial
 hexagons, circles and other shapes at face edges, notches and holes. The **?**
 dialogs explain each setting with an image. See the
@@ -54,7 +58,7 @@ dialogs explain each setting with an image. See the
 tool dropdown. Each opens the same workflow with a different preset. Choose
 hexagons, circles, diamonds, squares or slots and **Through holes**, **Engrave** or
 **Emboss**. Pick a face to start preview; **Add face** adds another face on the
-same solid. **Balanced** starts with fewer cells and adapts Cell size.
+same solid. **Balanced** preserves Cell size and uses wider gaps for fewer cells.
 **Fill face** preserves Cell size, keeps at least Minimum gap and Border,
 and includes partial edge cells by default. A **?** beside each setting explains its behavior
 with an image. Review the live preview before Create.
@@ -63,7 +67,7 @@ sides and bounded regular regions of smooth surfaces are implemented. Distorted
 or singular regions can be refused or omitted conservatively. Dense curved
 patterns can take noticeably longer to preview. See the
 [surface contract, examples and limits](docs/surface-patterns.md).
-The hard limits remain 200 cells per face / 400 total. Balanced adjusts cell size;
+The hard limits remain 200 cells per face / 400 total. Balanced adjusts spacing;
 Fill face asks for larger cells when too dense. Automatic size and Exact pitch
 retain the previous behaviors for existing recipes. Saved settings are restored
 unchanged by Edit; new defaults apply only to new patterns. Short trim edges near
@@ -101,7 +105,7 @@ geometry remains separate for Create/Rebuild. Display scratch geometry is
 removed inside the rollback computation; temporary files are deleted. The
 unstable direct mesh-calculator experiment remains removed.
 
-**Try the updated tools:** Stop then Run Partelier to load 0.10.7. The tool library opens
+**Try the updated tools:** Stop then Run Partelier to load 0.10.8. The tool library opens
 automatically; choose **Snap-fit**, then **Snap type**. For Hook latch, Ball detent
 or Torsion latch, pick the base exterior wall A, the coplanar lid wall B,
 then either facing straight rim. Matching rims may have a gap between them;

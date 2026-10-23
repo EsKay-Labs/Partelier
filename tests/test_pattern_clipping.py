@@ -71,7 +71,7 @@ class PatternClippingTests(unittest.TestCase):
                     settings=PatternSettings(pattern=shape,layout_mode=mode,pitch_mm=12,web_mm=5,border_mm=2,offset_u_mm=2,offset_v_mm=2)
                     layout=build_layout(settings,(0,43,0,37))
                     self.assertTrue(layout.cells)
-                    effective=replace(settings,pitch_mm=layout.pitch_mm)
+                    effective=replace(settings,pitch_mm=layout.pitch_mm) if mode=='fit' else settings
                     full_area=clipping.area(_polygon(effective))
                     self.assertTrue(any(clipping.area(cell.polygon_mm)<full_area*.99 for cell in layout.cells))
                     for cell in layout.cells:

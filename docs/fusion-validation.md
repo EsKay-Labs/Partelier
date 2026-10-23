@@ -46,6 +46,32 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Balanced preserves requested Cell size (0.10.8)
+
+Balanced previously enlarged openings to satisfy its 48-cell soft budget. On
+large faces, several smaller Cell size values therefore produced the same result.
+It now keeps opening size fixed and increases center spacing in both directions.
+The minimum-gap and border checks still apply. Only Automatic size treats the
+opening dimension as a target. The help comparison uses equal opening sizes and
+different gaps, and Balanced status reports size plus approximate nominal grid gap.
+
+Native request `4f7faa52-5984-4346-ac51-5f465d8a7f86` passes on Fusion 2705.1.30.
+The production Session prepares and displays a 200 × 160 mm panel, then performs
+Create, Edit and Rebuild. Requested/actual opening size changes from **12.5 mm**
+(45 cells) to **5 mm** (33 cells); both layouts remain within 48 cells. Body
+identity, body count and three owned history features remain stable. Preview
+export scratch history rolls back, all 12 cached display cycles pass, and the
+original model/document/camera are restored without cleanup errors. Runtime and
+probe hashes are retained in the [scoped evidence](validation/pattern-balanced-size-0.10.8.json).
+
+Local validation passes **876 Python tests**, all **three Node DOM suites**,
+compilation and whitespace checks. New regressions cover five shapes, clipped
+and whole cells at 5/10/20 mm below the same large-face spacing floor, wrap size
+and gap preservation, correct status text, and one preview request for each size
+edit. Headless Edge at 300/380/520 px verifies help bounds and Esc dismissal;
+the help screenshot was inspected. These checks do not establish actual Fusion
+CEF interaction acceptance, globally optimal packing or physical printability.
+
 ## Partial edge cells and stable controls (0.10.7)
 
 New patterns use **5 mm Minimum gap**, stable **Cell size / Minimum gap / Border**
