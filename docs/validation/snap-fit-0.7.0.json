@@ -1,0 +1,330 @@
+{
+  "version": 2,
+  "request_id": "da972d4b-b91b-4bfa-93f1-854eaa128f4e",
+  "scenario": "snap_fit",
+  "state": "complete",
+  "success": true,
+  "sources": {
+    "files": {
+      "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+      "Partelier/partelier/addin.py": "02a7b3e8ebfecf33029241cab4bfffb8fc7b7c49d2e9d56ab530dfd454fd88c1",
+      "Partelier/partelier/palette.py": "1b59c6be03207b51fc3940daec973edc238272d1ca4ba68a0e905e30a8383a2d",
+      "Partelier/partelier/palette_protocol.py": "a7cc62f8261d7a16e81813cd37b2494dd264b32f573f78a011f270ed11022df5",
+      "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+      "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+      "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+      "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+      "Partelier/partelier/tools/hinge/finish.py": "f736bc28dcc140edc1d1c9bf810d2223ad2b906c189fcc7e73754b3eeca24280",
+      "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+      "Partelier/partelier/tools/hinge/inplace.py": "78df843a438c6a374d7d66bb9d4bbbd4b353ed11c75ed60cbeda987b16c450d5",
+      "Partelier/partelier/tools/hinge/layout.py": "696a4b9113a49a134cd1dfb165fa05e8089a705d8b3ec7ffb5c9fc350f21627f",
+      "Partelier/partelier/tools/hinge/native_finish.py": "45ca7cfb58e7b7932d9b32370aa7e49d4588122e1ce046f5449f487e76e95979",
+      "Partelier/partelier/tools/hinge/native_preview.py": "f857535bf785bed2fbb3c6f52ed69978f1aaf78518ccd67a926b236d5a781fcb",
+      "Partelier/partelier/tools/hinge/planner.py": "f1c978f6b841dd39990fb20fa6c74852329d8eb02dbc3a008cb89eee0696aa6d",
+      "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+      "Partelier/partelier/tools/hinge/roof_finish.py": "11d0b8f2a57c54638791aae4b09f83037d9705a3798756f1836c80148fe16753",
+      "Partelier/partelier/tools/hinge/rounding.py": "f252f54702466ecbf655314158698a3c48bf39a0a8b9d5f9a2960c968f7076f0",
+      "Partelier/partelier/tools/hinge/seam.py": "1c941780290a90677a82a9c4c4859d70d62d0bdba616bf25a4274f55fc34b9f2",
+      "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+      "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+      "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+      "Partelier/partelier/tools/snap_fit/__init__.py": "eb5c848189a6bf9a69b3b690268679a681c2e5a8397582ff099565b0f10a8804",
+      "Partelier/partelier/tools/snap_fit/command.py": "d5a954d43ab8428998aeef5151f01ef1b4daf134c5342fa5f4911ec50e258414",
+      "Partelier/partelier/tools/snap_fit/finish.py": "0f2e35834b67ad56b9b334c4847217f90db21273b571ec53f81342a962372cd2",
+      "Partelier/partelier/tools/snap_fit/fusion.py": "c2ae5642cfb43d3d908af0702ebd84b871c7da6e78777f3b20aa7e4f237a392e",
+      "Partelier/partelier/tools/snap_fit/planner.py": "4aba03c09306d8feb444484bd5793a8c48eb486f3fe9331e4e978ab2a34a0d56",
+      "Partelier/partelier/tools/snap_fit/settings.py": "77c5c047319cbfda78d33633b12d1986009fc3892477c40c1e2b5e419bfaece9",
+      "Partelier/partelier/tools/solid_pair.py": "81d427d5c9cc6b60da1d6fa19f226ac73cfe81ba72ddbd2a51ff1f9dc684ece5",
+      "tools/fusion/JoinFinishProbe/JoinFinishProbe.py": "67a57e39a6ee093f25efaef8b04f8fc35fd1e4df8db6a5695cd9a351f608126d",
+      "tools/fusion/SnapFitProbe/SnapFitProbe.py": "33c4a99a34935235e832469fc37f134a1459a84326f3eab123f1efbbd36cc400"
+    },
+    "sha256": "8dde80647fae1cf9580d0942cf31e824ddc654ddd75400cfbbaa087708d63313"
+  },
+  "native": {
+    "fusion_version": "2705.1.30",
+    "unchanged": true,
+    "original_references_valid": true,
+    "geometry_checks_passed": true,
+    "detached_survived_rollback": true
+  },
+  "cases": [
+    {
+      "chamfer_edges": false,
+      "name": "matrix_standard_sharp_print_support_off",
+      "print_support": false,
+      "result_volumes_cm3": {
+        "A": 4.5852,
+        "B": 4.279752
+      },
+      "snap_style": "standard",
+      "success": true
+    },
+    {
+      "chamfer_edges": false,
+      "name": "matrix_standard_sharp_print_support_on",
+      "print_support": true,
+      "result_volumes_cm3": {
+        "A": 4.59816,
+        "B": 4.2724850000000005
+      },
+      "snap_style": "standard",
+      "success": true
+    },
+    {
+      "chamfer_edges": true,
+      "name": "matrix_standard_chamfer_print_support_off",
+      "print_support": false,
+      "result_volumes_cm3": {
+        "A": 4.5816,
+        "B": 4.2794550000000005
+      },
+      "snap_style": "standard",
+      "success": true
+    },
+    {
+      "chamfer_edges": true,
+      "name": "matrix_standard_chamfer_print_support_on",
+      "print_support": true,
+      "result_volumes_cm3": {
+        "A": 4.594729720779386,
+        "B": 4.272188
+      },
+      "snap_style": "standard",
+      "success": true
+    },
+    {
+      "chamfer_edges": false,
+      "name": "matrix_tapered_sharp_print_support_off",
+      "print_support": false,
+      "result_volumes_cm3": {
+        "A": 4.5516000000000005,
+        "B": 4.279752
+      },
+      "snap_style": "tapered",
+      "success": true
+    },
+    {
+      "chamfer_edges": false,
+      "name": "matrix_tapered_sharp_print_support_on",
+      "print_support": true,
+      "result_volumes_cm3": {
+        "A": 4.564559999999999,
+        "B": 4.2724850000000005
+      },
+      "snap_style": "tapered",
+      "success": true
+    },
+    {
+      "chamfer_edges": true,
+      "name": "matrix_tapered_chamfer_print_support_off",
+      "print_support": false,
+      "result_volumes_cm3": {
+        "A": 4.5479994137325965,
+        "B": 4.2794550000000005
+      },
+      "snap_style": "tapered",
+      "success": true
+    },
+    {
+      "chamfer_edges": true,
+      "name": "matrix_tapered_chamfer_print_support_on",
+      "print_support": true,
+      "result_volumes_cm3": {
+        "A": 4.561129134511983,
+        "B": 4.272188
+      },
+      "snap_style": "tapered",
+      "success": true
+    },
+    {
+      "chamfer_edges": false,
+      "name": "matrix_twin_sharp_print_support_off",
+      "print_support": false,
+      "result_volumes_cm3": {
+        "A": 4.5462750000000005,
+        "B": 4.283964000000001
+      },
+      "snap_style": "twin",
+      "success": true
+    },
+    {
+      "chamfer_edges": false,
+      "name": "matrix_twin_sharp_print_support_on",
+      "print_support": true,
+      "result_volumes_cm3": {
+        "A": 4.559235,
+        "B": 4.277457500000001
+      },
+      "snap_style": "twin",
+      "success": true
+    },
+    {
+      "chamfer_edges": true,
+      "name": "matrix_twin_chamfer_print_support_off",
+      "print_support": false,
+      "result_volumes_cm3": {
+        "A": 4.540009544805792,
+        "B": 4.283370000000001
+      },
+      "snap_style": "twin",
+      "success": true
+    },
+    {
+      "chamfer_edges": true,
+      "name": "matrix_twin_chamfer_print_support_on",
+      "print_support": true,
+      "result_volumes_cm3": {
+        "A": 4.553139265585178,
+        "B": 4.2768635
+      },
+      "snap_style": "twin",
+      "success": true
+    },
+    {
+      "name": "default_preview",
+      "success": true
+    },
+    {
+      "name": "three_clasp_preview",
+      "success": true
+    },
+    {
+      "name": "create_in_place",
+      "success": true
+    },
+    {
+      "chamfer_edges": true,
+      "name": "rebuild_same_history_tapered",
+      "native_combines": 4,
+      "print_support": true,
+      "success": true
+    },
+    {
+      "chamfer_edges": true,
+      "name": "rebuild_same_history_twin",
+      "native_combines": 4,
+      "print_support": false,
+      "success": true
+    },
+    {
+      "chamfer_edges": false,
+      "name": "rebuild_same_history_standard",
+      "native_combines": 4,
+      "print_support": false,
+      "success": true
+    },
+    {
+      "expected_refusal": true,
+      "message": "Selected rim is too short for the snap width, clearance and end margins.",
+      "name": "short_rim_refused",
+      "success": true
+    },
+    {
+      "expected_refusal": true,
+      "message": "Face B must contain the full blind recess and roof plus remaining wall. Increase wall thickness/height or reduce reach, hook depth or clearance.",
+      "name": "thin_wall_refused",
+      "success": true
+    },
+    {
+      "expected_refusal": true,
+      "message": "Face B must contain the full blind recess and roof plus remaining wall. Increase wall thickness/height or reduce reach, hook depth or clearance.",
+      "name": "short_receiver_refused",
+      "success": true
+    },
+    {
+      "expected_refusal": true,
+      "message": "Chamfer size must be below half the tip thickness, arm width, root length, lead in and hook depth.",
+      "name": "oversized_chamfer_explicit_refusal",
+      "success": true
+    },
+    {
+      "legacy_geometry_unchanged_by_read": true,
+      "name": "legacy_v1_read_then_explicit_v2_rebuild",
+      "success": true
+    },
+    {
+      "gap_mm": 0.3,
+      "name": "lid_edge_gap_create_rebuild",
+      "success": true
+    },
+    {
+      "gap_mm": 0.3,
+      "name": "internal_lips_gap_create_rebuild",
+      "success": true
+    },
+    {
+      "name": "session_preview_update_cancel",
+      "success": true
+    },
+    {
+      "name": "session_create_edit_rebuild",
+      "settings": {
+        "attachment_overlap_mm": 0.5,
+        "chamfer_edges": false,
+        "chamfer_size_mm": 0.3,
+        "clearance_mm": 0.3,
+        "end_margin_mm": 5.0,
+        "hook_depth_mm": 1.0,
+        "lead_in_mm": 3.0,
+        "print_support": false,
+        "reach_mm": 16.0,
+        "root_length_mm": 4.0,
+        "snap_count": 2,
+        "snap_style": "tapered",
+        "start_margin_mm": 5.0,
+        "thickness_mm": 1.5,
+        "width_mm": 6.0
+      },
+      "success": true
+    }
+  ],
+  "actual_saved_snap": {
+    "request_id": "37e275f1-08f1-4988-a7c7-ebc57f772f3a",
+    "read_only": true,
+    "unchanged": true,
+    "previews": [
+      {
+        "recipe_version": 1,
+        "loaded_style": "standard",
+        "loaded_chamfer": false,
+        "loaded_support": false,
+        "styles": [
+          {
+            "style": "standard",
+            "success": true,
+            "timings": {
+              "planning_ms": 0.09169999975711107,
+              "source_read_ms": 8.189100015442818,
+              "temporary_geometry_ms": 46.6879999730736
+            }
+          },
+          {
+            "style": "tapered",
+            "success": true,
+            "timings": {
+              "planning_ms": 0.06719998782500625,
+              "source_read_ms": 7.325400016270578,
+              "temporary_geometry_ms": 50.336700049228966
+            }
+          },
+          {
+            "style": "twin",
+            "success": true,
+            "timings": {
+              "planning_ms": 0.0686999992467463,
+              "source_read_ms": 7.781699998304248,
+              "temporary_geometry_ms": 70.05480001680553
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "limits": [
+    "Print ramps assume local +Z build-up from A toward B; no slicer, print simulation or physical printing validation.",
+    "Read-only candidates were prepared for the actual user snap; no actual user Create/Rebuild was performed by the probe.",
+    "Native production logical session checks use an outer rollback transaction; no manual CEF picking/clicks are simulated.",
+    "No save/reopen, manual Undo/Redo, forces or fatigue acceptance.",
+    "Raw-byte hashes describe tested working files; checkout line endings can change hashes."
+  ]
+}

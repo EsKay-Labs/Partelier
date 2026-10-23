@@ -60,7 +60,7 @@ class SnapFitSettingsTests(unittest.TestCase):
         for reach, lead_in in ((3, 3), (2, 3), (3.3, 3), (3.1, 3)):
             with self.subTest(reach=reach, lead_in=lead_in), self.assertRaises(ValueError):
                 SnapFitSettings(reach_mm=reach, lead_in_mm=lead_in)
-        SnapFitSettings(reach_mm=3.31, lead_in_mm=3)
+        SnapFitSettings(reach_mm=3.31, lead_in_mm=3, chamfer_edges=False)
 
     def test_overflowing_derived_dimensions_are_refused(self):
         for changes in ({"thickness_mm": 1e308, "attachment_overlap_mm": 1e308},
@@ -108,6 +108,46 @@ class SnapFitSettingsTests(unittest.TestCase):
         for changes in ({"width_mm": "8"}, {"snap_count": True}, {"clearance_mm": -1}):
             with self.subTest(changes=changes), self.assertRaises(ValueError):
                 SnapFitSettings.from_dict(dict(SnapFitSettings().to_dict(), **changes))
+
+
+    def test_new_styles_and_finish_defaults_are_explicit_settings(self):
+        current = SnapFitSettings()
+        self.assertEqual(len(current.to_dict()), 15)
+        self.assertEqual(current.snap_style, "standard")
+        self.assertTrue(current.chamfer_edges)
+        self.assertTrue(current.print_support)
+        self.assertEqual(current.chamfer_size_mm, .3)
+        for style in ("standard", "tapered", "twin"):
+            self.assertEqual(SnapFitSettings(snap_style=style).snap_style, style)
+
+    def test_unknown_styles_and_nonboolean_finish_flags_are_refused(self):
+        for style in ("other", None, True, 1):
+            with self.subTest(style=style), self.assertRaisesRegex(ValueError, "Snap style"):
+                SnapFitSettings(snap_style=style)
+        for key in ("chamfer_edges", "print_support"):
+            for value in (1, 0, "yes", None):
+                with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                    SnapFitSettings(**{key: value})
+
+    def test_twin_gap_and_tapered_tip_constrain_requested_chamfer_without_shrinking(self):
+        with self.assertRaisesRegex(ValueError, "Twin arms"):
+            SnapFitSettings(snap_style="twin", width_mm=1)
+        with self.assertRaisesRegex(ValueError, "tip thickness"):
+            SnapFitSettings(snap_style="tapered", chamfer_size_mm=.5)
+        with self.assertRaisesRegex(ValueError, "Chamfer size"):
+            SnapFitSettings(chamfer_size_mm=1.5)
+        with self.assertRaisesRegex(ValueError, "middle receiving web"):
+            SnapFitSettings(snap_style="twin", width_mm=12, thickness_mm=1.6,
+                            hook_depth_mm=2, clearance_mm=.1, chamfer_size_mm=.75)
+        current = SnapFitSettings(snap_style="tapered", chamfer_size_mm=.4)
+        self.assertEqual(current.chamfer_size_mm, .4)
+
+    def test_full_new_contract_refuses_old_partial_values_outside_recipe_migration(self):
+        old = {key: value for key, value in SnapFitSettings().to_dict().items()
+               if key not in {"snap_style", "print_support", "chamfer_edges", "chamfer_size_mm"}}
+        self.assertEqual(len(old), 11)
+        with self.assertRaisesRegex(ValueError, "exactly"):
+            SnapFitSettings.from_dict(old)
 
 
 if __name__ == "__main__":

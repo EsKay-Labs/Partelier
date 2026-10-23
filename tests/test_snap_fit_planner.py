@@ -50,9 +50,9 @@ class SnapFitPlannerTests(unittest.TestCase):
         self.assertEqual((unit.hook.y_min_mm, unit.hook.y_max_mm), (-4, 4))
 
     def test_receiving_pocket_contains_hook_with_clearance_on_every_cut_boundary(self):
-        settings = SnapFitSettings()
+        settings = SnapFitSettings(chamfer_edges=False, print_support=False)
         unit = build_snap_fit_plan(settings, 60).units[0]
-        pocket = unit.receiver
+        pocket = unit.arms[0].receiver_bounds
         hook = unit.hook
         self.assertAlmostEqual(pocket.x_min_mm, -1.3)
         self.assertAlmostEqual(pocket.x_max_mm, 2.1)
@@ -79,7 +79,7 @@ class SnapFitPlannerTests(unittest.TestCase):
         unit = build_snap_fit_plan(settings, 60).units[0]
         self.assertAlmostEqual(unit.center_y_mm, 4)
         self.assertAlmostEqual(unit.beam.y_max_mm - unit.beam.y_min_mm, 8)
-        self.assertAlmostEqual(unit.receiver.y_max_mm - unit.receiver.y_min_mm, 8.6)
+        self.assertAlmostEqual(unit.arms[0].receiver_bounds.y_max_mm - unit.arms[0].receiver_bounds.y_min_mm, 8.6)
 
     def test_repeat_centers_are_equal_with_receiver_edge_margins(self):
         settings = SnapFitSettings(snap_count=4, start_margin_mm=7, end_margin_mm=9)
@@ -103,7 +103,7 @@ class SnapFitPlannerTests(unittest.TestCase):
         self.assertEqual(len(plan.units), 20)
 
     def test_overlapping_or_touching_neighbor_receivers_are_refused(self):
-        settings = SnapFitSettings(width_mm=8, clearance_mm=.5, snap_count=2,
+        settings = SnapFitSettings(width_mm=8, clearance_mm=.5, snap_count=2, chamfer_edges=False,
                                    start_margin_mm=0, end_margin_mm=0)
         for span in (9, 17, 18):
             with self.subTest(span=span), self.assertRaisesRegex(ValueError, "positive gap"):
@@ -111,7 +111,7 @@ class SnapFitPlannerTests(unittest.TestCase):
         self.assertEqual(len(build_snap_fit_plan(settings, 18.01).units), 2)
 
     def test_single_exact_fit_is_allowed_without_neighbor_collision(self):
-        settings = SnapFitSettings(width_mm=8, clearance_mm=.5,
+        settings = SnapFitSettings(width_mm=8, clearance_mm=.5, chamfer_edges=False,
                                    start_margin_mm=0, end_margin_mm=0)
         unit = build_snap_fit_plan(settings, 9).units[0]
         self.assertEqual((unit.receiver.y_min_mm, unit.receiver.y_max_mm), (-4.5, 4.5))
@@ -151,6 +151,66 @@ class SnapFitPlannerTests(unittest.TestCase):
         self.assertEqual(unit.hook.points_xz_mm[0], (-1.5, 16))
         self.assertEqual(unit.root.x_min_mm, -.8)
         self.assertEqual(unit.root.z_min_mm, -5)
+
+
+    def test_tapered_beam_has_constant_width_and_sixty_five_percent_tip_thickness(self):
+        settings = SnapFitSettings(snap_style="tapered")
+        unit = build_snap_fit_plan(settings, 60).units[0]
+        arm = unit.arms[0]
+        tip = max(x for x, z in arm.beam.points_xz_mm if z == settings.reach_mm)
+        self.assertAlmostEqual(tip - settings.clearance_mm, .65 * settings.thickness_mm)
+        self.assertEqual(arm.beam.y_max_mm - arm.beam.y_min_mm, settings.width_mm)
+        self.assertIn((settings.clearance_mm + settings.thickness_mm, 0), arm.beam.points_xz_mm)
+        self.assertAlmostEqual(arm.hook.points_xz_mm[2][0], tip)
+        self.assertEqual(arm.hook.points_xz_mm[0][0], -settings.hook_depth_mm)
+
+    def test_twin_arms_and_two_recesses_have_a_positive_middle_web(self):
+        settings = SnapFitSettings(snap_style="twin")
+        unit = build_snap_fit_plan(settings, 60).units[0]
+        left, right = unit.arms
+        gap = max(settings.thickness_mm, 4 * settings.clearance_mm + .2)
+        self.assertAlmostEqual(right.beam.y_min_mm - left.beam.y_max_mm, gap)
+        self.assertAlmostEqual(left.beam.y_max_mm - left.beam.y_min_mm, (settings.width_mm - gap) / 2)
+        self.assertGreater(right.receiver.y_min_mm - left.receiver.y_max_mm, 0)
+        self.assertGreater(right.receiver_cover.y_min_mm - left.receiver_cover.y_max_mm, 0)
+        self.assertEqual(unit.root.y_max_mm - unit.root.y_min_mm, settings.width_mm)
+
+    def test_print_ramps_have_exact_45_degree_run_rise_and_preserve_retaining_shoulder(self):
+        settings = SnapFitSettings()
+        unit = build_snap_fit_plan(settings, 60).units[0]
+        support = unit.root_support
+        self.assertGreater(polygon_area(support.points_xz_mm), 0)
+        first, second = support.points_xz_mm[:2]
+        self.assertAlmostEqual(second[0] - first[0], second[1] - first[1])
+        self.assertLess(unit.root_cover.z_min_mm, unit.root.z_min_mm)
+        roof = unit.arms[0].receiver.points_xz_mm
+        self.assertAlmostEqual(roof[2][1] - roof[3][1], roof[2][0] - roof[3][0])
+        shoulder = settings.reach_mm - settings.lead_in_mm
+        self.assertEqual(unit.arms[0].hook.points_xz_mm[0], (-settings.hook_depth_mm, shoulder))
+        self.assertEqual(roof[0][1], shoulder - settings.clearance_mm)
+
+    def test_print_support_off_restores_rectangular_pocket_and_original_root_coverage(self):
+        settings = SnapFitSettings(print_support=False, chamfer_edges=False)
+        unit = build_snap_fit_plan(settings, 60).units[0]
+        self.assertIsNone(unit.root_support)
+        self.assertEqual(unit.root_cover.z_min_mm, -settings.root_length_mm)
+        roof = unit.arms[0].receiver.points_xz_mm
+        self.assertEqual(roof[2][1], roof[3][1])
+        self.assertEqual(unit.arms[0].receiver_cover.z_max_mm, settings.reach_mm + 2 * settings.clearance_mm)
+
+    def test_finished_receiver_envelopes_preserve_requested_margins_and_neighbor_gaps(self):
+        settings = SnapFitSettings(snap_count=3, start_margin_mm=6, end_margin_mm=9)
+        units = build_snap_fit_plan(settings, 90).units
+        first_cut_edge = min(arm.receiver.y_min_mm for arm in units[0].arms) - settings.chamfer_size_mm
+        last_cut_edge = max(arm.receiver.y_max_mm for arm in units[-1].arms) + settings.chamfer_size_mm
+        self.assertAlmostEqual(first_cut_edge, -45 + settings.start_margin_mm)
+        self.assertAlmostEqual(last_cut_edge, 45 - settings.end_margin_mm)
+        for first, last in zip(units, units[1:]):
+            first_end = max(arm.receiver.y_max_mm for arm in first.arms) + settings.chamfer_size_mm
+            last_start = min(arm.receiver.y_min_mm for arm in last.arms) - settings.chamfer_size_mm
+            self.assertGreater(last_start, first_end)
+        with self.assertRaisesRegex(ValueError, "positive gap"):
+            build_snap_fit_plan(SnapFitSettings(snap_count=2, start_margin_mm=0, end_margin_mm=0), 18.4)
 
 
 if __name__ == "__main__":

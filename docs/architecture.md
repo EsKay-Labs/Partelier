@@ -479,3 +479,20 @@ hashes all runtime Python plus both static probes. Its watcher still handles
 only files and queued events. Every snap native fixture/persistence test runs
 in a rollback-only host command and checks the original document afterwards.
 See [snap-fit geometry and limits](snap-fit-design.md).
+
+
+## Snap type and finishing extension (0.7.0)
+
+The pure snap plan now contains one or two explicit arms, receiving profiles,
+coverage bounds and an optional root-support profile. Straight, tapered and twin
+styles share the same source-selection and SolidPairStore persistence. The
+finish module constructs bounded oriented-box bevel cutters from declared
+edges/normals. It operates after union of the complete generated detail and
+before joining A; only its planned recess entry sides are cut from B. Native
+finishing features and a second native preview driver are unnecessary.
+
+The HTML controller serializes fifteen typed fields atomically. Version 2
+recipes store that exact schema. Version 1 is interpreted with explicit legacy
+sharp/support-off defaults and remains read-only until deliberate Rebuild.
+Placement envelopes include the receiving-entry chamfers, preserving the stated
+margins and positive gaps between repeated cut openings.

@@ -41,6 +41,43 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Snap-fit types and printing details (0.7.0)
+
+Native request `da972d4b-b91b-4bfa-93f1-854eaa128f4e` passes 27 cases on Fusion
+2705.1.30. [Committed evidence](validation/snap-fit-0.7.0.json) records all cases,
+source hashes, result volumes, repeated native reference checks and limits.
+The combined tested source hash is
+`8dde80647fae1cf9580d0942cf31e824ddc654ddd75400cfbbaa087708d63313`
+for 29 runtime Python files and both fixed probes.
+
+The 12 geometry matrix cases cover three arm types with chamfers and print ramps
+each on/off. Native point-containment witnesses check the actual taper, two arm
+slots and remaining receiver web, retaining catches, arm gaps, 45-degree root
+ramp and receiving roof. Chamfer witnesses bracket the requested equal-setback
+size at the outer arm and recess-mouth sides; chamfered versions remove material
+relative to their exact same sharp baselines. Rebuild changes type and finish
+three times while preserving the same two bodies, BaseFeature and four Combines.
+Gap/lip cases and production logical session preview/update/Cancel/Create/Edit
+remain covered. Oversized chamfers are explicitly refused without changes.
+A version 1 recipe reads without modifying geometry or attributes, then a
+successful deliberate Rebuild stores a complete version 2 snapshot.
+
+Read-only diagnostic `37e275f1-08f1-4988-a7c7-ebc57f772f3a` loads the user's
+actual version 1 snap with its sharp/support-off settings intact and prepares all
+three new styles with 0.3 mm chamfers and print ramps. All six result solids are
+valid single solids. The temporary geometry stage is approximately 47–70 ms on
+this model; this excludes drawing/persistence and is not a general speed bound.
+The four snap runtime hashes match the matrix run. No actual user Rebuild is
+performed, and the original model/history/display snapshot remains unchanged.
+
+629 Python tests, both DOM suites, JavaScript syntax and Python compilation
+checks pass. A separate headless 540×840 browser rendering has no page errors or
+horizontal overflow and was visually inspected. The browser screenshot is
+ignored local evidence in output/native/snap-styles-ui.png. This is separate from
+manual CEF interactions. The ramps assume local +Z printing from A toward B;
+physical printing, chosen bed orientation, deformation/forces, save/reopen and
+manual Undo/Redo remain unverified. Historical results follow.
+
 ## Gap rims and internal lips (0.6.1)
 
 Final native request `6711587d-71da-4023-8926-b6ca1c65ce56` passes all eleven

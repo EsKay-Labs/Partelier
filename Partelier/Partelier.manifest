@@ -4,9 +4,9 @@
   "id": "7947c039-0f77-43fb-a7c3-2ce8b118dc28",
   "author": "SKTech",
   "description": {
-    "": "Partelier HTML toolkit for editable pin hinges and exterior cantilever snap-fits, with live Fusion material previews and guarded in-place Create/Rebuild."
+    "": "Partelier toolkit with editable pin hinges and straight, tapered and twin snap-fits, live previews, 45-degree printing ramps and guarded chamfer finishing."
   },
-  "version": "0.6.1",
+  "version": "0.7.0",
   "runOnStartup": false,
   "supportedOS": "windows",
   "editEnabled": true

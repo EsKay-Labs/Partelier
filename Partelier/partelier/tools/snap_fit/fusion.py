@@ -18,12 +18,20 @@ from ..hinge.visibility import validated_bodies
 from ..solid_pair import SolidPairStore
 from .planner import BoxBounds, build_snap_fit_plan
 from .settings import SnapFitSettings
+from .finish import apply_chamfers, plan_detail_chamfers, plan_receiver_chamfers
 
 
 ATTRIBUTE_GROUP = "sktech_partelier_snap_fit_389f7bf1"
 TOOL_ID = "snap_fit"
 RECIPE_NAME = "recipe"
-RECIPE_VERSION = 1
+RECIPE_VERSION = 2
+LEGACY_SETTINGS_FIELDS = frozenset({
+    "width_mm", "thickness_mm", "reach_mm", "clearance_mm", "hook_depth_mm",
+    "lead_in_mm", "snap_count", "start_margin_mm", "end_margin_mm", "root_length_mm",
+    "attachment_overlap_mm",
+})
+LEGACY_STYLE_DEFAULTS = {"snap_style": "standard", "chamfer_edges": False,
+                         "chamfer_size_mm": .3, "print_support": False}
 SOURCE_KEYS = frozenset({"face_a", "face_b", "axis_edge", "body_a", "body_b"})
 RECIPE_KEYS = frozenset({"version", "tool", "feature_id", "settings", "sources"})
 STORE = SolidPairStore(ATTRIBUTE_GROUP, TOOL_ID)
@@ -342,31 +350,34 @@ def prepare_snap_fit(design, face_a, face_b, axis_edge, settings, *, _historical
     _halfspaces(manager, frame, face_a.body, face_b.body)
     results = {"A": _copy(manager, face_a.body), "B": _copy(manager, face_b.body)}
     for unit in plan.units:
-        embedded_root = replace(unit.root, x_max_mm=0.0)
-        # Require one explicit clearance of remaining wall around the blind
-        # recess. Testing only the cutter would admit an open edge/through-cut.
-        embedded_pocket = replace(
-            unit.receiver, x_min_mm=unit.receiver.x_min_mm - settings.clearance_mm,
-            x_max_mm=0.0, y_min_mm=unit.receiver.y_min_mm - settings.clearance_mm,
-            y_max_mm=unit.receiver.y_max_mm + settings.clearance_mm,
-            z_min_mm=unit.receiver.z_min_mm - settings.clearance_mm,
-            z_max_mm=unit.receiver.z_max_mm + settings.clearance_mm)
-        _coverage(manager, frame, face_a.body, embedded_root,
+        _coverage(manager, frame, face_a.body, unit.root_cover,
                   "Face A must contain the full root width, length and attachment overlap. Move the rim or reduce those dimensions.")
-        _coverage(manager, frame, face_b.body, embedded_pocket,
-                  "Face B must contain the full blind recess plus remaining wall on its back, sides and top. Increase wall thickness/height or reduce reach, hook depth or clearance.")
         root = hinge._box(manager, frame, unit.root)
-        beam = hinge._box(manager, frame, unit.beam)
-        hook = _prism(manager, frame, unit.hook.points_xz_mm, unit.hook.y_min_mm, unit.hook.y_max_mm)
-        _no_positive_overlap(manager, hook, face_a.body)
-        for part in (beam, hook):
-            _boolean(manager, root, part, fusion.BooleanTypes.UnionBooleanType,
-                     "The cantilever root, beam and hook did not join into one solid.")
+        if unit.root_support is not None:
+            support = unit.root_support
+            _boolean(manager, root, _prism(manager, frame, support.points_xz_mm,
+                                           support.y_min_mm, support.y_max_mm),
+                     fusion.BooleanTypes.UnionBooleanType,
+                     "The 45-degree root ramp did not join its root into one solid.")
+        for arm in unit.arms:
+            _coverage(manager, frame, face_b.body, arm.receiver_cover,
+                      "Face B must contain the full blind recess and roof plus remaining wall. Increase wall thickness/height or reduce reach, hook depth or clearance.")
+            beam = _prism(manager, frame, arm.beam.points_xz_mm, arm.beam.y_min_mm, arm.beam.y_max_mm)
+            hook = _prism(manager, frame, arm.hook.points_xz_mm, arm.hook.y_min_mm, arm.hook.y_max_mm)
+            _no_positive_overlap(manager, hook, face_a.body)
+            for part in (beam, hook):
+                _boolean(manager, root, part, fusion.BooleanTypes.UnionBooleanType,
+                         "The cantilever root, beam and hook did not join into one solid.")
+        apply_chamfers(manager, frame, root, plan_detail_chamfers(unit, settings))
         _boolean(manager, results["A"], root, fusion.BooleanTypes.UnionBooleanType,
                  "The snap-fit root did not join into body A.")
-        pocket = hinge._box(manager, frame, unit.receiver)
-        _boolean(manager, results["B"], pocket, fusion.BooleanTypes.DifferenceBooleanType,
-                 "The receiving recess removed or split body B. Reduce its dimensions.")
+        for arm in unit.arms:
+            pocket = arm.receiver
+            _boolean(manager, results["B"], _prism(manager, frame, pocket.points_xz_mm,
+                                                   pocket.y_min_mm, pocket.y_max_mm),
+                     fusion.BooleanTypes.DifferenceBooleanType,
+                     "The receiving recess removed or split body B. Reduce its dimensions.")
+            apply_chamfers(manager, frame, results["B"], plan_receiver_chamfers(arm, settings))
     _no_positive_overlap(manager, results["A"], results["B"])
     ended = time.perf_counter()
     return PreparedSnapFit(design, face_a, face_b, axis_edge, settings, plan, frame,
@@ -384,7 +395,7 @@ def _parse_recipe(raw, record):
     except (ValueError, TypeError) as error:
         raise SnapFitGeometryError("The saved snap-fit recipe is damaged.") from error
     if (not isinstance(recipe, dict) or set(recipe) != RECIPE_KEYS
-            or type(recipe["version"]) is not int or recipe["version"] != RECIPE_VERSION
+            or type(recipe["version"]) is not int or recipe["version"] not in (1, RECIPE_VERSION)
             or recipe["tool"] != TOOL_ID or recipe["feature_id"] != record.feature_id
             or not isinstance(recipe["sources"], dict) or set(recipe["sources"]) != SOURCE_KEYS
             or not all(isinstance(value, str) and 0 < len(value) <= 16384
@@ -392,7 +403,12 @@ def _parse_recipe(raw, record):
             or len(set(recipe["sources"].values())) != len(SOURCE_KEYS)):
         raise SnapFitGeometryError("The saved snap-fit recipe has an unsupported or damaged structure.")
     try:
-        settings = SnapFitSettings.from_dict(recipe["settings"])
+        values = recipe["settings"]
+        if recipe["version"] == 1:
+            if not isinstance(values, dict) or set(values) != LEGACY_SETTINGS_FIELDS:
+                raise ValueError("Version 1 must contain exactly its original eleven dimension fields.")
+            values = {**values, **LEGACY_STYLE_DEFAULTS}
+        settings = SnapFitSettings.from_dict(values)
     except (ValueError, TypeError) as error:
         raise SnapFitGeometryError("The saved snap-fit settings are damaged: " + str(error)) from error
     return recipe, settings

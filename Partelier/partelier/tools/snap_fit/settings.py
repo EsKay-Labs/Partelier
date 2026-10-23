@@ -41,6 +41,10 @@ class SnapFitSettings:
     end_margin_mm: float = 5.0
     root_length_mm: float = 4.0
     attachment_overlap_mm: float = 0.5
+    snap_style: str = "standard"
+    chamfer_edges: bool = True
+    chamfer_size_mm: float = 0.3
+    print_support: bool = True
 
     def __post_init__(self):
         for field in fields(self):
@@ -59,11 +63,33 @@ class SnapFitSettings:
                         allow_zero=field.name in {"start_margin_mm", "end_margin_mm"})
         if type(self.snap_count) is not int or not 1 <= self.snap_count <= 20:
             raise ValueError("Snap count must be an integer from 1 to 20.")
+        if type(self.snap_style) is not str or self.snap_style not in ("standard", "tapered", "twin"):
+            raise ValueError("Snap style must be standard, tapered or twin.")
+        if type(self.chamfer_edges) is not bool:
+            raise ValueError("Chamfer edges must be true or false.")
+        if type(self.print_support) is not bool:
+            raise ValueError("Print support must be true or false.")
+        gap = max(self.thickness_mm, 4.0 * self.clearance_mm + .2) if self.snap_style == "twin" else 0.0
+        arm_width = ((self.width_mm - gap) / 2.0 if self.snap_style == "twin" else self.width_mm)
+        if not math.isfinite(gap) or not math.isfinite(arm_width) or arm_width <= 0:
+            raise ValueError("Twin arms need width greater than their middle gap (max thickness, 4 clearances + 0.2 mm).")
+        tip_thickness = self.thickness_mm * (.65 if self.snap_style == "tapered" else 1.0)
+        if self.chamfer_edges:
+            size = self.chamfer_size_mm
+            if not size < min(tip_thickness, arm_width, self.root_length_mm,
+                              self.lead_in_mm, self.hook_depth_mm) / 2.0:
+                raise ValueError("Chamfer size must be below half the tip thickness, arm width, root length, lead in and hook depth.")
+            if not self.lead_in_mm + 2 * self.clearance_mm > 4 * size:
+                raise ValueError("Chamfer size leaves no protected receiving-entry length. Reduce its size or increase lead in.")
+            if self.snap_style == "twin" and not gap > 2 * (self.clearance_mm + size):
+                raise ValueError("Twin entry chamfers consume the middle receiving web. Reduce chamfer size or increase thickness.")
         if not self.lead_in_mm < self.reach_mm:
             raise ValueError("Lead in must be smaller than the beam reach.")
         shoulder = self.reach_mm - self.lead_in_mm
         if not 0 < shoulder - self.clearance_mm < shoulder < self.reach_mm:
             raise ValueError("Reach must exceed the lead in plus clearance and leave a distinct receiving pocket.")
+        if self.chamfer_edges and not shoulder > 4 * self.chamfer_size_mm:
+            raise ValueError("Chamfer size needs beam reach beyond the lead in to preserve the root joint and retaining shoulder.")
         outer = self.clearance_mm + self.thickness_mm
         pocket_outer = outer + self.clearance_mm
         pocket_depth = self.hook_depth_mm + self.clearance_mm
@@ -74,7 +100,9 @@ class SnapFitSettings:
                    pocket_half_width, outer + self.attachment_overlap_mm,
                    outer + self.hook_depth_mm, pocket_depth + pocket_outer,
                    2.0 * pocket_half_width, self.root_length_mm + self.reach_mm,
-                   self.lead_in_mm + 2.0 * self.clearance_mm)
+                   self.lead_in_mm + 2.0 * self.clearance_mm,
+                   self.reach_mm + self.hook_depth_mm + 3 * self.clearance_mm,
+                   self.root_length_mm + outer + self.attachment_overlap_mm)
         if (not all(math.isfinite(value) for value in derived)
                 or not self.clearance_mm < outer < pocket_outer
                 or not pocket_depth > self.hook_depth_mm

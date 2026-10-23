@@ -36,12 +36,24 @@ class HookPrism:
 
 
 @dataclass(frozen=True)
+class SnapArm:
+    beam: HookPrism
+    hook: HookPrism
+    receiver: HookPrism
+    receiver_bounds: BoxBounds
+    receiver_cover: BoxBounds
+
+
+@dataclass(frozen=True)
 class SnapFitUnit:
     center_y_mm: float
     root: BoxBounds
     beam: BoxBounds
     hook: HookPrism
     receiver: BoxBounds
+    arms: tuple[SnapArm, ...] = ()
+    root_support: object = None
+    root_cover: object = None
 
 
 @dataclass(frozen=True)
@@ -66,7 +78,9 @@ def build_snap_fit_plan(settings, span_mm):
     span = _length("span_mm", span_mm)
     half_span = span / 2.0
     half_width = settings.width_mm / 2.0
-    pocket_half_width = half_width + settings.clearance_mm
+    # Placement includes the complete cut opening, including its side bevels.
+    pocket_half_width = half_width + settings.clearance_mm + (
+        settings.chamfer_size_mm if settings.chamfer_edges else 0.0)
     first = -half_span + settings.start_margin_mm + pocket_half_width
     last = half_span - settings.end_margin_mm - pocket_half_width
     if not all(math.isfinite(value) for value in (first, last)) or last < first:
@@ -96,17 +110,53 @@ def build_snap_fit_plan(settings, span_mm):
                          low_y, high_y, -settings.root_length_mm, 0.0)
         beam = BoxBounds(settings.clearance_mm, outer_x,
                          low_y, high_y, -settings.root_length_mm, settings.reach_mm)
-        # The right two vertices lie at the beam's outside surface. This gives
-        # the hook a positive-volume overlap with the beam before their join.
-        hook = HookPrism(((-settings.hook_depth_mm, shoulder_z),
-                          (outer_x, shoulder_z),
-                          (outer_x, settings.reach_mm),
-                          (settings.clearance_mm, settings.reach_mm)), low_y, high_y)
-        receiver = BoxBounds(-settings.hook_depth_mm - settings.clearance_mm,
-                             outer_x + settings.clearance_mm,
-                             pocket_low_y, pocket_high_y,
-                             shoulder_z - settings.clearance_mm,
-                             settings.reach_mm + settings.clearance_mm)
-        units.append(SnapFitUnit(center, root, beam, hook, receiver))
+        gap = max(settings.thickness_mm, 4 * settings.clearance_mm + .2)
+        intervals = (((low_y, center - gap / 2), (center + gap / 2, high_y))
+                     if settings.snap_style == "twin" else ((low_y, high_y),))
+        tip_outer = settings.clearance_mm + settings.thickness_mm * (.65 if settings.snap_style == "tapered" else 1)
+        shoulder_outer = outer_x + (tip_outer - outer_x) * shoulder_z / settings.reach_mm
+        depth = settings.hook_depth_mm + settings.clearance_mm
+        flat_top = settings.reach_mm + settings.clearance_mm
+        pocket_xmin = -depth
+        pocket_xmax = outer_x + settings.clearance_mm
+        margin = max(settings.clearance_mm, settings.chamfer_size_mm if settings.chamfer_edges else 0)
+        arms = []
+        for arm_low, arm_high in intervals:
+            beam_points = ((settings.clearance_mm, -settings.root_length_mm),
+                           (outer_x, -settings.root_length_mm), (outer_x, 0.0),
+                           (tip_outer, settings.reach_mm), (settings.clearance_mm, settings.reach_mm))
+            if settings.snap_style != "tapered":
+                beam_points = (beam_points[0], beam_points[1], beam_points[3], beam_points[4])
+            arm_beam = HookPrism(beam_points, arm_low, arm_high)
+            hook = HookPrism(((-settings.hook_depth_mm, shoulder_z),
+                              (shoulder_outer, shoulder_z),
+                              (tip_outer, settings.reach_mm),
+                              (settings.clearance_mm, settings.reach_mm)), arm_low, arm_high)
+            roof_front = flat_top + pocket_xmax - pocket_xmin if settings.print_support else flat_top
+            receiver = HookPrism(((pocket_xmin, shoulder_z - settings.clearance_mm),
+                                  (pocket_xmax, shoulder_z - settings.clearance_mm),
+                                  (pocket_xmax, roof_front), (pocket_xmin, flat_top)),
+                                 arm_low - settings.clearance_mm, arm_high + settings.clearance_mm)
+            bounds = BoxBounds(pocket_xmin, pocket_xmax, receiver.y_min_mm,
+                               receiver.y_max_mm, shoulder_z - settings.clearance_mm, roof_front)
+            opening_top = flat_top + (depth if settings.print_support else 0)
+            cover = BoxBounds(pocket_xmin - margin, 0.0,
+                              receiver.y_min_mm - margin, receiver.y_max_mm + margin,
+                              bounds.z_min_mm - margin, opening_top + margin)
+            arms.append(SnapArm(arm_beam, hook, receiver, bounds, cover))
+        root_support = None
+        root_bottom = -settings.root_length_mm
+        if settings.print_support:
+            root_bottom -= outer_x + settings.attachment_overlap_mm
+            root_support = HookPrism(((-settings.attachment_overlap_mm, root_bottom),
+                                      (outer_x, -settings.root_length_mm),
+                                      (-settings.attachment_overlap_mm,
+                                       -settings.root_length_mm + settings.attachment_overlap_mm)), low_y, high_y)
+        root_cover = BoxBounds(-settings.attachment_overlap_mm, 0.0, low_y, high_y,
+                               root_bottom, 0.0)
+        receiver = BoxBounds(pocket_xmin, pocket_xmax, pocket_low_y, pocket_high_y,
+                             shoulder_z - settings.clearance_mm, flat_top)
+        units.append(SnapFitUnit(center, root, beam, arms[0].hook, receiver,
+                                 tuple(arms), root_support, root_cover))
         previous_receiver_end = pocket_high_y
     return SnapFitPlan(settings, span, tuple(units))

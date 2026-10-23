@@ -5,8 +5,10 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 later reinforcement/pattern tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current code:** experimental 0.6.1 provides an editable separate-pin hinge
-and an exterior cantilever snap-fit with a matching blind recess. Both tools use
+**Current code:** experimental 0.7.0 provides an editable separate-pin hinge
+and exterior cantilever snap-fits with straight, tapered or twin arms and
+matching blind recesses. New snaps include optional 45-degree root/roof printing
+ramps and bounded edge chamfers. Both tools use
 direct model selection, full-result live preview and manual Edit/Rebuild. Hinges
 include five presets.
 Attached output integrates the hinge into the two selected root bodies, retaining
@@ -29,22 +31,31 @@ The final 0.5.0 native report passes 53 stated expectations: 40 generated
 geometry cases, six explicit larger-fillet refusals, six in-place/migration
 cases and one production-session workflow. Four attached fixture treatments each
 pass four Rebuilds without replacing the selected bodies or accumulating history.
-Current local checks pass 615 Python tests, both Node DOM suites and
+Current local checks pass 629 Python tests, both Node DOM suites and
 syntax/compilation checks. The current hinge workflow has been user-confirmed
 in Fusion. Broader interaction coverage, save/reopen, Undo/Redo, motion and
 physical printing remain acceptance items. See
 [native evidence and limits](docs/fusion-validation.md). The snap-fit passes
-eleven native geometry/persistence/refusal/session cases, including source rollback
+27 native geometry/persistence/refusal/session cases, including source rollback
 and stable body identities. Other tools remain planned; the honeycomb input
 checker creates no geometry.
 
-**Try snap-fits:** Stop then Run Partelier to load 0.6.1. The tool library opens
+**Try snap-fits:** Stop then Run Partelier to load 0.7.0. The tool library opens
 automatically; choose **Snap-fit**. Pick the base exterior wall A, the coplanar lid wall B,
 then either facing straight rim. Matching rims may have a gap between them;
 internal lid lips may cross the exterior seam. The selected wall regions need
 enough material for the root and blind recess. Size and fit stay
 visible; count, margins and root dimensions are under Advanced. The source seam
 is preserved and the two parts are printed separately.
+Choose **Style** for straight, tapered or twin arms. **45° print ramps** changes
+the root/receiver shape; **Advanced > Edge finish** controls exposed-edge
+chamfers. The retaining shoulder remains intact. Printing ramps assume build-up
+from A toward B; inspect your actual slicer orientation.
+
+Existing snap-fits keep their saved sharp geometry on Edit. Enable the new
+options explicitly, then Rebuild to apply them. Version 1 recipes migrate only
+on a successful deliberate Rebuild.
+
 For a new unsaved reference model, run **tools/fusion/SnapFitFixture** as a Fusion
 script. See the [snap-fit specification](docs/snap-fit-design.md).
 

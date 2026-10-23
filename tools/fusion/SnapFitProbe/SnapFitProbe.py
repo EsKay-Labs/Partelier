@@ -139,7 +139,7 @@ def _inside(body, x, y, z):
 
 
 def inspect_preview(prepared):
-    """Witness beam, gap, latch/pocket and receiver back wall for every unit."""
+    """Probe actual catches, twin gaps, chamfers and 45-degree support surfaces."""
     bodies = dict(prepared.result_bodies)
     if set(bodies) != {"A", "B"} or len(prepared.result_bodies) != 2:
         raise RuntimeError("Preview did not return exactly the two final body roles.")
@@ -150,27 +150,74 @@ def inspect_preview(prepared):
     shoulder = settings.reach_mm - settings.lead_in_mm
     outer = settings.clearance_mm + settings.thickness_mm
     witnesses = []
+
+    def outer_at(z):
+        factor = 1.0 - .35 * max(0.0, z) / settings.reach_mm if settings.snap_style == "tapered" else 1.0
+        return settings.clearance_mm + settings.thickness_mm * factor
+
+    def witness(label, point, expected_a, expected_b):
+        global_point = prepared.frame.point_mm(*point)
+        actual = (_inside(bodies["A"], *global_point), _inside(bodies["B"], *global_point))
+        if actual != (expected_a, expected_b):
+            raise RuntimeError("Snap-fit witness " + label + " has incorrect material/clearance: " + str(actual))
+        witnesses.append({"label": label, "point_mm": point, "inside_a": actual[0], "inside_b": actual[1]})
+
     for unit in prepared.plan.units:
-        y = unit.center_y_mm
-        # Fixture/frame orientation along Y can reverse; symmetric walls cover both.
-        samples = [
-            ("beam", (settings.clearance_mm + settings.thickness_mm / 2, y, shoulder / 2), True, False),
-            ("beam_gap", (settings.clearance_mm / 2, y, shoulder / 2), False, False),
-            ("hook", (-settings.hook_depth_mm / 2, y, shoulder + settings.clearance_mm / 2), True, False),
-            ("pocket_side", (-settings.hook_depth_mm / 2,
-                             y + settings.width_mm / 2 + settings.clearance_mm / 2,
-                             shoulder + settings.clearance_mm / 2), False, False),
-            ("back_wall", (-settings.hook_depth_mm - settings.clearance_mm - .2,
-                            y, shoulder + settings.clearance_mm / 2), False, True),
-            ("beam_outer_gap", (outer + settings.clearance_mm / 2,
-                                 y, shoulder + settings.clearance_mm / 2), False, False),
-        ]
-        for label, point, expected_a, expected_b in samples:
-            global_point = prepared.frame.point_mm(*point)
-            actual = (_inside(bodies["A"], *global_point), _inside(bodies["B"], *global_point))
-            if actual != (expected_a, expected_b):
-                raise RuntimeError("Snap-fit witness " + label + " has incorrect material/clearance: " + str(actual))
-            witnesses.append({"label": label, "point_mm": point, "inside_a": actual[0], "inside_b": actual[1]})
+        expected_arms = 2 if settings.snap_style == "twin" else 1
+        if len(unit.arms) != expected_arms:
+            raise RuntimeError("The requested snap style did not create its expected arm count.")
+        for index, arm in enumerate(unit.arms):
+            y = (arm.hook.y_min_mm + arm.hook.y_max_mm) / 2
+            beam_z = shoulder / 2
+            prefix = "arm_" + str(index + 1) + "_"
+            samples = [
+                ("beam", ((settings.clearance_mm + outer_at(beam_z)) / 2, y, beam_z), True, False),
+                ("beam_gap", (settings.clearance_mm / 2, y, beam_z), False, False),
+                ("hook", (-settings.hook_depth_mm / 2, y, shoulder + settings.clearance_mm / 2), True, False),
+                ("pocket_side", (-settings.hook_depth_mm / 2,
+                                 arm.hook.y_max_mm + settings.clearance_mm / 2,
+                                 shoulder + settings.clearance_mm / 2), False, False),
+                ("back_wall", (-settings.hook_depth_mm - settings.clearance_mm - .2,
+                                y, shoulder + settings.clearance_mm / 2), False, True),
+                ("beam_outer_gap", (outer_at(shoulder + settings.clearance_mm / 2) + settings.clearance_mm / 2,
+                                     y, shoulder + settings.clearance_mm / 2), False, False),
+                ("receiver_roof", (-settings.hook_depth_mm / 2, y,
+                                    settings.reach_mm + settings.clearance_mm + .2),
+                 False, not settings.print_support),
+            ]
+            for label, point, expected_a, expected_b in samples:
+                witness(prefix + label, point, expected_a, expected_b)
+            # A side finish is away from the flat catch/shoulder and the beam gap.
+            bevel_z = settings.reach_mm / 3
+            inset = settings.chamfer_size_mm * .45 if settings.chamfer_edges else .05
+            witness(prefix + "outer_side_finish",
+                    (outer_at(bevel_z) - inset, arm.beam.y_max_mm - inset, bevel_z),
+                    not settings.chamfer_edges, False)
+            entry_z = (shoulder + settings.reach_mm) / 2
+            witness(prefix + "receiver_entry_finish",
+                    (-inset, arm.receiver.y_max_mm + inset, entry_z),
+                    False, not settings.chamfer_edges)
+            if settings.chamfer_edges:
+                retained = settings.chamfer_size_mm * .55
+                witness(prefix + "outer_finish_requested_size",
+                        (outer_at(bevel_z) - retained, arm.beam.y_max_mm - retained, bevel_z),
+                        True, False)
+                witness(prefix + "entry_finish_requested_size",
+                        (-retained, arm.receiver.y_max_mm + retained, entry_z), False, True)
+            if settings.snap_style == "tapered":
+                # This material would remain in a straight beam at the same point.
+                z = shoulder / 2
+                x = (outer_at(z) + outer) / 2
+                witness(prefix + "taper_narrowing", (x, y, z), False, False)
+        witness("root_support_45deg", (outer / 2, unit.center_y_mm,
+                                        -settings.root_length_mm - outer / 4),
+                settings.print_support, False)
+        if settings.snap_style == "twin":
+            witness("twin_middle_gap", (settings.clearance_mm + settings.thickness_mm / 2,
+                                        unit.center_y_mm, shoulder / 2), False, False)
+            witness("twin_receiver_middle_web", (-settings.hook_depth_mm / 2,
+                                                unit.center_y_mm, shoulder + settings.clearance_mm / 2),
+                    False, True)
     if len(prepared.plan.units) != settings.snap_count:
         raise RuntimeError("The plan did not produce the requested clasp count.")
     STATE.setdefault("detached", []).extend(bodies.values())
@@ -226,6 +273,86 @@ def gap_cases():
              "success":True,"gap_mm":.3,"witnesses":witnesses})
 
 
+def style_matrix(faces, edge):
+    """Fixed style/finish/support combinations; every case has physical witnesses."""
+    adapter = STATE["adapter"]
+    settings_type = STATE["settings_module"].SnapFitSettings
+    design = STATE["design"]
+    sharp_volumes = {}
+    for style in ("standard", "tapered", "twin"):
+        for chamfer in (False, True):
+            for support in (False, True):
+                if cancellation_requested():
+                    raise RuntimeError("Snap-fit validation cancelled before the next geometry case.")
+                settings = settings_type(snap_style=style, chamfer_edges=chamfer,
+                                         chamfer_size_mm=.3, print_support=support)
+                before = snapshot(design)
+                prepared = adapter.prepare_snap_fit(design, *faces, edge, settings)
+                witnesses = inspect_preview(prepared)
+                volumes = {role: float(body.volume) for role, body in prepared.result_bodies}
+                if not chamfer:
+                    sharp_volumes[(style, support)] = volumes
+                else:
+                    previous = sharp_volumes[(style, support)]
+                    if (any(volumes[role] > previous[role] + 1e-8 for role in volumes)
+                            or not any(volumes[role] < previous[role] - 1e-8 for role in volumes)):
+                        raise RuntimeError("The requested chamfer did not remove material from its exact sharp baseline.")
+                if snapshot(design) != before:
+                    raise RuntimeError("A style/finish preview changed source geometry or scene flags.")
+                STATE["report"]["cases"].append({
+                    "name": "matrix_" + style + ("_chamfer" if chamfer else "_sharp")
+                            + ("_print_support_on" if support else "_print_support_off"),
+                    "snap_style": style, "chamfer_edges": chamfer, "print_support": support,
+                    "success": True, "witnesses": witnesses,
+                    "result_volumes_cm3": volumes,
+                })
+
+
+def legacy_migration_case():
+    """An owned v1 sharp fixture is unchanged by read; explicit Rebuild saves v2."""
+    design, adapter = STATE["design"], STATE["adapter"]
+    settings = STATE["settings_module"].SnapFitSettings(
+        snap_style="standard", chamfer_edges=False, print_support=False)
+    _, targets, faces, edge = fixture(design)
+    count = design.rootComponent.bRepBodies.count
+    tokens = tuple(body.entityToken for body in targets)
+    names = tuple(body.name for body in targets)
+    flags = tuple(body.isLightBulbOn for body in targets)
+    prepared = adapter.prepare_snap_fit(design, *faces, edge, settings)
+    inspect_preview(prepared)
+    anchor = adapter.create_snap_fit(design, prepared)
+    _identity_check(design, targets, tokens, names, flags, count)
+    attribute = anchor.attributes.itemByName(adapter.ATTRIBUTE_GROUP, adapter.RECIPE_NAME)
+    legacy = json.loads(attribute.value)
+    legacy["version"] = 1
+    for key in ("snap_style", "chamfer_edges", "chamfer_size_mm", "print_support"):
+        del legacy["settings"][key]
+    raw = json.dumps(legacy, separators=(",", ":"))
+    if anchor.attributes.add(adapter.ATTRIBUTE_GROUP, adapter.RECIPE_NAME, raw) is None:
+        raise RuntimeError("Could not establish the owned legacy recipe fixture.")
+    before = snapshot(design)
+    loaded = adapter.read_edit_target(design, targets[0])
+    if loaded.settings != settings:
+        raise RuntimeError("Reading a legacy recipe changed its existing sharp geometry dimensions.")
+    if (snapshot(design) != before
+            or anchor.attributes.itemByName(adapter.ATTRIBUTE_GROUP, adapter.RECIPE_NAME).value != raw):
+        raise RuntimeError("Reading a legacy recipe silently modified geometry or persisted a migration.")
+    combines = dict(loaded.record.recipe["combines"])
+    changed = replace(settings, snap_style="tapered", chamfer_edges=True, print_support=True)
+    updated = adapter.prepare_edit_snap_fit(design, loaded, changed)
+    witnesses = inspect_preview(updated)
+    if adapter.rebuild_snap_fit(design, loaded, updated) != anchor:
+        raise RuntimeError("Legacy Rebuild replaced its existing native BaseFeature.")
+    _identity_check(design, targets, tokens, names, flags, count)
+    final = adapter.read_edit_target(design, anchor)
+    saved = json.loads(anchor.attributes.itemByName(adapter.ATTRIBUTE_GROUP, adapter.RECIPE_NAME).value)
+    if (saved["version"] != 2 or final.settings != changed
+            or final.record.recipe["combines"] != combines):
+        raise RuntimeError("Explicit legacy Rebuild did not store v2 dimensions on the same native history.")
+    STATE["report"]["cases"].append({"name": "legacy_v1_read_then_explicit_v2_rebuild",
+        "success": True, "legacy_geometry_unchanged_by_read": True, "witnesses": witnesses})
+
+
 def cases():
     design = STATE["design"]
     adapter, settings_module = STATE["adapter"], STATE["settings_module"]
@@ -237,6 +364,7 @@ def cases():
     names = tuple(body.name for body in targets)
     flags = tuple(body.isLightBulbOn for body in targets)
     initial_volumes = tuple(float(body.volume) for body in targets)
+    style_matrix(faces, edge)
     prepared = adapter.prepare_snap_fit(design, *faces, edge, settings)
     report["cases"].append({"name": "default_preview", "success": True,
                              "witnesses": inspect_preview(prepared)})
@@ -270,19 +398,27 @@ def cases():
     # A later independent fixture exercises rebuilding an earlier owned feature.
     fixture(design, span=40.0)
     count = design.rootComponent.bRepBodies.count
-    changed = replace(settings, snap_count=3, width_mm=6.0, reach_mm=14.0)
-    rebuilt = adapter.prepare_edit_snap_fit(design, record, changed)
-    witnesses = inspect_preview(rebuilt)
-    updated = adapter.rebuild_snap_fit(design, record, rebuilt)
-    if updated != anchor:
-        raise RuntimeError("Rebuild replaced the owned BaseFeature.")
-    _identity_check(design, targets, tokens, names, flags, count)
-    fresh = adapter.read_edit_target(design, anchor)
-    if (fresh.settings != changed or fresh.record.recipe["combines"] != combine_tokens
-            or design.rootComponent.features.combineFeatures.count != combine_count):
-        raise RuntimeError("Rebuild changed native Combine references or failed to save new dimensions.")
-    report["cases"].append({"name": "rebuild_same_history", "success": True,
-                             "witnesses": witnesses, "native_combines": 4})
+    changes = (
+        replace(settings, snap_count=3, width_mm=6.0, reach_mm=14.0,
+                snap_style="tapered", chamfer_edges=True, print_support=True),
+        replace(settings, snap_style="twin", chamfer_edges=True, print_support=False),
+        replace(settings, snap_style="standard", chamfer_edges=False, print_support=False),
+    )
+    for changed in changes:
+        rebuilt = adapter.prepare_edit_snap_fit(design, record, changed)
+        witnesses = inspect_preview(rebuilt)
+        updated = adapter.rebuild_snap_fit(design, record, rebuilt)
+        if updated != anchor:
+            raise RuntimeError("Rebuild replaced the owned BaseFeature.")
+        _identity_check(design, targets, tokens, names, flags, count)
+        fresh = adapter.read_edit_target(design, anchor)
+        if (fresh.settings != changed or fresh.record.recipe["combines"] != combine_tokens
+                or design.rootComponent.features.combineFeatures.count != combine_count):
+            raise RuntimeError("Rebuild changed native Combine references or failed to save new dimensions.")
+        STATE["report"]["cases"].append({"name": "rebuild_same_history_" + changed.snap_style,
+            "success": True, "witnesses": witnesses, "native_combines": 4,
+            "chamfer_edges": changed.chamfer_edges, "print_support": changed.print_support})
+        record = fresh
     for name, dimensions in (("short_rim_refused", {"span": 12.0}),
                              ("thin_wall_refused", {"thickness": 1.0}),
                              ("short_receiver_refused", {"upper": 12.0})):
@@ -297,6 +433,19 @@ def cases():
                                      "expected_refusal": True, "message": str(error)})
         else:
             raise RuntimeError("Unsupported fixture was accepted: " + name)
+    _, _, invalid_faces, invalid_edge = fixture(design)
+    before = snapshot(design)
+    try:
+        invalid = replace(settings, chamfer_edges=True, chamfer_size_mm=settings.thickness_mm)
+        adapter.prepare_snap_fit(design, *invalid_faces, invalid_edge, invalid)
+    except ValueError as error:
+        if snapshot(design) != before:
+            raise RuntimeError("An oversized chamfer refusal modified the model.") from error
+        report["cases"].append({"name": "oversized_chamfer_explicit_refusal", "success": True,
+                                 "expected_refusal": True, "message": str(error)})
+    else:
+        raise RuntimeError("An oversized chamfer was accepted or silently reduced.")
+    legacy_migration_case()
     gap_cases()
     session_checks()
     report["geometry_checks_passed"] = True
@@ -361,7 +510,8 @@ def session_checks():
         session = new_session(editing=True, anchor=targets[0])
         if session.edit_target is None or session.settings != updated_settings:
             raise RuntimeError("Production Edit session did not load the body's saved dimensions.")
-        changed = replace(updated_settings, snap_count=2)
+        changed = replace(updated_settings, snap_count=2, snap_style="tapered",
+                          chamfer_edges=False, print_support=False)
         owner.palette_action("snap_preview", session.session_id, revision=1, settings_dict=changed.to_dict())
         args = SimpleNamespace(executeFailed=False)
         session.execute(args)

@@ -95,7 +95,7 @@ def prepared_fixture():
     design, a, b, edge = fixture()
     with selection_api():
         values = fusion._selection(design, a, b, edge)
-    settings = SnapFitSettings()
+    settings = SnapFitSettings(chamfer_edges=False, print_support=False)
     finals = (("A", solid("final a", temporary=True)), ("B", solid("final b", temporary=True)))
     prepared = fusion.PreparedSnapFit(design, a, b, edge, settings,
                                      build_snap_fit_plan(settings, 60), values[3], finals,
@@ -107,7 +107,7 @@ def saved_fixture():
     design, prepared = prepared_fixture()
     anchor = Entity(isValid=True, attributes=Attributes())
     record = SolidPairRecord(anchor, IDENTITY, (prepared.face_a.body, prepared.face_b.body), {})
-    recipe = {"version": 1, "tool": "snap_fit", "feature_id": IDENTITY,
+    recipe = {"version": fusion.RECIPE_VERSION, "tool": "snap_fit", "feature_id": IDENTITY,
               "settings": prepared.settings.to_dict(), "sources": dict(prepared.source_tokens)}
     anchor.attributes.add(fusion.ATTRIBUTE_GROUP, fusion.RECIPE_NAME, json.dumps(recipe))
     target = fusion.EditTarget(anchor, record, prepared.settings, recipe, prepared.face_a,
@@ -303,7 +303,7 @@ class SnapFitGeometryBoundaryTests(unittest.TestCase):
         self.assertAlmostEqual(pocket_check.z_max_mm, cutter.z_max_mm + .3)
         self.assertEqual(pocket_check.x_max_mm, 0)
         self.assertEqual(tuple(role for role, body in result.result_bodies), ("A", "B"))
-        self.assertEqual(boxes[-1], cutter)
+        self.assertEqual(boxes, [prepared.plan.units[0].root])
         self.assertFalse(design.rootComponent.__dict__.get("created", False))
         self.assertEqual(prepared.face_a.body.attributes.writes, [])
         self.assertEqual(prepared.face_b.body.attributes.writes, [])
@@ -338,6 +338,27 @@ class SnapFitGeometryBoundaryTests(unittest.TestCase):
 
 
 class SnapFitFreshnessAndRecipeTests(unittest.TestCase):
+    def test_legacy_recipe_loads_exact_original_geometry_without_writes(self):
+        design, prepared, target = saved_fixture()
+        old = dict(target.recipe, version=1,
+                   settings={key: value for key, value in target.recipe["settings"].items()
+                             if key in fusion.LEGACY_SETTINGS_FIELDS})
+        original = json.dumps(old)
+        target.anchor.attributes.add(fusion.ATTRIBUTE_GROUP, fusion.RECIPE_NAME, original)
+        before_writes = len(target.anchor.attributes.writes)
+        recipe, settings = fusion._read_recipe(target.anchor, target.record)
+        self.assertEqual(recipe, old)
+        self.assertEqual(recipe["version"], 1)
+        self.assertEqual(len(recipe["settings"]), 11)
+        self.assertEqual(settings.snap_style, "standard")
+        self.assertFalse(settings.chamfer_edges)
+        self.assertFalse(settings.print_support)
+        self.assertEqual(len(target.anchor.attributes.writes), before_writes)
+        for values in (dict(old["settings"], snap_style="standard"),
+                       {key: value for key, value in old["settings"].items() if key != "reach_mm"}):
+            with self.assertRaisesRegex(ValueError, "original eleven"):
+                fusion._parse_recipe(json.dumps(dict(old, settings=values)), target.record)
+
     def test_snapshot_drops_generated_solids_and_validation_reads_only_sources(self):
         design, prepared = prepared_fixture()
         sources = fusion.capture_preview_sources(prepared)

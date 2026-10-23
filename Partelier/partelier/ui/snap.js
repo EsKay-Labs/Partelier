@@ -3,14 +3,16 @@
 // Snap-fit owns its form and session; the library only forwards host messages.
 (() => {
     const $ = id => document.getElementById(id);
-    const defaults = Object.freeze({ width_mm: 8, thickness_mm: 1.5, reach_mm: 16, clearance_mm: .3, hook_depth_mm: 1, lead_in_mm: 3, snap_count: 1, start_margin_mm: 5, end_margin_mm: 5, root_length_mm: 4, attachment_overlap_mm: .5 });
+    const defaults = Object.freeze({ width_mm: 8, thickness_mm: 1.5, reach_mm: 16, clearance_mm: .3, hook_depth_mm: 1, lead_in_mm: 3, snap_count: 1, start_margin_mm: 5, end_margin_mm: 5, root_length_mm: 4, attachment_overlap_mm: .5, snap_style: "standard", chamfer_edges: true, chamfer_size_mm: .3, print_support: true });
+    const styles = [["standard", "Standard · straight"], ["tapered", "Tapered"], ["twin", "Twin · split arms"]];
     const terminal = new Set(["idle", "created", "cancelled"]), retired = new Set();
     const nonnegative = new Set(["start_margin_mm", "end_margin_mm"]);
     const fields = [
         ["snap-size-fields", [["width_mm", "Tab width"], ["thickness_mm", "Tab thickness"], ["reach_mm", "Tab reach"]]],
         ["snap-fit-fields", [["clearance_mm", "Mating clearance"], ["hook_depth_mm", "Hook engagement"]]],
         ["snap-layout-fields", [["snap_count", "Count"], ["start_margin_mm", "Start margin"], ["end_margin_mm", "End margin"]]],
-        ["snap-construction-fields", [["root_length_mm", "Root length"], ["lead_in_mm", "Lead-in length"], ["attachment_overlap_mm", "Attachment overlap"]]]
+        ["snap-construction-fields", [["root_length_mm", "Root length"], ["lead_in_mm", "Lead-in length"], ["attachment_overlap_mm", "Attachment overlap"]]],
+        ["snap-finish-fields", [["chamfer_size_mm", "Chamfer size"]]]
     ];
     const state = { selected: false, connected: false, capabilities: new Set(), hingeActive: false, session: null, settings: { ...defaults }, revision: 0, busy: false, dirty: false, expecting: false, liveError: false };
     let serial = 0, pushedVersion = 0, timer, queued = false, pending = 0, actions = Promise.resolve();
@@ -32,7 +34,26 @@
     }
     function syncFields() {
         for (const input of $("snap-settings").querySelectorAll("[name]")) {
-            input.value = state.settings[input.name]; input.setCustomValidity("");
+            if (input.type === "checkbox") input.checked = state.settings[input.name];
+            else input.value = state.settings[input.name];
+            input.setCustomValidity("");
+        }
+        renderArt();
+    }
+    function renderArt() {
+        $("snap-illustration").innerHTML = window.PartelierIllustrations.render("snap", {
+            snapStyle: state.settings.snap_style, printSupport: state.settings.print_support,
+            chamferEdges: state.settings.chamfer_edges, chamferSize: state.settings.chamfer_size_mm
+        });
+    }
+    function updateFinishAvailability(committing) {
+        const input = $("snap-chamfer_size_mm"), enabled = state.settings.chamfer_edges;
+        input.disabled = committing || !enabled;
+        input.parentElement.hidden = !enabled;
+        // A hidden invalid size must not poison the full host snapshot.
+        if (!enabled && (!Number.isFinite(state.settings.chamfer_size_mm) || state.settings.chamfer_size_mm <= 0)) {
+            state.settings.chamfer_size_mm = defaults.chamfer_size_mm;
+            input.value = defaults.chamfer_size_mm; input.setCustomValidity("");
         }
     }
     function renderSelections() {
@@ -59,6 +80,7 @@
         $("snap-action-dock").hidden = !state.selected;
         $("tool-select").disabled = state.hingeActive || hasSession || busy;
         for (const input of $("snap-settings").querySelectorAll("[name]")) input.disabled = committing;
+        updateFinishAvailability(committing);
         $("snap-settings").setAttribute("aria-busy", String(committing));
         $("begin-snap-button").hidden = hasSession;
         $("begin-snap-button").disabled = !state.selected || !supported() || !valid() || busy || hasSession || state.hingeActive;
@@ -159,14 +181,32 @@
         if (name === "snap_count") input.max = "20";
         input.value = defaults[name]; item.append(label, input); $(container).append(item);
     }
+    const styleField = $("snap-style-fields");
+    const styleLabel = document.createElement("label"); styleLabel.htmlFor = "snap-snap_style"; styleLabel.textContent = "Style";
+    const styleInput = document.createElement("select"); styleInput.id = "snap-snap_style"; styleInput.name = "snap_style"; styleInput.required = true;
+    for (const [value, caption] of styles) { const option = document.createElement("option"); option.value = value; option.textContent = caption; styleInput.append(option); }
+    styleInput.value = defaults.snap_style; styleField.append(styleLabel, styleInput);
+    for (const [container, name, caption] of [["snap-fit-fields", "print_support", "45° print ramps"], ["snap-finish-toggle", "chamfer_edges", "Chamfer exposed edges"]]) {
+        const label = document.createElement("label"); label.className = "checkbox-field";
+        const input = document.createElement("input"); input.type = "checkbox"; input.id = `snap-${name}`; input.name = name; input.checked = defaults[name];
+        label.append(input, caption); $(container).append(label);
+    }
     $("snap-settings").addEventListener("submit", event => event.preventDefault());
     $("snap-settings").addEventListener("input", event => {
         const input = event.target;
         if (!Object.prototype.hasOwnProperty.call(defaults, input.name)) return;
-        const number = Number(input.value), allowedZero = nonnegative.has(input.name);
-        const validNumber = input.value.trim() !== "" && Number.isFinite(number) && (allowedZero ? number >= 0 : number > 0);
-        input.setCustomValidity(validNumber ? "" : allowedZero ? "Enter zero or a positive number." : "Enter a number greater than zero.");
-        state.settings[input.name] = number; state.revision++; state.dirty = true; state.liveError = false;
+        if (input.type === "number") {
+            const number = Number(input.value), allowedZero = nonnegative.has(input.name);
+            const validNumber = input.value.trim() !== "" && Number.isFinite(number) && (allowedZero ? number >= 0 : number > 0);
+            input.setCustomValidity(validNumber ? "" : allowedZero ? "Enter zero or a positive number." : "Enter a number greater than zero.");
+            state.settings[input.name] = number;
+        } else if (input.type === "checkbox") state.settings[input.name] = input.checked;
+        else if (input.name === "snap_style") {
+            input.setCustomValidity(styles.some(([value]) => value === input.value) ? "" : "Choose a supported snap style.");
+            state.settings.snap_style = input.value;
+        }
+        state.revision++; state.dirty = true; state.liveError = false;
+        updateFinishAvailability(false); renderArt();
         if (active()) message(valid() ? "Updating live preview…" : "Check the highlighted input. Showing the previous valid preview.", !valid());
         render(); schedule();
     });
@@ -182,12 +222,12 @@
             state.connected = true; state.capabilities = new Set(Array.isArray(result.capabilities) ? result.capabilities : []);
             if (!state.dirty && result.snapDefaults && !result.snapState?.settings) { state.settings = { ...defaults, ...result.snapDefaults }; syncFields(); }
             if (result.snapState) apply(result.snapState);
-            $("snap-illustration").innerHTML = window.PartelierIllustrations.render("snap", {});
+            renderArt();
             render(); if (identity() && selected() && !current()) schedule();
             return active();
         },
         handle(action, raw) { if (action !== "snap_state") return false; if (apply(JSON.parse(raw))) pushedVersion++; return true; }
     });
-    $("snap-illustration").innerHTML = window.PartelierIllustrations.render("snap", {});
+    renderArt();
     render();
 })();

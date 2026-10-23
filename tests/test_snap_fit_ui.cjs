@@ -3,7 +3,7 @@
 const assert = require("node:assert/strict"), fs = require("node:fs"), vm = require("node:vm"), path = require("node:path");
 const ui = path.join(__dirname, "..", "Partelier", "partelier", "ui");
 const html = fs.readFileSync(path.join(ui, "palette.html"), "utf8");
-const defaults = { width_mm: 8, thickness_mm: 1.5, reach_mm: 16, clearance_mm: .3, hook_depth_mm: 1, lead_in_mm: 3, snap_count: 1, start_margin_mm: 5, end_margin_mm: 5, root_length_mm: 4, attachment_overlap_mm: .5 };
+const defaults = { width_mm: 8, thickness_mm: 1.5, reach_mm: 16, clearance_mm: .3, hook_depth_mm: 1, lead_in_mm: 3, snap_count: 1, start_margin_mm: 5, end_margin_mm: 5, root_length_mm: 4, attachment_overlap_mm: .5, snap_style: "standard", chamfer_edges: true, chamfer_size_mm: .3, print_support: true };
 const idle = () => ({ sessionId: null, revision: 0, phase: "idle", editing: false, settings: null, selections: {}, message: "" });
 function fixture(options = {}) {
     const ids = new Map();
@@ -18,13 +18,13 @@ function fixture(options = {}) {
         emit(name) { return Promise.all((this.listeners[name] || []).map(fn => fn({ target: this, preventDefault() {} }))); }
         querySelectorAll(selector) { const all = []; const visit = element => { for (const child of element.children) if (child instanceof Element) { if (selector === "[name]" ? !!child.name : child.tagName === "input" && child.type === "number" && child.disabled) all.push(child); visit(child); } }; visit(this); return all; }
         setCustomValidity(message) { this.custom = message; }
-        checkValidity() { if (this.tagName === "form") return this.querySelectorAll("[name]").every(x => x.checkValidity()); if (this.disabled || this.type !== "number") return true; const value = Number(this.value), step = Number(this.step), min = Number(this.min); return !this.custom && this.value !== "" && Number.isFinite(value) && value >= min && (this.max === undefined || value <= Number(this.max)) && (!Number.isFinite(step) || Math.abs((value - min) / step - Math.round((value - min) / step)) < 1e-8); }
+        checkValidity() { if (this.tagName === "form") return this.querySelectorAll("[name]").every(x => x.checkValidity()); if (this.disabled) return true; if (this.custom) return false; if (this.tagName === "select" && this.required) return this.children.some(option => option.value === this.value); if (this.type !== "number") return true; const value = Number(this.value), step = Number(this.step), min = Number(this.min); return this.value !== "" && Number.isFinite(value) && value >= min && (this.max === undefined || value <= Number(this.max)) && (!Number.isFinite(step) || Math.abs((value - min) / step - Math.round((value - min) / step)) < 1e-8); }
         reportValidity() { return this.checkValidity(); } focus() {} showModal() {} close() {}
     }
     for (const match of html.matchAll(/<([a-z]+)[^>]*\bid="([^"]+)"/g)) { const element = new Element(match[1]); element.id = match[2]; element.open = /\sopen(?:\s|>)/.test(match[0]); }
     const $ = id => { assert(ids.has(id), `Missing ${id}`); return ids.get(id); };
     for (const id of ["hinge-layout-fields", "hinge-fields", "hinge-fit-fields", "hinge-advanced-fields", "hinge-mode", "hinge-output-fields", "hinge-hole-fields", "hinge-hole-toggle", "hinge-finish-fields", "hinge-finish-choice", "hinge-fillet-fields", "hinge-design-fields"]) $("hinge-settings").append($(id));
-    for (const id of ["snap-size-fields", "snap-fit-fields", "snap-layout-fields", "snap-construction-fields"]) $("snap-settings").append($(id));
+    for (const id of ["snap-style-fields", "snap-size-fields", "snap-fit-fields", "snap-layout-fields", "snap-construction-fields", "snap-finish-toggle", "snap-finish-fields"]) $("snap-settings").append($(id));
     const document = { getElementById: $, createElement: tag => new Element(tag), querySelector: () => new Element("a"), querySelectorAll: () => [], addEventListener() {} };
     let snap = options.snap || idle(), hinge = options.hinge || idle(), sessionSequence = 0, timeouts = 0, timerSequence = 0;
     const timers = new Map(), requests = [], config = { ...options, failPreview: false, queuedPreview: false, holdPreview: false, holdCommit: false, holdPick: false, release: null, delayedPush: null, saved: null };
@@ -66,7 +66,7 @@ function fixture(options = {}) {
     return { $, config, requests, flush, settle, push, snapshot: () => clone(snap), timeouts: () => timeouts,
         async select(tool) { $("tool-select").value = tool; await $("tool-select").emit("change"); await flush(); },
         async click(id) { await $(id).emit("click"); await flush(); },
-        async input(name, value, debounce = true) { const control = $(`snap-${name}`); control.value = value; for (const fn of $("snap-settings").listeners.input) fn({ target: control }); await flush(); if (debounce) await settle(); }
+        async input(name, value, debounce = true) { const control = $(`snap-${name}`); if (control.type === "checkbox") control.checked = value; else control.value = value; for (const fn of $("snap-settings").listeners.input) fn({ target: control }); await flush(); if (debounce) await settle(); }
     };
 }
 (async () => {
@@ -83,6 +83,10 @@ function fixture(options = {}) {
     assert.equal(f.$("snap-options").open, false);
     assert.equal(f.$("snap-help").open, false);
     assert(f.$("snap-illustration").innerHTML.includes("<svg"));
+    assert.equal(f.$("snap-snap_style").value, "standard");
+    assert.equal(f.$("snap-print_support").checked, true);
+    assert.equal(f.$("snap-chamfer_edges").checked, true);
+    assert.equal(f.$("snap-chamfer_size_mm").disabled, false);
     assert.deepEqual(f.$("snap-settings").querySelectorAll("[name]").map(x => x.name).sort(), Object.keys(defaults).sort());
     await f.input("width_mm", 9);
     f.config.holdPick = true;
@@ -95,6 +99,45 @@ function fixture(options = {}) {
     for (const target of ["face_a", "face_b", "axis_edge"]) await f.click(`snap-select-${target}`);
     assert.equal(f.snapshot().phase, "preview", "completing geometry automatically previews");
     assert.equal(f.$("create-snap-button").disabled, false);
+    const standardArt = f.$("snap-illustration").innerHTML;
+    const conceptMesh = svg => (svg.match(/<polygon[^>]*>/g) || []).join("");
+    assert(standardArt.includes('data-print-support="true"'));
+    await f.input("snap_style", "tapered");
+    assert.equal(f.snapshot().settings.snap_style, "tapered", "style stays a string in the atomic host snapshot");
+    assert(f.$("snap-illustration").innerHTML.includes('data-snap-style="tapered"'));
+    assert.notEqual(conceptMesh(f.$("snap-illustration").innerHTML), conceptMesh(standardArt), "tapered concept changes its beam geometry");
+    await f.input("snap_style", "twin");
+    assert.equal(f.snapshot().settings.snap_style, "twin");
+    const twinArt = f.$("snap-illustration").innerHTML;
+    assert(twinArt.includes('data-snap-style="twin"'));
+    assert((twinArt.match(/<polygon/g) || []).length > (standardArt.match(/<polygon/g) || []).length, "twin concept has two separate arm meshes");
+    await f.input("print_support", false);
+    assert.equal(f.snapshot().settings.print_support, false, "print support stays boolean");
+    assert(f.$("snap-illustration").innerHTML.includes('data-print-support="false"'));
+    assert.notEqual(conceptMesh(f.$("snap-illustration").innerHTML), conceptMesh(twinArt), "print ramps change the roof and root concept meshes");
+    await f.input("chamfer_edges", false);
+    assert.equal(f.snapshot().settings.chamfer_edges, false, "chamfer choice stays boolean");
+    assert.equal(f.$("snap-chamfer_size_mm").disabled, true);
+    assert.equal(f.$("snap-chamfer_size_mm").parentElement.hidden, true);
+    assert(!f.$("snap-illustration").innerHTML.includes("Exposed-edge chamfer"));
+    await f.input("chamfer_edges", true);
+    const requestsBeforeInvalidChamfer = f.requests.length;
+    await f.input("chamfer_size_mm", 0);
+    assert.equal(f.$("snap-settings").checkValidity(), false);
+    assert.equal(f.requests.length, requestsBeforeInvalidChamfer);
+    await f.input("chamfer_edges", false);
+    assert.equal(f.$("snap-settings").checkValidity(), true, "turning finish off clears its hidden invalid input");
+    assert.equal(f.snapshot().settings.chamfer_size_mm, .3, "disabled invalid size is replaced with a valid full-snapshot value");
+    await f.input("chamfer_edges", true);
+    await f.input("chamfer_size_mm", .25);
+    assert.equal(f.snapshot().settings.chamfer_size_mm, .25);
+    assert(f.$("snap-illustration").innerHTML.includes("Exposed-edge chamfer · 0.25 mm"));
+    await f.input("print_support", true);
+    const requestsBeforeUnknownStyle = f.requests.length;
+    await f.input("snap_style", "unsupported-style");
+    assert.equal(f.$("snap-settings").checkValidity(), false);
+    assert.equal(f.requests.length, requestsBeforeUnknownStyle, "invalid style cannot reach the host");
+    await f.input("snap_style", "twin");
     const beforeInvalid = f.requests.length;
     await f.input("thickness_mm", 0);
     assert.equal(f.$("snap-settings").checkValidity(), false);
@@ -138,9 +181,14 @@ function fixture(options = {}) {
     const committing = f.snapshot();
     f.push(committing); await f.flush();
     assert.equal(f.$("snap-reach_mm").disabled, true);
+    assert.equal(f.$("snap-snap_style").disabled, true);
+    assert.equal(f.$("snap-print_support").disabled, true);
+    assert.equal(f.$("snap-chamfer_edges").disabled, true);
     f.push({ ...committing, sessionId: null, phase: "created", message: "Snap-fit created." });
     f.config.release(); f.config.holdCommit = false; await f.flush();
     assert.equal(f.$("snap-reach_mm").disabled, false);
+    assert.equal(f.$("snap-snap_style").disabled, false);
+    assert.equal(f.$("snap-print_support").disabled, false);
     assert.equal(f.$("tool-select").disabled, false);
     assert.equal(f.$("cancel-snap-button").disabled, true, "late opening acknowledgment cannot revive a completed creation");
     f.config.completePick = true;
@@ -154,14 +202,20 @@ function fixture(options = {}) {
     assert.notEqual(f.snapshot().sessionId, retiring.sessionId);
     assert.equal(f.$("create-snap-button").disabled, false);
     await f.click("cancel-snap-button");
-    f.config.saved = { ...defaults, width_mm: 11.2, reach_mm: 22, root_length_mm: 6 };
+    f.config.saved = { ...defaults, width_mm: 11.2, reach_mm: 22, root_length_mm: 6, snap_style: "standard", chamfer_edges: false, print_support: false };
     await f.click("edit-snap-button");
     assert.equal(f.$("snap-width_mm").value, "11.2");
     assert.equal(f.$("snap-root_length_mm").value, "6");
+    assert.equal(f.$("snap-snap_style").value, "standard");
+    assert.equal(f.$("snap-chamfer_edges").checked, false, "migrated saved sharp geometry stays sharp on Edit");
+    assert.equal(f.$("snap-print_support").checked, false, "migrated saved flat geometry does not silently gain ramps");
+    assert.equal(f.$("snap-chamfer_size_mm").disabled, true);
     assert.equal(f.$("create-snap-button").textContent, "Rebuild snap-fit");
     await f.input("reach_mm", 23);
     await f.click("create-snap-button");
     assert.equal(f.snapshot().settings.reach_mm, 23);
+    assert.equal(f.snapshot().settings.chamfer_edges, false);
+    assert.equal(f.snapshot().settings.print_support, false);
     assert(f.$("snap-operation-status").textContent.includes("rebuilt"));
     await f.select("hinge");
     assert.equal(f.$("snap-action-dock").hidden, true);
@@ -170,10 +224,13 @@ function fixture(options = {}) {
     assert.equal(f.$("tool-select").disabled, true, "hinge geometry session also owns the tool menu");
     await f.click("cancel-hinge-button");
     assert.equal(f.$("tool-select").disabled, false);
-    const recovered = fixture({ snap: { ...retiring, sessionId: "d28c515a-66dc-4c66-a57b-111111111111", phase: "preview", settings: { ...defaults, width_mm: 12 } } }); await recovered.flush();
+    const recovered = fixture({ snap: { ...retiring, sessionId: "d28c515a-66dc-4c66-a57b-111111111111", phase: "preview", settings: { ...defaults, width_mm: 12, snap_style: "tapered", print_support: false, chamfer_edges: false } } }); await recovered.flush();
     assert.equal(recovered.$("tool-select").value, "snap", "reopened palette returns to the active snap-fit");
     assert.equal(recovered.$("snap-tool").hidden, false);
     assert.equal(recovered.$("snap-width_mm").value, "12");
+    assert.equal(recovered.$("snap-snap_style").value, "tapered");
+    assert.equal(recovered.$("snap-print_support").checked, false);
+    assert.equal(recovered.$("snap-chamfer_edges").checked, false);
     assert.equal(recovered.$("create-snap-button").disabled, false);
     const unavailable = fixture({ capabilities: ["hinge-palette", "hinge-edit"] }); await unavailable.flush(); await unavailable.select("snap");
     assert.equal(unavailable.$("begin-snap-button").disabled, true, "no fake creation action without the native capability");

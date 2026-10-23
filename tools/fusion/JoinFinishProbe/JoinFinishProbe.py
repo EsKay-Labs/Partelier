@@ -95,6 +95,7 @@ def snapshot(design):
 def load(root):
     name="_partelier_join_probe_"+uuid.uuid4().hex
     STATE["package_name"]=name
+    STATE.setdefault("package_names",[]).append(name)
     path=root/"Partelier"/"partelier"
     spec=importlib.util.spec_from_file_location(name,path/"__init__.py",submodule_search_locations=[str(path)])
     module=importlib.util.module_from_spec(spec);sys.modules[name]=module;spec.loader.exec_module(module)
@@ -980,12 +981,31 @@ def run(context):
           entry["candidate"]={"success":True,"canonical_edge_body":prepared.axis_edge.body.name,
                                "timings":prepared.timings,"solids":[{"role":role,"volume":body.volume,"lumps":body.lumps.count} for role,body in prepared.result_bodies]}
         except Exception:entry["candidate"]={"success":False,"error":traceback.format_exc()}
+      report["saved_snap_previews"]=[]
+      try:
+        hinge_adapter,_,_,_=load(STATE["root"])
+        snap=importlib.import_module(hinge_adapter.__package__.rsplit(".",1)[0]+".snap_fit.fusion")
+        anchors=[feature for feature in design.rootComponent.features.baseFeatures
+                 if feature.attributes.itemByName(snap.ATTRIBUTE_GROUP,snap.RECIPE_NAME) is not None]
+        for anchor in anchors[:4]:
+          item={"styles":[]}
+          report["saved_snap_previews"].append(item)
+          target=snap.read_edit_target(design,anchor)
+          item.update(recipe_version=target.recipe["version"],loaded_style=target.settings.snap_style,
+                      loaded_chamfer=target.settings.chamfer_edges,loaded_support=target.settings.print_support)
+          for style in ("standard","tapered","twin"):
+            values=replace(target.settings,snap_style=style,chamfer_edges=True,chamfer_size_mm=.3,print_support=True)
+            try:
+              prepared=snap.prepare_edit_snap_fit(design,target,values)
+              item["styles"].append({"style":style,"success":True,"timings":prepared.timings,
+                    "solids":[{"role":role,"volume":body.volume,"lumps":body.lumps.count} for role,body in prepared.result_bodies]})
+            except Exception:item["styles"].append({"style":style,"success":False,"error":traceback.format_exc()})
+      except Exception:report["saved_snap_preview_error"]=traceback.format_exc()
       report["after"]=snapshot(design)
       report["unchanged"]=report["before"]==report["after"]
       report["success"]=report["unchanged"]
       Path(STATE["context"]["report_path"]).write_text(json.dumps(report,indent=2),encoding="utf-8")
-      prefix=STATE.get("package_name")
-      if prefix:
+      for prefix in STATE.get("package_names",[]):
         for module_name in tuple(sys.modules):
           if module_name==prefix or module_name.startswith(prefix+"."):sys.modules.pop(module_name,None)
       STATE["context"]["on_complete"](report)
