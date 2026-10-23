@@ -133,7 +133,7 @@
     "cylinder",
     "sphere"
   ],
-  "interactive_acceptance": "Pending product reload and user orbit check; diagnostics remain automatic.",
+  "interactive_acceptance": "Confirmed by the user on 2026-10-24 after reloading 0.10.5: orbit is smooth in the actual pattern preview. This confirms the reported orbit issue; it is not acceptance of every surface, operation or physical print.",
   "limits": [
     "Scripted synchronous camera refresh measurements are not universal FPS or stability guarantees.",
     "Display uses Medium STL refinement and a 200000-triangle budget; Create/Rebuild retains exact BRep.",

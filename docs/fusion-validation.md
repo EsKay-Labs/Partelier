@@ -84,8 +84,9 @@ all three Node DOM suites, compilation and syntax.
 
 See [exact verification and source hashes](validation/pattern-display-0.10.5.json).
 These are scripted camera refresh timings, not a universal interactive FPS or
-stability guarantee. Physical printing and the user's palette/orbit acceptance
-remain separate. The earlier native geometry matrix remains historical: the
+stability guarantee. On 2026-10-24, the user confirmed that orbit is smooth in
+the actual pattern preview after reloading 0.10.5, closing the reported orbit
+issue. Broader palette/surface acceptance and physical printing remain separate. The earlier native geometry matrix remains historical: the
 surface/planner/boolean algorithms were not changed by this display work.
 
 ## Historical preview orbit investigation (0.10.4)

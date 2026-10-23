@@ -76,6 +76,6 @@
     "evidence": "pattern-display-0.10.5.json",
     "native_display_cycles": 36,
     "production_workflows": 3,
-    "interactive_acceptance": "Pending user orbit check."
+    "interactive_acceptance": "Confirmed by the user on 2026-10-24 after reloading 0.10.5: orbit is smooth in the actual pattern preview. This confirms the reported orbit issue; it is not acceptance of every surface, operation or physical print."
   }
 }
