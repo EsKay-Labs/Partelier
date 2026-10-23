@@ -8,8 +8,8 @@ import math
 class PatternSettings:
     pattern: str = "hexagon"
     mode: str = "through"
-    pitch_mm: float = 14.0
-    web_mm: float = 1.5
+    pitch_mm: float = 17.5
+    web_mm: float = 5.0
     depth_mm: float = 1.0
     border_mm: float = 2.0
     rotation_deg: float = 0.0
@@ -17,6 +17,7 @@ class PatternSettings:
     offset_v_mm: float = 0.0
     selection_scope: str = "faces"
     layout_mode: str = "balanced"
+    edge_mode: str = "clip"
 
     def __post_init__(self):
         for key in ("pitch_mm", "web_mm", "depth_mm", "border_mm", "rotation_deg", "offset_u_mm", "offset_v_mm"):
@@ -39,6 +40,8 @@ class PatternSettings:
             raise ValueError("Choose selected faces or the whole body.")
         if self.layout_mode not in ("balanced", "fill", "fit", "fixed"):
             raise ValueError("Choose Balanced, Fill face, Automatic size or Exact pitch.")
+        if self.edge_mode not in ('clip','whole'):
+            raise ValueError('Choose clipped or whole edge cells.')
         if min(self.pitch_mm, self.web_mm, self.depth_mm) <= 0 or self.border_mm < 0:
             raise ValueError("Pitch, web and depth must be positive; border may be zero.")
         if self.web_mm >= self.pitch_mm:

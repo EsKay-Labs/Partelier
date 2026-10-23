@@ -36,7 +36,7 @@ def opening_distance(one, two):
 
 class PatternFitLayoutTests(unittest.TestCase):
     def settings(self, **values):
-        return PatternSettings(layout_mode='fit', **values)
+        return PatternSettings(**{'layout_mode':'fit','edge_mode':'whole','pitch_mm':8,'web_mm':1.2,**values})
 
     def assert_complete_and_balanced(self, layout, bounds, border):
         self.assertTrue(layout.cells)
@@ -177,7 +177,7 @@ class PatternFitLayoutTests(unittest.TestCase):
                 def point(u,v):return(radius*math.cos(u/radius),radius*math.sin(u/radius),v)
                 mapped=[SimpleNamespace(center=SimpleNamespace(point_mm=point(*cell.center_mm)),
                     world_polygon=tuple(point(cell.center_mm[0]+u,cell.center_mm[1]+v) for u,v in cell.polygon_mm),
-                    radius_mm=cell.radius_mm) for cell in layout.cells]
+                    radius_mm=cell.radius_mm,cell_key=None) for cell in layout.cells]
                 _check_webs(mapped,web)
 
     def test_invalid_fit_budgets_bounds_and_periods_are_refused(self):
@@ -212,7 +212,7 @@ class PatternFitLayoutTests(unittest.TestCase):
             ({'pattern':'circle','offset_u_mm':1.7},(-30,70,2,34),100,60,
              '7cf7297f2e33a308627c43598b63c4593effca0bfccdf2a4d4d695eab9449ef2'))
         for values,bounds,period,count,digest in fixtures:
-            settings=PatternSettings(pitch_mm=8,web_mm=1.2,layout_mode='fixed',**values)
+            settings=PatternSettings(pitch_mm=8,web_mm=1.2,layout_mode='fixed',edge_mode='whole',**values)
             cells=build_cells(settings,bounds,period)
             actual=hashlib.sha256(json.dumps([(cell.center_mm,cell.polygon_mm) for cell in cells],
                                              separators=(',',':')).encode()).hexdigest()
@@ -221,7 +221,7 @@ class PatternFitLayoutTests(unittest.TestCase):
             self.assertEqual(build_layout(settings,bounds,period).cells,cells)
 
     def test_fixed_native_acceptance_preserves_order_without_new_budget_clipping(self):
-        settings=PatternSettings(layout_mode='fixed')
+        settings=PatternSettings(layout_mode='fixed',edge_mode='whole')
         legacy=build_cells(settings,(0,60,0,40))
         expected=tuple(cell for cell in legacy if cell.center_mm[0]>=30)
         calls=[]

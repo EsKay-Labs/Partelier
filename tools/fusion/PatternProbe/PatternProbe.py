@@ -149,8 +149,13 @@ def _boolean(manager, target, cutter):
 def fixture(design, kind):
     root = design.rootComponent
     manager = adsk.fusion.TemporaryBRepManager.get()
-    if kind == "plane":
-        feature, body = _persist(design, _box(manager, -16, 16, -12, 12, -3, 0), kind)
+    if kind in ("plane","plane_hole"):
+        temporary=_box(manager,-16,16,-12,12,-3,0)
+        if kind=='plane_hole':
+            drill=manager.createCylinderOrCone(adsk.core.Point3D.create(0,0,-.4),.35,
+                                               adsk.core.Point3D.create(0,0,.1),.35)
+            temporary=_boolean(manager,temporary,drill)
+        feature, body = _persist(design, temporary, kind)
         faces = tuple(face for face in _items(body.faces)
                       if adsk.core.Plane.cast(face.geometry) is not None
                       and abs(face.boundingBox.minPoint.z) < 1e-7
@@ -413,7 +418,7 @@ def _case(label, function, *, optional=False):
 
 
 def _fixed_settings(**values):
-    return STATE['settings_module'].PatternSettings(**{'pitch_mm':8,'web_mm':1.2,'layout_mode':'fixed',**values})
+    return STATE['settings_module'].PatternSettings(**{'pitch_mm':8,'web_mm':1.2,'layout_mode':'fixed','edge_mode':'whole',**values})
 
 
 def run_direct_prism_proof(design,direct,adapter,settings_class):
@@ -502,7 +507,7 @@ def _performance_cases(design):
         design,direct,adapter,STATE['settings_module'].PatternSettings))
     _,body,faces=fixture(design,'notched_panel')
     def batch_equivalence():
-        settings=STATE['settings_module'].PatternSettings(pitch_mm=8,web_mm=1.2,layout_mode='fit')
+        settings=STATE['settings_module'].PatternSettings(pitch_mm=8,web_mm=1.2,layout_mode='fit',edge_mode='whole')
         fast=prepare_checked(design,faces,settings)
         if not fast.timings['batch_used']:
             raise RuntimeError('The dense native Through fixture did not exercise the batch path.')
@@ -552,7 +557,7 @@ def _fit_cases(design):
     Settings=STATE['settings_module'].PatternSettings
     _,panel,faces=fixture(design,'notched_panel')
     def panel_result(layout_mode):
-        settings=Settings(layout_mode=layout_mode,pitch_mm=40,web_mm=10,border_mm=3)
+        settings=Settings(layout_mode=layout_mode,pitch_mm=40,web_mm=10,border_mm=3,edge_mode='whole')
         prepared=prepare_checked(design,faces,settings)
         chart=adapter.SurfaceMap(faces[0])
         samples=[chart.sample(*cell.center_mm) for cell in prepared.layouts[0].cells]
@@ -592,7 +597,7 @@ def _fit_cases(design):
     _case('automatic_balanced_notched_panel',lambda:panel_result('fit'))
     _,body,plane_faces=fixture(design,'plane')
     def automatic_density():
-        settings=Settings(pitch_mm=1,web_mm=.2,layout_mode='fit')
+        settings=Settings(pitch_mm=1,web_mm=.2,layout_mode='fit',edge_mode='whole')
         prepared=prepare_checked(design,plane_faces,settings)
         if not 0<prepared.cell_count<=200 or prepared.layouts[0].effective_pitch_mm<=1 or settings.pitch_mm!=1:
             raise RuntimeError('Automatic spacing failed to fit a dense target within its budget.')
@@ -615,7 +620,7 @@ def _fit_cases(design):
     _,body,wrap_faces=fixture(design,'cylinder_wrap')
     for mode in ('through','engrave','emboss'):
         def wrapped(mode=mode):
-            settings=Settings(mode=mode,pitch_mm=8,web_mm=2,layout_mode='fit')
+            settings=Settings(mode=mode,pitch_mm=8,web_mm=2,layout_mode='fit',edge_mode='whole')
             prepared=prepare_checked(design,wrap_faces,settings)
             detail=inspect(prepared,'cylinder_wrap')
             chart=adapter.SurfaceMap(wrap_faces[0]);layout=prepared.layouts[0]
@@ -644,7 +649,7 @@ def _fill_cases(design):
     for shape in ('hexagon','circle','diamond','square','slot'):
         def planar(shape=shape):
             _,body,faces=fixture(design,'plane')
-            settings=Settings(pattern=shape,pitch_mm=6.5,web_mm=1.5,layout_mode='fill')
+            settings=Settings(pattern=shape,pitch_mm=6.5,web_mm=1.5,layout_mode='fill',edge_mode='whole')
             prepared=prepare_checked(design,faces,settings)
             if prepared.cell_count<4:raise RuntimeError('Fill face did not populate the plane.')
             polygon=prepared.layouts[0].cells[0].polygon_mm
@@ -670,7 +675,7 @@ def _fill_cases(design):
     for mode in ('through','engrave','emboss'):
         def wrapped(mode=mode):
             _,body,faces=fixture(design,'cylinder_wrap')
-            settings=Settings(layout_mode='fill',mode=mode,pitch_mm=8,web_mm=2,depth_mm=.5)
+            settings=Settings(layout_mode='fill',edge_mode='whole',mode=mode,pitch_mm=8,web_mm=2,depth_mm=.5)
             prepared=prepare_checked(design,faces,settings)
             polygon=prepared.layouts[0].cells[0].polygon_mm
             if abs(max(x for x,y in polygon)-min(x for x,y in polygon)-6)>1e-7:
@@ -688,10 +693,74 @@ def _fill_cases(design):
     _case('balanced_default_sparse_panel',balanced)
 
 
+def _clip_cases(design):
+    Settings=STATE['settings_module'].PatternSettings
+    adapter=STATE['adapter'];recipe=STATE['recipe']
+    clipping=importlib.import_module(adapter.__package__+'.clipping')
+    planner=importlib.import_module(adapter.__package__+'.planner')
+    for shape in ('hexagon','circle','diamond','square','slot'):
+        for mode in ('through','engrave','emboss'):
+            def planar(shape=shape,mode=mode):
+                _,body,faces=fixture(design,'plane')
+                settings=Settings(pattern=shape,mode=mode,layout_mode='fill',pitch_mm=11.5,
+                                  web_mm=5,depth_mm=.5,offset_u_mm=2,offset_v_mm=2)
+                prepared=prepare_checked(design,faces,settings)
+                full_area=clipping.area(planner._polygon(settings))
+                partial=sum(clipping.area(cell.polygon_mm)<full_area*.99 for cell in prepared.layouts[0].cells)
+                if not partial:raise RuntimeError('The fixture did not retain partial boundary cells.')
+                detail=inspect(prepared,'plane');detail['partial_cells']=partial;detail['edge_mode']='clip'
+                if shape=='hexagon' and mode=='through':
+                    history,count=design.timeline.count,design.rootComponent.bRepBodies.count
+                    anchor=recipe.create_pattern(design,prepared)
+                    target=recipe.read_edit_target(design,body)
+                    changed=replace(settings,web_mm=6,pitch_mm=12.5)
+                    updated=recipe.prepare_edit_pattern(design,target,changed)
+                    recipe.rebuild_pattern(design,target,updated)
+                    current=recipe.read_edit_target(design,body)
+                    if (current.anchor!=anchor or current.settings!=changed or current.record.target!=body
+                            or design.timeline.count!=history+3 or design.rootComponent.bRepBodies.count!=count):
+                        raise RuntimeError('Clipped-cell Rebuild lost identity, settings or owned history.')
+                    detail['clipped_create_edit_rebuild_same_body']=True
+                return detail
+            _case('clipped_plane_'+shape+'_'+mode,planar)
+    for mode in ('through','engrave','emboss'):
+        def wrapped(mode=mode):
+            _,body,faces=fixture(design,'cylinder_wrap')
+            settings=Settings(layout_mode='fill',mode=mode,pitch_mm=11,web_mm=5,depth_mm=.5,offset_v_mm=2)
+            prepared=prepare_checked(design,faces,settings)
+            detail=inspect(prepared,'cylinder_wrap');detail['edge_mode']='clip'
+            capture_pattern(prepared,'clipped-wrap-'+mode)
+            return detail
+        _case('clipped_wrap_'+mode,wrapped)
+    def faceted():
+        _,body,faces=fixture(design,'hex')
+        settings=Settings(layout_mode='fill',mode='engrave',pitch_mm=11,web_mm=5,border_mm=4,depth_mm=.5)
+        prepared=prepare_checked(design,faces,settings)
+        return {'cells':prepared.cell_count,'selected_faces':len(faces),'edge_mode':'clip','minimum_gap_mm':5}
+    _case('clipped_faceted_hex_body',faceted)
+    for kind in ('plane_hole','notched_panel'):
+        def trimmed(kind=kind):
+            _,body,faces=fixture(design,kind)
+            settings=Settings(layout_mode='fill',pitch_mm=12 if kind=='plane_hole' else 42,
+                              web_mm=5,border_mm=2,offset_u_mm=2,offset_v_mm=2)
+            prepared=prepare_checked(design,faces,settings)
+            detail={'cells':prepared.cell_count,'edge_mode':'clip','finite_trim_border_retained':True}
+            mapped=adapter._mapped_cells(faces,settings)
+            chart=adapter.SurfaceMap(faces[0])
+            for cell in mapped:
+                for sample in cell.samples:
+                    if any(not boundary.clears(sample.point_mm,2-1e-6) for boundary in chart._boundaries):
+                        raise RuntimeError('Clipped cell crossed the requested border around a real trim.')
+            capture_pattern(prepared,'clipped-'+kind)
+            return detail
+        _case('clipped_real_trim_'+kind,trimmed)
+
+
 def cases():
     design = STATE["design"]
     Settings = _fixed_settings
     recipe = STATE["recipe"]
+    _clip_cases(design)
     fixtures = {}
     for kind in ("plane", "cylinder", "hex"):
         fixtures[kind] = fixture(design, kind)
@@ -786,7 +855,7 @@ def cases():
         history_refs = dict(target.record.recipe["combines"])
         source_signature = prepared.source_signature
         legacy=json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)
-        legacy['version']=1;legacy['settings'].pop('layout_mode')
+        legacy['version']=1;legacy['settings'].pop('layout_mode');legacy['settings'].pop('edge_mode')
         legacy_raw=json.dumps(legacy,separators=(',',':'))
         anchor.attributes.add(recipe.GROUP,'recipe',legacy_raw)
         legacy_target=recipe.read_edit_target(design,plane)
@@ -812,7 +881,7 @@ def cases():
                 raise RuntimeError("Rebuild added geometry/history, lost settings, or changed the target identity/state.")
             if _signature(plane) != _signature(updated.result_body):
                 raise RuntimeError("Rebuild did not persist the exact full preview shape.")
-        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=2:
+        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=3:
             raise RuntimeError('The explicit legacy rebuild did not migrate its recipe.')
         return {"same_body": True, "extra_bodies": 0, "owned_features": 3, "rebuild_modes": 3,
                 "face_edge_body_feature_edit": True, "original_source_signature": source_signature,

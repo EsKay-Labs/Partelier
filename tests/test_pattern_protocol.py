@@ -38,10 +38,10 @@ class PatternProtocolTests(unittest.TestCase):
             with self.subTest(settings=supplied), self.assertRaises(ValueError):
                 read_request("pattern_begin", request(settings=supplied, editing=False))
 
-    def test_live_actions_require_all_eleven_fields_and_valid_revision(self):
+    def test_live_actions_require_all_twelve_fields_and_valid_revision(self):
         values = PatternSettings(pattern="slot", mode="emboss", rotation_deg=-45, offset_u_mm=-2,
                                  layout_mode="fixed").to_dict()
-        self.assertEqual(len(values), 11)
+        self.assertEqual(len(values), 12)
         for action in ("pattern_update", "pattern_preview", "pattern_commit"):
             with self.subTest(action=action):
                 parsed = read_request(action, request(settings=values, sessionId=IDENTITY, revision=5))
@@ -67,7 +67,7 @@ class PatternProtocolTests(unittest.TestCase):
 
     def test_dimensions_and_enumerations_are_validated_before_host_dispatch(self):
         defaults = PatternSettings().to_dict()
-        invalid = (("pitch_mm", 0), ("pitch_mm", True), ("web_mm", 14), ("depth_mm", math.inf),
+        invalid = (("pitch_mm", 0), ("pitch_mm", True), ("web_mm", 17.5), ("depth_mm", math.inf),
                    ("border_mm", -1), ("rotation_deg", math.nan), ("offset_u_mm", "1"),
                    ("pattern", "unsupported"), ("mode", "generate"), ("selection_scope", "all-models"),
                    ("layout_mode", "stretch"), ("layout_mode", True))

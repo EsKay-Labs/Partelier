@@ -23,7 +23,7 @@ class PatternFillLayoutTests(unittest.TestCase):
     def test_fill_preserves_requested_size_border_and_minimum_gap_for_every_shape(self):
         for shape in ('hexagon','circle','diamond','square','slot'):
             with self.subTest(shape=shape):
-                settings = PatternSettings(pattern=shape, layout_mode='fill', pitch_mm=11.5, web_mm=1.5)
+                settings = PatternSettings(pattern=shape, layout_mode='fill', edge_mode='whole', pitch_mm=11.5, web_mm=1.5)
                 result = build_layout(settings, (0,80,0,60))
                 self.assertGreater(result.cell_count, 12)
                 self.assertEqual(result.pitch_mm, settings.pitch_mm)
@@ -40,7 +40,7 @@ class PatternFillLayoutTests(unittest.TestCase):
                 self.assertAlmostEqual(width, 10)
 
     def test_wrap_preserves_opening_size_and_never_narrows_the_seam_gap(self):
-        settings = PatternSettings(layout_mode='fill', pitch_mm=11.5, web_mm=1.5)
+        settings = PatternSettings(layout_mode='fill', edge_mode='whole', pitch_mm=11.5, web_mm=1.5)
         result = build_layout(settings, (0,100,0,50), 100)
         self.assertEqual(result.pitch_mm, 12.5)
         polygon = result.cells[0].polygon_mm
@@ -75,4 +75,4 @@ class PatternFillLayoutTests(unittest.TestCase):
         for mode in ('balanced','fill','fit','fixed'):
             settings = PatternSettings(layout_mode=mode)
             self.assertEqual(PatternSettings.from_dict(settings.to_dict()), settings)
-            self.assertEqual(len(settings.to_dict()),11)
+            self.assertEqual(len(settings.to_dict()),12)

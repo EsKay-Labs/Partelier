@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, replace
 import math
+from . import clipping
 
 
 MAX_CANDIDATES = 4000
@@ -190,11 +191,10 @@ def _extents(polygon):
 
 
 def _center_envelope(cells):
-    polygon = cells[0].polygon_mm
-    return (min(cell.center_mm[0] for cell in cells)+min(point[0] for point in polygon),
-            max(cell.center_mm[0] for cell in cells)+max(point[0] for point in polygon),
-            min(cell.center_mm[1] for cell in cells)+min(point[1] for point in polygon),
-            max(cell.center_mm[1] for cell in cells)+max(point[1] for point in polygon))
+    return (min(cell.center_mm[0]+point[0] for cell in cells for point in cell.polygon_mm),
+            max(cell.center_mm[0]+point[0] for cell in cells for point in cell.polygon_mm),
+            min(cell.center_mm[1]+point[1] for cell in cells for point in cell.polygon_mm),
+            max(cell.center_mm[1]+point[1] for cell in cells for point in cell.polygon_mm))
 
 
 def _projected_size(bounds, angle):
@@ -219,6 +219,8 @@ def _complete(center, polygon, bounds, periodic):
 
 
 def _fit_grid(settings, bounds, pitch, period, phase, *, preserve_size=False):
+    if settings.edge_mode=='clip':
+        return _clipped_grid(settings,bounds,pitch,period,phase,preserve_size=preserve_size)
     periodic = period is not None
     if periodic:
         columns = int(math.floor(period/pitch)) if preserve_size else max(3, int(round(period/pitch)))
@@ -275,6 +277,40 @@ def _fit_grid(settings, bounds, pitch, period, phase, *, preserve_size=False):
     return tuple(result), pitch
 
 
+def _clipped_grid(settings,bounds,pitch,period,phase,*,preserve_size=False):
+    periodic=period is not None
+    columns=None
+    if periodic:
+        columns=math.floor(period/pitch) if preserve_size else max(3,round(period/pitch))
+        if columns<3:raise ValueError('Reduce cell size to fit three cells around the curved face.')
+        pitch=period/columns
+    effective=settings if preserve_size else replace(settings,pitch_mm=pitch)
+    polygon=_polygon(effective)
+    triangular=settings.pattern in ('hexagon','circle')
+    step_v=(settings.pitch_mm if preserve_size else pitch)*(math.sqrt(3)/2 if triangular else 1)
+    angle=math.radians(settings.rotation_deg)
+    width,height=_projected_size(bounds,angle) if not periodic else (period,bounds[3]-bounds[2])
+    columns=columns if periodic else math.ceil(width/pitch)+3
+    rows=math.ceil(height/step_v)+3
+    if rows*columns>MAX_CANDIDATES:return None,pitch
+    center=((bounds[0]+bounds[1])/2,(bounds[2]+bounds[3])/2)
+    offset_u,offset_v=math.remainder(settings.offset_u_mm,pitch),math.remainder(settings.offset_v_mm,step_v)
+    result=[]
+    for row in range(rows):
+        v=(row-(rows-1)/2)*step_v+offset_v
+        stagger=pitch/2 if triangular and (row+phase)%2 else 0
+        for column in range(columns):
+            u=(column-(columns-1)/2)*pitch+stagger+offset_u
+            position=((bounds[0]+(column*pitch+stagger+offset_u)%period,center[1]+v) if periodic else
+                      (center[0]+u*math.cos(angle)-v*math.sin(angle),center[1]+u*math.sin(angle)+v*math.cos(angle)))
+            world=tuple((position[0]+x,position[1]+y) for x,y in polygon)
+            clipped=clipping.rectangle(world,bounds,periodic)
+            if not clipped:continue
+            origin=tuple(sum(p[axis] for p in clipped)/len(clipped) for axis in (0,1))
+            result.append(Cell(origin,tuple((x-origin[0],y-origin[1]) for x,y in clipped)))
+    return tuple(result),pitch
+
+
 def _pitch_candidates(settings, bounds, period, max_cells):
     triangular = settings.pattern in ("hexagon", "circle")
     factor = math.sqrt(3)/2 if triangular else 1.0
@@ -325,7 +361,7 @@ def _layout_score(cells, pitch, requested, bounds, periodic):
     polygon = cells[0].polygon_mm
     area = abs(sum(a[0]*b[1]-b[0]*a[1]
                    for a,b in zip(polygon, polygon[1:]+polygon[:1])))/2
-    opening_fill = min(1.0, len(cells)*area/(width*height))
+    opening_fill = min(1.0, sum(clipping.area(cell.polygon_mm) for cell in cells)/(width*height))
     # Coverage and a close requested size both matter; a single huge opening
     # cannot win just because it happens to touch the rectangle's four sides.
     return .8*envelope_fill+.2*opening_fill-.35*abs(math.log(pitch/requested))
@@ -341,14 +377,14 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
     """
     settings.validate()
     mode = getattr(settings, "layout_mode", "fixed")
-    if mode == "fixed":
+    if mode == "fixed" and settings.edge_mode=='whole':
         cells = _build_legacy(settings, bounds, period_u_mm)
         if accept is not None:
             if not callable(accept):
                 raise ValueError("Pattern trim acceptance must be callable.")
             cells = tuple(cell for cell in cells if accept(cell))
         return Layout(cells, settings.pitch_mm, settings.pitch_mm, "fixed")
-    if mode not in ("balanced", "fill", "fit"):
+    if mode not in ("balanced", "fill", "fit", "fixed"):
         raise ValueError("Choose balanced, fill, fit or fixed pattern layout.")
     if type(max_cells) is not int or not 1 <= max_cells <= MAX_FACE_CELLS:
         raise ValueError("The face budget must be between 1 and 200 cells.")
@@ -373,11 +409,11 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
     dense_count = 0
     candidate_overflow = False
     triangular = settings.pattern in ("hexagon", "circle")
-    pitches = (settings.pitch_mm,) if mode == "fill" else _pitch_candidates(settings, available, period_u_mm, max_cells)
+    pitches = (settings.pitch_mm,) if mode in ('fill','fixed') else _pitch_candidates(settings, available, period_u_mm, max_cells)
     for pitch in pitches:
         for phase in ((0,1) if triangular else (0,)):
-            cells, actual = _fit_grid(settings, available, pitch, period_u_mm, phase, preserve_size=mode == "fill")
-            if mode == "fill" and (cells is None or len(cells) > max_cells):
+            cells, actual = _fit_grid(settings, available, pitch, period_u_mm, phase, preserve_size=mode in ('fill','fixed'))
+            if mode in ('fill','fixed') and (cells is None or len(cells) > max_cells):
                 candidate_overflow |= cells is None
                 dense_count = max(dense_count, len(cells) if cells is not None else 0)
                 continue
@@ -386,7 +422,7 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
             score = len(cells) if mode == "fill" else _layout_score(cells, actual, settings.pitch_mm, available, periodic)
             proposals.append((score, -abs(math.log(actual/settings.pitch_mm)), len(cells), -phase, actual, cells))
     if not proposals:
-        if mode == "fill" and (dense_count or candidate_overflow):
+        if mode in ('fill','fixed') and (dense_count or candidate_overflow):
             # Refuse, never silently enlarge a fixed-size cell or truncate the grid.
             raise density_error(settings, [(bounds[1]-bounds[0])*(bounds[3]-bounds[2])],
                                 face_cells=dense_count,
@@ -404,6 +440,7 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
         cells = []
         for cell in proposal[5]:
             key = (round(proposal[4], 9), *(round(value, 9) for value in cell.center_mm))
+            if settings.edge_mode=='clip':key=(proposal[4],cell)
             if key not in cache:
                 if checks >= min(FIT_ACCEPT_LIMIT, max_cells*FIT_SHORTLIST):
                     break
@@ -425,7 +462,7 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
 
 def build_cells(settings, bounds, period_u_mm=None):
     """Compatibility tuple API; new adapters should report build_layout pitch."""
-    if getattr(settings, "layout_mode", "fixed") == "fixed":
+    if getattr(settings, "layout_mode", "fixed") == "fixed" and settings.edge_mode=='whole':
         return _build_legacy(settings, bounds, period_u_mm)
     return build_layout(settings, bounds, period_u_mm).cells
 

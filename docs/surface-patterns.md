@@ -18,50 +18,57 @@ holes**, **Engrave** or **Emboss**. In 0.10.4, selecting one face immediately
 starts preview. Use **Add face** for another face on the same solid, or **Faces**
 to replace the selection. Esc cancels the current pick and keeps the previous
 selection. Multiple preselected faces are reused. Start with **Layout > Balanced**,
-**Target cell size**, **Minimum gap** and **Solid border**. Through holes do not
-use a depth setting. Rotation and offsets live under Advanced.
+**Cell size**, **Minimum gap** and **Border**. These names stay the same in all
+layout and action modes. Through holes hide the unused **Depth / height** field.
+Rotation, offsets and **Edge cells** live under Advanced.
 
-Version **0.10.6** adds a **? beside every pattern setting**, including the new
-cell-size control. Each opens a local dialog with a Greek explanation and an
-original SVG comparison image; no CAD request, geometry computation or setting
-change is performed. Esc, the close button or a backdrop click closes it and
-returns focus to its trigger. The drawings explain settings; they are not model
-previews.
+Version **0.10.7** starts new patterns with a **12.5 mm Cell size**, **5 mm Minimum
+gap**, **2 mm Border** and **Clip at border**. The local **?** dialogs explain
+every field in Greek with an original SVG comparison; they do not request CAD
+geometry or change settings. Close with Esc, the close button or a backdrop
+click; focus returns to the help trigger.
 
-**Balanced** is the new default. It starts with a 12.5 mm target cell size,
-1.5 mm minimum gap and 2 mm solid border. It centers the grid and adjusts one
-uniform cell size per face to fit within a soft limit of **48 cells per face**,
-instead of using the full 200-cell work budget. The requested target remains
-unchanged; the preview reports the actual fitted dimensions. Small faces may
-need smaller cells, and large faces normally receive larger ones.
+**Balanced** centers the grid and adjusts Cell size to a soft limit of **48
+cells per face**. **Automatic size** uses the full bounded work budget. Their
+Cell size field is a target; the preview reports the resolved size (or range
+across faces) with the same name. **Fill face** preserves size and minimum gap.
+**Exact pitch** retains the fixed-spacing algorithm for old whole-cell recipes;
+with clipped cells it uses the same fixed-size centered lattice as Fill face.
 
-**Fill face · fixed size** repeats whole cells across the available surface at
-the specified **Cell size** and at least the **Minimum gap**. For hexagons, size
-is the distance between opposite flats; for circles it is the diameter; squares
-use side length, diamonds use the tip-to-tip diagonal and slots use total length.
-Changing Minimum gap in these two new modes preserves the requested cell size.
-Internally the existing strict snapshot still stores `pitch_mm = size + gap`;
-there is no extra persisted field or recipe migration.
+For hexagons, size means opposite-flat distance; for circles diameter; squares
+use side length; diamonds use the tip-to-tip diagonal; slots use total length.
+Changing gap preserves the requested size in every UI layout mode. The existing
+internal `pitch_mm` remains size + gap; it is not exposed as a changing user label.
 
-Fill does not shrink cells, cut partial cells at borders, or silently drop rows
-to satisfy the work budget. It tries the centered lattice phases, respecting
-finite face trims and the existing surface checks. The solid border is a minimum:
-whole cells and conservative curved-surface checks can leave larger margins.
-This is bounded lattice placement, not a guarantee of globally optimal packing.
-On a full periodic cylinder, circumferential center spacing may increase to
-close the seam; opening size stays fixed and minimum gap is never narrowed.
+**Clip at border** keeps partial hexagons, circles and other shapes where the
+lattice crosses the border. Chart-space polygons are clipped to the inset face
+bounds. Finite real trim boundaries, including notches and holes, are then
+subtracted with conservative border envelopes. Closed convex trims use one
+offset region rather than many overlapping edge capsules; other finite edges
+use capsules and bounded convex decomposition. Pieces outside the real face are
+removed; all retained boundary and midpoint witnesses must lie on the face and
+preserve the physical border. Each original lattice cell is counted once even
+when clipping splits it into several convex pieces.
 
-The hard limits remain **200 cells per face / 400 total**. A dense Fill request
-refuses with a larger-cell-size estimate or suggests Balanced; it never silently
-changes the requested size. With more than two faces, the total work budget is
-shared by area. Unsupported surfaces or insufficient actual mapped web still
-refuse rather than changing the model.
+A periodic cylinder seam is not an edge border. The grid wraps around it, with
+at least the requested gap; cells can be clipped at its true end rims. Cell
+size remains fixed in Fill, while circumferential center spacing may increase
+slightly to close the seam. Each selected face of a faceted solid is clipped
+independently; there is no promise of continuity over a sharp ridge.
 
-**Automatic size** retains the previous automatic fit algorithm (up to the full
-work budget), with Target pitch and solid web. **Exact pitch** retains the earlier
-fixed lattice. Stored v2 recipes keep their saved mode and full dimensions;
-pre-layout v1 recipes still load as Exact pitch. Edit/Rebuild does not adopt the
-new defaults unless the user changes their settings deliberately.
+The border is a **minimum**, with small conservative numerical/stroke allowances.
+General curved charts reserve additional metric clearance and may leave a wider
+rim or refuse a distorted region. Extremely complex clipping refuses above 96
+convex fragments per cell / 1,200 total fragments; it never silently falls back
+to untrimmed cuts. Tiny numerically degenerate polygon pieces are omitted.
+The lattice does not guarantee globally optimal packing or continuous material
+removal at every point of the border: the gap between repetitions still remains.
+
+**Whole cells only** is available under Edge cells. Saved v1/v2 recipes retain
+this previous behavior on Edit; choose Clip at border and review Rebuild to
+update them. The full work limits remain **200 cells per face / 400 total**,
+shared by area for several faces. Dense fixed-size layouts refuse with a
+larger-size estimate instead of silently enlarging the shapes.
 
 The preview shows the complete proposed body with its existing Fusion
 appearance. Create changes that same body. Edit accepts its body, face, edge or
@@ -149,9 +156,9 @@ fixture has 52 cells at 7.73 mm from an 8 mm target; its end rims remain solid.
   examples use Exact pitch. Automatic can refuse a curved region when its local
   metric would reduce the requested physical web. Exact pitch is an alternative,
   subject to the same physical-web checks.
-- Cells remain complete. Cells too close to a real boundary or a trimmed hole
-  are omitted conservatively. A periodic surface seam is not treated as an edge
-  border. There are no clipped partial cells or keep-solid masks in this version.
+- New patterns clip partial cells at real borders, including trimmed holes.
+  Whole cells only retains the previous conservative complete-cell behavior.
+  A periodic seam is not treated as a border. Keep-solid masks are not included.
 - Through holes stop after the first material wall along the cell direction.
   Parallel boundary/midpoint rays and a single connected intersection reject
   ambiguous re-entry into another wall. They are not unbounded cuts through the
@@ -190,10 +197,11 @@ Through geometry itself creates no timeline features. In 0.10.5, display capture
 adds/removes its own scratch BaseFeature inside rollback; the final three owned
 features still provide Edit/Rebuild support.
 
-The full eleven-field settings snapshot is immutable and validated. Version 2
-recipes include the spacing mode and selected face/body references. Strict
-version 1 recipes with ten fields remain readable as Exact pitch; reading never
-rewrites their attributes. Only successful deliberate Rebuild saves version 2.
+The full twelve-field settings snapshot is immutable and validated. Version 3
+recipes add edge mode to the previous layout and selected face/body references.
+Strict version 1 recipes (ten fields, Exact pitch) and version 2 (eleven fields)
+remain readable with Whole cells only. Reading never rewrites their attributes;
+only successful deliberate Rebuild saves version 3.
 Source geometry and owned history are
 checked before Create/Rebuild; a stale preview cannot be committed. Upstream
 changes require an explicit Edit/Rebuild and missing/split face references may

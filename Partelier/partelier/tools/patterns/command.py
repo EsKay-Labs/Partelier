@@ -299,10 +299,9 @@ class _Session:
                     pitches=[layout.effective_pitch_mm for layout in getattr(prepared,'layouts',()) if layout.cell_count]
                     if pitches:
                         low,high=min(pitches),max(pitches)
-                        if self.settings.layout_mode=='balanced':
-                            low-=self.settings.web_mm;high-=self.settings.web_mm
+                        low-=self.settings.web_mm;high-=self.settings.web_mm
                         caption=f'{low:.2f}' if abs(high-low)<.005 else f'{low:.2f}–{high:.2f}'
-                        dimension='cell size' if self.settings.layout_mode=='balanced' else 'fitted pitch'
+                        dimension='cell size'
                         self.message=f'{prepared.cell_count} cells · {dimension} {caption} mm'
                 elif self.settings.layout_mode=='fill':
                     self.message=(f'{prepared.cell_count} cells · size {self.settings.pitch_mm-self.settings.web_mm:g} mm'

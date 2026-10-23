@@ -46,6 +46,49 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Partial edge cells and stable controls (0.10.7)
+
+New patterns use **5 mm Minimum gap**, stable **Cell size / Minimum gap / Border**
+labels in every layout mode, and **Clip at border**. Recipe v3 persists the edge
+mode; old v1/v2 recipes load as Whole cells only without being rewritten.
+
+Native matrix `f599e771-e708-493e-a60f-4c89a6cce753` passes **61 geometry and
+production cases** on Fusion 2705.1.30, including all five clipped shapes in
+Through/Engrave/Emboss, cylinder end-rim clipping, a two-face faceted hex body,
+finite notches, an existing round hole and clipped-cell Create/Edit/Rebuild.
+The five flat-shape cases retain partial cells (4 or 7 per fixture), and the
+notched panel retains 45 cells. Convex pieces from one lattice cell are counted
+once; gap checks still compare distinct cells.
+
+This matrix is **not an overall successful run**: its final snapshot check found
+an active app preview had disappeared and its hidden source body had become
+visible after document deactivation. Body geometry, attributes, count, timeline
+and marker match exactly; the difference was limited to preview graphics and
+source visibility. The subsequent read-only status showed the app session canceled.
+The evidence retains the original failure flag rather than treating it as a pass.
+
+Independent display request `5b7851a5-5081-4c92-9c20-243241d1151c` then **passes**
+with the same runtime/probe source manifest: 12 cached display cycles plus the
+actual rollback `_Session.prepare` / standard STL export / Create / Edit /
+Rebuild workflow using the new clipped defaults. The original model and camera
+are restored exactly and cleanup reports no errors. No direct native mesh
+calculator is introduced.
+
+Local checks pass **874 Python tests**, three Node DOM suites, compilation and
+staged whitespace checks. New checks cover convex subtraction/merging without
+filling holes, closed convex trim offsets, partial cells for all shapes and
+layouts, minimum polygon separation, finite notches/holes, recipe v1/v2 reads,
+5 mm defaults and unchanged labels. Headless Edge at 300/380/520 px confirms the
+controls, independent size/gap edits, help bounds and Esc/focus return without
+page errors; screenshots were inspected. This does not claim actual Fusion CEF
+interaction acceptance or physical printing validation.
+
+The first two native candidates refused at fragmentation bounds for a round
+hole and multiple notches; closed-loop offsets and convex merging resolve those
+fixtures. A later legacy fixture incorrectly inherited Clip mode and was made
+explicitly Whole to preserve its original complete-cell contract. These earlier
+results remain identified in the [scoped evidence and source hashes](validation/pattern-clipped-cells-0.10.7.json).
+
 ## Illustrated pattern help and independent cell size (0.10.6)
 
 Final native request `2611bd09-3a25-4612-ade3-9251935ae9e8` passes **41 cases**

@@ -54,6 +54,7 @@ class _MappedCell:
     world_polygon: tuple
     radius_mm: float
     sag_mm: float
+    cell_key: object = None
 
 
 def _trace_geometry(event,**fields):
@@ -218,10 +219,19 @@ def _mapped_cells(faces, settings, *, _return_layouts=False):
     for index, face in enumerate(faces):
         chart = SurfaceMap(face)
         accepted = 0
+        fragments={}
+        def accept(cell):
+            if settings.edge_mode=='whole':return chart.accepts(*cell.center_mm,cell.radius_mm,settings.border_mm)
+            fragments[cell]=chart.clipped_cells(cell,settings.border_mm)
+            return bool(fragments[cell])
         layout=build_layout(settings,chart.bounds,period_u_mm=chart.period_u_mm,max_cells=budgets[index],
-            accept=lambda cell:chart.accepts(*cell.center_mm,cell.radius_mm,settings.border_mm))
+            accept=accept)
         layouts.append(layout)
-        for cell in layout.cells:
+        pieces=[]
+        for ordinal,cell in enumerate(layout.cells):
+            parts=fragments[cell] if settings.edge_mode=='clip' else (cell,)
+            pieces.extend((part,(index,ordinal) if settings.edge_mode=='clip' else None) for part in parts)
+        for cell,cell_key in pieces:
             u, v = cell.center_mm
             center = chart.sample(u, v)
             boundary = tuple(chart.sample(u + du, v + dv) for du, dv in cell.polygon_mm)
@@ -240,13 +250,15 @@ def _mapped_cells(faces, settings, *, _return_layouts=False):
             radius = max(math.hypot(x, z) for x, z in polygon)
             sag = max(abs(_dot(_sub(sample.point_mm, center.point_mm), center.normal)) for sample in samples)
             mapped.append(_MappedCell(index, center, samples, polygon,
-                                      tuple(sample.point_mm for sample in boundary), radius, sag))
+                                      tuple(sample.point_mm for sample in boundary), radius, sag,cell_key))
             accepted += 1
-            if accepted > MAX_FACE_CELLS or len(mapped) > MAX_TOTAL_CELLS:
+            if len(mapped)>1200:
+                raise ValueError('Too many clipped pattern fragments. Increase cell size or select a simpler region.')
+            if layout.cell_count>MAX_FACE_CELLS or sum(item.cell_count for item in layouts)>MAX_TOTAL_CELLS:
                 raise density_error(settings, [float(source.area)*100 for source in faces],
                                     face_index=index, face_cells=accepted, total_cells=len(mapped))
     if not mapped:
-        raise ValueError("No complete pattern cells fit inside the selected faces and border. Reduce pitch or border.")
+        raise ValueError("No pattern cells fit inside the selected faces and border. Reduce cell size or border.")
     _check_webs(mapped, settings.web_mm)
     return (tuple(mapped),tuple(layouts)) if _return_layouts else tuple(mapped)
 
@@ -270,6 +282,7 @@ def _segment_distance(a, b, c, d):
 def _check_webs(cells, web):
     for index, one in enumerate(cells):
         for two in cells[index + 1:]:
+            if one.cell_key is not None and one.cell_key==two.cell_key:continue
             if _length(_sub(one.center.point_mm, two.center.point_mm)) > one.radius_mm + two.radius_mm + web + .02:
                 continue
             minimum = min(_segment_distance(a, b, c, d)
@@ -582,7 +595,7 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
     prepared = PreparedPattern(design, faces, body, settings, result, signature,
         {"source_and_plan_ms": (planned - started) * 1000,
          "temporary_geometry_ms": (time.perf_counter() - planned) * 1000,
-         "total_ms": (time.perf_counter() - started) * 1000, **details}, len(mapped), tokens,
+         "total_ms": (time.perf_counter() - started) * 1000, **details}, sum(layout.cell_count for layout in layouts), tokens,
          accepted_samples=tuple(diagnostics), layouts=layouts)
     _trace_geometry("final_validate.begin",cell_count=len(mapped))
     validate_sources(prepared, _historical=_historical)

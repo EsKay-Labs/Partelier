@@ -122,6 +122,7 @@ class SurfaceBoundaryTests(unittest.TestCase):
     def chart(self,hole=False):
         core=ModuleType('adsk.core');adsk=ModuleType('adsk');adsk.core=core
         core.Point2D=N(create=lambda x,y:point(x,y))
+        core.Point3D=N(create=lambda x,y,z:point(x,y,z))
         core.Plane=N(cast=lambda geometry:geometry if geometry=='plane' else None)
         core.Cylinder=N(cast=lambda geometry:None)
         core.Line3D=CORE.Line3D
@@ -150,6 +151,33 @@ class SurfaceBoundaryTests(unittest.TestCase):
         self.assertFalse(chart.accepts(7,10,1,2))
         self.assertTrue(chart.accepts(12,10,1,2))
 
+    def test_partial_cells_clip_around_real_notches_and_holes_with_a_solid_border(self):
+        chart,_=self.chart(hole=True)
+        settings=PatternSettings(layout_mode='fill',pitch_mm=14,web_mm=5,border_mm=2)
+        from Partelier.partelier.tools.patterns.planner import build_layout
+        layout=build_layout(settings,chart.bounds)
+        fragments=[part for cell in layout.cells for part in chart.clipped_cells(cell,2)]
+        self.assertTrue(fragments)
+        self.assertTrue(any(not chart.accepts(*part.center_mm,part.radius_mm,2) for part in fragments),
+                        'Clipped polygons may safely occupy the old enclosing-disk exclusion region.')
+        for part in fragments:
+            for x,y in part.polygon_mm:
+                sample=chart.sample(part.center_mm[0]+x,part.center_mm[1]+y)
+                self.assertTrue(all(boundary.clears(sample.point_mm,2-1e-6) for boundary in chart._boundaries))
+
+    def test_large_cell_over_several_notches_has_bounded_convex_fragments(self):
+        chart,_=self.chart()
+        from Partelier.partelier.tools.patterns.planner import build_layout
+        settings=PatternSettings(layout_mode='fill',pitch_mm=42,web_mm=5,offset_u_mm=2,offset_v_mm=2)
+        layout=build_layout(settings,chart.bounds)
+        parts=[part for cell in layout.cells for part in chart.clipped_cells(cell,2)]
+        self.assertTrue(parts)
+        self.assertLess(len(parts),96)
+        for part in parts:
+            for x,y in part.polygon_mm:
+                sample=chart.sample(part.center_mm[0]+x,part.center_mm[1]+y)
+                self.assertTrue(all(boundary.clears(sample.point_mm,2-1e-6) for boundary in chart._boundaries))
+
     def test_planar_clearance_proof_avoids_redundant_ring_evaluations(self):
         chart,_=self.chart(hole=True)
         with patch.object(chart,'sample',wraps=chart.sample) as sample:
@@ -174,7 +202,7 @@ class SurfaceBoundaryTests(unittest.TestCase):
 
     def test_pattern_cells_cover_middle_below_all_three_top_tabs(self):
         chart,_=self.chart()
-        settings=PatternSettings(pitch_mm=8,web_mm=1.2,layout_mode='fixed')
+        settings=PatternSettings(pitch_mm=8,web_mm=1.2,layout_mode='fixed',edge_mode='whole')
         accepted=[chart.sample(*cell.center_mm).point_mm for cell in
             build_cells(settings,chart.bounds,period_u_mm=chart.period_u_mm)
             if chart.accepts(*cell.center_mm,cell.radius_mm,settings.border_mm)]

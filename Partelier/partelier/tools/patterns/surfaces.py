@@ -216,3 +216,104 @@ class SurfaceMap:
             return True
         except ValueError:
             return False
+
+    def _chart_segments(self):
+        if hasattr(self,'_clip_segments'):return self._clip_segments
+        from .clipping import offset_convex
+        segments=[];regions=[]
+        for edge,boundary in zip(self._edges,self._boundaries):
+            points=[]
+            for world in boundary.points_mm:
+                ok,parameter=self.evaluator.getParameterAtPoint(self._core.Point3D.create(*(v/10 for v in world)))
+                if not ok:raise ValueError('Fusion could not map a pattern trim for edge-cell clipping.')
+                raw=(parameter.y,parameter.x) if self._swap else (parameter.x,parameter.y)
+                point=tuple((value-origin)*scale for value,origin,scale in zip(raw,self._origin,self._scale))
+                if points and self.period_u_mm:
+                    point=(point[0]+round((points[-1][0]-point[0])/self.period_u_mm)*self.period_u_mm,point[1])
+                # Collapse collinear chart strokes (e.g. the end rim of a cylinder).
+                if len(points)>=2:
+                    a,b=points[-2:]
+                    cross=(b[0]-a[0])*(point[1]-b[1])-(b[1]-a[1])*(point[0]-b[0])
+                    if abs(cross)<=1e-8*max(1,math.dist(a,point)):
+                        points.pop()
+                points.append(point)
+            if not self.period_u_mm and len(points)>3 and math.dist(points[0],points[-1])<1e-5:
+                try:
+                    loop=offset_convex(tuple(points[:-1]),0)
+                except ValueError:
+                    loop=()
+                if loop:
+                    outer=None
+                    for index in range(edge.coEdges.count):
+                        coedge=edge.coEdges.item(index)
+                        if coedge.loop.face==self.face:outer=coedge.loop.isOuter;break
+                    if outer is None:
+                        centroid=tuple(sum(p[axis] for p in loop)/len(loop) for axis in (0,1))
+                        outer=self.evaluator.isParameterOnFace(self._parameter(*centroid))
+                    regions.append((loop,not outer,boundary.tolerance_mm))
+                    continue
+            for a,b in zip(points,points[1:]):
+                if math.dist(a,b)<=1e-5:continue
+                copies=(0,)
+                if self.period_u_mm:
+                    p=self.period_u_mm
+                    copies=range(math.floor((self.bounds[0]-max(a[0],b[0]))/p),
+                                 math.ceil((self.bounds[1]-min(a[0],b[0]))/p)+1)
+                for shift in copies:
+                    offset=shift*(self.period_u_mm or 0)
+                    segments.append(((a[0]+offset,a[1]),(b[0]+offset,b[1]),boundary.tolerance_mm))
+        if len(segments)>MAX_BOUNDARY_POINTS:
+            raise ValueError('The face trim is too complex for clipped edge cells.')
+        self._clip_segments=tuple(segments)
+        self._clip_regions=tuple(regions)
+        return self._clip_segments
+
+    def clipped_cells(self,cell,border_mm):
+        """Convex pieces inside finite trims, including partial edge cells.
+
+        Capsule subtraction keeps a minimum solid rim around every real edge;
+        periodic seams are excluded. All returned witnesses are trim-valid.
+        """
+        from .planner import Cell
+        from .clipping import subtract_boundaries,offset_convex,difference,bounds,overlaps,halfplane
+        if self.accepts(*cell.center_mm,cell.radius_mm,border_mm):return (cell,)
+        polygon=tuple((cell.center_mm[0]+u,cell.center_mm[1]+v) for u,v in cell.polygon_mm)
+        # General charts have variable metric; reserve the same conservative
+        # scale bound used by the existing chart guards, then verify witnesses.
+        border=border_mm*(1.25 if self.kind=='general' else 1)
+        segments=self._chart_segments()
+        fragments=(polygon,)
+        for loop,hole,tolerance in self._clip_regions:
+            shifted=offset_convex(loop,(-1 if hole else 1)*(border+tolerance+.002))
+            parts=[]
+            for fragment in fragments:
+                if hole:
+                    parts.extend(difference(fragment,shifted) if overlaps(bounds(fragment),bounds(shifted)) else (fragment,))
+                elif shifted:
+                    clipped=fragment
+                    for a,b in zip(shifted,shifted[1:]+shifted[:1]):clipped=halfplane(clipped,a,b)
+                    if clipped:parts.append(clipped)
+            fragments=tuple(parts)
+        fragments=tuple(part for fragment in fragments for part in subtract_boundaries(fragment,segments,border))
+        if len(fragments)>96:raise ValueError('Too much curved trim detail in one clipped cell. Reduce cell size.')
+        result=[]
+        for fragment in fragments:
+            origin=tuple(sum(point[axis] for point in fragment)/len(fragment) for axis in (0,1))
+            try:
+                self.sample(*origin)
+            except ValueError:
+                continue  # The capsule also separated an OUTSIDE piece.
+            witnesses=fragment+tuple(((a[0]+b[0])/2,(a[1]+b[1])/2)
+                                    for a,b in zip(fragment,fragment[1:]+fragment[:1]))
+            for point in witnesses:
+                sample=self.sample(*point)
+                if any(not boundary.clears(sample.point_mm,border_mm-1e-6) for boundary in self._boundaries):
+                    raise ValueError('The curved trim cannot preserve this border reliably. Increase border or select a simpler surface region.')
+                parameter=self._parameter(*point)
+                ok,du,dv=self.evaluator.getFirstDerivative(parameter)
+                if self._swap:du,dv=dv,du
+                if not ok or any(not .8<math.sqrt(_dot(_xyz(vector),_xyz(vector)))*10/scale<1.25
+                                 for vector,scale in zip((du,dv),self._scale)):
+                    raise ValueError('Surface distortion prevents safe edge-cell clipping.')
+            result.append(Cell(origin,tuple((x-origin[0],y-origin[1]) for x,y in fragment)))
+        return tuple(result)

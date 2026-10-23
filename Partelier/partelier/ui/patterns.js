@@ -3,13 +3,14 @@
 // One pattern session serves the honeycomb, perforation and texture presets.
 (() => {
     const $ = id => document.getElementById(id);
-    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 14, web_mm: 1.5, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "balanced" });
+    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 17.5, web_mm: 5, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "balanced", edge_mode: "clip" });
     const presets = { honeycomb: { pattern: "hexagon", mode: "through" }, perforation: { pattern: "circle", mode: "through" }, knurl: { pattern: "diamond", mode: "emboss" } };
     const choices = {
         pattern: [["hexagon", "Hexagons"], ["circle", "Circles"], ["diamond", "Diamonds"], ["square", "Squares"], ["slot", "Slots"]],
         mode: [["through", "Through holes"], ["engrave", "Engrave"], ["emboss", "Emboss"]],
         layout_mode: [["balanced", "Balanced · fewer cells"], ["fill", "Fill face · fixed size"], ["fit", "Automatic size"], ["fixed", "Exact pitch"]],
-        selection_scope: [["faces", "Selected faces"], ["body", "Whole body"]]
+        selection_scope: [["faces", "Selected faces"], ["body", "Whole body"]],
+        edge_mode: [["clip", "Clip at border"], ["whole", "Whole cells only"]]
     };
     const terminal = new Set(["idle", "created", "cancelled"]), retired = new Set();
     const signed = new Set(["rotation_deg", "offset_u_mm", "offset_v_mm"]);
@@ -124,18 +125,18 @@
         }
         $("pattern-selection_scope").disabled = committing || editing();
         $("pattern-scope-note").hidden = !editing();
-        $("pattern-pitch_mm").parentElement.children[0].textContent = state.settings.layout_mode === "fit" ? "Target pitch" : "Pitch";
+        $("pattern-pitch_mm").parentElement.children[0].textContent = "Pitch";
         $("pattern-pitch_mm").title = state.settings.layout_mode === "fit" ? "Automatic spacing adjusts this target to balance coverage of each face." : "Use this exact distance between repeated features.";
-        const sized = ["balanced","fill"].includes(state.settings.layout_mode), size = $("pattern-cell_size_mm");
+        const sized = true, size = $("pattern-cell_size_mm");
         $("pattern-pitch_mm").parentElement.hidden = sized;
         size.parentElement.hidden = !sized; size.disabled = committing || !sized;
-        size.parentElement.children[0].textContent = state.settings.layout_mode === "balanced" ? "Target cell size" : "Cell size";
-        $("pattern-web_mm").parentElement.children[0].textContent = sized ? "Minimum gap" : state.settings.mode === "emboss" ? "Gap between features" : "Solid web";
+        size.parentElement.children[0].textContent = "Cell size";
+        $("pattern-web_mm").parentElement.children[0].textContent = "Minimum gap";
         $("pattern-layout-note").textContent = state.settings.layout_mode === "fill"
-            ? "Σταθερό μέγεθος · ολόκληρα στοιχεία μέχρι το border. Έως 200/face."
+            ? "Σταθερό μέγεθος · γέμισμα μέχρι το border. Έως 200/face."
             : state.settings.layout_mode === "balanced" ? "Πιο αραιή αρχή · έως 48/face. Το μέγεθος προσαρμόζεται."
-            : "Παλιός τρόπος ρύθμισης: Pitch = μέγεθος + gap.";
-        $("pattern-depth_mm").parentElement.children[0].textContent = state.settings.mode === "engrave" ? "Engraving depth" : "Relief height";
+            : "Το Automatic size προσαρμόζει το μέγεθος· το Exact pitch το διατηρεί.";
+        $("pattern-depth_mm").parentElement.children[0].textContent = "Depth / height";
     }
     function renderSelection() {
         const body = state.settings.selection_scope === "body", target = editing() ? "edit_target" : body ? "body" : "faces";
@@ -303,14 +304,14 @@
         const rect = event.target.getBoundingClientRect();
         if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.target.close();
     });
-    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Layout", "pattern-size-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"]]) {
+    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Layout", "pattern-size-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"], ["edge_mode", "Edge cells", "pattern-scope-fields"]]) {
         const item = document.createElement("div"); item.className = "parameter-item";
         const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
         const input = document.createElement("select"); input.id = `pattern-${name}`; input.name = name; input.required = true;
         for (const [value, text] of choices[name]) { const option = document.createElement("option"); option.value = value; option.textContent = text; input.append(option); }
         input.value = defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
     }
-    for (const [container, fields] of [["pattern-size-fields", [["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Solid border"], ["depth_mm", "Relief height"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
+    for (const [container, fields] of [["pattern-size-fields", [["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Border"], ["depth_mm", "Relief height"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
         for (const [name, caption] of fields) {
             const item = document.createElement("div"); item.className = "parameter-item";
             const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
@@ -321,7 +322,7 @@
     }
     $("pattern-settings").addEventListener("submit", event => event.preventDefault());
     $("pattern-settings").addEventListener("input", event => {
-        const input = event.target, sized = ["balanced","fill"].includes(state.settings.layout_mode);
+        const input = event.target, sized = true;
         if (input.id === "pattern-cell_size_mm") {
             const size = Number(input.value), okay = input.value.trim() !== "" && Number.isFinite(size) && size > 0;
             input.setCustomValidity(okay ? "" : "Enter a cell size greater than zero.");
@@ -379,5 +380,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.10.6" }); renderArt(); render();
+    trace("boot", { build:"0.10.7" }); renderArt(); render();
 })();
