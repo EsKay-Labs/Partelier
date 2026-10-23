@@ -1,4 +1,4 @@
-"""Fusion adapter for one exterior cantilever clasp across a straight seam.
+"""Fusion adapter for wall clasps and coaxial annular snap-fit pairs.
 
 Preparation and preview only use detached temporary solids. Create/Rebuild must
 run inside the caller's Fusion command transaction and that caller must abort
@@ -18,13 +18,13 @@ from ..hinge.visibility import validated_bodies
 from ..solid_pair import SolidPairStore
 from .planner import BoxBounds, build_snap_fit_plan
 from .settings import SnapFitSettings
-from .finish import apply_chamfers, plan_detail_chamfers, plan_receiver_chamfers
+from .finish import apply_chamfers, plan_detail_chamfers
 
 
 ATTRIBUTE_GROUP = "sktech_partelier_snap_fit_389f7bf1"
 TOOL_ID = "snap_fit"
 RECIPE_NAME = "recipe"
-RECIPE_VERSION = 2
+RECIPE_VERSION = 3
 LEGACY_SETTINGS_FIELDS = frozenset({
     "width_mm", "thickness_mm", "reach_mm", "clearance_mm", "hook_depth_mm",
     "lead_in_mm", "snap_count", "start_margin_mm", "end_margin_mm", "root_length_mm",
@@ -32,6 +32,9 @@ LEGACY_SETTINGS_FIELDS = frozenset({
 })
 LEGACY_STYLE_DEFAULTS = {"snap_style": "standard", "chamfer_edges": False,
                          "chamfer_size_mm": .3, "print_support": False}
+FAMILY_DEFAULTS = {"snap_family": "hook", "ball_radius_mm": 2.0, "torsion_radius_mm": .8,
+                   "annular_bead_width_mm": 2.0, "annular_bead_height_mm": .5,
+                   "annular_offset_mm": 3.0}
 SOURCE_KEYS = frozenset({"face_a", "face_b", "axis_edge", "body_a", "body_b"})
 RECIPE_KEYS = frozenset({"version", "tool", "feature_id", "settings", "sources"})
 STORE = SolidPairStore(ATTRIBUTE_GROUP, TOOL_ID)
@@ -60,6 +63,7 @@ class PreparedSnapFit:
     history_anchor: object = None
     record: object = None
     saved_recipe: object = None
+    chamfer_diagnostics: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -191,7 +195,7 @@ def _canonical_rim(face_a, face_b, selected):
     return matches[0]
 
 
-def _selection(design, face_a, face_b, edge, *, historical=False):
+def _selection(design, face_a, face_b, edge, *, historical=False, family="hook"):
     _main_thread()
     _, fusion = _api()
     if not hinge._valid(design) or design.designType != fusion.DesignTypes.ParametricDesignType:
@@ -215,6 +219,9 @@ def _selection(design, face_a, face_b, edge, *, historical=False):
             raise SnapFitGeometryError("Select faces on two solid native bodies in the root component.")
     if face_a.body == face_b.body:
         raise SnapFitGeometryError("Select faces on two different solid bodies.")
+    if family == "annular":
+        from .annular import selection
+        return selection(design, face_a, face_b, edge)
     try:
         edge = _canonical_rim(face_a, face_b, edge)
         endpoints = hinge._straight_endpoints(edge)
@@ -338,21 +345,40 @@ def prepare_snap_fit(design, face_a, face_b, axis_edge, settings, *, _historical
     settings.validate()
     started = time.perf_counter()
     face_a, face_b, axis_edge, frame, signature, span = _selection(
-        design, face_a, face_b, axis_edge, historical=_historical)
+        design, face_a, face_b, axis_edge, historical=_historical, family=settings.snap_family)
     tokens = _source_tokens(face_a, face_b, axis_edge)
     read_done = time.perf_counter()
-    plan = build_snap_fit_plan(settings, span)
+    plan = None if settings.snap_family == "annular" else build_snap_fit_plan(settings, span)
+    if settings.snap_family in {"ball_detent", "torsion"}:
+        from . import ball_detent, torsion
+        adapter = ball_detent if settings.snap_family == "ball_detent" else torsion
+        plan = replace(plan, units=tuple(adapter.adapt_unit(unit, settings) for unit in plan.units))
     planned = time.perf_counter()
     _, fusion = _api()
     manager = fusion.TemporaryBRepManager.get()
     if manager is None:
         raise SnapFitGeometryError("Fusion's temporary solid manager is unavailable.")
+    if settings.snap_family == "annular":
+        from .annular import prepare_geometry
+        plan, bodies = prepare_geometry(manager, frame, face_a, face_b, settings)
+        ended = time.perf_counter()
+        return PreparedSnapFit(design, face_a, face_b, axis_edge, settings, plan, frame,
+                               tuple(bodies), signature,
+                               {"source_read_ms": (read_done-started)*1000,
+                                "planning_ms": (planned-read_done)*1000,
+                                "temporary_geometry_ms": (ended-planned)*1000}, tokens)
     _halfspaces(manager, frame, face_a.body, face_b.body)
     results = {"A": _copy(manager, face_a.body), "B": _copy(manager, face_b.body)}
+    chamfer_edges = []
     for unit in plan.units:
         _coverage(manager, frame, face_a.body, unit.root_cover,
                   "Face A must contain the full root width, length and attachment overlap. Move the rim or reduce those dimensions.")
         root = hinge._box(manager, frame, unit.root)
+        if settings.snap_family == "torsion":
+            from .torsion import add_torsion_bodies
+            for part in add_torsion_bodies(manager, frame, unit, settings):
+                _boolean(manager, root, part, fusion.BooleanTypes.UnionBooleanType,
+                         "The torsion posts and bar did not join their root.")
         if unit.root_support is not None:
             support = unit.root_support
             _boolean(manager, root, _prism(manager, frame, support.points_xz_mm,
@@ -360,31 +386,55 @@ def prepare_snap_fit(design, face_a, face_b, axis_edge, settings, *, _historical
                      fusion.BooleanTypes.UnionBooleanType,
                      "The 45-degree root ramp did not join its root into one solid.")
         for arm in unit.arms:
-            _coverage(manager, frame, face_b.body, arm.receiver_cover,
+            cover = unit.ball_geometry.receiver_cover if settings.snap_family == "ball_detent" else arm.receiver_cover
+            _coverage(manager, frame, face_b.body, cover,
                       "Face B must contain the full blind recess and roof plus remaining wall. Increase wall thickness/height or reduce reach, hook depth or clearance.")
             beam = _prism(manager, frame, arm.beam.points_xz_mm, arm.beam.y_min_mm, arm.beam.y_max_mm)
-            hook = _prism(manager, frame, arm.hook.points_xz_mm, arm.hook.y_min_mm, arm.hook.y_max_mm)
+            if settings.snap_family == "ball_detent":
+                from .ball_detent import nose_body
+                hook = nose_body(manager, frame, unit)
+            else:
+                hook = _prism(manager, frame, arm.hook.points_xz_mm, arm.hook.y_min_mm, arm.hook.y_max_mm)
             _no_positive_overlap(manager, hook, face_a.body)
             for part in (beam, hook):
                 _boolean(manager, root, part, fusion.BooleanTypes.UnionBooleanType,
                          "The cantilever root, beam and hook did not join into one solid.")
-        apply_chamfers(manager, frame, root, plan_detail_chamfers(unit, settings))
+        cuts = plan_detail_chamfers(root, frame, settings)
+        chamfer_edges.extend(cut.diagnostic() for cut in cuts)
+        apply_chamfers(manager, frame, root, cuts)
+        # A bounded planar-edge cutter can cross an adjacent curved primitive
+        # even when the curved edge itself was excluded from classification.
+        # Preserve the entire functional round core, including buried material.
+        if settings.chamfer_edges and settings.snap_family == "ball_detent":
+            from .ball_detent import nose_body
+            _boolean(manager, root, nose_body(manager, frame, unit),
+                     fusion.BooleanTypes.UnionBooleanType,
+                     "The protected rounded detent could not be retained after finishing.")
+        elif settings.chamfer_edges and settings.snap_family == "torsion":
+            from .torsion import bar_body
+            _boolean(manager, root, bar_body(manager, frame, unit),
+                     fusion.BooleanTypes.UnionBooleanType,
+                     "The protected torsion bar could not be retained after finishing.")
         _boolean(manager, results["A"], root, fusion.BooleanTypes.UnionBooleanType,
                  "The snap-fit root did not join into body A.")
         for arm in unit.arms:
             pocket = arm.receiver
-            _boolean(manager, results["B"], _prism(manager, frame, pocket.points_xz_mm,
-                                                   pocket.y_min_mm, pocket.y_max_mm),
+            if settings.snap_family == "ball_detent":
+                from .ball_detent import receiver_body
+                cutter = receiver_body(manager, frame, unit, settings)
+            else:
+                cutter = _prism(manager, frame, pocket.points_xz_mm, pocket.y_min_mm, pocket.y_max_mm)
+            _boolean(manager, results["B"], cutter,
                      fusion.BooleanTypes.DifferenceBooleanType,
                      "The receiving recess removed or split body B. Reduce its dimensions.")
-            apply_chamfers(manager, frame, results["B"], plan_receiver_chamfers(arm, settings))
     _no_positive_overlap(manager, results["A"], results["B"])
     ended = time.perf_counter()
     return PreparedSnapFit(design, face_a, face_b, axis_edge, settings, plan, frame,
                            tuple(results.items()), signature,
                            {"source_read_ms": (read_done - started) * 1000,
                             "planning_ms": (planned - read_done) * 1000,
-                            "temporary_geometry_ms": (ended - planned) * 1000}, tokens)
+                            "temporary_geometry_ms": (ended - planned) * 1000}, tokens,
+                           chamfer_diagnostics=tuple(chamfer_edges))
 
 
 def _parse_recipe(raw, record):
@@ -395,7 +445,7 @@ def _parse_recipe(raw, record):
     except (ValueError, TypeError) as error:
         raise SnapFitGeometryError("The saved snap-fit recipe is damaged.") from error
     if (not isinstance(recipe, dict) or set(recipe) != RECIPE_KEYS
-            or type(recipe["version"]) is not int or recipe["version"] not in (1, RECIPE_VERSION)
+            or type(recipe["version"]) is not int or recipe["version"] not in (1, 2, RECIPE_VERSION)
             or recipe["tool"] != TOOL_ID or recipe["feature_id"] != record.feature_id
             or not isinstance(recipe["sources"], dict) or set(recipe["sources"]) != SOURCE_KEYS
             or not all(isinstance(value, str) and 0 < len(value) <= 16384
@@ -408,6 +458,11 @@ def _parse_recipe(raw, record):
             if not isinstance(values, dict) or set(values) != LEGACY_SETTINGS_FIELDS:
                 raise ValueError("Version 1 must contain exactly its original eleven dimension fields.")
             values = {**values, **LEGACY_STYLE_DEFAULTS}
+        if recipe["version"] <= 2:
+            expected = LEGACY_SETTINGS_FIELDS | set(LEGACY_STYLE_DEFAULTS)
+            if not isinstance(values, dict) or set(values) != expected:
+                raise ValueError("Version 2 must contain exactly its fifteen supported settings.")
+            values = {**values, **FAMILY_DEFAULTS}
         settings = SnapFitSettings.from_dict(values)
     except (ValueError, TypeError) as error:
         raise SnapFitGeometryError("The saved snap-fit settings are damaged: " + str(error)) from error
@@ -434,6 +489,8 @@ def prepare_edit_snap_fit(design, target, settings):
     _main_thread()
     if not isinstance(target, EditTarget):
         raise SnapFitGeometryError("Reopen Edit to load this snap-fit.")
+    if (target.settings.snap_family == "annular") != (settings.snap_family == "annular"):
+        raise SnapFitGeometryError("Annular rings use cylindrical references. Start a new snap-fit to change between annular and wall mechanisms.")
     if _read_recipe(target.anchor, target.record)[0] != target.recipe:
         raise SnapFitGeometryError("The saved snap-fit settings changed. Reopen Edit.")
     with STORE.input_scope(design, target.record) as targets:
@@ -448,13 +505,13 @@ def _assert_fresh(design, prepared):
     if design != prepared.design:
         raise SnapFitGeometryError("The active design changed. Reselect the snap-fit sources.")
     if prepared.record is None:
-        values = _selection(design, prepared.face_a, prepared.face_b, prepared.axis_edge)
+        values = _selection(design, prepared.face_a, prepared.face_b, prepared.axis_edge, family=prepared.settings.snap_family)
     else:
         if _read_recipe(prepared.history_anchor, prepared.record)[0] != prepared.saved_recipe:
             raise SnapFitGeometryError("The saved snap-fit settings changed. Reopen Edit.")
         with STORE.input_scope(design, prepared.record) as targets:
             faces = _sources(design, prepared.source_tokens, targets)
-            values = _selection(design, *faces, historical=True)
+            values = _selection(design, *faces, historical=True, family=prepared.settings.snap_family)
     if ((prepared.record is None and values[2] != prepared.axis_edge)
             or values[4] != prepared.source_signature):
         raise SnapFitGeometryError("The source geometry changed. Refresh the snap-fit preview.")

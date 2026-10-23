@@ -112,7 +112,7 @@ class SnapFitSettingsTests(unittest.TestCase):
 
     def test_new_styles_and_finish_defaults_are_explicit_settings(self):
         current = SnapFitSettings()
-        self.assertEqual(len(current.to_dict()), 15)
+        self.assertEqual(len(current.to_dict()), 21)
         self.assertEqual(current.snap_style, "standard")
         self.assertTrue(current.chamfer_edges)
         self.assertTrue(current.print_support)
@@ -136,18 +136,28 @@ class SnapFitSettingsTests(unittest.TestCase):
             SnapFitSettings(snap_style="tapered", chamfer_size_mm=.5)
         with self.assertRaisesRegex(ValueError, "Chamfer size"):
             SnapFitSettings(chamfer_size_mm=1.5)
-        with self.assertRaisesRegex(ValueError, "middle receiving web"):
-            SnapFitSettings(snap_style="twin", width_mm=12, thickness_mm=1.6,
-                            hook_depth_mm=2, clearance_mm=.1, chamfer_size_mm=.75)
+        wider = SnapFitSettings(snap_style="twin", width_mm=12, thickness_mm=1.6,
+                                hook_depth_mm=2, clearance_mm=.1, chamfer_size_mm=.75)
+        self.assertEqual(wider.chamfer_size_mm, .75)
         current = SnapFitSettings(snap_style="tapered", chamfer_size_mm=.4)
         self.assertEqual(current.chamfer_size_mm, .4)
 
     def test_full_new_contract_refuses_old_partial_values_outside_recipe_migration(self):
         old = {key: value for key, value in SnapFitSettings().to_dict().items()
-               if key not in {"snap_style", "print_support", "chamfer_edges", "chamfer_size_mm"}}
+               if key not in {"snap_style", "print_support", "chamfer_edges", "chamfer_size_mm",
+                              "snap_family", "ball_radius_mm", "torsion_radius_mm",
+                              "annular_bead_width_mm", "annular_bead_height_mm", "annular_offset_mm"}}
         self.assertEqual(len(old), 11)
         with self.assertRaisesRegex(ValueError, "exactly"):
             SnapFitSettings.from_dict(old)
+
+    def test_all_four_families_roundtrip_complete_twenty_one_field_snapshots(self):
+        for family in ("hook", "ball_detent", "torsion", "annular"):
+            current = SnapFitSettings(snap_family=family, chamfer_edges=family != "annular")
+            self.assertEqual(len(current.to_dict()), 21)
+            self.assertEqual(SnapFitSettings.from_dict(current.to_dict()), current)
+        with self.assertRaisesRegex(ValueError, "Choose hook"):
+            SnapFitSettings(snap_family="unknown")
 
 
 if __name__ == "__main__":

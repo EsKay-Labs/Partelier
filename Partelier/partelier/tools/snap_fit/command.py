@@ -174,6 +174,12 @@ class SnapCommands:
             "axis_edge": ("Select the facing rim on the base or lid wall. A gap is supported. Esc to stop picking.", "Edges"),
             "edit_target": ("Select a snap-fit body or a Part containing one snap-fit. Esc to stop picking.", "Occurrences,SolidBodies"),
         }
+        if session.settings.snap_family == "annular":
+            prompts.update({
+                "face_a": ("Select the outer cylinder on body A. Esc to stop picking.", "CylindricalFaces"),
+                "face_b": ("Select the matching inner cylinder on body B. Esc to stop picking.", "CylindricalFaces"),
+                "axis_edge": ("Select the complete circular rim on the outer cylinder A. Esc to stop picking.", "Edges"),
+            })
         prompt, filters = prompts[target]
         session.phase = "selecting"
         session.message = prompt
@@ -322,6 +328,12 @@ class _Session:
         if revision < self.revision or (revision == self.revision and settings != self.settings):
             raise ValueError("These snap-fit settings are stale. Use the current palette values.")
         if settings != self.settings:
+            crossed = (settings.snap_family == "annular") != (self.settings.snap_family == "annular")
+            if crossed and self.editing:
+                raise ValueError("Start a new snap-fit to change between cylindrical rings and wall mechanisms.")
+            if crossed:
+                self.clear_preview()
+                self.selections.clear()
             # Retain the last valid view while replacement geometry is computed.
             self.preview_revision = None
         self.settings, self.revision = settings, revision
@@ -375,7 +387,7 @@ class _Session:
         self.preview_sources = capture_preview_sources(prepared)
         self.preview_revision = self.revision
         self.phase = "preview"
-        self.message = f"{self.settings.snap_count} snap-fit(s). Review the hook and matching recess."
+        self.message = f"{self.settings.snap_count} snap-fit(s). Review the mechanism and matching recess."
         self.owner._publish(self)
         self._timings("preview", prepared, total_ms=(time.perf_counter() - started) * 1000)
 
@@ -440,17 +452,27 @@ class _Created(adsk.core.CommandCreatedEventHandler):
                 raise ValueError("Start snap-fit creation from the Partelier palette.")
             session.ensure_design()
             session.command = command
-            for event, handler in ((command.execute, _Execute(session)),
-                                   (command.destroy, _Destroyed(session))):
-                event.add(handler)
+            # Cleanup must be available before any geometry handler is bound.
+            for event, handler in ((command.destroy, _Destroyed(session)),
+                                   (command.execute, _Execute(session))):
                 session.handlers.append((event, handler))
+                if event.add(handler) is False:
+                    raise RuntimeError("Fusion could not attach a snap-fit transaction handler.")
             command.isAutoExecute = True
         except Exception as error:
-            command.isAutoExecute = False
+            # No valid execute handler remains. Close this empty command after
+            # Created returns, without leaving the palette or Fusion blocked.
+            command.isAutoExecute = True
             command.isOKButtonVisible = False
             if session is not None:
                 session.command = None
                 session.phase, session.message = "error", str(error)
+                for event, handler in session.handlers:
+                    try:
+                        event.remove(handler)
+                    except Exception:
+                        self.owner._log("Partelier could not detach a refused snap-fit handler")
+                session.handlers.clear()
                 self.owner._publish(session)
             self.owner._log("Partelier could not open the snap-fit transaction")
 
@@ -461,6 +483,10 @@ class _Execute(adsk.core.CommandEventHandler):
         self.session = session
 
     def notify(self, args):
+        if self.session.command is None or self.session.phase != "opening":
+            args.executeFailed = True
+            args.executeFailedMessage = "The snap-fit transaction did not initialize. Refresh preview to retry."
+            return
         self.session.execute(args)
 
 

@@ -6,7 +6,7 @@
   "description": {
     "": "Partelier toolkit with editable pin hinges and straight, tapered and twin snap-fits, live previews, 45-degree printing ramps and guarded chamfer finishing."
   },
-  "version": "0.7.0",
+  "version": "0.8.0",
   "runOnStartup": false,
   "supportedOS": "windows",
   "editEnabled": true

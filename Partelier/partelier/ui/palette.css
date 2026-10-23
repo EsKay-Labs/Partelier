@@ -147,6 +147,12 @@ dialog p { color: var(--muted); font-size: 12px; line-height: 1.7; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
 
 /* Snap-fit reuses the toolkit field rhythm and owns its action dock. */
+#snap-style-fields { width: 100%; margin-bottom: 12px; align-items: stretch; }
+#snap-family-fields { width: 100%; align-items: stretch; }
+#snap-style-fields label, #snap-family-fields label { text-align: left; }
+#snap-snap_style, #snap-snap_family { width: 100%; }
+#snap-ball-fields, #snap-torsion-fields { margin-top: 10px; }
+#snap-construction-fields.single-field { grid-template-columns: 1fr; }
 #begin-snap-button { flex-shrink: 0; background: var(--accent); color: #fff; border-color: var(--accent); }
 #begin-snap-button:disabled { background: var(--disabled-bg); color: var(--disabled-text); border-color: #c2cfdf; }
 #begin-snap-button:enabled:hover { background: var(--accent-dark); }

@@ -338,6 +338,38 @@ class SnapFitGeometryBoundaryTests(unittest.TestCase):
 
 
 class SnapFitFreshnessAndRecipeTests(unittest.TestCase):
+    def test_v2_recipe_preserves_fifteen_fields_and_loads_hook_family_without_writes(self):
+        design, prepared, target = saved_fixture()
+        current = SnapFitSettings(snap_style="tapered", chamfer_edges=True, print_support=True)
+        old = dict(target.recipe, version=2,
+                   settings={key: value for key, value in current.to_dict().items()
+                             if key not in fusion.FAMILY_DEFAULTS})
+        raw = json.dumps(old)
+        target.anchor.attributes.add(fusion.ATTRIBUTE_GROUP, fusion.RECIPE_NAME, raw)
+        writes = len(target.anchor.attributes.writes)
+        recipe, loaded = fusion._read_recipe(target.anchor, target.record)
+        self.assertEqual(recipe, old)
+        self.assertEqual(len(recipe["settings"]), 15)
+        self.assertEqual(loaded, current)
+        self.assertEqual(loaded.snap_family, "hook")
+        self.assertEqual(len(target.anchor.attributes.writes), writes)
+        for settings in (dict(old["settings"], snap_family="hook"),
+                         {key: value for key, value in old["settings"].items() if key != "width_mm"}):
+            with self.assertRaisesRegex(ValueError, "fifteen"):
+                fusion._parse_recipe(json.dumps(dict(old, settings=settings)), target.record)
+
+    def test_v3_recipe_preserves_each_new_family_and_its_parameters(self):
+        design, prepared, target = saved_fixture()
+        for family in ("hook", "ball_detent", "torsion", "annular"):
+            settings = SnapFitSettings(snap_family=family, chamfer_edges=family != "annular",
+                                      ball_radius_mm=2.2, torsion_radius_mm=.85,
+                                      annular_bead_height_mm=.6)
+            recipe = dict(target.recipe, version=3, settings=settings.to_dict())
+            parsed, loaded = fusion._parse_recipe(json.dumps(recipe), target.record)
+            self.assertEqual(parsed, recipe)
+            self.assertEqual(loaded, settings)
+            self.assertEqual(len(loaded.to_dict()), 21)
+
     def test_legacy_recipe_loads_exact_original_geometry_without_writes(self):
         design, prepared, target = saved_fixture()
         old = dict(target.recipe, version=1,

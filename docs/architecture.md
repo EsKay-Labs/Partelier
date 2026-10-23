@@ -32,7 +32,11 @@ must be recorded during native validation; developer checks use local Python.
 | `Partelier/partelier/tools/hinge/roof_finish.py` | Read-only round/tapered cap-contour witnesses; refusal without geometry repair |
 | `Partelier/partelier/tools/hinge/relief.py` | Pure movement-envelope plan and temporary source/leaf relief |
 | `Partelier/partelier/tools/hinge/visibility.py` | Scoped persistent-body light-bulb leases; no geometry edits or deletions |
-| `Partelier/partelier/tools/snap_fit/` | Independent settings, pure placement, bounded transient clasp geometry, recipe and palette command lifecycle |
+| `Partelier/partelier/tools/snap_fit/` | Independent settings, family dispatch, transient paired geometry, versioned recipes and palette command lifecycle |
+| `Partelier/partelier/tools/snap_fit/ball_detent.py` | Spherical detent/socket geometry and its receiver envelope |
+| `Partelier/partelier/tools/snap_fit/torsion.py` | Two-post torsion-bar/central-lever plan and detached native primitives |
+| `Partelier/partelier/tools/snap_fit/annular.py` | Coaxial cylindrical selection, full-circumference coverage, annular bead and blind groove |
+| `Partelier/partelier/tools/snap_fit/finish.py` | Complete convex outer-edge classification after union, protected contacts, bounded exterior cutters |
 | `Partelier/partelier/tools/solid_pair.py` | Shared two-target in-place persistence; strict owned BaseFeature/four-Combine records and historical source scope |
 | `Partelier/partelier/ui/snap.js` | Independent snap-fit form/session controller; library shell forwards host messages |
 | `tools/fusion/HingeFixture/` / `SnapFitFixture/` | Standalone new-document reference fixtures |
@@ -77,7 +81,7 @@ narrow layouts stack them. Detailed guidance is progressively disclosed.
 
 The palette uses the Qt browser option and an absolute local file URI with a
 manifest-version query. HTML asset cache tags and displayed version also match
-the manifest (0.5.0), preventing old HTML from retaining stale assets after
+the current manifest version, preventing old HTML from retaining stale assets after
 Stop/Run. The HTML
 bridge awaits `adsk.fusionSendData`, accepts both its Promise and legacy return
 form, and checks a protocol version and request identity. The Python allowlist
@@ -113,9 +117,10 @@ contents or add a separate logging/persistence subsystem without a concrete need
 ## Planned module boundaries
 
 The sequence and exit gates live in [mvp-plan.md](mvp-plan.md). The structure
-below distinguishes the implemented hinge from future extensions. Shared core/
-and fusion/ folders and the other tool folders remain proposals; do not create
-them as empty scaffolding. Native hinge behavior is still unvalidated.
+below distinguishes implemented hinge/snap modules from future extensions.
+Shared core/ and fusion/ folders and other tool folders remain proposals; do not
+create them as empty scaffolding. Native acceptance is tracked separately in
+[fusion-validation.md](fusion-validation.md).
 
 ```text
 partelier/
@@ -130,15 +135,16 @@ partelier/
       planner.py           Immutable geometry plan in mm; no adsk imports
       fusion.py            Selection snapshot, temporary/persistent geometry
       command.py           Fusion selection/command session and UI adaptation
-    snap_fit/              Same boundaries when implemented
+    snap_fit/              Settings, family geometry/selection, finish and commands
     sliding_guide/         Same boundaries when implemented
 ```
 
 Keep the entry point stable. A small explicit list of built-in tool registrations
 is sufficient: unique command identity, label and registration/cleanup hooks.
-Each tool owns its parameters, selection rules, plan and recipe version. The
-runtime must not branch on every tool's geometry details. Shared modules must
-not import individual tools. External plugin loading, dependency injection
+Each tool owns its parameters, selection rules, plan and recipe version.
+The shared launcher/runtime does not implement family geometry. Shared helpers
+avoid tool settings and command/UI state; the existing SolidPairStore reuses the
+conservative BRep signature helper through a lazy hinge-adapter import. External plugin loading, dependency injection
 frameworks, abstract class hierarchies and generic scene graphs are not needed.
 
 Migrate the current honeycomb input check only as far as the hinge integration
@@ -481,18 +487,67 @@ in a rollback-only host command and checks the original document afterwards.
 See [snap-fit geometry and limits](snap-fit-design.md).
 
 
-## Snap type and finishing extension (0.7.0)
+## Snap mechanism families and exterior finishing
 
-The pure snap plan now contains one or two explicit arms, receiving profiles,
-coverage bounds and an optional root-support profile. Straight, tapered and twin
-styles share the same source-selection and SolidPairStore persistence. The
-finish module constructs bounded oriented-box bevel cutters from declared
-edges/normals. It operates after union of the complete generated detail and
-before joining A; only its planned recess entry sides are cut from B. Native
-finishing features and a second native preview driver are unnecessary.
+The snap tool has one immutable 21-field settings contract and four concrete
+mechanism families: Hook latch, Ball detent, Torsion latch and Annular ring.
+Straight/tapered/twin are variants of Hook latch, not alternate names for those
+families. The common Fusion adapter dispatches geometry while the shared palette,
+preview, historical-source and two-body persistence protocols remain the same.
+No framework for external mechanism plugins is introduced.
 
-The HTML controller serializes fifteen typed fields atomically. Version 2
-recipes store that exact schema. Version 1 is interpreted with explicit legacy
-sharp/support-off defaults and remains read-only until deliberate Rebuild.
-Placement envelopes include the receiving-entry chamfers, preserving the stated
-margins and positive gaps between repeated cut openings.
+Hook, ball-detent and torsion families use coplanar wall faces and a canonical
+straight facing rim. Pure placement produces repeat centers and root/receiver
+coverage requirements in millimetres. The ball adapter supplies a spherical nose
+and enlarged socket; the torsion adapter supplies two posts, a round Y-axis bar
+and a central lever with an air gap above the fixed root. Each family provides
+its own mating envelope and temporary geometry, then the common adapter checks
+original-source/free-nose contact and final-pair clearance.
+
+Annular selection has its own contract: native outer cylindrical face A, coaxial
+inner cylindrical face B, and a complete circular rim on the selected A face.
+The frame origin is that rim center; the axis sign places neck A in negative
+local Z. The exposed bead starts and ends at A's radius over the requested axial
+width; its embedded root extends inward by attachment overlap. Changing overlap
+does not reshape the exposed triangle. The peak radius exceeds the positive
+A/B radial gap. Two frustums form the triangular
+bead, and annular cutters form B's groove and optional 45-degree roof in local
++Z. Full-circumference intersection witnesses require the entire root, remaining
+socket wall, groove floor and roof extent. Annular requires one ring and general
+outer chamfers off. Both source and final pairs undergo positive-overlap checks.
+Planar and annular features retain different source contracts when editing.
+
+The outer-finish helper inspects the actual united generated detail, after all
+of its root, arms, hooks and supports have joined. It classifies complete convex
+eligible planar edges, merges continuous collinear segments with matching
+incident normals, and builds explicitly bounded cutters. Cutter geometry stays
+outside the original wall. Any incident inward/negative-X surface and the flat
+retaining/contact shoulder are protected. The receiving body B is not
+cosmetically finished: equal family/dimensions/support settings produce identical
+B with outer chamfers on or off. Unsupported or oversized finishing is refused;
+no edge size is silently reduced. Curved family components retain their own
+profile/selection rules.
+
+After the planar cutters, the complete sphere or torsion-bar primitive is united
+back into the generated detail. This protects the round core even where a
+neighboring planar-edge cutter crosses its envelope. Native intersection-volume
+checks prove that the entire primitive remains present. The torsion root and
+posts share their full outer depth to avoid a small construction step and broken
+finish band at a post foot.
+
+The fixed native probe checks whole trimmed inner/contact surfaces and the
+entire B geometry against sharp baselines, in addition to material witnesses
+across root/arm/hook joins and the free tip. This catches partial inside bevels,
+changed mating edges and broken outside finish bands rather than treating a
+successful boolean alone as acceptance. Native evidence is recorded separately;
+these geometry checks do not validate physical printing, force or fatigue.
+
+The HTML controller serializes all 21 typed fields atomically and displays the
+controls relevant to the selected family. Version 3 recipes store this exact
+schema. Version 1's eleven dimensions are interpreted as straight Hook latch
+with sharp edges and print support off. Version 2's fifteen fields retain their
+saved hook variant and finish/support values while acquiring explicit Hook latch
+family defaults. Legacy parsing is read-only: dimensions can be loaded without
+rewriting the recipe or changing existing geometry. Deliberate Rebuild writes
+the current version, updates the same BaseFeature tool sources and retains both
+selected bodies and the four native Combine references.

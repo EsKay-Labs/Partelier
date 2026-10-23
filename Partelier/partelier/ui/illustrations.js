@@ -7,7 +7,7 @@ window.PartelierIllustrations = (() => {
     const point = p => project(p).map(v => v.toFixed(2)).join(",");
     const shade = (hex, amount) => "#" + hex.slice(1).match(/../g).map(v => Math.max(0, Math.min(255, Math.round(parseInt(v, 16) * amount))).toString(16).padStart(2, "0")).join("");
 
-    function render(id, { exploded = false, length = 40, outputMode = "attached", leafProfile = "rectangular", screwHoles = false, chamferEdges = false, filletEdges = false, knuckleProfile = "round", knuckleCount = 5, webProfile = "tangent", snapStyle = "standard", printSupport = false, chamferSize = .3 } = {}) {
+    function render(id, { exploded = false, length = 40, outputMode = "attached", leafProfile = "rectangular", screwHoles = false, chamferEdges = false, filletEdges = false, knuckleProfile = "round", knuckleCount = 5, webProfile = "tangent", snapStyle = "standard", printSupport = false, chamferSize = .3, snapFamily = "hook" } = {}) {
         const faces = [], overlays = [];
         const face = (vertices, color, light = 1, smooth = false) => faces.push({ vertices, smooth, color: shade(color, light), depth: vertices.reduce((n, p) => n + p[0] + p[1] + p[2] * .2, 0) / vertices.length });
         const box = (x, y, z, w, d, h, color = A) => {
@@ -22,6 +22,36 @@ window.PartelierIllustrations = (() => {
                 const [nx,nz] = polygon[(i+1)%polygon.length];
                 face([[x,y,z],[nx,y,nz],[nx,y+depth,nz],[x,y+depth,z]], color, .82 + i % 2 * .16);
             });
+        };
+        const yzPrism = (polygon, x, depth, color) => {
+            face(polygon.map(([y,z]) => [x+depth,y,z]), color, .78);
+            polygon.forEach(([y,z], i) => {
+                const [ny,nz] = polygon[(i+1)%polygon.length];
+                face([[x,y,z],[x,ny,nz],[x+depth,ny,nz],[x+depth,y,z]], color, .86);
+            });
+        };
+        const sphere = (x, y, z, radius, color) => {
+            const ring = (longitude, latitude) => [x+radius*Math.cos(latitude)*Math.cos(longitude), y+radius*Math.cos(latitude)*Math.sin(longitude), z+radius*Math.sin(latitude)];
+            for (let i=0; i<16; i++) for (let j=0; j<8; j++) {
+                const a=i*Math.PI/8, b=(i+1)*Math.PI/8, c=-Math.PI/2+j*Math.PI/8, d=c+Math.PI/8;
+                face([ring(a,c),ring(b,c),ring(b,d),ring(a,d)],color,.72+.2*Math.cos(a),true);
+            }
+        };
+        const profileRing = (stations, color, cutaway = false) => {
+            const start = cutaway ? 3*Math.PI/4 : 0, count = cutaway ? 16 : 32;
+            const ring = (angle, radius, z) => [Math.cos(angle)*radius,Math.sin(angle)*radius,z];
+            for (let i=0; i<count; i++) {
+                const a=start+i*Math.PI/16,b=a+Math.PI/16;
+                for (let j=0; j<stations.length-1; j++) {
+                    const [z,r,h]=stations[j], [zz,rr,hh]=stations[j+1];
+                    face([ring(a,r,z),ring(b,r,z),ring(b,rr,zz),ring(a,rr,zz)],color,.85,true);
+                    face([ring(a,h,z),ring(a,hh,zz),ring(b,hh,zz),ring(b,h,z)],color,.58,true);
+                }
+                for (const [z,r,h] of [stations[0],stations[stations.length-1]]) face([ring(a,r,z),ring(b,r,z),ring(b,h,z),ring(a,h,z)],color,.96);
+            }
+            if (cutaway) for (const angle of [start,start+Math.PI]) {
+                face([...stations.map(([z,r]) => ring(angle,r,z)),...stations.slice().reverse().map(([z,,h]) => ring(angle,h,z))],color,.9);
+            }
         };
         const tube = (x, y, z, radius, bore, depth, color, sides = 24) => {
             for (let i = 0; i < sides; i++) {
@@ -147,28 +177,56 @@ window.PartelierIllustrations = (() => {
         } else if (id === "snap") {
             // Exterior vertical clasp: base below the seam, lid above it.
             const lift = exploded ? 22 : 0, style = ["standard", "tapered", "twin"].includes(snapStyle) ? snapStyle : "standard";
-            const outerAt = z => style === "tapered" ? 1.8 - .525 * Math.max(0, z) / 16 : 1.8;
+            const family = ["hook", "ball_detent", "torsion", "annular"].includes(snapFamily) ? snapFamily : "hook";
+            if (family === "annular") {
+                profileRing([[0,13,10],[12,13,10],[13,13.5,10],[14,13,10],[18,13,10]],A);
+                const roof = printSupport ? [[13.8,17,13.8],[14.3,17,13.3]] : [[14.3,17,13.8],[14.3,17,13.3]];
+                profileRing([[10+lift,17,13.3],[11.7+lift,17,13.3],[13+lift,17,13.8],...roof.map(([z,r,h]) => [z+lift,r,h]),[28+lift,17,13.3]],B,true);
+                overlays.push('<text x="26" y="26" fill="#435d80" font-family="Segoe UI,sans-serif" font-size="9">Cutaway · bead and matching groove</text>');
+            } else {
+            const outerAt = z => family === "hook" && style === "tapered" ? 1.8 - .525 * Math.max(0, z) / 16 : 1.8;
             box(-3,-20,-18,3,40,18,A);
             box(-3,-20,lift,1.7,40,22,B); // back of the blind receiver
+            const pocketHalf = family === "torsion" ? 1.633 : 4.3;
+            if (family === "ball_detent") {
+                const radius = 2.1, centerZ = 14+lift;
+                const arc = Array.from({length:17},(_,i) => { const y=-radius+2*radius*i/16; return [y,Math.sqrt(Math.max(0,radius*radius-y*y))]; });
+                yzPrism([[-20,lift],[20,lift],[20,22+lift],[radius,22+lift],...arc.slice().reverse().map(([y,h]) => [y,centerZ-h]),[-radius,22+lift],[-20,22+lift]],-1.3,1.3,B);
+                if (printSupport) {
+                    face([...arc.map(([y,h]) => [0,y,centerZ+h+1.3]),[0,radius,22+lift],[0,-radius,22+lift]],B,.78);
+                    for (let i=0; i<arc.length-1; i++) {
+                        const [y,h]=arc[i], [yy,hh]=arc[i+1];
+                        face([[-1.3,y,centerZ+h],[-1.3,yy,centerZ+hh],[0,yy,centerZ+hh+1.3],[0,y,centerZ+h+1.3]],B,.86);
+                    }
+                } else yzPrism([...arc.map(([y,h]) => [y,centerZ+h]),[radius,22+lift],[-radius,22+lift]],-1.3,1.3,B);
+            } else {
             box(-1.3,-20,lift,1.3,40,12.7,B);
             if (printSupport) {
                 // The receiver roof rises at 45 degrees toward its outer mouth.
                 prism([[-1.3,16.3+lift],[0,17.6+lift],[0,22+lift],[-1.3,22+lift]],-20,40,B);
             } else box(-1.3,-20,16.3+lift,1.3,40,5.7,B);
             const pocketHeight = printSupport ? 4.9 : 3.6;
-            box(-1.3,-20,12.7+lift,1.3,15.7,pocketHeight,B);
-            box(-1.3,4.3,12.7+lift,1.3,15.7,pocketHeight,B);
-            if (style === "twin") box(-1.3,-.45,12.7+lift,1.3,.9,pocketHeight,B);
+            box(-1.3,-20,12.7+lift,1.3,20-pocketHalf,pocketHeight,B);
+            box(-1.3,pocketHalf,12.7+lift,1.3,20-pocketHalf,pocketHeight,B);
+            if (family === "hook" && style === "twin") box(-1.3,-.45,12.7+lift,1.3,.9,pocketHeight,B);
+            }
             box(-.5,-4,-4,2.3,8,4,A);
             if (printSupport) prism([[0,-5.8],[1.8,-4],[0,-4]],-4,8,A);
-            const arms = style === "twin" ? [[-4,3.25],[.75,3.25]] : [[-4,8]];
-            for (const [y, width] of arms) {
-                prism([[.3,0],[outerAt(0),0],[outerAt(16),16],[.3,16]],y,width,A);
-                prism([[-1,13],[outerAt(13),13],[outerAt(16),16],[.3,16]],y,width,A);
+            if (family === "torsion") {
+                box(-.5,-4,-4,2.4,1.6,5.9,A); box(-.5,2.4,-4,2.4,1.6,5.9,A);
+                tube(1.1,-3.2,1.1,.8,0,6.4,A,20);
             }
+            const arms = family === "torsion" ? [[-1.333,2.666]] : family === "hook" && style === "twin" ? [[-4,3.25],[.75,3.25]] : [[-4,8]];
+            for (const [y, width] of arms) {
+                const start = family === "torsion" ? 1.1 : 0;
+                prism([[.3,start],[outerAt(start),start],[outerAt(16),16],[.3,16]],y,width,A);
+                if (family !== "ball_detent") prism([[-1,13],[outerAt(13),13],[outerAt(16),16],[.3,16]],y,width,A);
+            }
+            if (family === "ball_detent") sphere(1,0,14,2,A);
             if (chamferEdges) {
                 const size = Number.isFinite(chamferSize) && chamferSize > 0 ? Number(chamferSize.toPrecision(3)) : .3;
                 overlays.push(`<text x="26" y="26" fill="#435d80" font-family="Segoe UI,sans-serif" font-size="9">Exposed-edge chamfer · ${size} mm</text>`);
+            }
             }
         } else if (id === "slider") {
             box(-17,-35,0,34,70,4,A);
@@ -228,7 +286,7 @@ window.PartelierIllustrations = (() => {
         faces.sort((a,b)=>a.depth-b.depth);
         const geometry = faces.map(f=>`<polygon points="${f.vertices.map(point).join(" ")}" fill="${f.color}" stroke="${f.smooth ? f.color : "#1d3038"}" stroke-width="${f.smooth ? ".15" : ".35"}" stroke-linejoin="round"/>`).join("");
         const grid = [-48,-24,0,24,48].map(n=>`<path d="M${point([n,-48,-1])}L${point([n,48,-1])}M${point([-48,n,-1])}L${point([48,n,-1])}"/>`).join("");
-        const snapAttributes = id === "snap" ? `data-snap-style="${["standard", "tapered", "twin"].includes(snapStyle) ? snapStyle : "standard"}" data-print-support="${!!printSupport}"` : "";
+        const snapAttributes = id === "snap" ? `data-snap-family="${["hook", "ball_detent", "torsion", "annular"].includes(snapFamily) ? snapFamily : "hook"}" data-snap-style="${["standard", "tapered", "twin"].includes(snapStyle) ? snapStyle : "standard"}" data-print-support="${!!printSupport}"` : "";
         return `<svg viewBox="0 0 440 270" ${filletEdges ? 'data-fillet-finish="true"' : ''} ${snapAttributes} role="img" aria-label="${id} concept illustration${exploded ? ", separated view" : ""}"><g fill="none" stroke="#a4c5ce" opacity=".055" stroke-width=".8">${grid}</g><ellipse cx="220" cy="203" rx="124" ry="23" fill="#0b171f" opacity=".2"/>${geometry}${overlays.join("")}<g fill="none" stroke="#9bbac1" stroke-width="1" opacity=".5"><path d="M36 233h20m-20 0v-17m0 17-9 6"/></g><g fill="#9bbac1" font-family="Consolas,monospace" font-size="7" opacity=".65"><text x="60" y="236">X</text><text x="33" y="212">Z</text></g></svg>`;
     }
     function renderHingeLayout(settings = {}) {

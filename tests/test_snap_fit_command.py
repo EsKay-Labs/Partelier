@@ -127,6 +127,77 @@ class SnapCommandTests(unittest.TestCase):
         self.manager._registration[0].execute.assert_not_called()
         self.module.create_snap_fit.assert_not_called()
 
+    def test_annular_picker_uses_cylinders_and_circular_rim(self):
+        self.selection_values[:] = [NS(entity=value) for value in (self.a, self.b, self.edge)]
+        self.manager.begin_palette(SnapFitSettings(snap_family="annular", chamfer_edges=False).to_dict())
+        calls = self.ui.selectEntity.call_args_list
+        self.assertEqual([call.args[1] for call in calls], ["CylindricalFaces", "CylindricalFaces", "Edges"])
+        self.assertIn("circular", calls[2].args[0])
+
+    def test_refused_native_handler_closes_empty_command_without_blocking_session(self):
+        for event_name in ("execute", "destroy"):
+            with self.subTest(event=event_name):
+                session = self.manager._session or self.begin()
+                self.preview(session)
+                self.action(session, "snap_commit")
+                command = NS(execute=Event(), destroy=Event())
+                refused = getattr(command, event_name)
+                refused.add = Mock(return_value=False)
+                self.module._Created(self.manager).notify(NS(command=command))
+                self.assertTrue(command.isAutoExecute)
+                self.assertIsNone(session.command)
+                self.assertEqual(session.phase, "error")
+                self.assertEqual(session.handlers, [])
+                self.assertEqual(command.execute.handlers, [])
+                self.assertEqual(command.destroy.handlers, [])
+                self.module.create_snap_fit.assert_not_called()
+
+    def test_partially_bound_native_execute_cannot_commit_after_setup_failure(self):
+        session = self.begin()
+        self.preview(session)
+        self.action(session, "snap_commit")
+        command = NS(execute=Event(), destroy=Event())
+        retained = []
+        def fail(handler):
+            retained.append(handler)
+            raise RuntimeError("binding failed after partial attachment")
+        command.execute.add = fail
+        self.module._Created(self.manager).notify(NS(command=command))
+        args = NS(executeFailed=False)
+        retained[0].notify(args)
+        self.assertTrue(args.executeFailed)
+        self.assertTrue(command.isAutoExecute)
+        self.assertIsNone(session.command)
+        self.module.create_snap_fit.assert_not_called()
+
+    def test_new_session_crossing_to_annular_clears_old_picks_and_preview(self):
+        session = self.begin()
+        self.preview(session)
+        old = session.preview
+        self.action(session, "snap_update", revision=1,
+                    settings=SnapFitSettings(snap_family="annular", chamfer_edges=False))
+        self.assertEqual(session.selections, {})
+        self.assertFalse(old.isValid)
+        self.assertTrue(self.a.isLightBulbOn)
+        self.assertFalse(session.preview_current)
+
+    def test_planar_family_switch_retains_current_geometry_references(self):
+        session = self.begin()
+        selections = dict(session.selections)
+        self.action(session, "snap_preview", revision=1,
+                    settings=SnapFitSettings(snap_family="ball_detent"))
+        self.assertEqual(session.selections, selections)
+        self.assertTrue(session.preview_current)
+
+    def test_edit_cannot_cross_between_cylindrical_and_planar_references(self):
+        session = self.begin()
+        session.editing = True
+        with self.assertRaisesRegex(ValueError, "new snap-fit"):
+            self.action(session, "snap_update", revision=1,
+                        settings=SnapFitSettings(snap_family="annular", chamfer_edges=False))
+        self.assertEqual(session.settings.snap_family, "hook")
+        self.assertEqual(session.revision, 0)
+
     def test_esc_retains_partial_picks_and_update_is_accepted(self):
         self.selection_values[:] = [NS(entity=self.a), None]
         self.manager.begin_palette(SnapFitSettings().to_dict())
@@ -319,7 +390,7 @@ class SnapCommandTests(unittest.TestCase):
     def test_user_cannot_run_commit_definition_without_palette_session(self):
         command = NS(execute=Event(), destroy=Event())
         self.module._Created(self.manager).notify(NS(command=command))
-        self.assertFalse(command.isAutoExecute)
+        self.assertTrue(command.isAutoExecute)
         self.assertFalse(command.isOKButtonVisible)
         self.module.create_snap_fit.assert_not_called()
 

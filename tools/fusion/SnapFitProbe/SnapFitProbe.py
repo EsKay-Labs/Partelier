@@ -8,9 +8,11 @@ again only after the command is destroyed and its preview has rolled back.
 """
 
 from dataclasses import replace
+import hashlib
 import importlib
 import importlib.util
 import json
+import math
 from pathlib import Path
 import sys
 import traceback
@@ -138,6 +140,77 @@ def _inside(body, x, y, z):
     return state == inside
 
 
+def _local_point(frame, point):
+    return STATE["adapter"].hinge._local_mm(frame, point)
+
+
+def _rounded(values):
+    rounded = tuple(round(float(value), 7) for value in values)
+    return tuple(0.0 if value == 0 else value for value in rounded)
+
+
+def _face_geometry(face, frame):
+    """Whole trimmed fixture surface, independent of result face ordering."""
+    plane = adsk.core.Plane.cast(face.geometry)
+    if plane is None:
+        raise RuntimeError("A fixed polyhedral fixture unexpectedly acquired a curved face.")
+    normal = (float(plane.normal.x), float(plane.normal.y), float(plane.normal.z))
+    if face.isParamReversed:
+        normal = tuple(-value for value in normal)
+    local_normal = tuple(sum(a * b for a, b in zip(normal, axis))
+                         for axis in (frame.x_axis, frame.y_axis, frame.z_axis))
+    vertices = sorted(_rounded(_local_point(frame, vertex.geometry)) for vertex in _items(face.vertices))
+    edges = []
+    for edge in _items(face.edges):
+        endpoints = sorted((_rounded(_local_point(frame, edge.startVertex.geometry)),
+                            _rounded(_local_point(frame, edge.endVertex.geometry))))
+        edges.append((edge.geometry.objectType, round(float(edge.length) * 10, 7), endpoints))
+    return {"normal": _rounded(local_normal), "area_mm2": round(float(face.area) * 100, 7),
+            "vertices_mm": vertices, "edges": sorted(edges), "loops": face.loops.count}
+
+
+def _geometry_hash(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def protected_geometry(prepared):
+    """Require exact inner-beam/catch trims and the entire receiver unchanged."""
+    bodies = dict(prepared.result_bodies)
+    settings = prepared.settings
+    shoulder = settings.reach_mm - settings.lead_in_mm
+    faces_a = [(face, _face_geometry(face, prepared.frame)) for face in _items(bodies["A"].faces)]
+    protected = []
+    for unit_index, unit in enumerate(prepared.plan.units):
+        for arm_index, arm in enumerate(unit.arms):
+            for role in ("inner_beam", "catch"):
+                matching = []
+                for _, geometry in faces_a:
+                    vertices = geometry["vertices_mm"]
+                    normal = geometry["normal"]
+                    if not vertices or any(point[1] < arm.beam.y_min_mm - 1e-6
+                                           or point[1] > arm.beam.y_max_mm + 1e-6 for point in vertices):
+                        continue
+                    if role == "inner_beam":
+                        selected = (normal[0] < -.999999 and abs(normal[1]) < 1e-6 and abs(normal[2]) < 1e-6
+                                    and all(abs(point[0] - settings.clearance_mm) < 1e-6
+                                            and -1e-6 <= point[2] <= shoulder + 1e-6 for point in vertices))
+                    else:
+                        selected = (normal[2] < -.999999 and abs(normal[0]) < 1e-6 and abs(normal[1]) < 1e-6
+                                    and all(abs(point[2] - shoulder) < 1e-6
+                                            and -settings.hook_depth_mm - 1e-6 <= point[0] <= settings.clearance_mm + 1e-6
+                                            for point in vertices))
+                    if selected:
+                        matching.append(geometry)
+                if len(matching) != 1:
+                    raise RuntimeError("A protected " + role + " surface is missing, split or moved.")
+                protected.append({"unit": unit_index, "arm": arm_index, "surface": role,
+                                  "sha256": _geometry_hash(matching[0]), "area_mm2": matching[0]["area_mm2"]})
+    receiver = sorted((_face_geometry(face, prepared.frame) for face in _items(bodies["B"].faces)),
+                      key=lambda value: json.dumps(value, sort_keys=True))
+    return {"A_protected": protected,
+            "B_whole": _geometry_hash({"volume_cm3": round(float(bodies["B"].volume), 9), "faces": receiver})}
+
+
 def inspect_preview(prepared):
     """Probe actual catches, twin gaps, chamfers and 45-degree support surfaces."""
     bodies = dict(prepared.result_bodies)
@@ -187,28 +260,63 @@ def inspect_preview(prepared):
             ]
             for label, point, expected_a, expected_b in samples:
                 witness(prefix + label, point, expected_a, expected_b)
-            # A side finish is away from the flat catch/shoulder and the beam gap.
-            bevel_z = settings.reach_mm / 3
+            # Whole protected surfaces must retain material at their boundaries,
+            # including locations where the former partial inside bevel was cut.
+            epsilon = min(.03, settings.clearance_mm / 10)
+            for side, near_y in (("low", arm.beam.y_min_mm + epsilon),
+                                 ("high", arm.beam.y_max_mm - epsilon)):
+                for z in (.2, shoulder / 2, shoulder - .1):
+                    witness(prefix + "protected_inner_" + side,
+                            (settings.clearance_mm + epsilon, near_y, z), True, False)
+                catch_x = (settings.clearance_mm - settings.hook_depth_mm) / 2
+                witness(prefix + "protected_catch_material_" + side,
+                        (catch_x, near_y, shoulder + epsilon), True, False)
+                witness(prefix + "protected_catch_clearance_" + side,
+                        (catch_x, near_y, shoulder - epsilon), False, False)
+            # Sample the COMPLETE outer edge, through former primitive joins and
+            # the hook junction. This does not read the production edge classifier.
+            outer_zs = (.2, settings.reach_mm / 3, shoulder - .1,
+                        shoulder, shoulder + .1, settings.reach_mm - 2 * settings.chamfer_size_mm)
+            for side, edge_y in ((-1, arm.beam.y_min_mm), (1, arm.beam.y_max_mm)):
+                protected_gap_side = (settings.snap_style == "twin"
+                                      and min(abs(edge_y-unit.root.y_min_mm), abs(edge_y-unit.root.y_max_mm)) > 1e-6)
+                for z in outer_zs:
+                    inset = settings.chamfer_size_mm * .45 if settings.chamfer_edges else .05
+                    witness(prefix + "complete_outer_side",
+                            (outer_at(z) - inset, edge_y - side * inset, z),
+                            not settings.chamfer_edges or protected_gap_side, False)
+                    if settings.chamfer_edges:
+                        retained = settings.chamfer_size_mm * .55
+                        witness(prefix + "complete_outer_requested_size",
+                                (outer_at(z) - retained, edge_y - side * retained, z), True, False)
+            # The outside free tip is another complete convex edge; its inner
+            # retaining shoulder remains covered by the protected surface check.
             inset = settings.chamfer_size_mm * .45 if settings.chamfer_edges else .05
-            witness(prefix + "outer_side_finish",
-                    (outer_at(bevel_z) - inset, arm.beam.y_max_mm - inset, bevel_z),
+            witness(prefix + "free_outer_tip",
+                    (outer_at(settings.reach_mm) - inset, y, settings.reach_mm - inset),
                     not settings.chamfer_edges, False)
-            entry_z = (shoulder + settings.reach_mm) / 2
-            witness(prefix + "receiver_entry_finish",
-                    (-inset, arm.receiver.y_max_mm + inset, entry_z),
-                    False, not settings.chamfer_edges)
             if settings.chamfer_edges:
                 retained = settings.chamfer_size_mm * .55
-                witness(prefix + "outer_finish_requested_size",
-                        (outer_at(bevel_z) - retained, arm.beam.y_max_mm - retained, bevel_z),
-                        True, False)
-                witness(prefix + "entry_finish_requested_size",
-                        (-retained, arm.receiver.y_max_mm + retained, entry_z), False, True)
+                witness(prefix + "free_outer_tip_requested_size",
+                        (outer_at(settings.reach_mm) - retained, y, settings.reach_mm - retained), True, False)
+            # Receiver entrance edges are intentionally sharp in BOTH modes.
+            entry_z = (shoulder + settings.reach_mm) / 2
+            witness(prefix + "receiver_entry_unchanged",
+                    (-.05, arm.receiver.y_max_mm + .05, entry_z), False, True)
             if settings.snap_style == "tapered":
                 # This material would remain in a straight beam at the same point.
                 z = shoulder / 2
                 x = (outer_at(z) + outer) / 2
                 witness(prefix + "taper_narrowing", (x, y, z), False, False)
+        for side, edge_y in ((-1, unit.root.y_min_mm), (1, unit.root.y_max_mm)):
+            for z in (-settings.root_length_mm / 2, -.2, -.05, 0.0, .05):
+                inset = settings.chamfer_size_mm * .45 if settings.chamfer_edges else .05
+                witness("root_join_complete_outer_side",
+                        (outer_at(z) - inset, edge_y - side * inset, z), not settings.chamfer_edges, False)
+                if settings.chamfer_edges:
+                    retained = settings.chamfer_size_mm * .55
+                    witness("root_join_requested_size",
+                            (outer_at(z) - retained, edge_y - side * retained, z), True, False)
         witness("root_support_45deg", (outer / 2, unit.center_y_mm,
                                         -settings.root_length_mm - outer / 4),
                 settings.print_support, False)
@@ -278,7 +386,7 @@ def style_matrix(faces, edge):
     adapter = STATE["adapter"]
     settings_type = STATE["settings_module"].SnapFitSettings
     design = STATE["design"]
-    sharp_volumes = {}
+    sharp_baselines = {}
     for style in ("standard", "tapered", "twin"):
         for chamfer in (False, True):
             for support in (False, True):
@@ -290,13 +398,15 @@ def style_matrix(faces, edge):
                 prepared = adapter.prepare_snap_fit(design, *faces, edge, settings)
                 witnesses = inspect_preview(prepared)
                 volumes = {role: float(body.volume) for role, body in prepared.result_bodies}
+                protected = protected_geometry(prepared)
                 if not chamfer:
-                    sharp_volumes[(style, support)] = volumes
+                    sharp_baselines[(style, support)] = {"volumes": volumes, "protected": protected}
                 else:
-                    previous = sharp_volumes[(style, support)]
-                    if (any(volumes[role] > previous[role] + 1e-8 for role in volumes)
-                            or not any(volumes[role] < previous[role] - 1e-8 for role in volumes)):
-                        raise RuntimeError("The requested chamfer did not remove material from its exact sharp baseline.")
+                    previous = sharp_baselines[(style, support)]
+                    if not volumes["A"] < previous["volumes"]["A"] - 1e-8:
+                        raise RuntimeError("The requested outer chamfer did not remove material from its exact sharp baseline.")
+                    if protected != previous["protected"]:
+                        raise RuntimeError("Chamfers changed the protected inner beam, catch or receiver geometry.")
                 if snapshot(design) != before:
                     raise RuntimeError("A style/finish preview changed source geometry or scene flags.")
                 STATE["report"]["cases"].append({
@@ -304,15 +414,16 @@ def style_matrix(faces, edge):
                             + ("_print_support_on" if support else "_print_support_off"),
                     "snap_style": style, "chamfer_edges": chamfer, "print_support": support,
                     "success": True, "witnesses": witnesses,
-                    "result_volumes_cm3": volumes,
+                    "result_volumes_cm3": volumes, "protected_geometry": protected,
                 })
 
 
-def legacy_migration_case():
-    """An owned v1 sharp fixture is unchanged by read; explicit Rebuild saves v2."""
+def legacy_migration_case(version=1):
+    """Owned historical schema fixtures load read-only; explicit Rebuild saves v3."""
     design, adapter = STATE["design"], STATE["adapter"]
     settings = STATE["settings_module"].SnapFitSettings(
-        snap_style="standard", chamfer_edges=False, print_support=False)
+        snap_style="standard" if version == 1 else "tapered",
+        chamfer_edges=version == 2, print_support=version == 2)
     _, targets, faces, edge = fixture(design)
     count = design.rootComponent.bRepBodies.count
     tokens = tuple(body.entityToken for body in targets)
@@ -324,33 +435,366 @@ def legacy_migration_case():
     _identity_check(design, targets, tokens, names, flags, count)
     attribute = anchor.attributes.itemByName(adapter.ATTRIBUTE_GROUP, adapter.RECIPE_NAME)
     legacy = json.loads(attribute.value)
-    legacy["version"] = 1
-    for key in ("snap_style", "chamfer_edges", "chamfer_size_mm", "print_support"):
+    legacy["version"] = version
+    for key in adapter.FAMILY_DEFAULTS:
         del legacy["settings"][key]
+    if version == 1:
+        for key in adapter.LEGACY_STYLE_DEFAULTS:
+            del legacy["settings"][key]
+    if len(legacy["settings"]) != (11 if version == 1 else 15):
+        raise RuntimeError("The historical settings fixture has an incorrect schema.")
     raw = json.dumps(legacy, separators=(",", ":"))
     if anchor.attributes.add(adapter.ATTRIBUTE_GROUP, adapter.RECIPE_NAME, raw) is None:
-        raise RuntimeError("Could not establish the owned legacy recipe fixture.")
+        raise RuntimeError("Could not establish the owned historical recipe fixture.")
     before = snapshot(design)
     loaded = adapter.read_edit_target(design, targets[0])
     if loaded.settings != settings:
-        raise RuntimeError("Reading a legacy recipe changed its existing sharp geometry dimensions.")
+        raise RuntimeError("Reading a historical recipe changed its saved geometry dimensions.")
     if (snapshot(design) != before
             or anchor.attributes.itemByName(adapter.ATTRIBUTE_GROUP, adapter.RECIPE_NAME).value != raw):
-        raise RuntimeError("Reading a legacy recipe silently modified geometry or persisted a migration.")
+        raise RuntimeError("Reading historical settings modified geometry or persisted a migration.")
     combines = dict(loaded.record.recipe["combines"])
-    changed = replace(settings, snap_style="tapered", chamfer_edges=True, print_support=True)
+    changed = replace(settings, snap_style="tapered" if version == 1 else "standard",
+                       chamfer_edges=True, print_support=True)
     updated = adapter.prepare_edit_snap_fit(design, loaded, changed)
     witnesses = inspect_preview(updated)
     if adapter.rebuild_snap_fit(design, loaded, updated) != anchor:
-        raise RuntimeError("Legacy Rebuild replaced its existing native BaseFeature.")
+        raise RuntimeError("Historical Rebuild replaced its native BaseFeature.")
     _identity_check(design, targets, tokens, names, flags, count)
     final = adapter.read_edit_target(design, anchor)
     saved = json.loads(anchor.attributes.itemByName(adapter.ATTRIBUTE_GROUP, adapter.RECIPE_NAME).value)
-    if (saved["version"] != 2 or final.settings != changed
+    if (saved["version"] != adapter.RECIPE_VERSION or final.settings != changed
             or final.record.recipe["combines"] != combines):
-        raise RuntimeError("Explicit legacy Rebuild did not store v2 dimensions on the same native history.")
-    STATE["report"]["cases"].append({"name": "legacy_v1_read_then_explicit_v2_rebuild",
-        "success": True, "legacy_geometry_unchanged_by_read": True, "witnesses": witnesses})
+        raise RuntimeError("Explicit historical Rebuild did not save current dimensions in the same history.")
+    STATE["report"]["cases"].append({"name": "legacy_v"+str(version)+"_read_then_explicit_v3_rebuild",
+        "success": True, "historical_read_unchanged": True, "witnesses": witnesses})
+
+
+def annular_fixture(design, *, inner_b=10.3, outer_b=12.0):
+    """Owned concentric hollow neck/socket, both extending below the upper rim."""
+    root = design.rootComponent
+    manager = adsk.fusion.TemporaryBRepManager.get()
+    feature = root.features.baseFeatures.add()
+    feature.name = "Partelier disposable annular sources"
+    if not feature.startEdit():
+        raise RuntimeError("Could not edit the annular fixture.")
+    try:
+        for inner, outer in ((9.0, 10.0), (inner_b, outer_b)):
+            low, high = adsk.core.Point3D.create(0, 0, -1), adsk.core.Point3D.create(0, 0, 0)
+            body = manager.createCylinderOrCone(low, outer/10, high, outer/10)
+            core = manager.createCylinderOrCone(low, inner/10, high, inner/10)
+            if (body is None or core is None or not manager.booleanOperation(
+                    body, core, adsk.fusion.BooleanTypes.DifferenceBooleanType)):
+                raise RuntimeError("Could not construct the hollow annular fixture.")
+            if root.bRepBodies.add(body, feature) is None:
+                raise RuntimeError("Could not persist an owned annular fixture body.")
+    finally:
+        if not feature.finishEdit():
+            raise RuntimeError("Could not finish the annular fixture.")
+    bodies = tuple(sorted(_items(feature.bodies), key=lambda body: body.boundingBox.maxPoint.x))
+    if len(bodies) != 2:
+        raise RuntimeError("The annular fixture must contain exactly two bodies.")
+    faces = []
+    for body, radius, role in zip(bodies, (10.0, inner_b), ("A", "B")):
+        body.name = "Owned annular source " + role
+        faces.append(next(face for face in _items(body.faces)
+                          if (cylinder := adsk.core.Cylinder.cast(face.geometry)) is not None
+                          and abs(cylinder.radius-radius/10) < 1e-7))
+    bodies[1].isLightBulbOn = False
+    edge = next(edge for edge in _items(faces[0].edges)
+                if (circle := adsk.core.Circle3D.cast(edge.geometry)) is not None
+                and abs(circle.center.z) < 1e-7)
+    return feature, bodies, tuple(faces), edge
+
+
+def inspect_family_preview(prepared):
+    bodies = dict(prepared.result_bodies)
+    if set(bodies) != {"A", "B"} or not all(body.isValid and body.isTemporary and body.isSolid
+            and body.lumps.count == 1 and body.volume > 0 for body in bodies.values()):
+        raise RuntimeError("A snap family did not return two valid detached solids.")
+    settings = prepared.settings
+    result = []
+    def witness(label, point, a, b):
+        actual = tuple(_inside(bodies[role], *prepared.frame.point_mm(*point)) for role in ("A", "B"))
+        if actual != (a, b):
+            raise RuntimeError(settings.snap_family + " witness " + label + " has wrong material: " + str(actual))
+        result.append({"label": label, "point_mm": point, "inside_a": a, "inside_b": b})
+    if settings.snap_family == "annular":
+        plan = prepared.plan
+        for angle in (0, math.pi/2, math.pi, 3*math.pi/2):
+            def radial(label, radius, z, a, b):
+                witness(label, (radius*math.cos(angle), radius*math.sin(angle), z), a, b)
+            radial("ring_bead", plan.bead_peak_radius_mm-.1, plan.center_z_mm, True, False)
+            bead_width = plan.bead_end_z_mm-plan.bead_start_z_mm
+            bead_height = plan.bead_peak_radius_mm-plan.radius_a_mm
+            radial("ring_requested_width_lower", plan.radius_a_mm+.1*bead_height,
+                   plan.bead_start_z_mm+.1*bead_width, True, False)
+            radial("ring_requested_width_upper", plan.radius_a_mm+.1*bead_height,
+                   plan.bead_end_z_mm-.1*bead_width, True, False)
+            radial("ring_fit_gap", plan.bead_peak_radius_mm+settings.clearance_mm/2,
+                   plan.center_z_mm, False, False)
+            radial("ring_back_wall", plan.groove_radius_mm+.15, plan.center_z_mm, False, True)
+            radial("ring_base_neck", plan.radius_a_mm-.25, -8, True, False)
+            radial("ring_radial_gap", (plan.radius_a_mm+plan.radius_b_mm)/2, -8, False, False)
+            radial("ring_roof", (plan.radius_b_mm+plan.groove_radius_mm)/2,
+                   plan.groove_end_z_mm+.1, False, not settings.print_support)
+    else:
+        for unit in prepared.plan.units:
+            manager = adsk.fusion.TemporaryBRepManager.get()
+            if settings.snap_family == "ball_detent":
+                module = importlib.import_module(STATE["adapter"].__package__ + ".ball_detent")
+                round_core = module.nose_body(manager, prepared.frame, unit)
+            else:
+                module = importlib.import_module(STATE["adapter"].__package__ + ".torsion")
+                round_core = module.bar_body(manager, prepared.frame, unit)
+            expected_volume = float(round_core.volume)
+            STATE["adapter"]._boolean(manager, round_core, bodies["A"],
+                adsk.fusion.BooleanTypes.IntersectionBooleanType,
+                "Could not verify the complete protected round core.")
+            if abs(round_core.volume-expected_volume) > max(1e-10, expected_volume*1e-8):
+                raise RuntimeError("Cosmetic finishing removed material from the functional round core.")
+            result.append({"label":"complete_round_core_preserved",
+                           "expected_volume_cm3":expected_volume,
+                           "actual_volume_cm3":float(round_core.volume)})
+            if settings.snap_family == "ball_detent":
+                geometry = unit.ball_geometry
+                x, y, z = geometry.center_mm
+                radius, socket = geometry.radius_mm, geometry.socket_radius_mm
+                witness("rounded_nose", (x-radius+.1, y, z), True, False)
+                witness("rounded_fit_gap", (x-radius-settings.clearance_mm/2, y, z), False, False)
+                witness("rounded_back_wall", (x-socket-.2, y, z), False, True)
+                witness("rounded_side", (x-.8*radius, y+.3*radius, z+.2*radius), True, False)
+                roof_x = -.05
+                sphere_top = z + math.sqrt(socket*socket-(roof_x-x)**2)
+                ramp_top = z + math.sqrt(2)*socket-x+roof_x
+                witness("rounded_roof", (roof_x, y, (sphere_top+ramp_top)/2), False, not settings.print_support)
+            elif settings.snap_family == "torsion":
+                geometry = unit.torsion_geometry
+                arm = unit.arms[0]
+                free_y = (arm.beam.y_max_mm+geometry.posts[1].y_min_mm)/2
+                witness("torsion_free_bar", (geometry.axis_x_mm, free_y, geometry.axis_z_mm), True, False)
+                witness("torsion_under_bar_gap", (geometry.axis_x_mm, free_y,
+                         (geometry.axis_z_mm-geometry.radius_mm)/2), False, False)
+                witness("torsion_central_lever", (settings.clearance_mm+settings.thickness_mm/2,
+                         unit.center_y_mm, settings.reach_mm/2), True, False)
+                witness("torsion_no_root_bridge", (settings.clearance_mm+settings.thickness_mm-.05,
+                         unit.center_y_mm, geometry.axis_z_mm*.4), False, False)
+                for post in geometry.posts:
+                    witness("torsion_fixed_post", ((post.x_min_mm+post.x_max_mm)/2,
+                            (post.y_min_mm+post.y_max_mm)/2, .1), True, False)
+                shoulder = settings.reach_mm-settings.lead_in_mm
+                witness("torsion_catch", (-settings.hook_depth_mm/2, unit.center_y_mm,
+                                          shoulder+settings.clearance_mm/2), True, False)
+                witness("torsion_receiver_gap", (-settings.hook_depth_mm/2,
+                         arm.hook.y_max_mm+settings.clearance_mm/2,
+                         shoulder+settings.clearance_mm/2), False, False)
+            else:
+                raise RuntimeError("Unsupported family in the fixed native probe.")
+    STATE.setdefault("detached", []).extend(bodies.values())
+    return result
+
+
+def family_cases():
+    design, adapter = STATE["design"], STATE["adapter"]
+    settings_type = STATE["settings_module"].SnapFitSettings
+    for family in ("ball_detent", "torsion", "annular"):
+        create_fixture = annular_fixture if family == "annular" else fixture
+        _, targets, faces, edge = create_fixture(design)
+        baselines = {}
+        for support in (False, True):
+            for chamfer in ((False,) if family == "annular" else (False, True)):
+                settings = settings_type(snap_family=family, snap_style="standard",
+                                          chamfer_edges=chamfer, print_support=support)
+                before = snapshot(design)
+                prepared = adapter.prepare_snap_fit(design, *faces, edge, settings)
+                witnesses = inspect_family_preview(prepared)
+                if snapshot(design) != before:
+                    raise RuntimeError("A new family preview modified the model.")
+                body_map = dict(prepared.result_bodies)
+                signature_b = adapter.hinge._body_signature(body_map["B"])
+                if chamfer:
+                    if signature_b != baselines[support]:
+                        raise RuntimeError("A family chamfer modified its receiving contact geometry.")
+                else:
+                    baselines[support] = signature_b
+                STATE["report"]["cases"].append({"name": "family_"+family+("_chamfer" if chamfer else "_sharp")
+                    +("_ramps" if support else "_no_ramps"), "success": True, "witnesses": witnesses,
+                    "chamfer_edges": chamfer, "print_support": support})
+        settings = settings_type(snap_family=family, chamfer_edges=family!="annular", print_support=True)
+        prepared = adapter.prepare_snap_fit(design, *faces, edge, settings)
+        tokens = tuple(body.entityToken for body in targets)
+        names = tuple(body.name for body in targets)
+        flags = tuple(body.isLightBulbOn for body in targets)
+        count = design.rootComponent.bRepBodies.count
+        anchor = adapter.create_snap_fit(design, prepared)
+        _identity_check(design, targets, tokens, names, flags, count)
+        loaded = adapter.read_edit_target(design, targets[0])
+        if loaded.settings != settings or adapter.read_edit_target(design, targets[1]).anchor != anchor:
+            raise RuntimeError("Family Edit did not recover all stored dimensions from either target.")
+        combines = dict(loaded.record.recipe["combines"])
+        if family == "ball_detent":
+            changed = replace(settings, ball_radius_mm=2.2, reach_mm=17)
+        elif family == "torsion":
+            changed = replace(settings, torsion_radius_mm=.85, width_mm=9, reach_mm=17)
+        else:
+            changed = replace(settings, annular_bead_width_mm=2.2, annular_bead_height_mm=.6, annular_offset_mm=3.5)
+        candidate = adapter.prepare_edit_snap_fit(design, loaded, changed)
+        witnesses = inspect_family_preview(candidate)
+        if adapter.rebuild_snap_fit(design, loaded, candidate) != anchor:
+            raise RuntimeError("Family Rebuild replaced its owned history feature.")
+        _identity_check(design, targets, tokens, names, flags, count)
+        fresh = adapter.read_edit_target(design, anchor)
+        if fresh.settings != changed or fresh.record.recipe["combines"] != combines:
+            raise RuntimeError("Family Rebuild did not preserve native references and dimensions.")
+        STATE["report"]["cases"].append({"name":"family_"+family+"_create_edit_rebuild",
+            "success":True,"witnesses":witnesses,"same_bodies":True,"same_combines":True})
+
+
+def extra_family_checks():
+    design, adapter = STATE["design"], STATE["adapter"]
+    settings_type = STATE["settings_module"].SnapFitSettings
+    refusals = (
+        ("ball_detent_thin_receiver_refused", lambda: fixture(design, thickness=1),
+         settings_type(snap_family="ball_detent")),
+        ("torsion_post_lever_interference_refused", lambda: fixture(design),
+         settings_type(snap_family="torsion", width_mm=4)),
+        ("annular_bead_cannot_engage_refused", lambda: annular_fixture(design, inner_b=10.7),
+         settings_type(snap_family="annular", chamfer_edges=False)),
+    )
+    for name, source, settings in refusals:
+        _, _, faces, edge = source()
+        before = snapshot(design)
+        try:
+            adapter.prepare_snap_fit(design, *faces, edge, settings)
+        except ValueError as error:
+            if snapshot(design) != before:
+                raise RuntimeError("A refused family modified its source geometry.") from error
+            STATE["report"]["cases"].append({"name": name, "success": True,
+                "expected_refusal": True, "message": str(error)})
+        else:
+            raise RuntimeError("An unsupported family fixture was accepted: "+name)
+    _, targets, faces, edge = fixture(design)
+    initial = settings_type(chamfer_edges=False, print_support=False)
+    prepared = adapter.prepare_snap_fit(design, *faces, edge, initial)
+    anchor = adapter.create_snap_fit(design, prepared)
+    loaded = adapter.read_edit_target(design, anchor)
+    tokens = tuple(body.entityToken for body in targets)
+    names = tuple(body.name for body in targets)
+    flags = tuple(body.isLightBulbOn for body in targets)
+    count = design.rootComponent.bRepBodies.count
+    combines = dict(loaded.record.recipe["combines"])
+    for family in ("ball_detent", "torsion", "hook"):
+        changed = replace(initial, snap_family=family, chamfer_edges=True, print_support=True)
+        candidate = adapter.prepare_edit_snap_fit(design, loaded, changed)
+        witnesses = inspect_preview(candidate) if family == "hook" else inspect_family_preview(candidate)
+        if adapter.rebuild_snap_fit(design, loaded, candidate) != anchor:
+            raise RuntimeError("Changing a planar family replaced its existing feature.")
+        _identity_check(design, targets, tokens, names, flags, count)
+        loaded = adapter.read_edit_target(design, anchor)
+        if loaded.settings != changed or loaded.record.recipe["combines"] != combines:
+            raise RuntimeError("Changing a planar family lost saved dimensions or native references.")
+        STATE["report"]["cases"].append({"name": "planar_edit_change_to_"+family,
+            "success": True, "same_bodies": True, "same_combines": True, "witnesses": witnesses})
+    _, _, faces, edge = fixture(design)
+    large = settings_type(snap_style="twin", width_mm=12, thickness_mm=1.6,
+                          hook_depth_mm=2, clearance_mm=.1, chamfer_size_mm=.75)
+    sharp = adapter.prepare_snap_fit(design, *faces, edge, replace(large, chamfer_edges=False))
+    finished = adapter.prepare_snap_fit(design, *faces, edge, large)
+    if protected_geometry(sharp) != protected_geometry(finished):
+        raise RuntimeError("A large exterior chamfer changed the protected twin gap, catch or receiver.")
+    if finished.settings.chamfer_size_mm != .75:
+        raise RuntimeError("The requested large twin chamfer was silently reduced.")
+    STATE["report"]["cases"].append({"name":"large_twin_outer_chamfer_preserves_contacts",
+        "success": True, "requested_chamfer_mm": .75, "witnesses": inspect_preview(finished)})
+
+
+def capture_family_visuals(prepared):
+    """Capture exact detached A/B shapes, then restore the user's entire view."""
+    app = adsk.core.Application.get()
+    viewport = app.activeViewport
+    design = STATE['design']
+    adapter = STATE['adapter']
+    root = design.rootComponent
+    old_camera = viewport.camera
+    def camera_state(camera):
+        return (camera.cameraType,
+                *(round(getattr(point, axis), 7) for point in (camera.eye, camera.target, camera.upVector)
+                  for axis in ("x", "y", "z")),
+                tuple(round(value, 7) if isinstance(value, float) else value for value in camera.getExtents()))
+    original_camera_state = camera_state(old_camera)
+    bodies = [(body, body.isLightBulbOn) for body in _items(root.bRepBodies)]
+    groups = [(group, group.isVisible) for group in _items(root.customGraphicsGroups)]
+    appearance_count = design.appearances.count
+    initial_graphics = root.customGraphicsGroups.count
+    paths = []
+    graphic = None
+    family = prepared.settings.snap_family
+    report_file = Path(STATE['context']['report_path'])
+    appearances = {role: source.appearance or source.material.appearance or root.material.appearance
+                   for role, source in zip(('A','B'), (prepared.face_a.body, prepared.face_b.body))}
+    try:
+        for body, _ in bodies:
+            body.isLightBulbOn = False
+        for group, _ in groups:
+            group.isVisible = False
+        camera = viewport.camera
+        camera.cameraType = adsk.core.CameraTypes.OrthographicCameraType
+        camera.isFitView = False
+        camera.isSmoothTransition = False
+        if family == 'annular':
+            camera.target = adapter.hinge._point(prepared.frame, 0, 0, -3)
+            camera.eye = adapter.hinge._point(prepared.frame, 28, -35, 32)
+            extent = 3.2
+        else:
+            camera.target = adapter.hinge._point(prepared.frame, 0, 0, 7)
+            camera.eye = adapter.hinge._point(prepared.frame, 35, -24, 21)
+            extent = 2.8
+        camera.upVector = adsk.core.Vector3D.create(*prepared.frame.z_axis)
+        if camera.setExtents(extent, extent) is False:
+            raise RuntimeError('Could not set the diagnostic camera extents.')
+        viewport.camera = camera
+        for role, body in prepared.result_bodies:
+            graphic = adapter.hinge.draw_solid_preview(design, ((role, body),), appearances)
+            viewport.refresh()
+            path = report_file.with_name(report_file.stem+'-'+family+'-'+role+'.png')
+            if not viewport.saveAsImageFile(str(path), 1200, 900):
+                raise RuntimeError('Could not capture the detached '+family+' '+role+' shape.')
+            paths.append({'role':role, 'path':str(path)})
+            if graphic.deleteMe() is False:
+                raise RuntimeError('Could not remove diagnostic graphics.')
+            graphic = None
+    finally:
+        if graphic is not None and graphic.isValid:
+            graphic.deleteMe()
+        for body, visible in bodies:
+            if body.isValid:
+                body.isLightBulbOn = visible
+        for group, visible in groups:
+            if group.isValid:
+                group.isVisible = visible
+        viewport.camera = old_camera
+        viewport.refresh()
+        if design.appearances.count != appearance_count or root.customGraphicsGroups.count != initial_graphics:
+            raise RuntimeError('Diagnostic capture left a persistent appearance or graphics group.')
+        if camera_state(viewport.camera) != original_camera_state:
+            raise RuntimeError('Diagnostic capture did not restore the original camera.')
+    return {'family':family, 'images':paths, 'view_restored':True}
+
+
+def family_visual_cases():
+    adapter, settings_module = STATE['adapter'], STATE['settings_module']
+    design = STATE['design']
+    captures = []
+    for family in ('hook','ball_detent','torsion','annular'):
+        values = settings_module.SnapFitSettings(snap_family=family, chamfer_edges=family!='annular')
+        if family == 'annular':
+            _, _, faces, edge = annular_fixture(design)
+        else:
+            _, _, faces, edge = fixture(design, span=60, thickness=4, upper=30)
+        prepared = adapter.prepare_snap_fit(design, *faces, edge, values)
+        captures.append(capture_family_visuals(prepared))
+    STATE['report']['family_visuals'] = captures
+
 
 
 def cases():
@@ -446,8 +890,12 @@ def cases():
     else:
         raise RuntimeError("An oversized chamfer was accepted or silently reduced.")
     legacy_migration_case()
+    legacy_migration_case(2)
     gap_cases()
+    family_cases()
+    extra_family_checks()
     session_checks()
+    family_visual_cases()
     report["geometry_checks_passed"] = True
 
 

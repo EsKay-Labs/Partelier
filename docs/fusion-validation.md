@@ -41,7 +41,54 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
-## Snap-fit types and printing details (0.7.0)
+## Four snap mechanisms and protected finishing (0.8.0)
+
+Final native request `403a3f13-dc02-4507-805f-6ed61a449f7b` passes all **48**
+checks on Fusion 2705.1.30. [Committed evidence](validation/snap-fit-0.8.0.json)
+records the exact cases, protected-surface fingerprints and round-core volumes.
+All 32 runtime Python files and both fixed probes retained the tested raw bytes;
+their combined SHA256 is
+`a3d5faa919c100852d2f6493a64b359e0b1dee90b24766c81b9bff847e146f94`.
+The complete local envelope is `output/native/snap-fit-0.8.0-full.json` (ignored).
+
+The 22 geometry matrix cases cover Hook latch's three variants, Ball detent,
+Torsion latch and Annular ring, with print roofs and supported outer chamfers
+on/off. The remaining cases cover repeated placement, in-place Create/Rebuild,
+planar-family changes on the same history, guarded invalid dimensions, gaps/lips,
+production logical sessions and read-only v1/v2 loading followed by v3 migration.
+All Create/Rebuild cases retain their selected A/B identities and owned Combines.
+The original user document, topology references, history and visibility match
+their pre-test snapshot after fixture rollback.
+
+The chamfer regression checks compare complete trimmed inner/catch surfaces and
+the entire receiver against sharp baselines. Independent material samples bracket
+the requested equal setback along root/arm/hook joins and the free end; Twin's
+inside-gap edges and receiver web are protected, including a 0.75 mm outer finish.
+Entire sphere/bar intersection volumes prove that neighboring planar cutters do
+not remove their functional round cores. Annular witnesses near both requested
+axial ends distinguish the full-width bead from the previously buried profile.
+
+Eight native images show A and B separately for all four families. Their capture
+temporarily hides the other scene bodies/graphics and restores the exact camera,
+visibility, appearance count and graphics count in `finally`; all four restoration
+checks pass. Images in ignored `output/native/snap-*-A-0.8.0.png` and
+`snap-*-B-0.8.0.png` were visually reviewed. These checks use Fusion's scripting
+API without mouse, keyboard, window or document-activation control.
+
+**672 Python tests**, both DOM suites, 80 Python compilation checks and JavaScript
+syntax checks pass. Headless Edge renders all four families at 360 and 540 px
+without page errors or horizontal overflow; the full-width type selector and
+family-specific forms were visually inspected. Native handler-binding refusal
+and partial setup tests prove that an empty failed commit can close without
+persisting geometry or permanently blocking the palette.
+
+Physical printing, assembly forces, fatigue, chosen slicer orientation, manual
+CEF picking, save/reopen and Undo/Redo remain outside this evidence. Print roofs
+assume local +Z build-up. Historical reports below describe their original scope;
+0.7.0's finishing witnesses did not catch the partial/internal bevel defects now
+covered by the complete-edge and protected-surface regressions.
+
+## Historical snap-fit types and printing details (0.7.0)
 
 Native request `da972d4b-b91b-4bfa-93f1-854eaa128f4e` passes 27 cases on Fusion
 2705.1.30. [Committed evidence](validation/snap-fit-0.7.0.json) records all cases,

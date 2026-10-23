@@ -78,9 +78,8 @@ def build_snap_fit_plan(settings, span_mm):
     span = _length("span_mm", span_mm)
     half_span = span / 2.0
     half_width = settings.width_mm / 2.0
-    # Placement includes the complete cut opening, including its side bevels.
-    pocket_half_width = half_width + settings.clearance_mm + (
-        settings.chamfer_size_mm if settings.chamfer_edges else 0.0)
+    # Receiver contact surfaces are never chamfered.
+    pocket_half_width = max(half_width, settings.ball_radius_mm if settings.snap_family == "ball_detent" else 0) + settings.clearance_mm
     first = -half_span + settings.start_margin_mm + pocket_half_width
     last = half_span - settings.end_margin_mm - pocket_half_width
     if not all(math.isfinite(value) for value in (first, last)) or last < first:

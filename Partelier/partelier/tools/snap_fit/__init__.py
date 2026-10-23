@@ -1,1 +1,1 @@
-"""Bounded cantilever snap-fit helper; pure planning uses millimetres."""
+"""Bounded mating snap-fit mechanisms; pure planning uses millimetres."""

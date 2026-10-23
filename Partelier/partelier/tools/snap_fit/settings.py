@@ -1,4 +1,4 @@
-"""Immutable input contract for one exterior cantilever clasp family.
+"""Immutable input contract for hook, detent, torsion and annular snap-fits.
 
 Positive dimensions describe geometry only. They do not establish a suitable
 strain, material, print orientation, fatigue life, or printer-specific fit.
@@ -45,6 +45,12 @@ class SnapFitSettings:
     chamfer_edges: bool = True
     chamfer_size_mm: float = 0.3
     print_support: bool = True
+    snap_family: str = "hook"
+    ball_radius_mm: float = 2.0
+    torsion_radius_mm: float = 0.8
+    annular_bead_width_mm: float = 2.0
+    annular_bead_height_mm: float = 0.5
+    annular_offset_mm: float = 3.0
 
     def __post_init__(self):
         for field in fields(self):
@@ -69,6 +75,23 @@ class SnapFitSettings:
             raise ValueError("Chamfer edges must be true or false.")
         if type(self.print_support) is not bool:
             raise ValueError("Print support must be true or false.")
+        if type(self.snap_family) is not str or self.snap_family not in ("hook", "ball_detent", "torsion", "annular"):
+            raise ValueError("Choose hook, ball_detent, torsion or annular.")
+        if self.snap_family != "hook" and self.snap_style != "standard":
+            raise ValueError("Hook variants apply only to the hook latch family.")
+        if self.snap_family == "annular":
+            if self.snap_count != 1 or self.chamfer_edges:
+                raise ValueError("An annular ring needs count 1 and exposed chamfers off; its bead already has sloping sides.")
+            if self.annular_offset_mm <= self.annular_bead_width_mm / 2 + self.clearance_mm:
+                raise ValueError("Move the annular bead farther below the rim to retain material above its groove.")
+            return
+        if self.snap_family == "ball_detent":
+            if not self.ball_radius_mm > self.hook_depth_mm / 2:
+                raise ValueError("Ball diameter must exceed nose engagement.")
+            if not self.ball_radius_mm * 2 < self.reach_mm:
+                raise ValueError("Ball diameter must be smaller than beam reach.")
+            if not self.ball_radius_mm - self.hook_depth_mm + self.ball_radius_mm > self.clearance_mm:
+                raise ValueError("The ball must extend into the beam to join it.")
         gap = max(self.thickness_mm, 4.0 * self.clearance_mm + .2) if self.snap_style == "twin" else 0.0
         arm_width = ((self.width_mm - gap) / 2.0 if self.snap_style == "twin" else self.width_mm)
         if not math.isfinite(gap) or not math.isfinite(arm_width) or arm_width <= 0:
@@ -79,10 +102,6 @@ class SnapFitSettings:
             if not size < min(tip_thickness, arm_width, self.root_length_mm,
                               self.lead_in_mm, self.hook_depth_mm) / 2.0:
                 raise ValueError("Chamfer size must be below half the tip thickness, arm width, root length, lead in and hook depth.")
-            if not self.lead_in_mm + 2 * self.clearance_mm > 4 * size:
-                raise ValueError("Chamfer size leaves no protected receiving-entry length. Reduce its size or increase lead in.")
-            if self.snap_style == "twin" and not gap > 2 * (self.clearance_mm + size):
-                raise ValueError("Twin entry chamfers consume the middle receiving web. Reduce chamfer size or increase thickness.")
         if not self.lead_in_mm < self.reach_mm:
             raise ValueError("Lead in must be smaller than the beam reach.")
         shoulder = self.reach_mm - self.lead_in_mm
