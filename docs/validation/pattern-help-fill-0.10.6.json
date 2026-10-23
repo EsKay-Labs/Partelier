@@ -372,5 +372,16 @@
     "No global packing optimum, physical printability or arbitrary surface guarantee.",
     "Native selection is scripted; actual Fusion CEF help interaction awaits user acceptance.",
     "The accepted 0.10.5 cached preview display route remains unchanged."
-  ]
+  ],
+  "ui_git_source_hashes": {
+    "Partelier/partelier/ui/catalog.js": "c3cb38d584b61ce531aaedee641a1281e4ca784cb71650e07ab8b3894e0cb278",
+    "Partelier/partelier/ui/illustrations.js": "e46a0007ac258d6afdf635a643e40cf6c8b7de1ce8ef9c1b61108494251070f6",
+    "Partelier/partelier/ui/palette.css": "73a1753948cd8a10a6c033a2d7a4b5671661429bbe7874940271c319ca01c8c2",
+    "Partelier/partelier/ui/palette.html": "e351eb30b29f49feb215c8669e2b3d2e7d982ca67c29defb6fe41b160ba34e61",
+    "Partelier/partelier/ui/palette.js": "5b7344b2ec6fbd3d40875fd96187eeb1ba8895fb9a7c02b054d1b463185f7f2c",
+    "Partelier/partelier/ui/pattern-help.js": "9dd79e8c1554d87eee4c975813dc98943b5b985b194521fc33e838a54d9daf67",
+    "Partelier/partelier/ui/patterns.js": "96710efc99fa0de52af03503174db070298d4b815c801083e35cb1819d074390",
+    "Partelier/partelier/ui/snap.js": "619d13aca3fc45ceea21055b06d88a423224a9cd8ee4d93c9d79a78b4a8a59c0"
+  },
+  "ui_line_endings_note": "ui_source_hashes record the browser-loaded working files; ui_git_source_hashes record Git-normalized LF bytes. snap.js differs only in CRLF/LF line endings; its contents were not changed."
 }

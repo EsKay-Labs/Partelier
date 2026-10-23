@@ -76,4 +76,3 @@ class PatternFillLayoutTests(unittest.TestCase):
             settings = PatternSettings(layout_mode=mode)
             self.assertEqual(PatternSettings.from_dict(settings.to_dict()), settings)
             self.assertEqual(len(settings.to_dict()),11)
-
