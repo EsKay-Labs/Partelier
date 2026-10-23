@@ -44,6 +44,21 @@ queries run independently of the queued geometry actions. Recovery reuses the
 computed result; it does not start another calculation or confirm Create.
 Late responses cannot restore an obsolete loading state after completion.
 
+Version 0.10.2 constructs convex cell prisms directly from closed shared BRep
+topology, with full healing and analytic volume/winding guards. It avoids the
+previous sequence of clipping a box separately against every polygon edge.
+Planar face acceptance uses the trim-valid center and enclosing-disk clearance
+from every finite boundary; curved faces retain the complete ring checks.
+Identical Engrave wall rays are reused only when their normals match exactly.
+
+Through tools remain individually bounded to the first material wall and
+intersected with the original source. Eight or more disjoint tools can then be
+combined on independent copies and applied in one Difference. Lump counts and
+volume agreement establish that every tool contributes separate material;
+failure or touching/overlap discards the aggregate and restarts the original
+sequential path from pristine inputs. Engrave and Emboss retain sequential
+application. Final results still require one solid and fresh source references.
+
 ## Surface contract
 
 Actual Fusion CAD examples from the passing native checks:
@@ -116,6 +131,12 @@ overall result is refused. Curved circles are comparatively expensive: the
 85-circle cone fixture took 24.78 seconds to prepare; the 36-hexagon full cylinder
 took 0.85–2.31 seconds depending on operation. These are measured cases, not a
 guarantee of instant live updates on dense geometry.
+
+With the 0.10.2 path, the owned 195-cell notched-panel fixture prepares in
+4.00 s versus 8.30 s before the changes; drawing/viewport refresh adds 1.85 s.
+These are separate measured stages on that fixture, not a universal speed
+guarantee. Through preparation has no timeline features to disable. The final
+three owned features provide the existing Edit/Rebuild support.
 
 The full eleven-field settings snapshot is immutable and validated. Version 2
 recipes include the spacing mode and selected face/body references. Strict

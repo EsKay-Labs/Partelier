@@ -61,6 +61,13 @@ class PatternStatusProbeTests(unittest.TestCase):
     def test_unloaded_product_returns_empty_read_only_status(self):
         self.assertEqual(self.inspect_owner(None)['owners'],[])
 
+    def test_completed_preview_timings_are_read_without_recomputation(self):
+        owner=self.owner()
+        owner._session.prepared=NS(cell_count=182,timings={'total_ms':8000,'graphics_draw_ms':250})
+        status=self.inspect_owner(owner)['owners'][0]
+        self.assertEqual(status['prepared_cell_count'],182)
+        self.assertEqual(status['prepared_timings'],{'total_ms':8000,'graphics_draw_ms':250})
+
 
 if __name__ == '__main__':
     unittest.main()

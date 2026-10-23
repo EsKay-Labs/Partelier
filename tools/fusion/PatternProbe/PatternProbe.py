@@ -416,6 +416,137 @@ def _fixed_settings(**values):
     return STATE['settings_module'].PatternSettings(**{'layout_mode':'fixed',**values})
 
 
+def run_direct_prism_proof(design,direct,adapter,settings_class):
+    import time
+    import adsk.core as core
+    import adsk.fusion as native
+    root=design.rootComponent
+    before=(root.bRepBodies.count,design.timeline.count,design.timeline.markerPosition,
+            root.customGraphicsGroups.count,design.appearances.count)
+    manager=native.TemporaryBRepManager.get()
+    frames=(adapter.hinge.HingeFrame((0,0,0),(1,0,0),(0,1,0),(0,0,1)),
+            adapter.hinge.HingeFrame((123.4,-56.7,89.01),
+                tuple(value/math.sqrt(14) for value in (1,2,3)),
+                tuple(value/math.sqrt(5) for value in (-2,1,0)),
+                tuple(value/math.sqrt(70) for value in (-3,-6,5))))
+    # The old symbol is imported directly here only as a proof baseline.
+    # No production monkeypatching or default backend replacement occurs.
+    clipped_prism=sys.modules[adapter.hinge.__package__+'.support']._prism
+    cases=[]
+    for shape in ('hexagon','circle','diamond','square','slot'):
+        values=settings_class(pattern=shape,layout_mode='fixed',rotation_deg=17)
+        polygon=adapter.build_cells(values,(-10,10,-10,10))[0].polygon_mm
+        for frame_index,frame in enumerate(frames):
+            for low,high in ((-3,.02),(-.02,1.02)):
+                diagnostics={}
+                started=time.perf_counter()
+                new=direct.prism(frame,polygon,low,high,diagnostics=diagnostics)
+                new_ms=(time.perf_counter()-started)*1000
+                started=time.perf_counter()
+                old=clipped_prism(manager,frame,polygon,low,high)
+                old_ms=(time.perf_counter()-started)*1000
+                plan=direct.plan_prism(frame,polygon,low,high)
+                count=len(polygon)
+                if (new.faces.count,new.edges.count,new.vertices.count)!=(count+2,3*count,2*count):
+                    raise RuntimeError('Direct prism native topology differs from its closed shared-edge construction.')
+                def mm(point):return tuple(value*10 for value in (point.x,point.y,point.z))
+                for axis in range(3):
+                    if (abs(mm(new.boundingBox.minPoint)[axis]-min(p[axis] for p in plan.points_mm))>1e-5
+                            or abs(mm(new.boundingBox.maxPoint)[axis]-max(p[axis] for p in plan.points_mm))>1e-5):
+                        raise RuntimeError('Direct prism bounds differ from its exact transformed vertices.')
+                intersection=manager.copy(new)
+                if not manager.booleanOperation(intersection,old,native.BooleanTypes.IntersectionBooleanType):
+                    raise RuntimeError('The new and old exact prisms could not be intersected for proof.')
+                expected=plan.volume_mm3/1000
+                tolerance=max(1e-10,expected*1e-6)
+                if any(abs(float(body.volume)-expected)>tolerance for body in (new,old,intersection)):
+                    raise RuntimeError('Direct and clipped prisms are not equal by common material volume.')
+                center=core.Point3D.create(*(value/10 for value in plan.center_mm))
+                inside=native.PointContainment.PointInsidePointContainment
+                if new.pointContainment(center)!=inside or old.pointContainment(center)!=inside:
+                    raise RuntimeError('A direct or clipped prism has reversed or missing interior material.')
+                # Every native planar face normal must point away from the known interior.
+                for index in range(new.faces.count):
+                    face=new.faces.item(index)
+                    okay,normal=face.evaluator.getNormalAtPoint(face.pointOnFace)
+                    point=mm(face.pointOnFace)
+                    delta=tuple(a-b for a,b in zip(point,plan.center_mm))
+                    if not okay or sum(a*b for a,b in zip((normal.x,normal.y,normal.z),delta))<=1e-7:
+                        raise RuntimeError('A direct prism face does not have an outward native normal.')
+                outside=native.PointContainment.PointOutsidePointContainment
+                cx=sum(x for x,z in polygon)/count
+                cz=sum(z for x,z in polygon)/count
+                for y in (low-.1,high+.1):
+                    point=core.Point3D.create(*(value/10 for value in frame.point_mm(cx,y,cz)))
+                    if new.pointContainment(point)!=outside or old.pointContainment(point)!=outside:
+                        raise RuntimeError('Direct prism depth endpoints changed.')
+                STATE.setdefault('detached', []).append(new)
+                cases.append({'shape':shape,'frame':frame_index,'interval_mm':(low,high),
+                    'new_ms':new_ms,'clipped_ms':old_ms,'speed_ratio':old_ms/max(new_ms,1e-9),
+                    'intersection_error_mm3':abs(float(intersection.volume)*1000-plan.volume_mm3),
+                    'diagnostics':diagnostics})
+    after=(root.bRepBodies.count,design.timeline.count,design.timeline.markerPosition,
+           root.customGraphicsGroups.count,design.appearances.count)
+    if after!=before:
+        raise RuntimeError('Temporary direct-prism proof changed native document state.')
+    return {'cases':cases,'case_count':len(cases),'document_unchanged':True,
+            'clipped_total_ms':sum(case['clipped_ms'] for case in cases),
+            'direct_total_ms':sum(case['new_ms'] for case in cases)}
+
+
+def _performance_cases(design):
+    import time
+    adapter=STATE['adapter']
+    direct=importlib.import_module(adapter.__package__+'.prism')
+    _case('direct_prism_twenty_native_equivalences',lambda:run_direct_prism_proof(
+        design,direct,adapter,STATE['settings_module'].PatternSettings))
+    _,body,faces=fixture(design,'notched_panel')
+    def batch_equivalence():
+        settings=STATE['settings_module'].PatternSettings()
+        fast=prepare_checked(design,faces,settings)
+        if not fast.timings['batch_used']:
+            raise RuntimeError('The dense native Through fixture did not exercise the batch path.')
+        original=adapter.try_through_difference
+        try:
+            adapter.try_through_difference=lambda *args,**kwargs:None
+            sequential=prepare_checked(design,faces,settings)
+        finally:adapter.try_through_difference=original
+        if sequential.timings['batch_used'] or fast.cell_count!=sequential.cell_count:
+            raise RuntimeError('The forced exact fallback changed the selected layout.')
+        manager=adsk.fusion.TemporaryBRepManager.get()
+        common=manager.copy(fast.result_body)
+        if not manager.booleanOperation(common,sequential.result_body,adsk.fusion.BooleanTypes.IntersectionBooleanType):
+            raise RuntimeError('Batch and sequential pattern material could not be compared.')
+        volume=float(sequential.result_body.volume)
+        if any(abs(float(candidate.volume)-volume)>max(1e-8,volume*1e-8)
+               for candidate in (common,fast.result_body)):
+            raise RuntimeError('Batch and exact fallback differ by material volume.')
+        for field in ('minPoint','maxPoint'):
+            if any(abs(a-b)>1e-6 for a,b in zip(_xyz(getattr(fast.result_body.boundingBox,field)),
+                                               _xyz(getattr(sequential.result_body.boundingBox,field)))):
+                raise RuntimeError('Batch and sequential pattern bounds differ.')
+        chart=adapter.SurfaceMap(faces[0])
+        for cell in fast.layouts[0].cells:
+            sample=chart.sample(*cell.center_mm)
+            point=_add(sample.point_mm,sample.normal,-1.5)
+            if not _inside(body,point) or any(_inside(candidate,point) for candidate in (fast.result_body,sequential.result_body)):
+                raise RuntimeError('Batch or fallback lost an actual cell opening.')
+        before=snapshot(design);group=None
+        started=time.perf_counter()
+        try:
+            group=adapter.preview_pattern(fast)
+            adsk.core.Application.get().activeViewport.refresh()
+            draw_ms=(time.perf_counter()-started)*1000
+        finally:
+            if group is not None and group.isValid:group.deleteMe()
+        if snapshot(design)!=before:
+            raise RuntimeError('Dense drawing benchmark changed source geometry/display state.')
+        return {'cells':fast.cell_count,'batch_timings':fast.timings,'sequential_timings':sequential.timings,
+                'same_complete_material':True,'all_cell_material_witnesses':fast.cell_count,
+                'forced_fallback_exact':True,'graphics_draw_and_refresh_ms':draw_ms}
+    _case('dense_batch_matches_exact_fallback',batch_equivalence)
+
+
 def _fit_cases(design):
     adapter=STATE['adapter']
     Settings=STATE['settings_module'].PatternSettings
@@ -649,6 +780,7 @@ def cases():
         return details
     _case("sphere_general_surface_engrave", sphere_case)
     _fit_cases(design)
+    _performance_cases(design)
     STATE["report"]["geometry_checks_passed"] = all(case["passed"] for case in STATE["report"]["cases"])
 
 

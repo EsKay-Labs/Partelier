@@ -45,6 +45,44 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Pattern preparation performance (0.10.2)
+
+Native request `f83e77f7-8151-4b0f-95d2-3bedd2ef37f2` passes **32/32** named
+cases, including 20 direct-prism subcases and the complete earlier surface,
+persistence and async workflow matrix. The original model/document/camera/display
+snapshot matches after rollback and source references remain valid.
+[Exact evidence and tested source hashes](validation/patterns-0.10.2.json).
+
+The same owned 300 × 170 mm notched-panel fixture with 195 Through cells measured
+8,295.6 ms preparation before the changes and 4,001.6 ms afterwards, in separate
+native invocations. Drawing and viewport refresh added 1,847.7 ms in the final
+run: approximately 5.85 s for preparation plus drawing, not an instant preview.
+The old/new preparation comparison is approximately 2.07× on this fixture;
+hardware, source complexity and warm-up affect these numbers.
+
+Within the final invocation, forcing the exact sequential fallback measured
+5,904.0 ms versus 4,001.6 ms with batching. Batch and fallback have matching
+bounds and common material volume, and independent material witnesses confirm
+all 195 cell openings. Through aggregation uses 194 unions on copied tools and
+one final Difference; touching/overlap or a refused native operation keeps the
+original inputs for exact sequential fallback. The existing first-wall checks
+still run on every cell witness.
+
+The 20 prism subcases cover all five footprints, two rigid frames and two depth
+intervals. Shared topology, outward normals, bounds, analytic volume, common
+material volume and inside/outside witnesses match the earlier clipped prisms.
+All 20 new temporary bodies also survive command rollback. Planar trims retain
+real hole/border checks while eliminating redundant curvature-ring evaluations;
+curved charts retain the ring. Engrave reuses only exactly identical wall rays.
+
+Through preparation uses temporary BRep and creates no timeline features.
+The completed pattern still uses its three owned persistence features and
+supports Edit/Rebuild. Preparation, wall, tool-construction, tool-clipping,
+result-application and drawing timings are now available in the Fusion log and
+the read-only status diagnostic. All **827 Python tests**, three Node DOM suites
+and JavaScript syntax checks pass. Geometry evidence remains separate from
+physical printing and broad manual CEF interaction acceptance.
+
 ## Pattern palette recovery (0.10.1)
 
 A read-only inspection of the reported stuck session found a finished native

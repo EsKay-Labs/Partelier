@@ -150,6 +150,21 @@ class SurfaceBoundaryTests(unittest.TestCase):
         self.assertFalse(chart.accepts(7,10,1,2))
         self.assertTrue(chart.accepts(12,10,1,2))
 
+    def test_planar_clearance_proof_avoids_redundant_ring_evaluations(self):
+        chart,_=self.chart(hole=True)
+        with patch.object(chart,'sample',wraps=chart.sample) as sample:
+            self.assertTrue(chart.accepts(12,10,1,2))
+            self.assertEqual(sample.call_count,1)
+            self.assertFalse(chart.accepts(7,10,1,2),'The actual inner-hole border still excludes the disk.')
+            self.assertEqual(sample.call_count,2)
+
+    def test_nonplanar_charts_retain_ring_orientation_checks(self):
+        chart,_=self.chart()
+        chart.kind='general'
+        with patch.object(chart,'sample',wraps=chart.sample) as sample:
+            self.assertTrue(chart.accepts(0,10,4,2))
+            self.assertEqual(sample.call_count,25)
+
     def test_boundaries_are_evaluated_once_per_chart(self):
         chart,edges=self.chart()
         before=[(item.evaluator.extents_calls,item.evaluator.point_calls) for item in edges]

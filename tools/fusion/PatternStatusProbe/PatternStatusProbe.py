@@ -42,6 +42,8 @@ def inspect(app):
                 'error': str(request.error) if request.error is not None else None,
             },
             'has_preview': session.preview is not None if session is not None else False,
+            'prepared_timings': getattr(getattr(session, 'prepared', None), 'timings', None),
+            'prepared_cell_count': getattr(getattr(session, 'prepared', None), 'cell_count', None),
         })
     return {'scenario': 'pattern_status', 'success': True, 'read_only': True,
             'fusion_version': app.version, 'active_command': app.userInterface.activeCommand,

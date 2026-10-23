@@ -189,6 +189,15 @@ class SurfaceMap:
         try:
             center=self.sample(u,v)
             reserve=radius_mm*1.05
+            if any(not boundary.clears(center.point_mm,reserve+border_mm-1e-6)
+                   for boundary in self._boundaries):
+                return False
+            # A plane has constant normal and metric. Its trim-valid center and
+            # finite-boundary clearance prove that the entire enclosing disk
+            # fits; evaluating the same planar geometry at 24 ring points adds
+            # no information. Curved charts retain the complete ring checks.
+            if self.kind=='plane' and self._boundaries:
+                return True
             # Check a surrounding ring, not only the cell's center. Trims,
             # holes, periodic seams and normal rotation all participate.
             for index in range(24):
@@ -204,9 +213,6 @@ class SurfaceMap:
                          math.sqrt(_dot(_xyz(dv),_xyz(dv)))*10)
                 if not ok or any(not .8<length/scale<1.25 for length,scale in zip(lengths,self._scale)):
                     return False
-            if any(not boundary.clears(center.point_mm,reserve+border_mm-1e-6)
-                   for boundary in self._boundaries):
-                return False
             return True
         except ValueError:
             return False

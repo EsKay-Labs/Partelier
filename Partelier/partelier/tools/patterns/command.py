@@ -1,6 +1,7 @@
 """HTML pattern sessions, rollback-only computation and explicit native commits."""
 
 import traceback
+import time
 import uuid
 
 import adsk.core as core
@@ -242,6 +243,7 @@ class _Session:
             if self.closed or self.owner._session is not self or revision!=self.revision:return
             try:
                 recipe.validate_preview_sources(prepared)
+                draw_started=time.perf_counter()
                 candidate=fusion.preview_pattern(prepared)
                 if candidate is None or not candidate.isValid:
                     raise ValueError("Fusion could not draw the pattern preview. Original visibility is unchanged.")
@@ -254,6 +256,13 @@ class _Session:
                     if self.preview is None:self.visibility.restore()
                     raise
                 self.preview=candidate;self.prepared=prepared;self.preview_revision=revision
+                timings=getattr(prepared,'timings',None)
+                if isinstance(timings,dict):
+                    timings['graphics_draw_ms']=(time.perf_counter()-draw_started)*1000
+                    try:
+                        core.Application.get().log('Partelier pattern preview timings: '+
+                            ' '.join(f'{key}={value:.3f}' for key,value in timings.items() if type(value) in (int,float)))
+                    except Exception:pass
                 self.phase='preview';self.message=str(prepared.cell_count)+' cells. Review the pattern before Create.'
                 if self.settings.layout_mode=='fit':
                     pitches=[layout.effective_pitch_mm for layout in getattr(prepared,'layouts',()) if layout.cell_count]

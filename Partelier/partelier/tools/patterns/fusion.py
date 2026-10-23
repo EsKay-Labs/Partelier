@@ -15,6 +15,8 @@ from ..hinge import fusion as hinge
 from ..hinge.support import _prism
 from .planner import MAX_CELLS, MAX_FACE_CELLS, build_cells, build_layout, density_error
 from .surfaces import SurfaceMap
+from .prism import prism as _direct_prism
+from .batch import try_through_difference
 
 
 MAX_TOTAL_CELLS = MAX_CELLS
@@ -313,7 +315,11 @@ def _cell_depth(design, body, cell, settings):
         if center_wall is None:
             center_wall = (distance, entry)
         if settings.mode == "engrave":
-            local_distance, _ = _wall(design, body, sample.point_mm, sample.normal)
+            # Plane samples have exactly the same normal: the first query
+            # already measured this identical ray and its first material exit.
+            local_distance = distance
+            if sample.normal != normal:
+                local_distance, _ = _wall(design, body, sample.point_mm, sample.normal)
             if settings.depth_mm >= local_distance - EPSILON_MM * 4:
                 raise ValueError("Engrave depth reaches the first wall exit. Reduce depth or choose Through.")
     margin = max(.01, EPSILON_MM * 10)
@@ -327,7 +333,7 @@ def _prism_for_cell(manager, cell, inward, outward):
     frame = hinge.HingeFrame(cell.center.point_mm, cell.center.tangent_u,
                              cell.center.normal, hinge._cross(cell.center.tangent_u, cell.center.normal))
     try:
-        return _solid(_prism(manager, frame, cell.polygon, -inward, outward),
+        return _solid(_direct_prism(frame, cell.polygon, -inward, outward),
                       "The projected pattern cell did not form one solid.")
     except ValueError as error:
         raise ValueError("The pattern cell could not be mapped to this surface. " + str(error)) from error
@@ -449,40 +455,74 @@ def prepare_pattern(design, faces, settings, *, _historical=False):
             raise ValueError("Temporary depth-band creation changed the source. Roll back the command.")
     diagnostics = []
     recorded = {}
+    through_tools = []
+    details = dict(wall_checks_ms=0.0, tool_construction_ms=0.0,
+                   tool_clip_ms=0.0, result_application_ms=0.0, batch_used=False)
     for cell in mapped:
         center_wall = None
         if settings.mode in {"through", "engrave"}:
+            stage = time.perf_counter()
             through_depth, center_wall = _cell_depth(design, body, cell, settings)
+            details['wall_checks_ms'] += (time.perf_counter()-stage)*1000
+        stage = time.perf_counter()
         if settings.mode == "through":
             cutter = _prism_for_cell(manager, cell, through_depth,
                                       max(.02, cell.sag_mm + .02))
+            details['tool_construction_ms'] += (time.perf_counter()-stage)*1000
+            stage = time.perf_counter()
             _boolean(manager, cutter, body, native.BooleanTypes.IntersectionBooleanType,
                      "A through cell crossed disconnected walls or could not isolate its first wall. Reduce pitch.")
+            details['tool_clip_ms'] += (time.perf_counter()-stage)*1000
             operation = native.BooleanTypes.DifferenceBooleanType
+            through_tools.append(cutter)
         else:
             inward = settings.depth_mm + cell.sag_mm + cell.radius_mm + .02 if settings.mode == "engrave" else EMBED_MM + cell.sag_mm + cell.radius_mm
             outward = cell.sag_mm + cell.radius_mm + settings.depth_mm + .02
             cutter = _prism_for_cell(manager, cell, inward, outward)
+            details['tool_construction_ms'] += (time.perf_counter()-stage)*1000
+            stage = time.perf_counter()
             _boolean(manager, cutter, bands[cell.face_index], native.BooleanTypes.IntersectionBooleanType,
                      "A cell could not isolate one conformal depth region. Reduce pitch or select another surface.")
+            details['tool_clip_ms'] += (time.perf_counter()-stage)*1000
             operation = (native.BooleanTypes.UnionBooleanType if settings.mode == "emboss"
                          else native.BooleanTypes.DifferenceBooleanType)
-        before_volume = float(result.volume)
-        _boolean(manager, result, cutter, operation,
-                 "The pattern split or removed the source solid. Increase web/border or reduce depth.")
-        delta = float(result.volume) - before_volume
-        if (settings.mode == "emboss" and delta <= 1e-10) or (settings.mode != "emboss" and delta >= -1e-10):
-            raise ValueError("A pattern cell did not change material. Remove overlapping selections or adjust its placement.")
+        if settings.mode != 'through':
+            stage = time.perf_counter()
+            before_volume = float(result.volume)
+            _boolean(manager, result, cutter, operation,
+                     "The pattern split or removed the source solid. Increase web/border or reduce depth.")
+            delta = float(result.volume) - before_volume
+            if (settings.mode == "emboss" and delta <= 1e-10) or (settings.mode != "emboss" and delta >= -1e-10):
+                raise ValueError("A pattern cell did not change material. Remove overlapping selections or adjust its placement.")
+            details['result_application_ms'] += (time.perf_counter()-stage)*1000
         if recorded.get(cell.face_index, 0) < 3:
             diagnostics.append({"point_mm": cell.center.point_mm, "normal": cell.center.normal,
                 "face_index": cell.face_index, "through_depth_mm": through_depth if settings.mode == "through" else None,
                 "first_exit_mm": center_wall[0] if center_wall else None,
                 "next_entry_mm": center_wall[1] if center_wall and math.isfinite(center_wall[1]) else None})
             recorded[cell.face_index] = recorded.get(cell.face_index, 0) + 1
+    if through_tools:
+        stage = time.perf_counter()
+        batch = try_through_difference(manager, body, through_tools, native.BooleanTypes)
+        if batch is not None:
+            result = batch.body
+            details.update(batch.timings)
+            details['batch_used'] = True
+        else:
+            # A refused aggregate may have mutated its own copies. Resume the
+            # exact per-cell path only from the original source/pristine tools.
+            result = _copy(manager, body)
+            for cutter in through_tools:
+                before_volume = float(result.volume)
+                _boolean(manager, result, cutter, native.BooleanTypes.DifferenceBooleanType,
+                         "The pattern split or removed the source solid. Increase web/border or reduce depth.")
+                if float(result.volume)-before_volume >= -1e-10:
+                    raise ValueError("A pattern cell did not change material. Remove overlapping selections or adjust its placement.")
+        details['result_application_ms'] = (time.perf_counter()-stage)*1000
     prepared = PreparedPattern(design, faces, body, settings, result, signature,
         {"source_and_plan_ms": (planned - started) * 1000,
          "temporary_geometry_ms": (time.perf_counter() - planned) * 1000,
-         "total_ms": (time.perf_counter() - started) * 1000}, len(mapped), tokens,
+         "total_ms": (time.perf_counter() - started) * 1000, **details}, len(mapped), tokens,
          accepted_samples=tuple(diagnostics), layouts=layouts)
     validate_sources(prepared, _historical=_historical)
     return prepared
