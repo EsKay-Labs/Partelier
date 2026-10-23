@@ -1,0 +1,10 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "script",
+  "id": "9f655d75-e2f2-42f9-940d-a7a508d0e2c1",
+  "author": "SKTech",
+  "description": {"": "Partelier fixed patterns checks on owned rollback-only fixtures."},
+  "version": "1.0.0",
+  "supportedOS": "windows",
+  "editEnabled": true
+}

@@ -193,6 +193,9 @@ class ValidationBridgeTests(unittest.TestCase):
         snap_probe = root / "tools/fusion/SnapFitProbe/SnapFitProbe.py"
         snap_probe.parent.mkdir(parents=True)
         snap_probe.write_text("snap probe", encoding="utf-8")
+        pattern_probe = root / "tools/fusion/PatternProbe/PatternProbe.py"
+        pattern_probe.parent.mkdir(parents=True)
+        pattern_probe.write_text("pattern probe", encoding="utf-8")
         (hinge / "planner.py").write_text("first", encoding="utf-8")
         probe.write_text("probe", encoding="utf-8")
         first = bridge.source_manifest(root)
@@ -241,7 +244,7 @@ class ValidationBridgeTests(unittest.TestCase):
     def test_snap_fit_allowlist_keeps_joined_finish_default_and_rejects_arbitrary_dispatch(self):
         self.assertEqual(bridge.PROTOCOL_VERSION, 2)
         self.assertEqual(bridge.SCENARIO, "joined_finish")
-        self.assertEqual(bridge.SCENARIOS, {"joined_finish", "snap_fit"})
+        self.assertEqual(bridge.SCENARIOS, {"joined_finish", "snap_fit", "patterns"})
         request = self.request()
         request["scenario"] = "snap_fit"
         self.assertEqual(bridge.validate_request(request, request["request_id"]), request)
@@ -295,7 +298,25 @@ class ValidationBridgeTests(unittest.TestCase):
         result = bridge.read_json(self.queue / "results" / (active["request_id"] + ".json"))
         self.assertEqual((result["scenario"], result["success"]), ("snap_fit", True))
 
-    def test_manifest_covers_all_runtime_shared_code_and_both_fixed_probes(self):
+    def test_patterns_scenario_submit_poll_and_old_bridge_refusal(self):
+        request = dict(self.request(), scenario="patterns")
+        self.assertEqual(bridge.validate_request(request, request["request_id"]), request)
+        self.assertEqual(bridge.PROBES["patterns"],
+                         ("tools", "fusion", "PatternProbe", "PatternProbe.py"))
+        with patch.object(bridge, "queue_root", return_value=self.queue):
+            request_id = cli.submit(bridge, "patterns")
+            self.assertEqual(cli.poll(bridge, request_id, 0)["scenario"], "patterns")
+            bridge.atomic_json(self.queue / "results" / (request_id + ".json"),
+                               {"version": 2, "scenario": "patterns", "request_id": request_id,
+                                "success": True, "state": "complete"})
+            self.assertTrue(cli.poll(bridge, request_id, 0)["success"])
+            status = bridge.read_json(self.queue / "status.json")
+            status["scenarios"] = ["joined_finish", "snap_fit"]
+            bridge.atomic_json(self.queue / "status.json", status)
+            with self.assertRaisesRegex(ValueError, "Reload.*patterns"):
+                cli.submit(bridge, "patterns")
+
+    def test_manifest_covers_all_runtime_shared_code_and_all_fixed_probes(self):
         root = self.queue / "wide_repo"
         runtime = root / "Partelier/partelier"
         runtime.mkdir(parents=True)
@@ -311,7 +332,7 @@ class ValidationBridgeTests(unittest.TestCase):
             probe.parent.mkdir(parents=True)
             probe.write_text("fixed probe", encoding="utf-8")
         first = bridge.source_manifest(root)
-        self.assertEqual(len(first["files"]), 5)
+        self.assertEqual(len(first["files"]), 6)
         for path in (shared, snap, runtime / "palette.py", root.joinpath(*bridge.PROBES["snap_fit"])):
             old = path.read_text(encoding="utf-8")
             path.write_text("changed", encoding="utf-8")

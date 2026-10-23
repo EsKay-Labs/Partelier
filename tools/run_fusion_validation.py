@@ -25,7 +25,7 @@ def submit(bridge, scenario):
             or not 0 <= time.time() - status["updated_at"] <= 20):
         raise ValueError("Load/run the current development validation bridge before submitting.")
     if scenario != bridge.SCENARIO and scenario not in status.get("scenarios", ()):
-        raise ValueError("Reload the development validation bridge to enable the snap_fit scenario.")
+        raise ValueError("Reload the development validation bridge to enable the " + scenario + " scenario.")
     session_id = bridge.canonical_request_id(status.get("session_id"))
     request_id = str(uuid.uuid4())
     request = {"version": bridge.PROTOCOL_VERSION, "request_id": request_id,
@@ -77,7 +77,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     submit_parser = commands.add_parser("submit", help="Queue the allowlisted probe and wait for its result.")
-    submit_parser.add_argument("--scenario", choices=["joined_finish", "snap_fit"], default="joined_finish")
+    submit_parser.add_argument("--scenario", choices=sorted(bridge_module().SCENARIOS), default="joined_finish")
     submit_parser.add_argument("--timeout", type=float, default=240)
     submit_parser.add_argument("--no-wait", action="store_true", help="Return the request UUID immediately.")
     poll_parser = commands.add_parser("poll", help="Wait for one previously submitted request UUID.")

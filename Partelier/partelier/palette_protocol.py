@@ -6,6 +6,7 @@ import uuid
 
 from .tools.hinge.settings import HingeSettings
 from .tools.snap_fit.settings import SnapFitSettings
+from .tools.patterns.settings import PatternSettings
 
 
 PROTOCOL_VERSION = 1
@@ -13,16 +14,18 @@ SESSION_SETTINGS_ACTIONS = frozenset({"hinge_update", "hinge_preview", "hinge_co
 SESSION_ACTIONS = SESSION_SETTINGS_ACTIONS | {"hinge_cancel", "hinge_focus"}
 SNAP_SESSION_SETTINGS_ACTIONS = frozenset({"snap_update", "snap_preview", "snap_commit"})
 SNAP_SESSION_ACTIONS = SNAP_SESSION_SETTINGS_ACTIONS | {"snap_cancel", "snap_focus"}
+PATTERN_SETTINGS_ACTIONS=frozenset({"pattern_update","pattern_preview","pattern_commit"})
+PATTERN_SESSION_ACTIONS=PATTERN_SETTINGS_ACTIONS|{"pattern_cancel","pattern_focus"}
 ALLOWED_ACTIONS = frozenset({
     "ready", "open_input_check", "hinge_create", "hinge_edit", "hinge_begin", "hinge_status",
-    "snap_begin", "snap_status",
-}) | SESSION_ACTIONS | SNAP_SESSION_ACTIONS
+    "snap_begin", "snap_status", "pattern_begin", "pattern_status",
+}) | SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS
 
 
 @dataclass(frozen=True)
 class PaletteRequest:
     request_id: str
-    settings: HingeSettings | SnapFitSettings | None = None
+    settings: HingeSettings | SnapFitSettings | PatternSettings | None = None
     session_id: str | None = None
     revision: int | None = None
     editing: bool = False
@@ -47,12 +50,13 @@ def read_request(action, raw_data):
     if not isinstance(request_id, str) or not request_id or len(request_id) > 80:
         raise ValueError("The UI message needs a valid request identifier.")
     snap = action.startswith("snap_")
-    tool_name = "snap-fit" if snap else "hinge"
-    settings_type = SnapFitSettings if snap else HingeSettings
-    settings_actions = SESSION_SETTINGS_ACTIONS | SNAP_SESSION_SETTINGS_ACTIONS
-    session_actions = SESSION_ACTIONS | SNAP_SESSION_ACTIONS
-    begin_actions = {"hinge_begin", "snap_begin"}
-    focus_actions = {"hinge_focus", "snap_focus"}
+    pattern = action.startswith("pattern_")
+    tool_name = "pattern" if pattern else "snap-fit" if snap else "hinge"
+    settings_type = PatternSettings if pattern else SnapFitSettings if snap else HingeSettings
+    settings_actions = SESSION_SETTINGS_ACTIONS | SNAP_SESSION_SETTINGS_ACTIONS | PATTERN_SETTINGS_ACTIONS
+    session_actions = SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS
+    begin_actions = {"hinge_begin", "snap_begin", "pattern_begin"}
+    focus_actions = {"hinge_focus", "snap_focus", "pattern_focus"}
     expected = {"protocol", "requestId"}
     if action in {"hinge_create"} | begin_actions | settings_actions:
         expected.add("settings")
@@ -80,7 +84,8 @@ def read_request(action, raw_data):
     if action in begin_actions and type(editing) is not bool:
         raise ValueError(f"{tool_name.capitalize()} editing mode must be true or false.")
     target = request.get("target")
-    if action in focus_actions and (not isinstance(target, str) or target not in {"face_a", "face_b", "axis_edge", "edit_target"}):
+    targets={"faces","body","edit_target"} if pattern else {"face_a", "face_b", "axis_edge", "edit_target"}
+    if action in focus_actions and (not isinstance(target, str) or target not in targets):
         raise ValueError(f"Select a supported {tool_name} geometry target.")
     settings = None
     if "settings" in expected:

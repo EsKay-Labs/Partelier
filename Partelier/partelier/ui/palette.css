@@ -160,3 +160,13 @@ dialog p { color: var(--muted); font-size: 12px; line-height: 1.7; }
 #snap-illustration svg { width: 100%; height: auto; display: block; }
 #snap-operation-status { font-size: 11px; line-height: 1.45; margin-top: 0; margin-bottom: 8px; overflow-wrap: anywhere; color: #365985; }
 #snap-operation-status.error { padding: 7px 9px; color: #923e2e; background: #fff4ef; border: 1px solid #e1b5a9; border-radius: 5px; }
+
+/* The pattern aliases share one compact form and one native session. */
+#begin-pattern-button { flex-shrink: 0; background: var(--accent); color: #fff; border-color: var(--accent); }
+#begin-pattern-button:disabled { background: var(--disabled-bg); color: var(--disabled-text); border-color: #c2cfdf; }
+#begin-pattern-button:enabled:hover { background: var(--accent-dark); }
+#pattern-scope-fields { grid-template-columns: 1fr; margin-bottom: 12px; }
+#pattern-illustration { max-width: 420px; margin: 0 auto; }
+#pattern-illustration svg { width: 100%; height: auto; display: block; }
+#pattern-operation-status { font-size: 11px; line-height: 1.45; margin-top: 0; margin-bottom: 8px; overflow-wrap: anywhere; color: #365985; }
+#pattern-operation-status.error { padding: 7px 9px; color: #923e2e; background: #fff4ef; border: 1px solid #e1b5a9; border-radius: 5px; }

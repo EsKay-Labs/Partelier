@@ -72,6 +72,14 @@ This is a delivery plan, not a claim that the listed systems already exist.
 | 6. Small details and surfaces | Add selected hardware pockets, enclosure details, text and planar surface patterns as separate useful increments. | Every new helper has a supported selection contract, editable inputs and its own native acceptance evidence. |
 | 7. Truss and honeycomb family | Add bounded planar Warren trusses and honeycomb with borders/keep-solid zones, then assess more layouts and volumetric cases. | Exact supported clipping, connected junctions, size limits and measured performance are verified before broader boundaries or denser patterns are enabled. |
 
+**2026-10-23 priority update:** the user confirmed and locked the current hinge
+and snap-fit tools, then requested surface patterns before the next mechanical
+helper. Version 0.9.0 implements perforations and engraving/embossing together,
+starting with physical plane/cylinder charts, several faces of faceted solids,
+and guarded regular regions of other smooth surfaces. The
+[surface-pattern contract](surface-patterns.md) supersedes the earlier planar-only
+pattern ordering above; trusses and volumetric lattices remain separate work.
+
 The first usable checkpoint is the hinge through gate 4. The proposed first
 release adds the two helpers in gate 5. Do not wait for cosmetic patterns or a
 large feature catalogue to make the hinge useful. No release date or validated

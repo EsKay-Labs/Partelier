@@ -115,6 +115,25 @@ class AddinLifecycleTests(unittest.TestCase):
                 manager.stop_count += 1
 
         self.snap_manager_type = SnapManager
+        self.pattern_managers = []
+
+        class PatternManager:
+            fail_start = False
+
+            def __init__(manager, report_error=None):
+                manager.start_count = 0
+                manager.stop_count = 0
+                self.pattern_managers.append(manager)
+
+            def start(manager):
+                manager.start_count += 1
+                if manager.fail_start:
+                    raise RuntimeError("Simulated pattern registration failure")
+
+            def stop(manager):
+                manager.stop_count += 1
+
+        self.pattern_manager_type = PatternManager
 
         class Library:
             def __init__(library):
@@ -149,6 +168,9 @@ class AddinLifecycleTests(unittest.TestCase):
         snap_name = "Partelier.partelier.tools.snap_fit.command"
         snap = ModuleType(snap_name)
         snap.SnapCommands = SnapManager
+        pattern_name = "Partelier.partelier.tools.patterns.command"
+        pattern = ModuleType(pattern_name)
+        pattern.PatternCommands = PatternManager
         path = Path(__file__).parents[1] / "Partelier/partelier/addin.py"
         spec = importlib.util.spec_from_file_location(
             "Partelier.partelier._addin_lifecycle_test", path,
@@ -156,7 +178,7 @@ class AddinLifecycleTests(unittest.TestCase):
         self.module = importlib.util.module_from_spec(spec)
         with patch.dict("sys.modules", {
             "adsk": adsk, "adsk.core": core, "adsk.fusion": fusion,
-            palette_name: palette, hinge_name: hinge, snap_name: snap,
+            palette_name: palette, hinge_name: hinge, snap_name: snap, pattern_name: pattern,
         }):
             spec.loader.exec_module(self.module)
         self.library = self.module._tool_library
@@ -173,6 +195,7 @@ class AddinLifecycleTests(unittest.TestCase):
         self.assertIsNone(self.module._created_handler)
         self.assertIsNone(self.module._hinge_commands)
         self.assertIsNone(self.module._snap_commands)
+        self.assertIsNone(self.module._pattern_commands)
         self.assertEqual(self.module._sessions, [])
         self.assertIsNone(self.ui.commandDefinitions.itemById(self.module.COMMAND_ID))
         self.assertIsNone(self.controls.itemById(self.module.COMMAND_ID))
@@ -237,7 +260,9 @@ class AddinLifecycleTests(unittest.TestCase):
         ))
         self.assertIs(keywords["hinge_commands"], manager)
         self.assertIs(keywords["snap_commands"], self.snap_managers[0])
+        self.assertIs(keywords["pattern_commands"], self.pattern_managers[0])
         self.assertEqual(self.snap_managers[0].start_count, 1)
+        self.assertEqual(self.pattern_managers[0].start_count, 1)
         self.assertEqual(len(self.ui.commandDefinitions.items), 1)
         self.assertEqual(len(self.controls.items), 1)
         self.assertEqual(len(self.ui.commandDefinitions.itemById(self.module.COMMAND_ID).commandCreated.handlers), 1)
@@ -248,6 +273,7 @@ class AddinLifecycleTests(unittest.TestCase):
         def assert_ready():
             self.assertEqual(self.managers[0].start_count, 1)
             self.assertEqual(self.snap_managers[0].start_count, 1)
+            self.assertEqual(self.pattern_managers[0].start_count, 1)
             self.assertEqual(len(self.library.start_calls), 1)
             self.assertIsNotNone(self.module._created_handler)
             show()
@@ -264,6 +290,7 @@ class AddinLifecycleTests(unittest.TestCase):
         self.assert_stopped()
         self.assertEqual(self.managers[0].stop_count, 1)
         self.assertEqual(self.snap_managers[0].stop_count, 1)
+        self.assertEqual(self.pattern_managers[0].stop_count, 1)
         self.assertEqual(self.library.stop_count, 1)
         self.assertEqual(self.library.show_count, 1)
         self.library.fail_show = False
@@ -284,11 +311,13 @@ class AddinLifecycleTests(unittest.TestCase):
         self.assertTrue(definition.isValid)
         self.assertEqual(self.managers[0].stop_count, 0)
         self.assertEqual(self.snap_managers[0].stop_count, 0)
+        self.assertEqual(self.pattern_managers[0].stop_count, 0)
         self.library.fail_show = False
         self.module.start()
         self.assertEqual(self.library.show_count, 3)
         self.assertEqual(len(self.managers), 1)
         self.assertEqual(len(self.snap_managers), 1)
+        self.assertEqual(len(self.pattern_managers), 1)
         self.assertEqual(len(self.library.start_calls), 1)
         self.assertIs(self.ui.commandDefinitions.itemById(self.module.COMMAND_ID), definition)
 
@@ -366,6 +395,28 @@ class AddinLifecycleTests(unittest.TestCase):
         self.library.fail_start = False
         self.module.start()
         self.assertEqual(len(self.managers), 2)
+
+    def test_pattern_start_failure_stops_all_managers_and_allows_retry(self):
+        self.pattern_manager_type.fail_start = True
+        with self.assertRaisesRegex(RuntimeError, "pattern registration"):
+            self.module.start()
+        self.assert_stopped()
+        for manager in (self.managers[0], self.snap_managers[0], self.pattern_managers[0]):
+            self.assertEqual(manager.stop_count, 1)
+        self.assertEqual(self.library.start_calls, [])
+        self.pattern_manager_type.fail_start = False
+        self.module.start()
+        self.assertEqual(self.pattern_managers[-1].start_count, 1)
+        self.assertEqual(self.library.show_count, 1)
+
+    def test_pattern_stop_failure_does_not_skip_owned_ui_cleanup(self):
+        self.module.start()
+        self.pattern_managers[0].stop = Mock(side_effect=RuntimeError("pattern stop"))
+        self.module.stop()
+        self.assert_stopped()
+        self.assertEqual(self.managers[0].stop_count, 1)
+        self.assertEqual(self.snap_managers[0].stop_count, 1)
+        self.assertTrue(self.logs)
 
 
 if __name__ == "__main__":

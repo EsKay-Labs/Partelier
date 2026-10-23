@@ -1,7 +1,9 @@
 # Script-driven Fusion validation
 
 The development validation bridge runs native checks without controlling the
-mouse, keyboard, windows, browser, or document activation. It is outside the
+mouse, keyboard, windows or browser. The pattern workflow also creates and
+discards its own unsaved test document, then restores the original document,
+component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
 ## One-time setup
@@ -10,7 +12,7 @@ In Fusion, open Utilities > Scripts and Add-Ins > + > Script or add-in from devi
 Select the folder `tools/fusion/PartelierValidationBridge` in this repository and
 Run **PartelierValidationBridge**. Leave Fusion idle between ordinary commands.
 After updating a loaded bridge, Stop then Run it once. The status advertises its
-supported scenarios; the CLI rejects snap_fit against an older loaded bridge.
+supported scenarios; the CLI rejects new scenarios against an older loaded bridge.
 There is no need to reload the product add-in to load the development bridge.
 
 From the repository, using the same normal user temporary directory as Fusion:
@@ -19,6 +21,7 @@ From the repository, using the same normal user temporary directory as Fusion:
 py tools/run_fusion_validation.py status
 py tools/run_fusion_validation.py submit --scenario joined_finish --no-wait
 py tools/run_fusion_validation.py submit --scenario snap_fit --no-wait
+py tools/run_fusion_validation.py submit --scenario patterns --no-wait
 py tools/run_fusion_validation.py poll REQUEST_UUID --timeout 60
 ```
 
@@ -40,6 +43,52 @@ report is published after owned-command cleanup and rollback checks. An old
 completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
+
+## Surface patterns (0.9.0)
+
+The final fixed `patterns` scenario passes **23/23** native cases in Fusion
+2705.1.30. [Exact evidence](validation/patterns-0.9.0.json) covers all 44 runtime
+Python/fixed-probe files. Its source manifest was checked again before saving.
+
+Plane, half-cylinder and two adjacent hex walls pass all three operation modes.
+A full cylinder passes all three modes with 36 cells, including real material
+witnesses on both sides of the parameter seam. The half-cylinder independently
+retains the unselected opposite wall. All five shapes pass; positive cone
+engraving (85 circles) and sphere engraving (48 hexagons) verify regular curved
+regions without accepting a refusal as success. Borders and retained floors
+have independent point-containment witnesses.
+
+Create and three mode-changing Rebuilds retain the same body and three owned
+features, with body/face/edge/feature selection accepted for Edit. The actual
+production preview runner supersedes an obsolete request, delivers only after
+native rollback and retains fresh source references. A later native command
+creates from that exact detached cached result and then rolls back completely.
+Its disposable document is discarded without saving; the original document,
+active component, camera, attributes, geometry, lightbulbs and graphics match
+their initial state. The fixed matrix also rolls back every owned fixture.
+
+Four exact native CAD captures were visually inspected; camera, visibility and
+graphics restore after every capture. They are included in the
+[pattern guide](surface-patterns.md). Local validation passes **757 Python tests**,
+three Node DOM suites and 18 responsive browser combinations (360/540 px,
+three presets and three modes), with no overflow or JavaScript errors. Browser
+and fake-host tests are distinct from the native CAD evidence.
+
+Measured preparation times in this fixture run:
+
+| Fixture | Cells | Through / Engrave / Emboss |
+| --- | ---: | --- |
+| Plane | 5 | 0.11 / 0.22 / 0.19 s |
+| Half cylinder | 15 | 0.49 / 0.72 / 0.36 s |
+| Full cylinder | 36 | 1.26 / 2.31 / 0.85 s |
+| Cone, circles | 85 | Engrave 24.78 s |
+| Sphere, hexagons | 48 | Engrave 2.59 s |
+
+These are measurements, not latency guarantees. Dense curved circles remain a
+performance limit. Pole/distortion exclusion, conservative complete-cell
+borders, segmented circle/slot boundaries and one-root-solid selection remain
+explicit limits. Manual save/reopen, Undo/Redo and physical printing are still
+separate acceptance work.
 
 ## Free-tip corners and fork-slot finishing (0.8.1)
 

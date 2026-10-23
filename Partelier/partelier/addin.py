@@ -10,6 +10,7 @@ from .settings import HoneycombSettings
 from .palette import ToolLibrary
 from .tools.hinge.command import HingeCommands
 from .tools.snap_fit.command import SnapCommands
+from .tools.patterns.command import PatternCommands
 
 
 COMMAND_ID = "sktech_partelier_honeycomb_inputs_7947c039"
@@ -22,6 +23,7 @@ _sessions = []
 _tool_library = ToolLibrary()
 _hinge_commands = None
 _snap_commands = None
+_pattern_commands = None
 
 
 def report_error(summary):
@@ -51,7 +53,7 @@ def report_error(summary):
 
 def start():
     """Register owned commands once and show the HTML tool library on Run."""
-    global _created_handler, _hinge_commands, _snap_commands
+    global _created_handler, _hinge_commands, _snap_commands, _pattern_commands
     if _created_handler is not None:
         _tool_library.show()
         return
@@ -76,9 +78,11 @@ def start():
         _hinge_commands.start()
         _snap_commands = SnapCommands(report_error=report_error)
         _snap_commands.start()
+        _pattern_commands=PatternCommands(report_error=report_error)
+        _pattern_commands.start()
         _tool_library.start(
             WORKSPACE_ID, PANEL_ID, COMMAND_ID, report_error,
-            hinge_commands=_hinge_commands, snap_commands=_snap_commands,
+            hinge_commands=_hinge_commands, snap_commands=_snap_commands, pattern_commands=_pattern_commands,
         )
         _tool_library.show()
     except Exception:
@@ -88,7 +92,7 @@ def start():
 
 def stop():
     """Remove only this add-in's command, controls, and retained handlers."""
-    global _created_handler, _hinge_commands, _snap_commands
+    global _created_handler, _hinge_commands, _snap_commands, _pattern_commands
     app = adsk.core.Application.get()
     ui = app.userInterface
     errors = []
@@ -108,6 +112,8 @@ def stop():
             attempt(_hinge_commands.stop)
         if _snap_commands is not None:
             attempt(_snap_commands.stop)
+        if _pattern_commands is not None:
+            attempt(_pattern_commands.stop)
         workspace = attempt(lambda: ui.workspaces.itemById(WORKSPACE_ID))
         panel = attempt(lambda: workspace.toolbarPanels.itemById(PANEL_ID)) if workspace else None
         control = attempt(lambda: panel.controls.itemById(COMMAND_ID)) if panel else None
@@ -122,6 +128,7 @@ def stop():
         _created_handler = None
         _hinge_commands = None
         _snap_commands = None
+        _pattern_commands = None
         _sessions.clear()
     for error in errors:
         app.log(f"Partelier shutdown cleanup failed:\n{error}")

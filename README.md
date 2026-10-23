@@ -2,10 +2,10 @@
 
 An Autodesk Fusion add-in foundation for automating small, repetitive CAD tasks
 on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
-later reinforcement/pattern tools. **Partelier is the approved product name**,
+surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current code:** experimental 0.8.1 provides an editable separate-pin hinge
+**Current code:** experimental 0.9.0 provides surface patterns, an editable separate-pin hinge
 and four snap-fit families: Hook latch, Ball detent, Torsion latch and Annular
 ring. Hook latch also offers straight, tapered or twin arms. Snap-fits include
 optional 45-degree root/receiver roofs and complete eligible outer-edge chamfers;
@@ -32,16 +32,30 @@ The final 0.5.0 native report passes 53 stated expectations: 40 generated
 geometry cases, six explicit larger-fillet refusals, six in-place/migration
 cases and one production-session workflow. Four attached fixture treatments each
 pass four Rebuilds without replacing the selected bodies or accumulating history.
-Local checks pass 676 Python tests, both Node DOM suites and syntax/compilation
+Local checks pass 757 Python tests, all three Node DOM suites and syntax/compilation
 checks. The current hinge workflow has been user-confirmed
 in Fusion. Broader interaction coverage, save/reopen, Undo/Redo, motion and
 physical printing remain acceptance items. See
 [native evidence and limits](docs/fusion-validation.md). The snap-fit passes
 56 native geometry/persistence/refusal/session cases, including source rollback
-and stable body identities. Other tools remain planned; the honeycomb input
-checker creates no geometry.
+and stable body identities. Patterns pass 23 native geometry and workflow checks,
+including full cylinder wraps, regular cone/sphere regions and cached preview
+creation after rollback. The original model, document and camera are restored.
+Other tools remain planned. The older honeycomb input checker remains a separate
+diagnostic and creates no geometry.
 
-**Try snap-fits:** Stop then Run Partelier to load 0.8.1. The tool library opens
+**Surface patterns:** choose **Honeycomb**, **Perforations** or **Texture** in the
+tool dropdown. Each opens the same workflow with a different preset. Choose
+hexagons, circles, diamonds, squares or slots and **Through holes**, **Engrave** or
+**Emboss**. Select faces on one solid, then press Esc when finished picking.
+Set pitch, web/gap, border and depth/height; review the live preview before Create.
+Edit/Rebuild updates that same body. Plane and cylinder charts, multiple faceted
+sides and bounded regular regions of smooth surfaces are implemented. Distorted
+or singular regions can be refused or omitted conservatively. Dense curved
+patterns can take noticeably longer to preview. See the
+[surface contract, examples and limits](docs/surface-patterns.md).
+
+**Try the updated tools:** Stop then Run Partelier to load 0.9.0. The tool library opens
 automatically; choose **Snap-fit**, then **Snap type**. For Hook latch, Ball detent
 or Torsion latch, pick the base exterior wall A, the coplanar lid wall B,
 then either facing straight rim. Matching rims may have a gap between them;
@@ -81,8 +95,9 @@ same architecture accommodates snap-fit and sliding-guide tools. The
 [architecture](docs/architecture.md) records module boundaries, the performance
 approach and the selected StructForge reference techniques.
 
-This clarified direction supersedes the original honeycomb-first proposal. The
-existing honeycomb input check remains a diagnostic; the hinge is an independent
+The user subsequently prioritized surface patterns after confirming hinges and
+snap-fits; these precede sliding guides. The existing honeycomb input check
+remains a diagnostic; the pattern generator is an independent tool. The hinge is an independent
 tool module. Its supported scenario and exact fixture are in the
 [hinge specification](docs/hinge-design.md).
 

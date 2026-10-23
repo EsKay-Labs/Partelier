@@ -83,20 +83,20 @@ region, remaining radial wall, lower floor and upper extent around the entire
 circumference. A partial shell, short socket or thin wall is refused. Neither
 radius nor bead dimensions are resized automatically.
 
-Print-friendly shape adds a 45-degree groove roof: the cut's outer radius
+**45° groove roof** adds a 45-degree groove roof: the cut's outer radius
 shrinks toward a radius inside B's bore as local Z increases. The lower groove
 floor remains in place. With that setting off, the groove has a flat roof.
 Both original and final pairs undergo positive-volume overlap checks.
 
 ## Outer finishing and print direction
 
-For planar families, Print-friendly shape adds a 45-degree ramp below the
+For planar families, **45° print ramps** adds a 45-degree ramp below the
 external root and a 45-degree receiver roof. These features assume **local +Z**
 as the buildup direction; they do not inspect the slicer's bed orientation.
 Ball detent uses a roof around its socket, while annular uses the radial groove
 roof described above. Sloping bead sides depend on the chosen profile dimensions.
 
-**Print-friendly shape** and **Chamfer edges** are separate settings. Chamfers
+**45° print ramps** (or **45° groove roof** for annular) and **Chamfer edges** are separate settings. Chamfers
 are derived from complete eligible convex edges of the **actual united generated
 detail**, after its root, supports and male features have joined. Continuous
 collinear segments with matching incident faces form one path. Finishing is
@@ -145,7 +145,7 @@ snapshot, even when some fields are hidden for the selected family.
 | Root length / overlap | 4 / 0.5 mm | Planar root; overlap also embeds the annular bead |
 | Hook variant | Straight | Hook latch only: Straight, Tapered or Twin |
 | Outer chamfer / size | On / 0.3 mm | Eligible planar-family outer detail edges; off for annular |
-| Print-friendly shape | On | Local-direction root/receiver or annular roof changes |
+| 45° print ramps / 45° groove roof | On | Local-direction root/receiver or annular roof changes |
 | Ball radius | 2 mm | Ball detent nose |
 | Torsion radius | 0.8 mm | Cross-bar radius |
 | Annular bead width / height / offset | 2 / 0.5 / 3 mm | Ring dimensions and distance below A's rim |

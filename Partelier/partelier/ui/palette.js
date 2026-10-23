@@ -219,6 +219,7 @@
         $("live-preview-status").classList.toggle("needs-attention", !!ready && (!valid || state.liveError || (state.session?.phase === "error" && state.session.revision === state.revision)));
         renderSelections();
         window.PartelierSnap?.setHingeActive(active || busy);
+        window.PartelierPatterns?.setOtherActive({ hinge: active || busy });
     }
     function operationStatus(message, error = false) {
         $("operation-status").textContent = message;
@@ -245,7 +246,7 @@
         updateActions();
         return true;
     }
-    window.fusionJavaScriptHandler = { handle(action, data) { try { if (action === "hinge_state" && applyHingeState(JSON.parse(data))) pushedStateVersion++; else window.PartelierSnap?.handle(action, data); return "OK"; } catch (_) { return "FAILED"; } } };
+    window.fusionJavaScriptHandler = { handle(action, data) { try { if (action === "hinge_state" && applyHingeState(JSON.parse(data))) pushedStateVersion++; else { window.PartelierSnap?.handle(action, data); window.PartelierPatterns?.handle(action, data); } return "OK"; } catch (_) { return "FAILED"; } } };
 
     function renderFavorite() {
         const favorite = state.favorites.has(state.selected); $("favorite-button").textContent = favorite ? "★" : "☆";
@@ -255,10 +256,12 @@
         const tool = tools.find(item => item.id === state.selected);
         $("tool-workspace").classList.toggle("hinge-workspace", tool.id === "hinge");
         const snapTool = tool.id === "snap" && !!window.PartelierSnap;
-        $("planned-tool").hidden = tool.id === "hinge" || snapTool;
-        $("hinge-action-dock").hidden = snapTool;
-        $("hinge-help").hidden = snapTool;
+        const patternTool = !!window.PartelierPatterns?.matches(tool.id);
+        $("planned-tool").hidden = tool.id === "hinge" || snapTool || patternTool;
+        $("hinge-action-dock").hidden = snapTool || patternTool;
+        $("hinge-help").hidden = snapTool || patternTool;
         window.PartelierSnap?.select(tool.id);
+        window.PartelierPatterns?.select(tool.id);
         $("detail-category").textContent = categories.find(([id]) => id === tool.category)[1];
         $("detail-title").textContent = tool.name; $("detail-description").textContent = tool.description; $("detail-outcome").textContent = tool.outcome; $("detail-stage").textContent = tool.stage; $("detail-note").textContent = tool.note;
         $("parameter-list").replaceChildren(...tool.inputs.map(([label, value]) => { const item = document.createElement("div"); item.className = "parameter-item"; const key = document.createElement("span"); key.textContent = label; const content = document.createElement("strong"); content.textContent = value; item.append(key, content); return item; }));
@@ -345,8 +348,10 @@
             const result = await send("ready"); state.connected = true; state.capabilities = new Set(Array.isArray(result.capabilities) ? result.capabilities : []);
             if (!state.dirty && result.hingeDefaults && !result.hingeState?.settings) { state.hingeSettings = { ...hingeDefaults, ...result.hingeDefaults }; syncHingeFields(); }
             $("connection-status").classList.add("connected"); $("connection-status").replaceChildren(); $("connection-status").append(document.createElement("i"), "Fusion connected");
-            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.8.1";
+            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.9.0";
             if (window.PartelierSnap?.connect(result)) { state.selected = "snap"; renderToolMenu(); renderDetail(); }
+            const patternAlias = window.PartelierPatterns?.connect(result);
+            if (patternAlias) { state.selected = patternAlias; renderToolMenu(); renderDetail(); }
             updateActions();
             if (sessionId() && selectionsReady() && !currentPreview()) scheduleUpdate();
         } catch (error) { $("connection-status").replaceChildren(document.createElement("i"), "Fusion connection unavailable"); $("bridge-message").textContent = error.message; }

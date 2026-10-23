@@ -4,9 +4,9 @@
   "id": "7947c039-0f77-43fb-a7c3-2ce8b118dc28",
   "author": "SKTech",
   "description": {
-    "": "Partelier toolkit with editable pin hinges and straight, tapered and twin snap-fits, live previews, 45-degree printing ramps and guarded chamfer finishing."
+    "": "Partelier toolkit with editable hinges, snap-fits and surface patterns: perforate, engrave or emboss flat and curved faces with live previews."
   },
-  "version": "0.8.1",
+  "version": "0.9.0",
   "runOnStartup": false,
   "supportedOS": "windows",
   "editEnabled": true

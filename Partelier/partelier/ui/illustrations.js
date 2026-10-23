@@ -289,6 +289,47 @@ window.PartelierIllustrations = (() => {
         const snapAttributes = id === "snap" ? `data-snap-family="${["hook", "ball_detent", "torsion", "annular"].includes(snapFamily) ? snapFamily : "hook"}" data-snap-style="${["standard", "tapered", "twin"].includes(snapStyle) ? snapStyle : "standard"}" data-print-support="${!!printSupport}"` : "";
         return `<svg viewBox="0 0 440 270" ${filletEdges ? 'data-fillet-finish="true"' : ''} ${snapAttributes} role="img" aria-label="${id} concept illustration${exploded ? ", separated view" : ""}"><g fill="none" stroke="#a4c5ce" opacity=".055" stroke-width=".8">${grid}</g><ellipse cx="220" cy="203" rx="124" ry="23" fill="#0b171f" opacity=".2"/>${geometry}${overlays.join("")}<g fill="none" stroke="#9bbac1" stroke-width="1" opacity=".5"><path d="M36 233h20m-20 0v-17m0 17-9 6"/></g><g fill="#9bbac1" font-family="Consolas,monospace" font-size="7" opacity=".65"><text x="60" y="236">X</text><text x="33" y="212">Z</text></g></svg>`;
     }
+    function renderPattern(settings = {}) {
+        const pattern = ["hexagon", "circle", "diamond", "square", "slot"].includes(settings.pattern) ? settings.pattern : "hexagon";
+        const mode = ["through", "engrave", "emboss"].includes(settings.mode) ? settings.mode : "through";
+        const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+        const pitch = Math.max(6, Math.min(12, finite(settings.pitch_mm, 8)));
+        const web = Math.max(.7, Math.min(pitch*.6, finite(settings.web_mm, 1.2)));
+        const half = (pitch-web)/2, radius = 24, height = 34;
+        const rotation = finite(settings.rotation_deg, 0)*Math.PI/180, cosine=Math.cos(rotation), sine=Math.sin(rotation);
+        const offsetU = finite(settings.offset_u_mm, 0)%pitch, offsetV = finite(settings.offset_v_mm, 0)%pitch;
+        const border = Math.max(2, Math.min(7, finite(settings.border_mm, 2)));
+        const depth = Math.max(.35, Math.min(2, finite(settings.depth_mm, 1)));
+        const cylinder = (u,z,r=radius) => { const angle=Math.PI/4+u/radius; return [r*Math.cos(angle),r*Math.sin(angle),z]; };
+        const polygon = (vertices, fill, stroke="#526d91") => `<polygon points="${vertices.map(point).join(" ")}" fill="${fill}" stroke="${stroke}" stroke-width=".45" stroke-linejoin="round"/>`;
+        const sides=[];
+        for(let i=0;i<40;i++) {
+            const a=i*Math.PI/20,b=(i+1)*Math.PI/20,at=(angle,r,z)=>[r*Math.cos(angle),r*Math.sin(angle),z];
+            const vertices=[at(a,radius,0),at(b,radius,0),at(b,radius,height),at(a,radius,height)];
+            sides.push({depth:vertices.reduce((sum,p)=>sum+p[0]+p[1],0),markup:polygon(vertices,shade(A,.8+.18*Math.cos(a-Math.PI/4)))});
+            const rim=[at(a,radius,height),at(b,radius,height),at(b,radius-2.5,height),at(a,radius-2.5,height)];
+            sides.push({depth:1000,markup:polygon(rim,"#d6e1ef")});
+        }
+        sides.sort((a,b)=>a.depth-b.depth);
+        let shape;
+        if(pattern==="circle") shape=Array.from({length:20},(_,i)=>[half*Math.cos(i*Math.PI/10),half*Math.sin(i*Math.PI/10)]);
+        else if(pattern==="slot") shape=Array.from({length:20},(_,i)=>{const angle=i*Math.PI/10,r=half*.4;return [(Math.cos(angle)>=0?1:-1)*(half-r)+r*Math.cos(angle),r*Math.sin(angle)];});
+        else if(pattern==="diamond") shape=[[0,-half],[half,0],[0,half],[-half,0]];
+        else if(pattern==="square") { const h=half*.8;shape=[[-h,-h],[h,-h],[h,h],[-h,h]]; }
+        else shape=Array.from({length:6},(_,i)=>[half*Math.cos(i*Math.PI/3),half*Math.sin(i*Math.PI/3)]);
+        const cells=[];
+        for(let row=-6;row<=6;row++) for(let column=-8;column<=8;column++) {
+            const centerU=(column+(pattern==="hexagon"&&Math.abs(row)%2?.5:0))*pitch,centerV=row*pitch;
+            const points=shape.map(([u,v])=>[(centerU+u)*cosine-(centerV+v)*sine+offsetU,(centerU+u)*sine+(centerV+v)*cosine+height/2+offsetV]);
+            if(points.some(([u,z])=>Math.abs(u)>Math.PI*radius/2-border||z<border||z>height-border)) continue;
+            const surface=points.map(([u,z])=>cylinder(u,z));
+            const feature=points.map(([u,z])=>cylinder(u,z,mode==="emboss"?radius+depth:mode==="engrave"?radius-depth:radius+.04));
+            const walls=[];
+            if(mode!=="through") for(let i=0;i<points.length;i++) walls.push(polygon([surface[i],surface[(i+1)%points.length],feature[(i+1)%points.length],feature[i]],mode==="emboss"?"#3c77be":"#4d698b"));
+            cells.push(`<g data-pattern-cell="${pattern}">${walls.join("")}${polygon(feature,mode==="through"?"#253e5d":mode==="engrave"?"#6b87aa":B,mode==="through"?"#1f3550":"#3d618d")}</g>`);
+        }
+        return `<svg viewBox="0 0 440 270" role="img" aria-label="${pattern} ${mode} wrapped cylinder concept" data-pattern-surface="cylinder" data-pattern-mode="${mode}"><ellipse cx="220" cy="208" rx="94" ry="20" fill="#d4dfed"/>${sides.map(side=>side.markup).join("")}${cells.join("")}<text x="24" y="245" fill="#536b8c" font-family="Segoe UI,sans-serif" font-size="9">Pattern follows the cylinder · concept illustration</text></svg>`;
+    }
     function renderHingeLayout(settings = {}) {
         const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
         const count = Math.max(1, Math.min(20, Math.round(finite(settings.hinge_count, 1))));
@@ -312,5 +353,5 @@ window.PartelierIllustrations = (() => {
         const minimum = count === 1 ? "≥ " : "";
         return `<svg viewBox="0 0 340 142" role="img" aria-label="Arrangement sketch of ${count} separate ${count === 1 ? "hinge" : "hinges"}; spacing is calculated in Fusion"><g font-family="Segoe UI, sans-serif" font-size="9" fill="#405675"><text x="22" y="20">Start ${minimum}${label(start)} mm</text><text x="318" y="20" text-anchor="end">End ${minimum}${label(end)} mm</text><path d="M22 34H${first}M${last}34H318M22 29v10M318 29v10" fill="none" stroke="#8ea6c7"/><path d="M22 65H318" stroke="#8ea6c7" stroke-dasharray="3 3"/><rect x="22" y="44" width="296" height="6" rx="2" fill="#d7e3e7"/><rect x="22" y="80" width="296" height="6" rx="2" fill="#d7e7ff"/>${blocks}<text x="170" y="115" text-anchor="middle">${count} ${count === 1 ? "hinge · centered between margins" : "separate hinges · equal gaps"}</text><text x="170" y="132" text-anchor="middle" fill="#4f617c" font-size="8">Arrangement sketch · spacing calculated in Fusion</text></g></svg>`;
     }
-    return Object.freeze({ render, renderHingeLayout });
+    return Object.freeze({ render, renderHingeLayout, renderPattern });
 })();

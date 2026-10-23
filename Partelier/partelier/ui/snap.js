@@ -134,7 +134,8 @@
         const committing = state.session?.phase === "opening", busy = state.busy || committing, hasSession = active(), ready = !!identity() && selected();
         $("snap-tool").hidden = !state.selected;
         $("snap-action-dock").hidden = !state.selected;
-        $("tool-select").disabled = state.hingeActive || hasSession || busy;
+        $("tool-select").disabled = state.hingeActive || hasSession || busy || !!window.PartelierPatterns?.isActive() || !!window.PartelierPatterns?.isBusy();
+        window.PartelierPatterns?.setOtherActive({ snap: hasSession || busy, hinge: state.hingeActive });
         for (const input of $("snap-settings").querySelectorAll("[name]")) input.disabled = committing;
         updateFamilyAvailability(committing);
         updateFinishAvailability(committing);

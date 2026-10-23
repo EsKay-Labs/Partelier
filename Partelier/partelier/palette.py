@@ -7,9 +7,10 @@ from urllib.parse import quote
 
 import adsk.core
 
-from .palette_protocol import PROTOCOL_VERSION, SESSION_ACTIONS, SNAP_SESSION_ACTIONS, read_request
+from .palette_protocol import PROTOCOL_VERSION, SESSION_ACTIONS, SNAP_SESSION_ACTIONS, PATTERN_SESSION_ACTIONS, read_request
 from .tools.hinge.settings import HingeSettings
 from .tools.snap_fit.settings import SnapFitSettings
+from .tools.patterns.settings import PatternSettings
 
 
 COMMAND_ID = "sktech_partelier_library_b520ea78"
@@ -29,8 +30,9 @@ class ToolLibrary:
         self._report_error = None
         self._hinge_commands = None
         self._snap_commands = None
+        self._pattern_commands = None
 
-    def start(self, workspace_id, panel_id, input_check_id, report_error, hinge_commands=None, snap_commands=None):
+    def start(self, workspace_id, panel_id, input_check_id, report_error, hinge_commands=None, snap_commands=None, pattern_commands=None):
         if self._created_handler is not None:
             return
         self._workspace_id = workspace_id
@@ -39,6 +41,7 @@ class ToolLibrary:
         self._report_error = report_error
         self._hinge_commands = hinge_commands
         self._snap_commands = snap_commands
+        self._pattern_commands = pattern_commands
         ui = adsk.core.Application.get().userInterface
         panel = self._panel(ui)
         if panel is None:
@@ -58,6 +61,8 @@ class ToolLibrary:
             self._hinge_commands.set_state_callback(self._publish_hinge_state)
         if self._has_palette_snap():
             self._snap_commands.set_state_callback(self._publish_snap_state)
+        if self._has_palette_pattern():
+            self._pattern_commands.set_state_callback(lambda snapshot:self._publish_state("pattern_state",snapshot))
 
     @staticmethod
     def _has_palette_manager(manager):
@@ -72,10 +77,15 @@ class ToolLibrary:
     def _has_palette_snap(self):
         return self._has_palette_manager(self._snap_commands)
 
+    def _has_palette_pattern(self):
+        return self._has_palette_manager(self._pattern_commands)
+
     def _require_idle_other_tool(self, manager, name):
         """One palette selection/preview owner at a time, including error recovery."""
         if not self._has_palette_manager(manager):
             return
+        if getattr(manager,"busy",False) is True:
+            raise ValueError(f"Wait for the current {name} operation to finish.")
         snapshot = manager.palette_state()
         if (isinstance(snapshot, dict) and isinstance(snapshot.get("sessionId"), str)
                 and snapshot["sessionId"] and snapshot.get("phase") not in {"idle", "created", "cancelled"}):
@@ -145,6 +155,7 @@ class ToolLibrary:
         request = read_request(action, raw_data)
         snapshot = None
         snap_snapshot = None
+        pattern_snapshot = None
         if action == "open_input_check":
             ui = adsk.core.Application.get().userInterface
             command = ui.commandDefinitions.itemById(self._input_check_id)
@@ -154,6 +165,7 @@ class ToolLibrary:
             if not self._has_palette_hinge():
                 raise RuntimeError("The palette hinge session is unavailable. Stop and Run the add-in.")
             if action == "hinge_begin":
+                self._require_idle_other_tool(self._pattern_commands,"pattern")
                 self._require_idle_other_tool(self._snap_commands, "snap-fit")
                 snapshot = self._hinge_commands.begin_palette(request.settings.to_dict(), editing=request.editing)
             else:
@@ -166,6 +178,7 @@ class ToolLibrary:
             if not self._has_palette_snap():
                 raise RuntimeError("The palette snap-fit session is unavailable. Stop and Run the add-in.")
             if action == "snap_begin":
+                self._require_idle_other_tool(self._pattern_commands,"pattern")
                 self._require_idle_other_tool(self._hinge_commands, "hinge")
                 snap_snapshot = self._snap_commands.begin_palette(request.settings.to_dict(), editing=request.editing)
             else:
@@ -174,6 +187,19 @@ class ToolLibrary:
                     settings_dict=request.settings.to_dict() if request.settings is not None else None,
                     target=request.target,
                 )
+        elif action == "pattern_begin" or action in PATTERN_SESSION_ACTIONS:
+            if not self._has_palette_pattern():
+                raise RuntimeError("The pattern session is unavailable. Stop and Run Partelier.")
+            if action=="pattern_begin":
+                self._require_idle_other_tool(self._hinge_commands,"hinge")
+                self._require_idle_other_tool(self._snap_commands,"snap-fit")
+                pattern_snapshot=self._pattern_commands.begin_palette(request.settings.to_dict(),editing=request.editing)
+            else:
+                pattern_snapshot=self._pattern_commands.palette_action(action,request.session_id,revision=request.revision,
+                    settings_dict=request.settings.to_dict() if request.settings else None,target=request.target)
+        elif action=="pattern_status":
+            if not self._has_palette_pattern():raise RuntimeError("Run Partelier to enable patterns.")
+            pattern_snapshot=self._pattern_commands.palette_state()
         elif action == "snap_status":
             if not self._has_palette_snap():
                 raise RuntimeError("The palette snap-fit session is unavailable. Stop and Run the add-in.")
@@ -183,6 +209,7 @@ class ToolLibrary:
                 raise RuntimeError("The palette hinge session is unavailable. Stop and Run the add-in.")
             snapshot = self._hinge_commands.palette_state()
         elif action in {"hinge_create", "hinge_edit"}:
+            self._require_idle_other_tool(self._pattern_commands,"pattern")
             if self._hinge_commands is None:
                 raise RuntimeError("The hinge tool is unavailable. Stop and Run the add-in.")
             self._require_idle_other_tool(self._snap_commands, "snap-fit")
@@ -201,6 +228,9 @@ class ToolLibrary:
             capabilities.extend(["snap-palette", "snap-edit"])
             if snap_snapshot is None:
                 snap_snapshot = self._snap_commands.palette_state()
+        if self._has_palette_pattern():
+            capabilities.extend(["pattern-palette","pattern-edit"])
+            if pattern_snapshot is None:pattern_snapshot=self._pattern_commands.palette_state()
         return json.dumps({
             "protocol": PROTOCOL_VERSION,
             "requestId": request.request_id,
@@ -210,6 +240,8 @@ class ToolLibrary:
             "hingeState": snapshot,
             "snapDefaults": SnapFitSettings().to_dict(),
             "snapState": snap_snapshot,
+            "patternDefaults": PatternSettings().to_dict(),
+            "patternState": pattern_snapshot,
         })
 
     def stop(self):
@@ -228,6 +260,8 @@ class ToolLibrary:
             attempt(lambda: self._hinge_commands.set_state_callback(None))
         if self._has_palette_snap():
             attempt(lambda: self._snap_commands.set_state_callback(None))
+        if self._has_palette_pattern():
+            attempt(lambda:self._pattern_commands.set_state_callback(None))
         attempt(self._release_palette)
         panel = self._panel(ui) if self._workspace_id else None
         control = panel.controls.itemById(COMMAND_ID) if panel else None
@@ -241,6 +275,7 @@ class ToolLibrary:
         self._created_handler = None
         self._hinge_commands = None
         self._snap_commands = None
+        self._pattern_commands = None
         for error in errors:
             adsk.core.Application.get().log(f"Partelier UI cleanup failed:\n{error}")
 

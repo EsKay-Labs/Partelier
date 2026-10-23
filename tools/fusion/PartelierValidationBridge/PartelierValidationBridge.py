@@ -23,6 +23,7 @@ SCENARIO = "joined_finish"
 PROBES = {
     "joined_finish": ("tools", "fusion", "JoinFinishProbe", "JoinFinishProbe.py"),
     "snap_fit": ("tools", "fusion", "SnapFitProbe", "SnapFitProbe.py"),
+    "patterns": ("tools", "fusion", "PatternProbe", "PatternProbe.py"),
 }
 SCENARIOS = frozenset(PROBES)
 EVENT_ID = "sktech_partelier_validation_bridge_tick_946fef9c"
@@ -58,7 +59,7 @@ def validate_request(value, filename_id):
         raise ValueError("Request identifier must match its queue filename.")
     canonical_request_id(value["session_id"])
     if not isinstance(value["scenario"], str) or value["scenario"] not in SCENARIOS:
-        raise ValueError("Only the fixed joined_finish and snap_fit scenarios are allowed.")
+        raise ValueError("Only the fixed joined_finish, snap_fit and patterns scenarios are allowed.")
     submitted = value["submitted_at"]
     try:
         finite = not isinstance(submitted, bool) and isinstance(submitted, (int, float)) and math.isfinite(submitted)
