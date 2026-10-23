@@ -24,6 +24,7 @@ PROBES = {
     "joined_finish": ("tools", "fusion", "JoinFinishProbe", "JoinFinishProbe.py"),
     "snap_fit": ("tools", "fusion", "SnapFitProbe", "SnapFitProbe.py"),
     "patterns": ("tools", "fusion", "PatternProbe", "PatternProbe.py"),
+    "pattern_status": ("tools", "fusion", "PatternStatusProbe", "PatternStatusProbe.py"),
 }
 SCENARIOS = frozenset(PROBES)
 EVENT_ID = "sktech_partelier_validation_bridge_tick_946fef9c"
@@ -59,7 +60,7 @@ def validate_request(value, filename_id):
         raise ValueError("Request identifier must match its queue filename.")
     canonical_request_id(value["session_id"])
     if not isinstance(value["scenario"], str) or value["scenario"] not in SCENARIOS:
-        raise ValueError("Only the fixed joined_finish, snap_fit and patterns scenarios are allowed.")
+        raise ValueError("Only fixed allowlisted validation scenarios are allowed.")
     submitted = value["submitted_at"]
     try:
         finite = not isinstance(submitted, bool) and isinstance(submitted, (int, float)) and math.isfinite(submitted)
@@ -107,7 +108,7 @@ def read_json(path, max_bytes=MAX_REQUEST_BYTES):
 
 
 def source_manifest(repo_root):
-    """Hash the complete local product runtime and both fixed probe sources."""
+    """Hash the complete local product runtime and all fixed probe sources."""
     repo_root = Path(repo_root).resolve()
     runtime_root = repo_root / "Partelier" / "partelier"
     probes = [repo_root.joinpath(*relative) for relative in PROBES.values()]
@@ -261,7 +262,7 @@ def _tick():
         return
     request_id = request["request_id"]
     command = STATE["app"].userInterface.activeCommand
-    if command not in IDLE_COMMANDS:
+    if command not in IDLE_COMMANDS and request['scenario'] != 'pattern_status':
         busy = STATE.get("busy")
         if busy is None or busy["request_id"] != request_id:
             busy = {"request_id": request_id, "since": time.monotonic()}

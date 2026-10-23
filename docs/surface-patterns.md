@@ -38,6 +38,12 @@ owned feature, restores the saved settings, and Rebuild updates the same owned
 history. Selection scope is fixed during Edit. Cancel removes the tool's own
 preview and restores visibility.
 
+Version 0.10.1 recovers lost preview acknowledgments and completion messages by
+reading the current native session status while awaiting a preview. Status
+queries run independently of the queued geometry actions. Recovery reuses the
+computed result; it does not start another calculation or confirm Create.
+Late responses cannot restore an obsolete loading state after completion.
+
 ## Surface contract
 
 Actual Fusion CAD examples from the passing native checks:

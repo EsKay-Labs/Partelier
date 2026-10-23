@@ -13,8 +13,9 @@
     };
     const terminal = new Set(["idle", "created", "cancelled"]), retired = new Set();
     const signed = new Set(["rotation_deg", "offset_u_mm", "offset_v_mm"]);
-    const state = { alias: null, selected: false, connected: false, capabilities: new Set(), others: { hinge: false, snap: false }, settings: { ...defaults }, revision: 0, session: null, busy: false, dirty: false, expecting: false, liveError: false };
+    const state = { alias: null, selected: false, connected: false, capabilities: new Set(), others: { hinge: false, snap: false }, settings: { ...defaults }, revision: 0, session: null, busy: false, dirty: false, expecting: false, liveError: false, connectionError: false };
     let serial = 0, pushedVersion = 0, timer, queued = false, pending = 0, actions = Promise.resolve();
+    let previewRequest, recoveryTimer, recoveryFlight;
     const active = () => !!state.session && !terminal.has(state.session.phase) && !!(state.session.sessionId || state.session.phase === "opening");
     const identity = () => active() ? state.session.sessionId : null;
     const supported = () => state.connected && state.capabilities.has("pattern-palette");
@@ -30,6 +31,34 @@
         $("pattern-operation-status").hidden = !text || (!error && !/created|rebuilt|cancelled|Starting|Creating|Rebuilding|^\d+ cells\b/i.test(text));
     }
     function cancelTimer() { if (timer !== undefined) window.clearTimeout(timer); timer = undefined; }
+    function recoverySession() {
+        if (previewRequest && !previewRequest.done) return previewRequest.sessionId;
+        return state.session?.phase === "computing" ? identity() : null;
+    }
+    function scheduleRecovery() {
+        if (!recoverySession()) {
+            if (recoveryTimer !== undefined) window.clearTimeout(recoveryTimer);
+            recoveryTimer = undefined; return;
+        }
+        if (recoveryTimer !== undefined || recoveryFlight) return;
+        recoveryTimer = window.setTimeout(async () => {
+            recoveryTimer = undefined;
+            const sessionId = recoverySession(); if (!sessionId) return;
+            const flight = {}; recoveryFlight = flight;
+            try { await send("pattern_status", {}, sessionId); }
+            catch (_) {
+                if (recoverySession() === sessionId) { state.connectionError = true; render(); }
+            }
+            finally { if (recoveryFlight === flight) recoveryFlight = undefined; scheduleRecovery(); }
+        }, 2000);
+    }
+    function completePreview(snapshot, previous) {
+        const waiting = previewRequest, sessionId = snapshot.sessionId || previous?.sessionId;
+        if (waiting && !waiting.done && sessionId === waiting.sessionId && snapshot.revision >= waiting.revision
+                && ["preview", "error", "cancelled"].includes(snapshot.phase)) {
+            waiting.done = true; waiting.resolve(snapshot);
+        }
+    }
     function sync() {
         for (const input of $("pattern-settings").querySelectorAll("[name]")) { input.value = state.settings[input.name]; input.setCustomValidity(""); }
         renderArt();
@@ -67,6 +96,7 @@
     }
     function render() {
         const committing = state.session?.phase === "opening", busy = state.busy || committing, hasSession = active(), ready = !!identity() && selected();
+        if (state.connectionError) message("Fusion status is not responding. Computation may still be running. Waiting to reconnect…", true);
         $("pattern-tool").hidden = !state.selected; $("pattern-action-dock").hidden = !state.selected;
         $("tool-select").disabled = hasSession || busy || otherActive();
         availability(committing);
@@ -81,11 +111,11 @@
         $("create-pattern-button").textContent = editing() ? "Rebuild pattern" : "Create pattern";
         $("pattern-availability").hidden = supported();
         $("pattern-availability").textContent = state.connected ? "Restart Partelier to enable surface patterns." : "Open Partelier in Fusion to select geometry.";
-        const label = !supported() ? "Fusion required" : !ready ? "waiting for geometry" : !valid() ? "check inputs" : state.liveError || state.session?.phase === "error" ? "needs attention" : committing ? "creating" : current() ? "up to date" : busy || timer !== undefined || queued || state.session?.phase === "computing" ? "updating…" : "refresh needed";
+        const label = !supported() ? "Fusion required" : state.connectionError ? "connection needs attention" : !ready ? "waiting for geometry" : !valid() ? "check inputs" : state.liveError || state.session?.phase === "error" ? "needs attention" : committing ? "creating" : current() ? "up to date" : busy || timer !== undefined || queued || state.session?.phase === "computing" ? "updating…" : "refresh needed";
         $("pattern-live-preview-status").textContent = `Live preview · ${label}`;
         $("pattern-live-preview-status").classList.toggle("is-current", ready && current());
-        $("pattern-live-preview-status").classList.toggle("needs-attention", ready && (!valid() || state.liveError || state.session?.phase === "error"));
-        renderSelection();
+        $("pattern-live-preview-status").classList.toggle("needs-attention", state.connectionError || ready && (!valid() || state.liveError || state.session?.phase === "error"));
+        renderSelection(); scheduleRecovery();
     }
     function apply(snapshot) {
         if (!snapshot || !Number.isInteger(snapshot.revision) || typeof snapshot.phase !== "string") return false;
@@ -93,27 +123,47 @@
         if (snapshot.sessionId && retired.has(snapshot.sessionId)) return false;
         if (snapshot.sessionId && previous?.sessionId && snapshot.sessionId !== previous.sessionId && active() && !state.expecting) return false;
         if (snapshot.sessionId && snapshot.sessionId === previous?.sessionId && snapshot.revision < previous.revision) return false;
+        if (snapshot.sessionId && snapshot.sessionId === previous?.sessionId && snapshot.revision === previous.revision) {
+            if (["preview", "error"].includes(previous.phase) && ["computing", "ready", "selecting"].includes(snapshot.phase)) return false;
+            if (previous.phase === "opening" && !["opening", "created", "error", "cancelled"].includes(snapshot.phase)) return false;
+        }
         const newerEdits = snapshot.revision < state.revision;
         if (!snapshot.sessionId || terminal.has(snapshot.phase)) { if (previous?.sessionId) retired.add(previous.sessionId); if (snapshot.sessionId) retired.add(snapshot.sessionId); }
-        state.session = snapshot;
+        state.session = snapshot; state.connectionError = false;
         if (snapshot.sessionId) state.expecting = false;
         if (!newerEdits && ["preview", "error"].includes(snapshot.phase)) state.liveError = snapshot.phase === "error";
         if (!newerEdits && snapshot.settings) { state.settings = { ...defaults, ...snapshot.settings }; state.revision = snapshot.revision; sync(); }
         if (newerEdits && ["preview", "error"].includes(snapshot.phase)) message("Updating live preview…");
         else message(snapshot.message || "", snapshot.phase === "error");
+        completePreview(snapshot, previous);
         render(); return true;
     }
-    async function send(action, payload = {}) {
+    async function send(action, payload = {}, recoveryId = null) {
         const requestId = `pattern-ui-${++serial}`, version = pushedVersion;
         const response = Promise.resolve().then(() => window.adsk.fusionSendData(action, JSON.stringify({ protocol: 1, requestId, ...payload })));
-        let timeout, raw;
+        let timeout, raw, waiting, completion;
+        if (action === "pattern_preview") {
+            completion = new Promise(resolve => {
+                waiting = { sessionId: payload.sessionId, revision: payload.revision, done: false,
+                    resolve: snapshot => resolve(JSON.stringify({ protocol: 1, requestId, ok: true, patternState: snapshot })) };
+                previewRequest = waiting;
+            });
+            scheduleRecovery();
+        }
         try {
-            raw = ["pattern_begin", "pattern_focus", "pattern_preview", "pattern_commit"].includes(action) ? await response : await Promise.race([response, new Promise((_, reject) => { timeout = window.setTimeout(() => reject(new Error("Fusion did not respond. Stop and Run Partelier, then try again.")), 30000); })]);
-        } finally { if (timeout !== undefined) window.clearTimeout(timeout); }
+            if (completion) raw = await Promise.race([response, completion]);
+            else if (["pattern_begin", "pattern_focus", "pattern_commit"].includes(action)) raw = await response;
+            else raw = await Promise.race([response, new Promise((_, reject) => { timeout = window.setTimeout(() => reject(new Error("Fusion did not respond. Stop and Run Partelier, then try again.")), recoveryId ? 5000 : 30000); })]);
+        } finally {
+            if (timeout !== undefined) window.clearTimeout(timeout);
+            if (previewRequest === waiting) previewRequest = undefined;
+        }
         const result = JSON.parse(raw);
         if (result.protocol !== 1 || result.requestId !== requestId || !result.ok) throw new Error(result.message || "Fusion returned an unexpected response.");
         if (result.patternState) {
             const snapshot = result.patternState, newSession = action === "pattern_begin" && state.expecting && snapshot.sessionId;
+            if (recoveryId && (state.session?.sessionId !== recoveryId || retired.has(recoveryId)
+                    || (snapshot.sessionId && snapshot.sessionId !== recoveryId))) return result;
             if (!(pushedVersion !== version && !newSession && snapshot.revision <= (state.session?.revision ?? -1))) apply(snapshot);
         }
         return result;
@@ -127,10 +177,16 @@
     function sessionAction(action, extra = {}) {
         const sessionId = identity(); if (!sessionId) throw new Error("Start a pattern geometry session first.");
         const payload = { sessionId, ...extra };
+        if (action === "pattern_focus") { state.session = { ...state.session, phase: "selecting", previewCurrent: false }; render(); }
         if (["pattern_update", "pattern_preview", "pattern_commit"].includes(action)) Object.assign(payload, { settings: { ...state.settings }, revision: state.revision });
         return send(action, payload);
     }
-    async function refresh() { if (supported() && identity() && selected() && valid() && state.session?.phase !== "opening") { state.liveError = false; await sessionAction("pattern_preview"); } }
+    async function refresh() {
+        if (supported() && identity() && selected() && valid() && state.session?.phase !== "opening") {
+            state.liveError = false; state.session = { ...state.session, phase: "computing", previewCurrent: false };
+            render(); await sessionAction("pattern_preview");
+        }
+    }
     function schedule() {
         cancelTimer(); if (!supported() || !identity() || !valid() || state.session?.phase === "opening") return;
         timer = window.setTimeout(() => {

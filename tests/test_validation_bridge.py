@@ -196,6 +196,9 @@ class ValidationBridgeTests(unittest.TestCase):
         pattern_probe = root / "tools/fusion/PatternProbe/PatternProbe.py"
         pattern_probe.parent.mkdir(parents=True)
         pattern_probe.write_text("pattern probe", encoding="utf-8")
+        status_probe = root.joinpath(*bridge.PROBES['pattern_status'])
+        status_probe.parent.mkdir(parents=True)
+        status_probe.write_text("read-only status probe", encoding="utf-8")
         (hinge / "planner.py").write_text("first", encoding="utf-8")
         probe.write_text("probe", encoding="utf-8")
         first = bridge.source_manifest(root)
@@ -244,7 +247,7 @@ class ValidationBridgeTests(unittest.TestCase):
     def test_snap_fit_allowlist_keeps_joined_finish_default_and_rejects_arbitrary_dispatch(self):
         self.assertEqual(bridge.PROTOCOL_VERSION, 2)
         self.assertEqual(bridge.SCENARIO, "joined_finish")
-        self.assertEqual(bridge.SCENARIOS, {"joined_finish", "snap_fit", "patterns"})
+        self.assertEqual(bridge.SCENARIOS, {"joined_finish", "snap_fit", "patterns", "pattern_status"})
         request = self.request()
         request["scenario"] = "snap_fit"
         self.assertEqual(bridge.validate_request(request, request["request_id"]), request)
@@ -316,6 +319,16 @@ class ValidationBridgeTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Reload.*patterns"):
                 cli.submit(bridge, "patterns")
 
+    def test_read_only_pattern_status_is_allowed_during_active_commands(self):
+        request = dict(self.request(), scenario="pattern_status")
+        self.assertEqual(bridge.validate_request(request, request["request_id"]), request)
+        bridge.atomic_json(self.queue / "requests" / (request["request_id"] + ".json"), request)
+        bridge.STATE["app"].userInterface.activeCommand = "sktech_partelier_pattern_compute_23bc07a1"
+        with patch.object(bridge, "_start_request") as start:
+            bridge._tick()
+        start.assert_called_once_with(request)
+        self.assertIsNone(bridge.STATE["busy"])
+
     def test_manifest_covers_all_runtime_shared_code_and_all_fixed_probes(self):
         root = self.queue / "wide_repo"
         runtime = root / "Partelier/partelier"
@@ -332,7 +345,7 @@ class ValidationBridgeTests(unittest.TestCase):
             probe.parent.mkdir(parents=True)
             probe.write_text("fixed probe", encoding="utf-8")
         first = bridge.source_manifest(root)
-        self.assertEqual(len(first["files"]), 6)
+        self.assertEqual(len(first["files"]), 3+len(bridge.PROBES))
         for path in (shared, snap, runtime / "palette.py", root.joinpath(*bridge.PROBES["snap_fit"])):
             old = path.read_text(encoding="utf-8")
             path.write_text("changed", encoding="utf-8")

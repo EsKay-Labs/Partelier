@@ -22,6 +22,7 @@ py tools/run_fusion_validation.py status
 py tools/run_fusion_validation.py submit --scenario joined_finish --no-wait
 py tools/run_fusion_validation.py submit --scenario snap_fit --no-wait
 py tools/run_fusion_validation.py submit --scenario patterns --no-wait
+py tools/run_fusion_validation.py submit --scenario pattern_status --no-wait
 py tools/run_fusion_validation.py poll REQUEST_UUID --timeout 60
 ```
 
@@ -43,6 +44,45 @@ report is published after owned-command cleanup and rollback checks. An old
 completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
+
+## Pattern palette recovery (0.10.1)
+
+A read-only inspection of the reported stuck session found a finished native
+preview with 182 cells, a current result and no running or pending computation.
+The loading indicator was stale UI state. The browser controller now recovers
+lost preview acknowledgments/completion pushes using the existing read-only
+`pattern_status` action, outside the serial geometry queue. A matching completed
+state can release an outstanding preview acknowledgment. Recovery never
+recalculates geometry or commits the result.
+
+The development bridge also adds a fixed `pattern_status` diagnostic scenario
+to inspect this distinction without running fixtures or closing a preview. Only
+this read-only scenario may run during another active native command. It locates
+the product by its exact local module path and reports session/runner lifecycle
+flags. This is separate from the browser action with the same name. Reload the
+bridge once to advertise the new scenario; older bridge sessions keep their
+previous allowlist. Diagnostic reports remain local and may contain selected
+body names and settings.
+
+All **797 Python tests**, three Node DOM suites and JavaScript syntax checks pass.
+The browser regressions cover missing preview acknowledgments, missing completion
+pushes, queue release, stale responses, one in-flight status query, bounded
+read-only query timeouts and retirement of polling after Cancel. Geometry and
+Create are never retried by this recovery path.
+
+The corrected 0.10.1 palette was then reopened through its own native API. The
+real HTML `ready` handshake returned the same current 182-cell preview. The
+original native session, detached result and preview graphics retained their
+identities; the model/history/visibility/graphics snapshot matched before and
+after. This one-time UI check ran instead of the geometry matrix and its
+temporary probe hook was removed afterwards. The public record omits user paths,
+names, selected references and settings. [Recovery evidence](validation/pattern-preview-0.10.1.json).
+
+The CAD adapter, planner, persistence, native rollback driver and fixed geometry
+matrix are unchanged from 0.10.0. Its 30 native cases remain the geometry evidence;
+the UI recovery regressions separately simulate missing, delayed and stale
+messages. Native palette reconnection and local DOM checks do not establish
+manual CEF clicking coverage for every interaction.
 
 ## Balanced patterns and finite trim boundaries (0.10.0)
 

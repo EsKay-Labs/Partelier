@@ -1,0 +1,52 @@
+{
+  "product_version": "0.10.1",
+  "native_palette_check": {
+    "request_id": "8d8daddd-aaf2-42ea-a45a-c44ee34dd0f6",
+    "cells": 182,
+    "fusion_version": "2705.1.30",
+    "native_model_and_display_unchanged": true,
+    "palette_visible": true,
+    "product_version": "0.10.1",
+    "ready_handshake_received": true,
+    "ready_phase": "preview",
+    "ready_preview_current": true,
+    "same_native_session": true,
+    "same_prepared_result": true,
+    "same_preview_graphics": true,
+    "scenario": "pattern_palette_reload",
+    "success": true
+  },
+  "geometry_evidence": {
+    "record": "patterns-0.10.0.json",
+    "all_44_tested_runtime_and_matrix_sources_unchanged": true,
+    "new_geometry_matrix_run": false
+  },
+  "local_checks": {
+    "python_tests": 797,
+    "node_dom_suites": 3,
+    "javascript_syntax": true,
+    "recovery_regressions": [
+      "Missing preview ACK settles from matching completion/error/cancellation without releasing the old ACK.",
+      "Read-only status recovers a lost completion push, with or without a missing ACK.",
+      "Late ACKs and same-revision computing pushes cannot replace a newer preview.",
+      "Only one read-only status request is in flight; timeout shows connection attention without restarting geometry.",
+      "A completed push clears connection attention, and Cancel retires polling.",
+      "Old status responses cannot affect a replacement session; recovery never recomputes or commits."
+    ]
+  },
+  "files": {
+    "Partelier/Partelier.manifest": "5b31087d62032580105aa91e112bd9059d5745de0a3d157bf7fef0dffc8cc503",
+    "Partelier/partelier/ui/palette.html": "04765954334c660bcb792a3e04d165f7b1ab061015dbfd6900c57201959df977",
+    "Partelier/partelier/ui/palette.js": "331a75b6dc4727da66820139b4e398f547fc44a2547f418eb92f0149a22fd3bf",
+    "Partelier/partelier/ui/patterns.js": "47a317f48a60616e39654b5667e8bb2d3cf3b713a0e94801256e23cabfa44fcb",
+    "tests/test_patterns_ui.cjs": "364f4786afeb2b71bdefe2e867b5e4af44abe9d8d8157ac1be78bc69735a3606",
+    "tests/test_pattern_status_probe.py": "27e71b6fbe7578b5347559888d496c6768588165c1c8bb624b5ba5004c6f5c2e",
+    "tests/test_validation_bridge.py": "48c842750809488b5791aa5092806cf0f4850e8c5e8d288b6b2323806bb15b84",
+    "tools/fusion/PartelierValidationBridge/PartelierValidationBridge.py": "26c758bae784a1b2718f1b328ae4dfeebaff48d1181cc569bb1a404f20af32ad",
+    "tools/fusion/PatternStatusProbe/PatternStatusProbe.py": "8807c826a49e54e33052b9e30cb1935e4cd9eb42e724ab20e651c02a130dca50"
+  },
+  "limits": [
+    "The one-time native check reopens only the owned product palette and verifies its ready handshake and native state preservation.",
+    "Loss and timing regressions use the actual browser controller with a simulated message boundary; they are separate from manual CEF clicking."
+  ]
+}

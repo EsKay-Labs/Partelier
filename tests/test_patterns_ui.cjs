@@ -26,10 +26,10 @@ function fixture(options = {}) {
     for(const id of ["snap-family-fields","snap-style-fields","snap-size-fields","snap-fit-fields","snap-layout-fields","snap-construction-fields","snap-finish-toggle","snap-finish-fields","snap-ball-fields","snap-torsion-fields","snap-annular-fields"]) $("snap-settings").append($(id));
     for(const id of ["pattern-design-fields","pattern-size-fields","pattern-scope-fields","pattern-placement-fields"]) $("pattern-settings").append($(id));
     const document={getElementById:$,createElement:tag=>new Element(tag),querySelector:()=>new Element("a"),querySelectorAll:()=>[],addEventListener(){}};
-    const requests=[],timers=new Map(),config={...options,holdPick:false,holdPreview:false,queuedPreview:false,holdCommit:false,release:null,failPreview:false,delayedPush:null,saved:null};
+    const requests=[],timers=new Map(),config={...options,holdPick:false,holdPreview:false,queuedPreview:false,holdCommit:false,holdStatus:false,statusReleases:[],release:null,failPreview:false,delayedPush:null,saved:null};
     let host=options.pattern||idle(),hinge=options.hinge||idle(),snap=options.snap||idle(),sequence=0,timerSequence=0,timeouts=0;
     const clone=x=>JSON.parse(JSON.stringify(x)),push=x=>window.fusionJavaScriptHandler.handle("pattern_state",JSON.stringify(x));
-    const window={setTimeout(fn,ms){if(ms===30000){timeouts++;return 0;}if(ms===160){const id=++timerSequence;timers.set(id,fn);return id;}return setTimeout(fn,ms);},clearTimeout(id){timers.delete(id);clearTimeout(id);},adsk:{fusionSendData(action,raw){
+    const window={setTimeout(fn,ms){if(ms===30000){timeouts++;return 0;}if([160,2000,5000].includes(ms)){const id=++timerSequence;timers.set(id,{fn,ms});return id;}return setTimeout(fn,ms);},clearTimeout(id){timers.delete(id);clearTimeout(id);},adsk:{fusionSendData(action,raw){
         const request=JSON.parse(raw);requests.push([action,request]);
         const respond=(ok=true,message)=>JSON.stringify({protocol:1,requestId:request.requestId,ok,message,capabilities:config.capabilities||["hinge-palette","hinge-edit","snap-palette","snap-edit","pattern-palette","pattern-edit"],hingeState:clone(hinge),snapState:clone(snap),patternState:clone(host),patternDefaults:defaults});
         for(const tool of ["hinge","snap"]) if(action.startsWith(tool+"_")) {
@@ -56,14 +56,16 @@ function fixture(options = {}) {
         if(action==="pattern_cancel"){host.phase="cancelled";host.sessionId=null;host.message="Pattern cancelled.";}
         if(action==="pattern_preview"&&config.failPreview){config.failPreview=false;return Promise.resolve(respond(false,"Offset failed on this curved face. Reduce depth."));}
         const result=respond();
+        if(action==="pattern_status"&&config.holdStatus)return new Promise(resolve=>config.statusReleases.push(()=>resolve(result)));
         if(["pattern_begin","pattern_focus"].includes(action)&&config.holdPick||action==="pattern_preview"&&config.holdPreview||action==="pattern_commit"&&config.holdCommit)return new Promise(resolve=>{config.release=()=>resolve(result);});
         return Promise.resolve(result);
     }}};
     const context=vm.createContext({window,document,console,setTimeout,clearTimeout});
     for(const file of ["catalog.js","illustrations.js","snap.js","patterns.js","palette.js"])vm.runInContext(fs.readFileSync(path.join(ui,file),"utf8"),context,{filename:file});
     const flush=async()=>{for(let i=0;i<8;i++)await new Promise(resolve=>setImmediate(resolve));};
-    const settle=async()=>{const pending=[...timers.values()];timers.clear();pending.forEach(fn=>fn());await flush();};
-    return {$,window,requests,config,flush,settle,push,snapshot:()=>clone(host),timeouts:()=>timeouts,
+    const advance=async ms=>{const pending=[...timers.entries()].filter(([,timer])=>timer.ms===ms);pending.forEach(([id])=>timers.delete(id));pending.forEach(([,timer])=>timer.fn());await flush();};
+    const settle=()=>advance(160);
+    return {$,window,requests,config,flush,settle,advance,push,setHost:snapshot=>{host=clone(snapshot);},snapshot:()=>clone(host),timeouts:()=>timeouts,pendingTimers:ms=>[...timers.values()].filter(timer=>timer.ms===ms).length,
         async select(id){$("tool-select").value=id;await $("tool-select").emit("change");await flush();},
         async click(id){await $(id).emit("click");await flush();},
         async input(name,value,debounce=true){const input=$("pattern-"+name);input.value=value;for(const fn of $("pattern-settings").listeners.input)fn({target:input});await flush();if(debounce)await settle();}
@@ -121,6 +123,52 @@ function fixture(options = {}) {
     await f.select("hinge");await f.click("begin-hinge-button");assert.equal(f.$("tool-select").disabled,true);await f.click("cancel-hinge-button");assert.equal(f.$("tool-select").disabled,false);
     const recovered=fixture({pattern:{...retiring,sessionId:"d28c515a-66dc-4c66-a57b-999999999999",phase:"preview",settings:{...defaults,pattern:"circle",mode:"engrave",depth_mm:.6}}});await recovered.flush();assert.equal(recovered.$("tool-select").value,"perforation");assert.equal(recovered.$("pattern-mode").value,"engrave");assert.equal(recovered.$("create-pattern-button").disabled,false);
     const unavailable=fixture({capabilities:["hinge-palette","snap-palette"]});await unavailable.flush();await unavailable.select("honeycomb");assert.equal(unavailable.$("begin-pattern-button").disabled,true);assert.equal(unavailable.$("edit-pattern-button").disabled,true);assert.equal(unavailable.$("pattern-availability").hidden,false);
+    for(const phase of ["preview","error","cancelled"]){
+        const lost=fixture();await lost.flush();await lost.select("honeycomb");await lost.click("begin-pattern-button");
+        lost.config.holdPreview=true;lost.config.queuedPreview=true;lost.$("pattern-select-surface").emit("click");await lost.flush();
+        const computing=lost.snapshot();assert.equal(lost.window.PartelierPatterns.isBusy(),true);assert.equal(lost.$("cancel-pattern-button").disabled,true);
+        lost.push({...computing,sessionId:"d28c515a-66dc-4c66-a57b-888888888888",phase});await lost.flush();assert.equal(lost.window.PartelierPatterns.isBusy(),true,"another session cannot settle the pending preview");
+        const completed={...computing,phase,previewCurrent:phase==="preview",message:phase==="error"?"Native preview failed.":"24 cells"};
+        if(phase==="preview"){completed.revision++;completed.settings={...completed.settings,pitch_mm:9};}
+        lost.push(completed);await lost.flush();assert.equal(lost.window.PartelierPatterns.isBusy(),false,`${phase} settles a missing preview ACK without releasing it`);
+        assert.equal(lost.pendingTimers(2000),0);
+        if(phase==="preview"){
+            assert.equal(lost.$("create-pattern-button").disabled,false);assert.equal(lost.$("cancel-pattern-button").disabled,false);
+            lost.push({...completed,phase:"computing"});assert.equal(lost.$("create-pattern-button").disabled,false,"a late same-revision computing push cannot regress a completed preview");
+            const originalAck=lost.config.release;lost.config.holdPreview=false;lost.config.queuedPreview=false;
+            await lost.input("pitch_mm",10);assert.equal(lost.requests.filter(([a])=>a==="pattern_preview").length,2,"new input is no longer blocked behind the lost ACK");
+            originalAck();await lost.flush();assert.equal(lost.$("pattern-pitch_mm").value,"10");assert.equal(lost.$("create-pattern-button").disabled,false,"late original ACK cannot replace the newer preview");
+            await lost.click("cancel-pattern-button");
+        }else if(phase==="error"){
+            assert.equal(lost.$("preview-pattern-button").disabled,false);assert.equal(lost.$("cancel-pattern-button").disabled,false);
+            await lost.click("cancel-pattern-button");lost.config.release();await lost.flush();
+        }else{assert.equal(lost.$("tool-select").disabled,false);lost.config.release();await lost.flush();assert.equal(lost.$("tool-select").disabled,false);}
+    }
+    for(const missingAck of [false,true]){
+        const recovered=fixture();await recovered.flush();await recovered.select("honeycomb");await recovered.click("begin-pattern-button");
+        recovered.config.queuedPreview=true;recovered.config.holdPreview=missingAck;
+        if(missingAck){recovered.$("pattern-select-surface").emit("click");await recovered.flush();}else await recovered.click("pattern-select-surface");
+        const computing=recovered.snapshot();recovered.setHost({...computing,phase:"preview",previewCurrent:true,message:"36 cells · fitted pitch 8.2 mm"});
+        await recovered.advance(2000);
+        assert.equal(recovered.requests.filter(([a])=>a==="pattern_status").length,1);assert.equal(recovered.requests.filter(([a])=>a==="pattern_preview").length,1,"status recovery never recomputes geometry");
+        assert.equal(recovered.window.PartelierPatterns.isBusy(),false);assert.equal(recovered.$("create-pattern-button").disabled,false);assert.equal(recovered.$("pattern-operation-status").textContent,"36 cells · fitted pitch 8.2 mm");
+        assert.equal(recovered.pendingTimers(2000),0);assert.equal(recovered.pendingTimers(5000),0);await recovered.advance(2000);assert.equal(recovered.requests.filter(([a])=>a==="pattern_status").length,1);
+        await recovered.click("cancel-pattern-button");if(missingAck){recovered.config.release();await recovered.flush();}assert.equal(recovered.$("tool-select").disabled,false);
+        assert.equal(recovered.requests.some(([a])=>a==="pattern_commit"),false);
+    }
+    const offline=fixture();await offline.flush();await offline.select("honeycomb");await offline.click("begin-pattern-button");offline.config.queuedPreview=true;offline.config.holdStatus=true;await offline.click("pattern-select-surface");
+    await offline.advance(2000);assert.equal(offline.pendingTimers(5000),1);await offline.advance(2000);assert.equal(offline.requests.filter(([a])=>a==="pattern_status").length,1,"only one read-only request is in flight");
+    await offline.advance(5000);assert(offline.$("pattern-live-preview-status").textContent.includes("connection needs attention"));assert(offline.$("pattern-operation-status").textContent.includes("Computation may still be running"));assert.equal(offline.$("pattern-operation-status").hidden,false);
+    assert.equal(offline.snapshot().phase,"computing");assert.equal(offline.requests.filter(([a])=>a==="pattern_preview").length,1);assert.equal(offline.$("cancel-pattern-button").disabled,false);
+    offline.config.holdStatus=false;offline.setHost({...offline.snapshot(),phase:"preview",previewCurrent:true,message:"24 cells"});await offline.advance(2000);
+    assert.equal(offline.requests.filter(([a])=>a==="pattern_status").length,2);assert.equal(offline.$("create-pattern-button").disabled,false);assert.equal(offline.$("pattern-live-preview-status").textContent,"Live preview · up to date");assert.equal(offline.$("pattern-operation-status").textContent,"24 cells");
+    offline.config.statusReleases[0]();await offline.flush();assert.equal(offline.$("create-pattern-button").disabled,false,"a timed-out status reply has no effect when it eventually arrives");
+    offline.config.holdStatus=true;await offline.input("pitch_mm",9);await offline.advance(2000);await offline.advance(5000);assert(offline.$("pattern-live-preview-status").textContent.includes("connection needs attention"));
+    offline.push({...offline.snapshot(),phase:"preview",previewCurrent:true,message:"30 cells"});await offline.flush();assert.equal(offline.$("pattern-live-preview-status").textContent,"Live preview · up to date");assert.equal(offline.$("pattern-operation-status").textContent,"30 cells","an authoritative completion push clears connection attention too");assert.equal(offline.pendingTimers(2000),0);await offline.click("cancel-pattern-button");
+    const retiredPoll=fixture();await retiredPoll.flush();await retiredPoll.select("honeycomb");await retiredPoll.click("begin-pattern-button");retiredPoll.config.queuedPreview=true;retiredPoll.config.holdStatus=true;await retiredPoll.click("pattern-select-surface");
+    await retiredPoll.advance(2000);await retiredPoll.click("cancel-pattern-button");assert.equal(retiredPoll.pendingTimers(2000),0);await retiredPoll.advance(2000);assert.equal(retiredPoll.requests.filter(([a])=>a==="pattern_status").length,1);
+    retiredPoll.config.queuedPreview=false;retiredPoll.config.completePick=true;await retiredPoll.click("begin-pattern-button");const newSession=retiredPoll.snapshot();retiredPoll.config.statusReleases[0]();await retiredPoll.flush();
+    assert.equal(retiredPoll.$("create-pattern-button").disabled,false);assert.equal(retiredPoll.snapshot().sessionId,newSession.sessionId);assert.equal(retiredPoll.pendingTimers(2000),0);assert.equal(retiredPoll.pendingTimers(5000),0);await retiredPoll.click("cancel-pattern-button");
     const version=JSON.parse(fs.readFileSync(path.join(__dirname,"../Partelier/Partelier.manifest"),"utf8")).version;assert(html.includes(`patterns.js?v=${version}`));
     console.log("Pattern UI contract passed: presets, typed full snapshots, surface scopes, modes, live preview, Edit/Rebuild, three-tool locks, stale sessions and native acknowledgment ordering.");
 })().catch(error=>{console.error(error);process.exitCode=1;});
