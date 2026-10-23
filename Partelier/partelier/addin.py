@@ -50,9 +50,10 @@ def report_error(summary):
 
 
 def start():
-    """Register exactly one command and keep its creation handler alive."""
+    """Register owned commands once and show the HTML tool library on Run."""
     global _created_handler, _hinge_commands, _snap_commands
     if _created_handler is not None:
+        _tool_library.show()
         return
     ui = adsk.core.Application.get().userInterface
     workspace = ui.workspaces.itemById(WORKSPACE_ID)
@@ -79,6 +80,7 @@ def start():
             WORKSPACE_ID, PANEL_ID, COMMAND_ID, report_error,
             hinge_commands=_hinge_commands, snap_commands=_snap_commands,
         )
+        _tool_library.show()
     except Exception:
         stop()
         raise

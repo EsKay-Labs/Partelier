@@ -41,6 +41,29 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Gap rims and internal lips (0.6.1)
+
+Final native request `6711587d-71da-4023-8926-b6ca1c65ce56` passes all eleven
+snap-fit cases, including two new Create/Rebuild scenarios with a 0.3 mm gap:
+a rim picked on the lid maps to the base rim, and internal tongue/groove lips
+extend across the exterior seam without being rejected by whole-body bounds.
+The final paired solids have verified clearance, the original body identities
+remain, and the user's original geometry/history/display snapshot matches after
+rollback. [Evidence and exact hashes](validation/snap-fit-0.6.1.json).
+
+Read-only diagnostic `acabaf11-2242-42a3-a64d-906f4d7d79ae` also prepares the
+user's actual failed selections with the same final geometry-adapter hash. The
+selected lid edge at Z=170.15 mm maps to the base edge at Z=169.85 mm; the
+existing inner lips are retained. Both candidates remain one solid. This check
+creates no persistent geometry and leaves the document snapshot unchanged.
+Persistent body tokens and model details are omitted from committed evidence.
+
+615 local Python checks and both DOM suites cover the revised behavior. Startup
+now displays the palette after registering the managers; repeated start re-shows
+it, while startup display failure cleans up for retry. Lifecycle coverage does
+not simulate manual native Run/Stop or CEF clicks. Existing print/motion and
+save/reopen/Undo/Redo limits still apply. Historical 0.6.0 evidence follows.
+
 ## Exterior snap-fit (0.6.0)
 
 Final native request `54536e93-be12-418f-86c9-9f83d0bbe872` passes nine named

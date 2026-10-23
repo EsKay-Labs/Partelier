@@ -76,7 +76,7 @@ def queue_probe_event():
     STATE["report"]["queue_return"] = result
 
 
-def fixture(design, *, span=60.0, thickness=3.0, upper=24.0):
+def fixture(design, *, span=60.0, thickness=3.0, upper=24.0, gap=0.0, lipped=False):
     """Create exactly two owned wall boxes with an outward X=0 face and Z=0 seam."""
     root = design.rootComponent
     manager = adsk.fusion.TemporaryBRepManager.get()
@@ -85,14 +85,31 @@ def fixture(design, *, span=60.0, thickness=3.0, upper=24.0):
     if not feature.startEdit():
         raise RuntimeError("Could not edit the disposable source fixture.")
     try:
-        for low_z, high_z in ((-24.0, 0.0), (0.0, upper)):
+        temporary = []
+        for low_z, high_z in ((-24.0, 0.0), (gap, upper)):
             bounds = adsk.core.OrientedBoundingBox3D.create(
                 adsk.core.Point3D.create(-thickness / 20.0, 0, (low_z + high_z) / 20.0),
                 adsk.core.Vector3D.create(1, 0, 0), adsk.core.Vector3D.create(0, 1, 0),
                 thickness / 10.0, span / 10.0, (high_z - low_z) / 10.0)
             body = manager.createBox(bounds)
-            if body is None or root.bRepBodies.add(body, feature) is None:
+            if body is None:
                 raise RuntimeError("Could not construct the disposable wall fixture.")
+            temporary.append(body)
+        if lipped:
+            adapter=STATE["adapter"]
+            frame=adapter.hinge.HingeFrame((0,0,0),(1,0,0),(0,1,0),(0,0,1))
+            def box(values):return adapter.hinge._box(manager,frame,adapter.BoxBounds(*values))
+            def boolean(target,tool,operation):
+                if not manager.booleanOperation(target,tool,operation):
+                    raise RuntimeError("Could not construct the internal lip fixture.")
+            operations=adsk.fusion.BooleanTypes
+            boolean(temporary[0],box((-3,-2,-3,3,-.2,4)),operations.UnionBooleanType)
+            boolean(temporary[1],box((-3.2,-1.7,-3.3,3.3,gap-.1,4.3)),operations.DifferenceBooleanType)
+            boolean(temporary[1],box((-3,-2,10,16,-4,gap+.2)),operations.UnionBooleanType)
+            boolean(temporary[0],box((-3.2,-1.7,9.7,16.3,-4.3,.1)),operations.DifferenceBooleanType)
+        for body in temporary:
+            if root.bRepBodies.add(body,feature) is None:
+                raise RuntimeError("Could not persist the disposable wall fixture.")
     finally:
         if not feature.finishEdit():
             raise RuntimeError("Could not finish the disposable wall fixture.")
@@ -176,6 +193,39 @@ def _identity_check(design, targets, tokens, names, flags, count):
             raise RuntimeError("Native persistence changed the selected body identity, name or visibility.")
 
 
+def gap_cases():
+    """Gap picking and lips that cross the exterior seam, with in-place rebuild."""
+    design=STATE["design"]
+    adapter=STATE["adapter"]
+    settings=STATE["settings_module"].SnapFitSettings()
+    for lipped in (False,True):
+        _,targets,faces,edge_a=fixture(design,gap=.3,lipped=lipped)
+        edge_b=next(edge for edge in _items(faces[1].edges)
+                    if abs(edge.startVertex.geometry.z-.03)<1e-7 and abs(edge.endVertex.geometry.z-.03)<1e-7)
+        before=snapshot(design)
+        a=adapter.prepare_snap_fit(design,*faces,edge_a,settings)
+        b=adapter.prepare_snap_fit(design,*faces,edge_b,settings)
+        if b.axis_edge!=edge_a or b.source_signature!=a.source_signature:
+            raise RuntimeError("A pick across the gap did not canonicalize to the same base rim.")
+        if snapshot(design)!=before:
+            raise RuntimeError("Gap preview modified the source bodies.")
+        witnesses=inspect_preview(b)
+        count=design.rootComponent.bRepBodies.count
+        tokens=tuple(body.entityToken for body in targets)
+        names=tuple(body.name for body in targets)
+        flags=tuple(body.isLightBulbOn for body in targets)
+        anchor=adapter.create_snap_fit(design,b)
+        _identity_check(design,targets,tokens,names,flags,count)
+        target=adapter.read_edit_target(design,anchor)
+        settings2=replace(settings,width_mm=7)
+        rebuilt=adapter.prepare_edit_snap_fit(design,target,settings2)
+        if adapter.rebuild_snap_fit(design,target,rebuilt)!=anchor:
+            raise RuntimeError("Gap rebuild replaced its feature.")
+        _identity_check(design,targets,tokens,names,flags,count)
+        STATE["report"]["cases"].append({"name":"internal_lips_gap_create_rebuild" if lipped else "lid_edge_gap_create_rebuild",
+             "success":True,"gap_mm":.3,"witnesses":witnesses})
+
+
 def cases():
     design = STATE["design"]
     adapter, settings_module = STATE["adapter"], STATE["settings_module"]
@@ -247,6 +297,7 @@ def cases():
                                      "expected_refusal": True, "message": str(error)})
         else:
             raise RuntimeError("Unsupported fixture was accepted: " + name)
+    gap_cases()
     session_checks()
     report["geometry_checks_passed"] = True
 

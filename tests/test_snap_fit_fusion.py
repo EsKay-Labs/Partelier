@@ -175,15 +175,68 @@ class SnapFitSelectionTests(unittest.TestCase):
                 fusion._sources(design, broken)
 
 
+class SnapFitRimGapTests(unittest.TestCase):
+    def setUp(self):
+        self.design,self.a,self.b,_=fixture()
+        self.rim=Entity(assemblyContext=None,body=self.a.body,bounds=((0,-3,0),(0,3,0)))
+        self.pick=Entity(assemblyContext=None,body=self.b.body,bounds=((0,3,.03),(0,-3,.03)))
+        self.a.edges=SimpleNamespace(count=1,item=lambda index:self.rim)
+        self.b.edges=SimpleNamespace(count=1,item=lambda index:self.pick)
+        def vertices(zs):
+            values=[Entity(geometry=xyz(0,y,z)) for y in (-3,3) for z in zs]
+            return SimpleNamespace(count=len(values),item=values.__getitem__)
+        self.a.vertices=vertices((-2.4,0))
+        self.b.vertices=vertices((.03,2.4))
+        self.patches=[patch.object(fusion.hinge,"_canonical_axis_edge",side_effect=fusion.hinge.HingeGeometryError("exact mismatch")),
+                      patch.object(fusion.hinge,"_straight_endpoints",side_effect=lambda edge:edge.bounds),
+                      patch.object(fusion.hinge,"_plane_normal",side_effect=lambda face:face.normal)]
+        for item in self.patches:item.start()
+        self.addCleanup(lambda:[item.stop() for item in reversed(self.patches)])
+
+    def test_lid_rim_across_point_three_mm_gap_resolves_to_base_rim(self):
+        self.assertIs(fusion._canonical_rim(self.a,self.b,self.pick),self.rim)
+        self.pick.bounds=tuple(reversed(self.pick.bounds))
+        self.assertIs(fusion._canonical_rim(self.a,self.b,self.pick),self.rim)
+
+    def test_exact_original_boundary_path_is_preserved(self):
+        fusion.hinge._canonical_axis_edge.side_effect=None
+        fusion.hinge._canonical_axis_edge.return_value=self.rim
+        self.assertIs(fusion._canonical_rim(self.a,self.b,self.rim),self.rim)
+
+    def test_partial_shifted_diagonal_and_out_of_plane_rims_are_refused(self):
+        for points in (((0,2,.03),(0,-2,.03)),((0,4,.03),(0,-2,.03)),
+                       ((0,3,.03),(0,-3,.04)),((.1,3,.03),(.1,-3,.03))):
+            self.pick.bounds=points
+            with self.subTest(points=points),self.assertRaises(ValueError):
+                fusion._canonical_rim(self.a,self.b,self.pick)
+
+    def test_lid_far_edge_cannot_be_used_as_the_seam(self):
+        self.pick.bounds=((0,3,2.4),(0,-3,2.4))
+        with self.assertRaises(ValueError):fusion._canonical_rim(self.a,self.b,self.pick)
+
+    def test_another_body_or_nonboundary_edge_cannot_choose_a_rim(self):
+        self.pick.body=object()
+        with self.assertRaises(ValueError):fusion._canonical_rim(self.a,self.b,self.pick)
+        self.pick.body=self.b.body
+        self.b.edges=SimpleNamespace(count=0)
+        with self.assertRaises(ValueError):fusion._canonical_rim(self.a,self.b,self.pick)
+
+    def test_ambiguous_matching_base_boundaries_are_refused(self):
+        self.a.edges=SimpleNamespace(count=2,item=lambda index:self.rim)
+        with self.assertRaisesRegex(ValueError,"ambiguous"):
+            fusion._canonical_rim(self.a,self.b,self.pick)
+
+
 class SnapFitGeometryBoundaryTests(unittest.TestCase):
-    def test_global_halfspaces_reject_protrusions_and_crossing_source_regions(self):
+    def test_exterior_halfspace_refuses_protrusions_but_allows_internal_lips(self):
         a, b, manager, frame = object(), object(), object(), object()
         valid = (((-3, -30, -24), (0, 30, 0)), ((-3, -30, 0), (0, 30, 24)))
         with patch.object(fusion, "_local_bounds", side_effect=valid):
             fusion._halfspaces(manager, frame, a, b)
-        cases = [(((0, 0, -24), (.1, 30, 0)), valid[1]),
-                 (valid[0], ((-3, -30, -.1), (0, 30, 24))),
-                 (((-3, -30, -24), (0, 30, .1)), valid[1])]
+        with patch.object(fusion, "_local_bounds", side_effect=(
+                ((-3,-30,-24),(0,30,4)),((-3,-30,-4),(0,30,24)))):
+            fusion._halfspaces(manager, frame, a, b)
+        cases = [(((0, 0, -24), (.1, 30, 0)), valid[1])]
         for bounds in cases:
             with self.subTest(bounds=bounds), patch.object(fusion, "_local_bounds", side_effect=bounds):
                 with self.assertRaises(ValueError):
@@ -269,22 +322,19 @@ class SnapFitGeometryBoundaryTests(unittest.TestCase):
         store.update.assert_not_called()
         self.assertEqual(prepared.face_a.body.attributes.writes, [])
 
-    def test_positive_intersection_is_refused_but_zero_volume_seam_contact_is_allowed(self):
-        for volume, succeeds in ((0, True), (0, False), (.01, True)):
-            witness = solid(volume=volume)
-            manager = SimpleNamespace(copy=lambda source: witness, booleanOperation=lambda *args: succeeds)
-            # The witness starts as a valid nonzero copy, then the kernel changes it.
-            witness.volume = 1
-            def intersect(*args):
-                witness.volume = volume
+    def test_clearance_difference_must_succeed_and_preserve_volume(self):
+        for after, succeeds in ((1, True), (.99, True), (1, False), (1.01, True), (float("nan"), True)):
+            witness = solid(volume=1)
+            def difference(*args):
+                witness.volume = after
                 return succeeds
-            manager.booleanOperation = intersect
-            with self.subTest(volume=volume, succeeds=succeeds), patch.object(fusion, "_api", return_value=api()):
-                if volume:
-                    with self.assertRaisesRegex(ValueError, "overlap"):
-                        fusion._no_positive_overlap(manager, object(), object())
+            manager = SimpleNamespace(copy=lambda source:witness,booleanOperation=difference)
+            with self.subTest(after=after,succeeds=succeeds), patch.object(fusion,"_api",return_value=api()):
+                if succeeds and after == 1:
+                    fusion._no_positive_overlap(manager,object(),object())
                 else:
-                    fusion._no_positive_overlap(manager, object(), object())
+                    with self.assertRaises(ValueError):
+                        fusion._no_positive_overlap(manager,object(),object())
 
 
 class SnapFitFreshnessAndRecipeTests(unittest.TestCase):

@@ -5,7 +5,7 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 later reinforcement/pattern tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current code:** experimental 0.6.0 provides an editable separate-pin hinge
+**Current code:** experimental 0.6.1 provides an editable separate-pin hinge
 and an exterior cantilever snap-fit with a matching blind recess. Both tools use
 direct model selection, full-result live preview and manual Edit/Rebuild. Hinges
 include five presets.
@@ -29,19 +29,20 @@ The final 0.5.0 native report passes 53 stated expectations: 40 generated
 geometry cases, six explicit larger-fillet refusals, six in-place/migration
 cases and one production-session workflow. Four attached fixture treatments each
 pass four Rebuilds without replacing the selected bodies or accumulating history.
-Current local checks pass 606 Python tests, both Node DOM suites and
+Current local checks pass 615 Python tests, both Node DOM suites and
 syntax/compilation checks. The current hinge workflow has been user-confirmed
 in Fusion. Broader interaction coverage, save/reopen, Undo/Redo, motion and
 physical printing remain acceptance items. See
 [native evidence and limits](docs/fusion-validation.md). The snap-fit passes
-nine native geometry/persistence/refusal/session cases, including source rollback
+eleven native geometry/persistence/refusal/session cases, including source rollback
 and stable body identities. Other tools remain planned; the honeycomb input
 checker creates no geometry.
 
-**Try snap-fits:** Stop then Run Partelier to load 0.6.0, open the tool library
-and choose **Snap-fit**. Pick the base exterior wall A, the coplanar lid wall B,
-then their straight seam edge. The first family requires A below the seam and B
-above it, with enough material for the root and blind recess. Size and fit stay
+**Try snap-fits:** Stop then Run Partelier to load 0.6.1. The tool library opens
+automatically; choose **Snap-fit**. Pick the base exterior wall A, the coplanar lid wall B,
+then either facing straight rim. Matching rims may have a gap between them;
+internal lid lips may cross the exterior seam. The selected wall regions need
+enough material for the root and blind recess. Size and fit stay
 visible; count, margins and root dimensions are under Advanced. The source seam
 is preserved and the two parts are printed separately.
 For a new unsaved reference model, run **tools/fusion/SnapFitFixture** as a Fusion

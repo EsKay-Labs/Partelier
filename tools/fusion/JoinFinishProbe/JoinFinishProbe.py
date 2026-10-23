@@ -19,6 +19,7 @@ EVENT="sktech_partelier_join_finish_probe_event"
 COMMAND="sktech_partelier_join_finish_probe_command"
 DIAGNOSTIC_FAILURES_ONLY=False
 LIVE_STATE_ONLY=False
+SELECTION_STATE_ONLY=False
 INPLACE_ONLY=True
 
 def live_product_state(root,design):
@@ -47,6 +48,44 @@ def live_product_state(root,design):
     return {"active_command":adsk.core.Application.get().userInterface.activeCommand,
             "active_selections":[{"type":getattr(selection.entity,"objectType",None),"name":getattr(selection.entity,"name",None)} for selection in adsk.core.Application.get().userInterface.activeSelections],
             "loaded_products":modules,"bodies":[{"name":body.name,"visible":body.isVisible,"light_bulb":body.isLightBulbOn} for body in design.rootComponent.bRepBodies]}
+
+def snap_selection_state(root, design):
+    """Read the currently loaded snap session and bounded selections only."""
+    def xyz(point):return [round(float(value)*10,7) for value in (point.x,point.y,point.z)]
+    def segment(edge):
+      if edge.startVertex is None or edge.endVertex is None:return None
+      return [xyz(edge.startVertex.geometry),xyz(edge.endVertex.geometry)]
+    def describe(entity):
+      data={"type":entity.objectType,"valid":bool(entity.isValid)}
+      if not entity.isValid:return data
+      data["token"]=entity.entityToken
+      body=getattr(entity,"body",None)
+      if body is not None:data["body"]={"name":body.name,"bounds_mm":[xyz(body.boundingBox.minPoint),xyz(body.boundingBox.maxPoint)]}
+      face=adsk.fusion.BRepFace.cast(entity)
+      edge=adsk.fusion.BRepEdge.cast(entity)
+      if face is not None:
+        data["point_mm"]=xyz(face.pointOnFace)
+        plane=adsk.core.Plane.cast(face.geometry)
+        if plane is not None:
+          sign=-1 if face.isParamReversed else 1
+          data["normal"]=[sign*value for value in (plane.normal.x,plane.normal.y,plane.normal.z)]
+        data["boundaries_mm"]=[segment(item) for item in face.edges if adsk.core.Line3D.cast(item.geometry) is not None]
+      if edge is not None:data["endpoints_mm"]=segment(edge)
+      return data
+    expected=(root/"Partelier"/"partelier"/"addin.py").resolve()
+    sessions=[]
+    for name,module in tuple(sys.modules.items()):
+      location=getattr(module,"__file__",None)
+      if not location:continue
+      try:matches=Path(location).resolve()==expected
+      except Exception:continue
+      if not matches:continue
+      owner=getattr(module,"_snap_commands",None)
+      session=getattr(owner,"_session",None) if owner is not None else None
+      if session is not None:
+        sessions.append({"module":name,"phase":session.phase,"message":session.message,"settings":session.settings.to_dict(),
+                         "selections":{key:describe(entity) for key,entity in session.selections.items()}})
+    return {"sessions":sessions,"active_selections":[describe(selection.entity) for selection in adsk.core.Application.get().userInterface.activeSelections]}
 
 def snapshot(design):
     return {"timeline": design.timeline.count, "marker":design.timeline.markerPosition,
@@ -924,6 +963,33 @@ def run(context):
                                   for collection in (body.faces,body.edges) for entity in collection]
     STATE["report"]={"fusion_version":app.version,"before":snapshot(design),"cases":[],"success":False}
     STATE["report"]["live_product"]=live_product_state(STATE["root"],design)
+    if SELECTION_STATE_ONLY:
+      report=STATE["report"]
+      report.update(diagnostic_only=True,read_only=True,selections=snap_selection_state(STATE["root"],design))
+      for entry in report["selections"]["sessions"]:
+        try:
+          hinge_adapter,_,_,_=load(STATE["root"])
+          snap=importlib.import_module(hinge_adapter.__package__.rsplit(".",1)[0]+".snap_fit.fusion")
+          settings_module=importlib.import_module(snap.__package__+".settings")
+          entities=[]
+          for key in ("face_a","face_b","axis_edge"):
+            resolved=design.findEntityByToken(entry["selections"][key]["token"])
+            if len(resolved)!=1:raise RuntimeError("Selection no longer resolves uniquely.")
+            entities.append(resolved[0])
+          prepared=snap.prepare_snap_fit(design,*entities,settings_module.SnapFitSettings.from_dict(entry["settings"]))
+          entry["candidate"]={"success":True,"canonical_edge_body":prepared.axis_edge.body.name,
+                               "timings":prepared.timings,"solids":[{"role":role,"volume":body.volume,"lumps":body.lumps.count} for role,body in prepared.result_bodies]}
+        except Exception:entry["candidate"]={"success":False,"error":traceback.format_exc()}
+      report["after"]=snapshot(design)
+      report["unchanged"]=report["before"]==report["after"]
+      report["success"]=report["unchanged"]
+      Path(STATE["context"]["report_path"]).write_text(json.dumps(report,indent=2),encoding="utf-8")
+      prefix=STATE.get("package_name")
+      if prefix:
+        for module_name in tuple(sys.modules):
+          if module_name==prefix or module_name.startswith(prefix+"."):sys.modules.pop(module_name,None)
+      STATE["context"]["on_complete"](report)
+      return
     if LIVE_STATE_ONLY:
       report=STATE["report"];report.update(success=True,diagnostic_only=True,read_only=True)
       try:

@@ -123,6 +123,66 @@ def _sources(design, tokens, targets=None):
     return a, b, edge
 
 
+def _canonical_rim(face_a, face_b, selected):
+    """Accept either facing rim across a gap; always persist A's real edge.
+
+    Matching needs the same complete projected span, coplanar outside walls,
+    and all face vertices on their respective sides of the seam. A distant,
+    partial, diagonal, unrelated or ambiguous edge cannot choose a new origin.
+    """
+    try:
+        return hinge._canonical_axis_edge(face_a, face_b, selected)
+    except hinge.HingeGeometryError:
+        pass
+    if (selected.assemblyContext is not None or selected.body != face_b.body
+            or not any(selected == edge for edge in hinge._items(face_b.edges))):
+        raise SnapFitGeometryError("Pick the facing rim on wall A or B. The edge must bound the selected wall, not another face or body.")
+    chosen = hinge._straight_endpoints(selected)
+    if chosen is None:
+        raise SnapFitGeometryError("Pick a complete straight rim on the selected outside wall.")
+    normal = hinge._plane_normal(face_a)
+    if hinge._dot(normal, hinge._plane_normal(face_b)) < 1 - ANGLE_TOLERANCE:
+        raise SnapFitGeometryError("The outside wall faces must have matching outward normals.")
+    plane_point = hinge._xyz(face_a.pointOnFace)
+    if any(abs(hinge._dot(hinge._subtract(point, plane_point), normal)) > POSITION_TOLERANCE_CM
+           for point in chosen):
+        raise SnapFitGeometryError("Pick the rim in the same plane as the selected outside walls.")
+    matches = []
+    for edge in hinge._items(face_a.edges):
+        points = hinge._straight_endpoints(edge)
+        if points is None:
+            continue
+        axis = hinge._unit(hinge._subtract(points[1], points[0]))
+        direction = hinge._unit(hinge._subtract(chosen[1], chosen[0]))
+        if abs(hinge._dot(axis, direction)) < 1 - ANGLE_TOLERANCE:
+            continue
+        span_a = sorted(hinge._dot(point, axis) for point in points)
+        span_b = sorted(hinge._dot(point, axis) for point in chosen)
+        if any(abs(one-two) > POSITION_TOLERANCE_CM for one,two in zip(span_a,span_b)):
+            continue
+        across = hinge._unit(hinge._cross(normal, axis))
+        origin = tuple((one+two)/2 for one,two in zip(*points))
+        toward = hinge._dot(hinge._subtract(hinge._xyz(face_b.pointOnFace),origin),across)
+        if abs(toward) <= POSITION_TOLERANCE_CM:
+            continue
+        if toward < 0:
+            across = tuple(-value for value in across)
+        gap = hinge._dot(hinge._subtract(chosen[0],origin),across)
+        if gap < -POSITION_TOLERANCE_CM:
+            continue
+        # Only the facing boundaries qualify, not the far edge of either wall.
+        if any(hinge._dot(hinge._subtract(hinge._xyz(vertex.geometry),origin),across)
+               > POSITION_TOLERANCE_CM for vertex in hinge._items(face_a.vertices)):
+            continue
+        if any(hinge._dot(hinge._subtract(hinge._xyz(vertex.geometry),chosen[0]),across)
+               < -POSITION_TOLERANCE_CM for vertex in hinge._items(face_b.vertices)):
+            continue
+        matches.append(edge)
+    if len(matches) != 1:
+        raise SnapFitGeometryError("The two facing rims must have the same complete span. Pick A's rim directly; offset, partial or ambiguous rim matches are not supported.")
+    return matches[0]
+
+
 def _selection(design, face_a, face_b, edge, *, historical=False):
     _main_thread()
     _, fusion = _api()
@@ -148,7 +208,7 @@ def _selection(design, face_a, face_b, edge, *, historical=False):
     if face_a.body == face_b.body:
         raise SnapFitGeometryError("Select faces on two different solid bodies.")
     try:
-        edge = hinge._canonical_axis_edge(face_a, face_b, edge)
+        edge = _canonical_rim(face_a, face_b, edge)
         endpoints = hinge._straight_endpoints(edge)
         x_axis = hinge._plane_normal(face_a)
         b_normal = hinge._plane_normal(face_b)
@@ -229,8 +289,9 @@ def _halfspaces(manager, frame, a, b):
     b_min, b_max = _local_bounds(manager, frame, b)
     if a_max[0] > POSITION_TOLERANCE_MM or b_max[0] > POSITION_TOLERANCE_MM:
         raise SnapFitGeometryError("Both selected walls must keep all their material behind the outside wall plane.")
-    if a_max[2] > POSITION_TOLERANCE_MM or b_min[2] < -POSITION_TOLERANCE_MM:
-        raise SnapFitGeometryError("This clasp needs A entirely below the rim and B entirely above it. Select their separating rim.")
+    # Internal tongue/groove lips may cross the exterior seam. Exact root/
+    # recess coverage and a checked difference of the final pair establish fit;
+    # a whole-body Z box would incorrectly refuse such ordinary lid geometry.
 
 
 def _coverage(manager, frame, source, bounds, message):
@@ -243,17 +304,21 @@ def _coverage(manager, frame, source, bounds, message):
 
 
 def _no_positive_overlap(manager, a, b):
-    """Extra witness after the global halfspaces and contained-pocket proof.
+    """Prove no material is lost by subtracting B from a detached copy of A.
 
-    Empty temporary intersections may return False. The independently enforced
-    halfspaces and full pocket coverage already establish that source contact
-    at Z=0 has no volume and that the new hook sits inside the removed recess.
-    A successful intersection must never produce positive solid volume.
+    An empty intersection may report a failed boolean, which is ambiguous.
+    Difference must succeed and preserve the complete volume; kernel failures
+    are refused. This supports touching seams and interlocking source lips.
     """
     _, fusion = _api()
     witness = _copy(manager, a)
-    success = manager.booleanOperation(witness, b, fusion.BooleanTypes.IntersectionBooleanType)
-    if success and hinge._valid(witness) and witness.isSolid and float(witness.volume) > 1e-9:
+    before = float(witness.volume)
+    if not manager.booleanOperation(witness, b, fusion.BooleanTypes.DifferenceBooleanType):
+        raise SnapFitGeometryError("Fusion could not verify snap-fit clearance. No geometry was changed.")
+    if not hinge._valid(witness) or not witness.isSolid:
+        raise SnapFitGeometryError("The snap-fit halves overlap. Adjust the rim, walls or clearances.")
+    after = float(witness.volume)
+    if not math.isfinite(after) or abs(before-after) > max(1e-9, before*1e-8):
         raise SnapFitGeometryError("The snap-fit halves overlap. Check the selected rim, walls and clearances.")
 
 
@@ -293,6 +358,7 @@ def prepare_snap_fit(design, face_a, face_b, axis_edge, settings, *, _historical
         root = hinge._box(manager, frame, unit.root)
         beam = hinge._box(manager, frame, unit.beam)
         hook = _prism(manager, frame, unit.hook.points_xz_mm, unit.hook.y_min_mm, unit.hook.y_max_mm)
+        _no_positive_overlap(manager, hook, face_a.body)
         for part in (beam, hook):
             _boolean(manager, root, part, fusion.BooleanTypes.UnionBooleanType,
                      "The cantilever root, beam and hook did not join into one solid.")

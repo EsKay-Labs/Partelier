@@ -171,7 +171,7 @@ class SnapCommands:
         prompts = {
             "face_a": ("Select the exterior base wall for the hook. Esc to stop picking.", "PlanarFaces"),
             "face_b": ("Select the coplanar lid wall for the recess. Esc to stop picking.", "PlanarFaces"),
-            "axis_edge": ("Select the straight seam edge on the base wall. Esc to stop picking.", "Edges"),
+            "axis_edge": ("Select the facing rim on the base or lid wall. A gap is supported. Esc to stop picking.", "Edges"),
             "edit_target": ("Select a snap-fit body or a Part containing one snap-fit. Esc to stop picking.", "Occurrences,SolidBodies"),
         }
         prompt, filters = prompts[target]

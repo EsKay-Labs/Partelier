@@ -6,7 +6,7 @@
   "description": {
     "": "Partelier HTML toolkit for editable pin hinges and exterior cantilever snap-fits, with live Fusion material previews and guarded in-place Create/Rebuild."
   },
-  "version": "0.6.0",
+  "version": "0.6.1",
   "runOnStartup": false,
   "supportedOS": "windows",
   "editEnabled": true

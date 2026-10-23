@@ -1,4 +1,4 @@
-# Exterior cantilever snap-fit (0.6.0)
+# Exterior cantilever snap-fit (0.6.1)
 
 The first snap-fit family adds an exterior clasp to an existing base and cuts a
 blind receiving recess in its lid. It uses the same two root-component bodies;
@@ -10,18 +10,27 @@ The source seam is preserved. The two parts are printed separately.
 
 Use a parametric Design with the root active and history marker at the end.
 Select a planar exterior wall on base A, a coplanar wall on lid B with the same
-outward normal, and a complete straight boundary edge of A at their seam. A
-coincident edge on B is accepted. Body A lies entirely on one side of that seam;
-B lies on the other. Both bodies stay behind their common exterior wall plane.
-These bounded conditions permit enclosure walls as well as the reference boxes;
-curved, offset, nested or crossing selections are refused.
+outward normal, and a complete straight facing rim on either wall. A gap between the rims is
+supported. A pick on B is mapped to A's actual edge only when both complete
+projected spans match, the walls are coplanar, and their facing boundaries are
+unambiguous. A's real edge remains the saved reference. Partial, shifted,
+diagonal, nonboundary and far-side picks are refused.
+
+The selected exterior faces lie on opposite sides of the seam; internal tongue
+and groove lips may cross it. Both bodies stay behind the common exterior wall
+plane. Whole-body bounds along the assembly direction do not restrict an inner
+lip; exact attachment coverage and solid clearance checks apply instead.
 
 Local X points out of the wall, Y follows the rim and Z points from A toward B.
-The adapter checks bounds after transforming detached copies into that frame,
-so rotating the design does not change the intended geometry checks. Native
+The adapter checks exterior-plane bounds after transforming detached copies
+into that frame, so rotating the design does not change the geometry checks. Native
 intersection coverage proves that A contains the complete embedded root and B
 contains the recess plus a clearance-sized border/back wall. Invalid dimensions
 are reported without shrinking a requested feature or skipping a cut.
+A checked temporary difference must preserve the complete final A volume after
+subtracting B; failed boolean calculations are refused. The inward hook is also
+checked against the original A, so a tall lip cannot fuse its free end back into
+the base. Ordinary seam contact and noninterfering internal lips are supported.
 
 ## Dimensions and workflow
 
