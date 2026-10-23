@@ -36,7 +36,7 @@
     "Replacement, cross-body rejection, 100-face limit and Body/Edit scope guards.",
     "Existing async ownership, rollback, lost ACK recovery and diagnostics suites pass."
   ],
-  "native_acceptance": "Pending user reload of 0.10.4 and actual face click; controlled API/DOM tests are separate from native picking acceptance.",
+  "native_acceptance": "Confirmed by user after reload: preview appeared after one face click. Actual 0.10.4 logs show pick.end count=1, preview preparation of 193 cells, preview_current=true, then successful same-body Create. Orbit display performance is a separate reported issue addressed in 0.10.5.",
   "geometry_evidence": "No geometry algorithm changes; previous native 0.10.2 32-case report remains historical.",
   "files": {
     "Partelier/Partelier.manifest": "2c3f963346a9ff462f786d963c5da259fcf0dc4a9256608ab254cd0047b6f900",

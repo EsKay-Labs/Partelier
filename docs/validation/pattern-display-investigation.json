@@ -1,0 +1,73 @@
+{
+  "product_version": "0.10.4",
+  "status": "unresolved_native_meshing_disabled_after_two_crashes",
+  "confirmed_selection_acceptance": "User saw preview after one face click on 0.10.4; logs show 193 cells, current preview and successful Create.",
+  "reported_issue": "Orbit is slow during preview and recovers after Create.",
+  "actual_preview_trace": {
+    "cells": 193,
+    "geometry_preparation_ms": 3801.0091,
+    "graphics_draw_ms": 1056.1296,
+    "recomputed_during_orbit": false
+  },
+  "candidate_runtime_enabled": false,
+  "local_checks": {
+    "python_tests": 847,
+    "node_dom_suites": 3,
+    "python_compilation": true,
+    "git_diff_check": true
+  },
+  "limits": [
+    "Orbit lag remains unresolved in 0.10.4.",
+    "The candidate with good isolated timings was removed because repeated runs crashed Fusion.",
+    "The Windows heap-corruption report and last checkpoint do not identify the exact faulty native operation."
+  ],
+  "failed_development_attempts": [
+    {
+      "request_id": "6cb7d3b3-32ea-4ebc-8ad1-6eab825645ae",
+      "candidate": "Temporary-body mesh calculator followed by cached CustomGraphicsMesh; broad fixed pattern probe.",
+      "result": "Fusion native crash; no completed validation report or performance measurements.",
+      "windows_event": {
+        "local_time": "2026-10-23T23:43:08+03:00",
+        "exception_code": "0xc0000374",
+        "faulting_module": "ntdll.dll"
+      },
+      "exact_failed_api_call": "Unknown: this run did not checkpoint individual native calls.",
+      "rollback": "Removed candidate runtime routing and restored committed 0.10.4 before requesting restart. Failed patch retained only under ignored output/native."
+    },
+    {
+      "request_id": "a4f14578-d463-45d6-899f-101fad650e6c",
+      "candidate": "Capture display triangles from a document-owned copy, remove its BaseFeature, upload cached graphics.",
+      "result": "Repeated native Fusion crash after earlier successful short comparisons; candidate not accepted for release.",
+      "windows_event": {
+        "local_time": "2026-10-24T00:27:50+03:00",
+        "exception_code": "0xc0000374",
+        "faulting_module": "ntdll.dll"
+      },
+      "last_checkpoint": "mesh_manager",
+      "next_checkpoint_not_reached": "mesh.calculate",
+      "scope_of_uncertainty": "Checkpoint brackets obtaining/configuring a native calculator; the exact faulting getter, call or setter is unknown.",
+      "rollback": "All rendering candidate code removed from installable bundle. Product restored to committed 0.10.4."
+    }
+  ],
+  "historical_short_comparison": {
+    "request_id": "6dbfbd3b-bd66-4e91-a341-80b48111aa2f",
+    "fixture": "192 square openings, 774 faces; owned unsaved test document.",
+    "six_camera_samples_mean_ms": {
+      "original_brep": 144.32125,
+      "selection_disabled_brep": 139.3966,
+      "cached_mesh": 5.71845
+    },
+    "production_session_create_rebuild": true,
+    "curved_display_examples": [
+      "cylinder",
+      "sphere"
+    ],
+    "original_model_and_camera_unchanged": true,
+    "acceptance": "Rejected after subsequent native crash. These timings do not establish a stable fix or interactive FPS."
+  },
+  "disabled_diagnostic": {
+    "scenario": "pattern_display",
+    "behavior": "Returns disabled=true and success=false without importing adsk or accessing the model.",
+    "reason": "Prevent replaying the native rendering experiment after restart."
+  }
+}

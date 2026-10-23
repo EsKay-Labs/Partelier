@@ -199,6 +199,9 @@ class ValidationBridgeTests(unittest.TestCase):
         status_probe = root.joinpath(*bridge.PROBES['pattern_status'])
         status_probe.parent.mkdir(parents=True)
         status_probe.write_text("read-only status probe", encoding="utf-8")
+        display_probe = root.joinpath(*bridge.PROBES['pattern_display'])
+        display_probe.parent.mkdir(parents=True)
+        display_probe.write_text("fixed display probe", encoding="utf-8")
         (hinge / "planner.py").write_text("first", encoding="utf-8")
         probe.write_text("probe", encoding="utf-8")
         first = bridge.source_manifest(root)
@@ -247,7 +250,7 @@ class ValidationBridgeTests(unittest.TestCase):
     def test_snap_fit_allowlist_keeps_joined_finish_default_and_rejects_arbitrary_dispatch(self):
         self.assertEqual(bridge.PROTOCOL_VERSION, 2)
         self.assertEqual(bridge.SCENARIO, "joined_finish")
-        self.assertEqual(bridge.SCENARIOS, {"joined_finish", "snap_fit", "patterns", "pattern_status"})
+        self.assertEqual(bridge.SCENARIOS, {"joined_finish", "snap_fit", "patterns", "pattern_status", "pattern_display"})
         request = self.request()
         request["scenario"] = "snap_fit"
         self.assertEqual(bridge.validate_request(request, request["request_id"]), request)
@@ -257,6 +260,24 @@ class ValidationBridgeTests(unittest.TestCase):
             candidate = dict(request, scenario=scenario)
             with self.subTest(scenario=scenario), self.assertRaises(ValueError):
                 bridge.validate_request(candidate, request["request_id"])
+
+    def test_disabled_display_probe_reports_without_importing_or_accessing_fusion(self):
+        import builtins
+        original_import = builtins.__import__
+        def guarded_import(name, *args, **kwargs):
+            if name == "adsk" or name.startswith("adsk."):
+                raise AssertionError("The disabled display probe must never access Fusion.")
+            return original_import(name, *args, **kwargs)
+        callback = Mock()
+        output = self.queue / "disabled-display.json"
+        with patch("builtins.__import__", side_effect=guarded_import):
+            module = load_file("disabled_display_test", REPO.joinpath(*bridge.PROBES["pattern_display"]))
+            module.run({"report_path": str(output), "on_complete": callback})
+        result = json.loads(output.read_text(encoding="utf-8"))
+        self.assertTrue(result["disabled"])
+        self.assertFalse(result["success"])
+        self.assertFalse(result["model_accessed"])
+        callback.assert_called_once_with(result)
 
     def test_cli_snap_fit_submit_poll_and_timeout_preserve_scenario(self):
         with patch.object(bridge, "queue_root", return_value=self.queue):

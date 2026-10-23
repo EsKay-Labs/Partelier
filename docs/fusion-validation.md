@@ -23,6 +23,7 @@ py tools/run_fusion_validation.py submit --scenario joined_finish --no-wait
 py tools/run_fusion_validation.py submit --scenario snap_fit --no-wait
 py tools/run_fusion_validation.py submit --scenario patterns --no-wait
 py tools/run_fusion_validation.py submit --scenario pattern_status --no-wait
+py tools/run_fusion_validation.py submit --scenario pattern_display --no-wait
 py tools/run_fusion_validation.py poll REQUEST_UUID --timeout 60
 ```
 
@@ -45,6 +46,38 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Preview orbit investigation — unresolved
+
+The 0.10.4 user session confirms a completed preview of 193 cells: 3,801 ms of
+geometry preparation and 1,056 ms of initial graphics drawing. No new geometry
+preparation ran while the user orbited. Orbit becomes responsive after Create,
+which removes the custom graphics and persists the native result.
+
+A development attempt to capture display triangles from temporary geometry
+crashed Fusion. A second approach used a document-owned copy and removed its
+owned BaseFeature after copying the mesh arrays. Short native comparisons
+passed, including actual Session.prepare, drawing, Create/Edit/Rebuild, cylinder
+and sphere displays, and restoration of the original model/camera. On a plate
+with 192 openings and 774 faces, six synchronous camera refresh samples averaged
+144.3 ms for BRep graphics and 5.7 ms for cached triangles. Disabling graphics
+selection alone averaged 139.4 ms, which did not solve the problem.
+
+A later run of the second approach also crashed Fusion. Its last checkpoint was
+`mesh_manager`; `mesh.calculate` was never reached. This brackets obtaining and
+configuring the native calculator, not one proven faulting call. Windows
+reported heap corruption (`0xc0000374`, `ntdll.dll`) for both crashes. The good
+isolated timings do not establish repeated-run stability or interactive FPS.
+
+**All candidate rendering code was removed from the installable bundle. The
+product remains 0.10.4 and orbit lag remains unresolved.** The development-only
+`pattern_display` scenario now returns a disabled report without importing
+`adsk` or accessing a model, preventing replay of the native experiment. Local
+checks include a guard against any Fusion import in that disabled scenario.
+The failed prototypes remain only under ignored local `output/native/` for
+investigation. No further host test or product reload is needed for this rollback.
+
+[Investigation record](validation/pattern-display-investigation.json).
+
 ## Pattern selection return (0.10.4)
 
 The user reproduced the reported loading state with 0.10.3 diagnostics enabled.
@@ -64,11 +97,13 @@ Local regression checks cover the first-click-to-preview boundary, adding,
 replacement, cancellation, duplicates, cross-body refusals and scope guards.
 All **846 Python tests** and three Node DOM suites pass, along with syntax,
 compilation and whitespace checks. The browser checks cover the Add face request
-and one subsequent preview, keeping
-the selected state while picking, and hiding Add face in Body/Edit. These are
+and one subsequent preview, keeping the selected state while picking, and hiding Add face in Body/Edit. These are
 controlled API/DOM checks; they do not substitute for post-reload native picking.
-The 0.10.3 log establishes the cause in the actual user session. Acceptance of
-the updated picker in Fusion remains pending one product reload and face click.
+The 0.10.3 log establishes the cause in the actual user session. The user
+confirmed the preview after reloading 0.10.4. Native logs show one
+completed pick, successful preparation/drawing of 193 cells and a current preview,
+followed by successful Create. The separately reported orbit lag is a display
+performance issue, not another selection wait.
 See [selection verification record](validation/pattern-selection-0.10.4.json).
 
 ## Local interaction diagnostics (0.10.3)

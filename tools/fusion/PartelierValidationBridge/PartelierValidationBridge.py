@@ -25,6 +25,7 @@ PROBES = {
     "snap_fit": ("tools", "fusion", "SnapFitProbe", "SnapFitProbe.py"),
     "patterns": ("tools", "fusion", "PatternProbe", "PatternProbe.py"),
     "pattern_status": ("tools", "fusion", "PatternStatusProbe", "PatternStatusProbe.py"),
+    "pattern_display": ("tools", "fusion", "PatternDisplayProbe", "PatternDisplayProbe.py"),
 }
 SCENARIOS = frozenset(PROBES)
 EVENT_ID = "sktech_partelier_validation_bridge_tick_946fef9c"
