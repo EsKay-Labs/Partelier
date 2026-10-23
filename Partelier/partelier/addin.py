@@ -2,6 +2,8 @@
 
 import sys
 import traceback
+import json
+from pathlib import Path
 
 import adsk.core
 import adsk.fusion
@@ -11,6 +13,7 @@ from .palette import ToolLibrary
 from .tools.hinge.command import HingeCommands
 from .tools.snap_fit.command import SnapCommands
 from .tools.patterns.command import PatternCommands
+from . import diagnostics
 
 
 COMMAND_ID = "sktech_partelier_honeycomb_inputs_7947c039"
@@ -29,6 +32,7 @@ _pattern_commands = None
 def report_error(summary):
     """Show the real failure and expose the full traceback in Text Commands."""
     app = adsk.core.Application.get()
+    diagnostics.emit('addin.error',summary=summary,traceback=traceback.format_exc())
     details = traceback.format_exc()
     exception = sys.exc_info()[1]
     message = summary + "."
@@ -54,6 +58,8 @@ def report_error(summary):
 def start():
     """Register owned commands once and show the HTML tool library on Run."""
     global _created_handler, _hinge_commands, _snap_commands, _pattern_commands
+    version=json.loads((Path(__file__).resolve().parent.parent/'Partelier.manifest').read_text(encoding='utf-8'))['version']
+    diagnostics.start(version)
     if _created_handler is not None:
         _tool_library.show()
         return
@@ -85,6 +91,7 @@ def start():
             hinge_commands=_hinge_commands, snap_commands=_snap_commands, pattern_commands=_pattern_commands,
         )
         _tool_library.show()
+        diagnostics.emit('addin.ready',version=version,loaded_addin=__file__)
     except Exception:
         stop()
         raise
@@ -93,6 +100,7 @@ def start():
 def stop():
     """Remove only this add-in's command, controls, and retained handlers."""
     global _created_handler, _hinge_commands, _snap_commands, _pattern_commands
+    diagnostics.emit('addin.stop.begin')
     app = adsk.core.Application.get()
     ui = app.userInterface
     errors = []
@@ -132,6 +140,7 @@ def stop():
         _sessions.clear()
     for error in errors:
         app.log(f"Partelier shutdown cleanup failed:\n{error}")
+    diagnostics.emit('addin.stop.end',errors=len(errors))
 
 
 def _read_inputs(inputs):

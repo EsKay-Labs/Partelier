@@ -24,6 +24,54 @@
     const current = () => !state.liveError && state.session?.phase === "preview" && state.session.revision === state.revision && state.session.previewCurrent !== false;
     const valid = () => $("pattern-settings").checkValidity();
     const editing = () => active() && !!state.session?.editing;
+    const traceKey = "Partelier.patternTrace.v1", traceRing = [], traceQueue = [], traceLast = new Map();
+    let traceTimer, traceSerial = 0;
+    try {
+        const saved = window.localStorage?.getItem(traceKey), entries = typeof saved === "string" && saved.length < 131072 ? JSON.parse(saved) : [];
+        if (Array.isArray(entries)) for (const entry of entries.slice(-80)) if (entry && /^[A-Za-z0-9_.:-]{1,80}$/.test(entry.event)
+                && Number.isFinite(entry.at) && entry.at >= 0 && entry.context && !Array.isArray(entry.context) && Object.keys(entry.context).length <= 32
+                && Object.values(entry.context).every(value => value === null || typeof value === "boolean" || typeof value === "string" && value.length <= 120 || typeof value === "number" && Number.isFinite(value))) {
+            const replay = { event:entry.event,at:entry.at,context:{ ...Object.fromEntries(Object.entries(entry.context).slice(0,31)),replayed:true } };
+            traceRing.push(replay); traceQueue.push(replay);
+        }
+    } catch (_) {}
+    function trace(event, extra = {}, dedupe = false) {
+        try {
+            const context = { sessionId: state.session?.sessionId || null, revision: state.revision, phase: state.session?.phase || "idle",
+                pending, busy: state.busy, current: current(), surfaceSelected: selected(), waitingRequest: previewRequest?.requestId || null, ...extra };
+            for (const key of Object.keys(context)) { const value = context[key]; context[key] = typeof value === "string" ? value.slice(0,120) : typeof value === "number" ? Number.isFinite(value) ? value : null : typeof value === "boolean" || value === null ? value : null; }
+            const signature = JSON.stringify({ ...context, requestId: null }), key = `${event}:${context.action || ""}`;
+            if (dedupe && traceLast.get(key) === signature) return;
+            traceLast.set(key, signature);
+            const entry = { event, at: Date.now(), context }; traceRing.push(entry); traceQueue.push(entry);
+            if (traceRing.length > 80) traceRing.shift(); if (traceQueue.length > 80) traceQueue.shift();
+            try { window.localStorage?.setItem(traceKey, JSON.stringify(traceRing)); } catch (_) {}
+            if (traceTimer === undefined) traceTimer = window.setTimeout(flushTrace,400);
+        } catch (_) { /* Diagnostics must never interrupt the tool. */ }
+    }
+    function flushTrace() {
+        traceTimer = undefined;
+        try {
+            if (!traceQueue.length || typeof window.adsk?.fusionSendData !== "function") return;
+            const entries = traceQueue.splice(0,10), requestId = `pattern-trace-${++traceSerial}`;
+            while (entries.length > 1 && JSON.stringify({ protocol:1,requestId,entries }).length > 15000) traceQueue.unshift(entries.pop());
+            Promise.resolve().then(() => window.adsk.fusionSendData("diagnostic_log",JSON.stringify({ protocol:1,requestId,entries }))).catch(() => {});
+            if (traceQueue.length) traceTimer = window.setTimeout(flushTrace,400);
+        } catch (_) {}
+    }
+    function traceSnapshot(snapshot) {
+        return { nativePhase: ["idle","selecting","ready","computing","preview","opening","error","created","cancelled"].includes(snapshot?.phase) ? snapshot.phase : "invalid",
+            nativeRevision: Number.isInteger(snapshot?.revision) ? snapshot.revision : null, nativeSelected: !!snapshot?.selections?.surface?.selected };
+    }
+    if (typeof window.addEventListener === "function") {
+        window.addEventListener("error", event => trace("browser_error", { name: event.error?.name || "Error", line: event.lineno || 0, column: event.colno || 0 }));
+        window.addEventListener("unhandledrejection", event => trace("unhandled_rejection", { name: event.reason?.name || "Error" }));
+    }
+    document.addEventListener("pointerdown", event => {
+        const target = event.target?.closest?.("button,select") || event.target;
+        if (["begin-pattern-button","edit-pattern-button","preview-pattern-button","create-pattern-button","cancel-pattern-button","pattern-select-surface"].includes(target?.id) || state.selected && target?.id === "tool-select")
+            trace("pointerdown", { control:target.id,disabled:!!target.disabled,toolLocked:$("tool-select").disabled,pickLocked:$("pattern-select-surface").disabled,createLocked:$("create-pattern-button").disabled });
+    },true);
 
     function message(text, error = false) {
         $("pattern-operation-status").textContent = text;
@@ -56,6 +104,7 @@
         const waiting = previewRequest, sessionId = snapshot.sessionId || previous?.sessionId;
         if (waiting && !waiting.done && sessionId === waiting.sessionId && snapshot.revision >= waiting.revision
                 && ["preview", "error", "cancelled"].includes(snapshot.phase)) {
+            trace("preview_settled_from_state", { requestId: waiting.requestId, requestedRevision: waiting.revision, ...traceSnapshot(snapshot) });
             waiting.done = true; waiting.resolve(snapshot);
         }
     }
@@ -88,7 +137,7 @@
         const value = document.createElement("span"); value.textContent = picked?.selected ? picked.label || "Selected" : "Pick";
         button.setAttribute("aria-label", `${caption}: ${picked?.selected ? picked.label || "Selected" : "not selected"}`);
         button.classList.toggle("is-selected", !!picked?.selected); button.append(label, value);
-        button.addEventListener("click", () => { cancelTimer(); run(async () => { await sessionAction("pattern_focus", { target }); await refresh(); }); });
+        button.addEventListener("click", () => { trace("click", { control:"surface",target }); cancelTimer(); run(async () => { await sessionAction("pattern_focus", { target }); await refresh(); },"pattern_focus"); });
         $("pattern-selections").replaceChildren(button);
         $("pattern-selection-help").textContent = editing() ? "Pick a saved Partelier pattern. Esc stops picking." : body ? "Pick a body to pattern its supported faces." : "Pick one or more faces. Esc finishes the selection.";
         $("pattern-selection-help").hidden = !!identity() && selected();
@@ -116,20 +165,23 @@
         $("pattern-live-preview-status").classList.toggle("is-current", ready && current());
         $("pattern-live-preview-status").classList.toggle("needs-attention", state.connectionError || ready && (!valid() || state.liveError || state.session?.phase === "error"));
         renderSelection(); scheduleRecovery();
+        trace("locks", { toolLocked:$("tool-select").disabled, pickLocked:$("pattern-select-surface").disabled, cancelLocked:$("cancel-pattern-button").disabled, createLocked:$("create-pattern-button").disabled, supported:supported() },true);
     }
     function apply(snapshot) {
-        if (!snapshot || !Number.isInteger(snapshot.revision) || typeof snapshot.phase !== "string") return false;
+        const reject = reason => { trace("state_rejected", { reason,...traceSnapshot(snapshot) },true); return false; };
+        if (!snapshot || !Number.isInteger(snapshot.revision) || typeof snapshot.phase !== "string") return reject("malformed");
         const previous = state.session;
-        if (snapshot.sessionId && retired.has(snapshot.sessionId)) return false;
-        if (snapshot.sessionId && previous?.sessionId && snapshot.sessionId !== previous.sessionId && active() && !state.expecting) return false;
-        if (snapshot.sessionId && snapshot.sessionId === previous?.sessionId && snapshot.revision < previous.revision) return false;
+        if (snapshot.sessionId && retired.has(snapshot.sessionId)) return reject("retired_session");
+        if (snapshot.sessionId && previous?.sessionId && snapshot.sessionId !== previous.sessionId && active() && !state.expecting) return reject("other_session");
+        if (snapshot.sessionId && snapshot.sessionId === previous?.sessionId && snapshot.revision < previous.revision) return reject("older_revision");
         if (snapshot.sessionId && snapshot.sessionId === previous?.sessionId && snapshot.revision === previous.revision) {
-            if (["preview", "error"].includes(previous.phase) && ["computing", "ready", "selecting"].includes(snapshot.phase)) return false;
-            if (previous.phase === "opening" && !["opening", "created", "error", "cancelled"].includes(snapshot.phase)) return false;
+            if (["preview", "error"].includes(previous.phase) && ["computing", "ready", "selecting"].includes(snapshot.phase)) return reject("completed_revision");
+            if (previous.phase === "opening" && !["opening", "created", "error", "cancelled"].includes(snapshot.phase)) return reject("commit_in_progress");
         }
         const newerEdits = snapshot.revision < state.revision;
         if (!snapshot.sessionId || terminal.has(snapshot.phase)) { if (previous?.sessionId) retired.add(previous.sessionId); if (snapshot.sessionId) retired.add(snapshot.sessionId); }
         state.session = snapshot; state.connectionError = false;
+        trace("state_applied", traceSnapshot(snapshot),true);
         if (snapshot.sessionId) state.expecting = false;
         if (!newerEdits && ["preview", "error"].includes(snapshot.phase)) state.liveError = snapshot.phase === "error";
         if (!newerEdits && snapshot.settings) { state.settings = { ...defaults, ...snapshot.settings }; state.revision = snapshot.revision; sync(); }
@@ -140,11 +192,13 @@
     }
     async function send(action, payload = {}, recoveryId = null) {
         const requestId = `pattern-ui-${++serial}`, version = pushedVersion;
-        const response = Promise.resolve().then(() => window.adsk.fusionSendData(action, JSON.stringify({ protocol: 1, requestId, ...payload })));
+        trace("send_start", { action,requestId,sentRevision:payload.revision ?? null },action==="pattern_status");
+        const response = Promise.resolve().then(() => window.adsk.fusionSendData(action, JSON.stringify({ protocol: 1, requestId, ...payload })))
+            .then(raw => { trace("send_ack", { action,requestId },action==="pattern_status"); return raw; },error => { trace("bridge_error", { action,requestId,name:error?.name || "Error" },action==="pattern_status"); throw error; });
         let timeout, raw, waiting, completion;
         if (action === "pattern_preview") {
             completion = new Promise(resolve => {
-                waiting = { sessionId: payload.sessionId, revision: payload.revision, done: false,
+                waiting = { sessionId: payload.sessionId, revision: payload.revision, requestId, done: false,
                     resolve: snapshot => resolve(JSON.stringify({ protocol: 1, requestId, ok: true, patternState: snapshot })) };
                 previewRequest = waiting;
             });
@@ -153,26 +207,30 @@
         try {
             if (completion) raw = await Promise.race([response, completion]);
             else if (["pattern_begin", "pattern_focus", "pattern_commit"].includes(action)) raw = await response;
-            else raw = await Promise.race([response, new Promise((_, reject) => { timeout = window.setTimeout(() => reject(new Error("Fusion did not respond. Stop and Run Partelier, then try again.")), recoveryId ? 5000 : 30000); })]);
+            else raw = await Promise.race([response, new Promise((_, reject) => { timeout = window.setTimeout(() => { trace("send_timeout", { action,requestId },action==="pattern_status"); reject(new Error("Fusion did not respond. Stop and Run Partelier, then try again.")); }, recoveryId ? 5000 : 30000); })]);
+        } catch (error) { trace("send_error", { action,requestId,name:error?.name || "Error" },action==="pattern_status"); throw error;
         } finally {
             if (timeout !== undefined) window.clearTimeout(timeout);
             if (previewRequest === waiting) previewRequest = undefined;
         }
-        const result = JSON.parse(raw);
-        if (result.protocol !== 1 || result.requestId !== requestId || !result.ok) throw new Error(result.message || "Fusion returned an unexpected response.");
+        let result;
+        try { result = JSON.parse(raw); } catch (error) { trace("send_parse_error", { action,requestId,name:error?.name || "Error" }); throw error; }
+        if (result.protocol !== 1 || result.requestId !== requestId || !result.ok) { trace("send_rejected", { action,requestId,ok:result.ok === true }); throw new Error(result.message || "Fusion returned an unexpected response."); }
         if (result.patternState) {
             const snapshot = result.patternState, newSession = action === "pattern_begin" && state.expecting && snapshot.sessionId;
             if (recoveryId && (state.session?.sessionId !== recoveryId || retired.has(recoveryId)
-                    || (snapshot.sessionId && snapshot.sessionId !== recoveryId))) return result;
+                    || (snapshot.sessionId && snapshot.sessionId !== recoveryId))) { trace("state_rejected", { reason:"obsolete_status",...traceSnapshot(snapshot) },true); return result; }
             if (!(pushedVersion !== version && !newSession && snapshot.revision <= (state.session?.revision ?? -1))) apply(snapshot);
+            else trace("state_rejected", { reason:"newer_push",...traceSnapshot(snapshot) },true);
         }
         return result;
     }
-    function run(task) {
+    function run(task, action = "pattern_action") {
         pending++; state.busy = true; render();
-        const running = actions.then(task);
-        actions = running.catch(error => { state.liveError = true; message(error.message, true); });
-        return actions.finally(() => { pending--; state.busy = pending > 0; render(); });
+        trace("action_queued", { action }); let failed = false;
+        const running = actions.then(() => { trace("action_start", { action }); return task(); });
+        actions = running.catch(error => { failed = true; trace("action_error", { action,name:error.name || "Error" }); state.liveError = true; message(error.message, true); });
+        return actions.finally(() => { pending--; state.busy = pending > 0; trace("action_end", { action,ok:!failed }); render(); });
     }
     function sessionAction(action, extra = {}) {
         const sessionId = identity(); if (!sessionId) throw new Error("Start a pattern geometry session first.");
@@ -194,7 +252,7 @@
             run(async () => {
                 queued = false; if (!identity() || !valid() || state.session?.phase === "opening") return;
                 if (selected()) await refresh(); else { await sessionAction("pattern_update"); await refresh(); }
-            });
+            },"live_preview");
         }, 160);
     }
     async function begin(edit) {
@@ -223,6 +281,7 @@
     $("pattern-settings").addEventListener("submit", event => event.preventDefault());
     $("pattern-settings").addEventListener("input", event => {
         const input = event.target; if (!Object.prototype.hasOwnProperty.call(defaults, input.name)) return;
+        const numeric = Number(input.value); trace("input", { name:input.name,value:input.type === "number" ? input.value.trim() && Number.isFinite(numeric) && Math.abs(numeric)<1e12 ? numeric : null : choices[input.name]?.some(([value])=>value===input.value) ? input.value : "unsupported" });
         if (input.name === "selection_scope" && editing()) { input.value = state.settings.selection_scope; message("Create a new pattern to change between selected faces and a whole body.", true); return; }
         if (input.type === "number") {
             const value = Number(input.value), zeroAllowed = input.name === "border_mm";
@@ -237,30 +296,32 @@
         if (active()) message(valid() ? "Updating live preview…" : "Check the highlighted input. Showing the previous valid preview.", !valid());
         render(); schedule();
     });
-    $("begin-pattern-button").addEventListener("click", () => run(() => begin(false)));
-    $("edit-pattern-button").addEventListener("click", () => run(() => begin(true)));
-    $("preview-pattern-button").addEventListener("click", () => { if ($("pattern-settings").reportValidity()) { cancelTimer(); run(refresh); } });
-    $("create-pattern-button").addEventListener("click", () => { if ($("pattern-settings").reportValidity()) { cancelTimer(); run(() => sessionAction("pattern_commit")); } });
-    $("cancel-pattern-button").addEventListener("click", () => { cancelTimer(); run(() => sessionAction("pattern_cancel")); });
+    $("begin-pattern-button").addEventListener("click", () => { trace("click", { control:"begin" }); run(() => begin(false),"pattern_begin"); });
+    $("edit-pattern-button").addEventListener("click", () => { trace("click", { control:"edit" }); run(() => begin(true),"pattern_edit"); });
+    $("preview-pattern-button").addEventListener("click", () => { trace("click", { control:"refresh" }); if ($("pattern-settings").reportValidity()) { cancelTimer(); run(refresh,"pattern_preview"); } });
+    $("create-pattern-button").addEventListener("click", () => { trace("click", { control:"commit" }); if ($("pattern-settings").reportValidity()) { cancelTimer(); run(() => sessionAction("pattern_commit"),"pattern_commit"); } });
+    $("cancel-pattern-button").addEventListener("click", () => { trace("click", { control:"cancel" }); cancelTimer(); run(() => sessionAction("pattern_cancel"),"pattern_cancel"); });
     window.PartelierPatterns = Object.freeze({
         isActive() { return active(); },
         isBusy() { return state.busy || state.session?.phase === "opening"; },
         matches(id) { return Object.prototype.hasOwnProperty.call(presets, id); },
         select(id) {
             state.selected = this.matches(id);
+            trace("tool_selected", { alias:state.selected ? id : "other" },true);
             if (state.selected && state.alias !== id && !active() && !otherActive()) { Object.assign(state.settings, presets[id]); state.revision = 0; state.liveError = false; sync(); }
             state.alias = state.selected ? id : null; render();
         },
         setOtherActive(values) { Object.assign(state.others, values); render(); },
         connect(result) {
             state.connected = true; state.capabilities = new Set(Array.isArray(result.capabilities) ? result.capabilities : []);
+            trace("connected", { patternPalette:supported() });
             if (!state.dirty && result.patternDefaults && !result.patternState?.settings) { state.settings = { ...defaults, ...result.patternDefaults }; sync(); }
             for (const [key, snapshot] of [["hinge", result.hingeState], ["snap", result.snapState]]) if (snapshot) state.others[key] = !!snapshot.sessionId && !terminal.has(snapshot.phase);
             if (result.patternState) apply(result.patternState);
             renderArt(); render(); if (identity() && selected() && !current()) schedule();
             return active() ? state.settings.pattern === "hexagon" ? "honeycomb" : state.settings.mode === "emboss" ? "knurl" : "perforation" : null;
         },
-        handle(action, raw) { if (action !== "pattern_state") return false; if (apply(JSON.parse(raw))) pushedVersion++; return true; }
+        handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    renderArt(); render();
+    trace("boot", { build:"0.10.3" }); renderArt(); render();
 })();

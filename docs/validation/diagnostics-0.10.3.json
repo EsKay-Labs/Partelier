@@ -1,0 +1,38 @@
+{
+  "product_version": "0.10.3",
+  "scope": "Local UI/bridge/native lifecycle instrumentation; not an interactive hang fix.",
+  "local_checks": {
+    "python_tests": 839,
+    "node_dom_suites": 3,
+    "javascript_syntax": true
+  },
+  "coverage": [
+    "Disabled-control pointer capture and UI action/queue/message/state traces.",
+    "Bounded saved UI event replay with original timestamps.",
+    "Strict read-only diagnostic endpoint; no geometry action dispatch.",
+    "Unanswered/rejected diagnostic requests do not block or recurse into the UI.",
+    "JSONL run/sequence correlation, concurrent whole-line writes, rotation and harmless I/O failures.",
+    "Native preview runner trace ordering and error/cancellation semantics."
+  ],
+  "log_storage": {
+    "path": "%LOCALAPPDATA%/Partelier/logs/partelier.jsonl",
+    "rotate_bytes": 2097152,
+    "backups": 3,
+    "local_only": true
+  },
+  "files": {
+    "Partelier/Partelier.manifest": "afca700b2a456876a530242e2f782175aab0974473a28e1b77b12bb363e7c307",
+    "Partelier/partelier/addin.py": "b281358a644e8f8dfd3a5852562b615c7e9244379b59ff134ac366b506a7b4f1",
+    "Partelier/partelier/diagnostics.py": "49cf57ea4346d958f277d7a976c4ed8d27d37e51ecac0a9af1544893f336a7d6",
+    "Partelier/partelier/palette.py": "4a0852652eae16b662406557ef093e140c3781755aa1c17a5b09bf5c5814c4ae",
+    "Partelier/partelier/palette_protocol.py": "d683b7aa6a58874d28d7d4b4121ba426c7ee05b622db4b132451aab0cd3a9144",
+    "Partelier/partelier/tools/patterns/command.py": "df2064155f4bb867de6f432d93f7028c8e0357dcd2ef2669f7766d02a1aade05",
+    "Partelier/partelier/tools/patterns/fusion.py": "53d5214c3d3872fd03da443c00203e3dbd5b05ca15ce74f2cd80b210cec43924",
+    "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+    "Partelier/partelier/ui/palette.html": "1d5913e61cda29d91e11e0f11d51490351493b1b4aaab26d35f138b8526602b2",
+    "Partelier/partelier/ui/palette.js": "302ebabda172e301057bc32452e73cf4b6ae7774368b7f586922615ec63758c7",
+    "Partelier/partelier/ui/patterns.js": "43110b7de2425690f0e0586b03d20c1e9fb1f5ae23c0cb40ea447b5a1e17206e"
+  },
+  "native_interactive_reproduction": "Pending user reload and reproduction; no claim of resolving the reported selection hang.",
+  "geometry_evidence": "The previous 0.10.2 native record is historical; this change instruments the workflow."
+}

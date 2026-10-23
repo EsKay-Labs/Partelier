@@ -17,6 +17,7 @@ from .planner import MAX_CELLS, MAX_FACE_CELLS, build_cells, build_layout, densi
 from .surfaces import SurfaceMap
 from .prism import prism as _direct_prism
 from .batch import try_through_difference
+from ...diagnostics import emit
 
 
 MAX_TOTAL_CELLS = MAX_CELLS
@@ -51,6 +52,20 @@ class _MappedCell:
     world_polygon: tuple
     radius_mm: float
     sag_mm: float
+
+
+def _trace_geometry(event,**fields):
+    try:
+        emit("pattern.geometry."+event,**fields)
+    except Exception:
+        pass
+
+
+def _trace_error(error):
+    try:
+        return str(error)
+    except Exception:
+        return "<unprintable error>"
 
 
 def _api():
@@ -138,7 +153,7 @@ def _tokens(body, faces):
     return values
 
 
-def validate_sources(prepared, *, _historical=False):
+def _validate_sources_impl(prepared, *, _historical=False):
     """Read-only source freshness; Edit invokes this before its saved feature."""
     faces, body = _selection(prepared.design, prepared.faces, _historical)
     references = prepared.source_tokens
@@ -148,6 +163,17 @@ def validate_sources(prepared, *, _historical=False):
     resolved = tuple(hinge._resolve_one(prepared.design, token, "Pattern face") for token in references["faces"])
     if current != body or resolved != faces or _signature(body, faces) != prepared.source_signature:
         raise ValueError("The pattern source geometry changed. Refresh or reselect its faces.")
+
+
+def validate_sources(prepared, *, _historical=False):
+    _trace_geometry("source_validate.begin",historical=_historical)
+    try:
+        result=_validate_sources_impl(prepared,_historical=_historical)
+    except Exception as error:
+        _trace_geometry("source_validate.error",error_type=type(error).__name__,error=_trace_error(error))
+        raise
+    _trace_geometry("source_validate.end",historical=_historical)
+    return result
 
 
 def _face_budgets(areas):
@@ -364,11 +390,13 @@ def _band(design, face, sample, settings):
             core.ValueInput.createByReal(distance / 10), native.FeatureOperations.NewBodyFeatureOperation, False)
         if offset_input is None:
             raise ValueError("Fusion could not define the independent pattern surface.")
+        _trace_geometry("band.offset.begin",mode=settings.mode,distance_mm=distance)
         offset = root.features.offsetFeatures.add(offset_input)
         if offset is None or not offset.isValid:
             raise ValueError("Fusion could not copy the selected face into a pattern surface.")
         owned.append(offset)
         _healthy(offset)
+        _trace_geometry("band.offset.end",mode=settings.mode)
         # Feature.bodies also contains affected input solids. Only CREATED
         # faces on one newly owned sheet may be passed to Thicken.
         created_faces = hinge._items(offset.faces)
@@ -393,11 +421,13 @@ def _band(design, face, sample, settings):
             False, native.FeatureOperations.NewBodyFeatureOperation, False)
         if spec is None:
             raise ValueError("Fusion could not define the exact surface-depth band.")
+        _trace_geometry("band.thicken.begin",mode=settings.mode,thickness_mm=thickness)
         feature = root.features.thickenFeatures.add(spec)
         if feature is None or not feature.isValid:
             raise ValueError("Fusion could not thicken this face at the requested depth. Reduce depth or split the face.")
         owned.append(feature)
         _healthy(feature)
+        _trace_geometry("band.thicken.end",mode=settings.mode)
         bodies = tuple(body for body in hinge._items(root.bRepBodies)
             if body.isValid and body.isSolid
             and not any(body == original for original in original_bodies))
@@ -415,6 +445,7 @@ def _band(design, face, sample, settings):
             raise ValueError("The emboss depth band does not include its attachment overlap.")
         return band
     finally:
+        _trace_geometry("band.cleanup.begin",owned_features=len(owned))
         cleanup_errors = []
         for feature in reversed(owned):
             try:
@@ -428,29 +459,40 @@ def _band(design, face, sample, settings):
             cleanup_errors.append(str(error))
         if (root.bRepBodies.count, design.timeline.count, design.timeline.markerPosition) != before:
             cleanup_errors.append("temporary history/body counts did not restore")
+        _trace_geometry("band.cleanup.end",errors=cleanup_errors)
         if cleanup_errors:
             raise RuntimeError("Could not clean the temporary depth band; roll back this command. " + "; ".join(cleanup_errors))
 
 
-def prepare_pattern(design, faces, settings, *, _historical=False):
+def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
     """Prepare the full result, inside the caller's owned native transaction."""
     settings.validate()
     started = time.perf_counter()
     faces, body = _selection(design, faces, _historical)
+    _trace_geometry("source_read.begin",face_count=len(faces))
     signature, tokens = _signature(body, faces), _tokens(body, faces)
+    _trace_geometry("source_read.end",face_count=len(faces))
+    _trace_geometry("mapping.begin",face_count=len(faces),layout_mode=settings.layout_mode)
     mapped, layouts = _mapped_cells(faces, settings, _return_layouts=True)
     planned = time.perf_counter()
+    _trace_geometry("mapping.end",cell_count=len(mapped),
+        layouts=[{"face":index,"cells":len(layout.cells),"pitch_mm":layout.effective_pitch_mm}
+                 for index,layout in enumerate(layouts)],elapsed_ms=(planned-started)*1000)
     _, native = _api()
     manager = native.TemporaryBRepManager.get()
     if manager is None:
         raise ValueError("Fusion's temporary geometry manager is unavailable.")
+    _trace_geometry("source_copy.begin")
     result = _copy(manager, body)
+    _trace_geometry("source_copy.end")
     bands = {}
     if settings.mode != "through":
         for index, face in enumerate(faces):
             first = next((cell for cell in mapped if cell.face_index == index), None)
             if first is not None:
+                _trace_geometry("band.begin",face_index=index,mode=settings.mode)
                 bands[index] = _band(design, face, first.center, settings)
+                _trace_geometry("band.end",face_index=index,mode=settings.mode)
         if _signature(body, faces) != signature:
             raise ValueError("Temporary depth-band creation changed the source. Roll back the command.")
     diagnostics = []
@@ -458,18 +500,22 @@ def prepare_pattern(design, faces, settings, *, _historical=False):
     through_tools = []
     details = dict(wall_checks_ms=0.0, tool_construction_ms=0.0,
                    tool_clip_ms=0.0, result_application_ms=0.0, batch_used=False)
-    for cell in mapped:
+    _trace_geometry("tools.begin",cell_count=len(mapped),mode=settings.mode)
+    for cell_index,cell in enumerate(mapped,1):
         center_wall = None
         if settings.mode in {"through", "engrave"}:
             stage = time.perf_counter()
+            _trace_geometry("tool.wall.begin",cell=cell_index,total=len(mapped),face_index=cell.face_index)
             through_depth, center_wall = _cell_depth(design, body, cell, settings)
             details['wall_checks_ms'] += (time.perf_counter()-stage)*1000
         stage = time.perf_counter()
+        _trace_geometry("tool.prism.begin",cell=cell_index,total=len(mapped),face_index=cell.face_index)
         if settings.mode == "through":
             cutter = _prism_for_cell(manager, cell, through_depth,
                                       max(.02, cell.sag_mm + .02))
             details['tool_construction_ms'] += (time.perf_counter()-stage)*1000
             stage = time.perf_counter()
+            _trace_geometry("tool.clip.begin",cell=cell_index,total=len(mapped),mode=settings.mode)
             _boolean(manager, cutter, body, native.BooleanTypes.IntersectionBooleanType,
                      "A through cell crossed disconnected walls or could not isolate its first wall. Reduce pitch.")
             details['tool_clip_ms'] += (time.perf_counter()-stage)*1000
@@ -481,6 +527,7 @@ def prepare_pattern(design, faces, settings, *, _historical=False):
             cutter = _prism_for_cell(manager, cell, inward, outward)
             details['tool_construction_ms'] += (time.perf_counter()-stage)*1000
             stage = time.perf_counter()
+            _trace_geometry("tool.clip.begin",cell=cell_index,total=len(mapped),mode=settings.mode)
             _boolean(manager, cutter, bands[cell.face_index], native.BooleanTypes.IntersectionBooleanType,
                      "A cell could not isolate one conformal depth region. Reduce pitch or select another surface.")
             details['tool_clip_ms'] += (time.perf_counter()-stage)*1000
@@ -488,6 +535,7 @@ def prepare_pattern(design, faces, settings, *, _historical=False):
                          else native.BooleanTypes.DifferenceBooleanType)
         if settings.mode != 'through':
             stage = time.perf_counter()
+            _trace_geometry("tool.apply.begin",cell=cell_index,total=len(mapped),mode=settings.mode)
             before_volume = float(result.volume)
             _boolean(manager, result, cutter, operation,
                      "The pattern split or removed the source solid. Increase web/border or reduce depth.")
@@ -501,9 +549,14 @@ def prepare_pattern(design, faces, settings, *, _historical=False):
                 "first_exit_mm": center_wall[0] if center_wall else None,
                 "next_entry_mm": center_wall[1] if center_wall and math.isfinite(center_wall[1]) else None})
             recorded[cell.face_index] = recorded.get(cell.face_index, 0) + 1
+        if cell_index == 1 or cell_index%25 == 0 or cell_index == len(mapped):
+            _trace_geometry("tools.progress",completed=cell_index,total=len(mapped),mode=settings.mode)
+    _trace_geometry("tools.end",cell_count=len(mapped),mode=settings.mode)
     if through_tools:
         stage = time.perf_counter()
+        _trace_geometry("batch.begin",tool_count=len(through_tools))
         batch = try_through_difference(manager, body, through_tools, native.BooleanTypes)
+        _trace_geometry("batch.end",tool_count=len(through_tools),used=batch is not None)
         if batch is not None:
             result = batch.body
             details.update(batch.timings)
@@ -511,20 +564,40 @@ def prepare_pattern(design, faces, settings, *, _historical=False):
         else:
             # A refused aggregate may have mutated its own copies. Resume the
             # exact per-cell path only from the original source/pristine tools.
+            _trace_geometry("fallback.begin",tool_count=len(through_tools))
             result = _copy(manager, body)
-            for cutter in through_tools:
+            for tool_index,cutter in enumerate(through_tools,1):
+                _trace_geometry("fallback.apply.begin",cell=tool_index,total=len(through_tools))
                 before_volume = float(result.volume)
                 _boolean(manager, result, cutter, native.BooleanTypes.DifferenceBooleanType,
                          "The pattern split or removed the source solid. Increase web/border or reduce depth.")
                 if float(result.volume)-before_volume >= -1e-10:
                     raise ValueError("A pattern cell did not change material. Remove overlapping selections or adjust its placement.")
+                if tool_index == 1 or tool_index%25 == 0 or tool_index == len(through_tools):
+                    _trace_geometry("fallback.progress",completed=tool_index,total=len(through_tools))
+            _trace_geometry("fallback.end",tool_count=len(through_tools))
         details['result_application_ms'] = (time.perf_counter()-stage)*1000
     prepared = PreparedPattern(design, faces, body, settings, result, signature,
         {"source_and_plan_ms": (planned - started) * 1000,
          "temporary_geometry_ms": (time.perf_counter() - planned) * 1000,
          "total_ms": (time.perf_counter() - started) * 1000, **details}, len(mapped), tokens,
          accepted_samples=tuple(diagnostics), layouts=layouts)
+    _trace_geometry("final_validate.begin",cell_count=len(mapped))
     validate_sources(prepared, _historical=_historical)
+    _trace_geometry("final_validate.end",cell_count=len(mapped))
+    return prepared
+
+
+def prepare_pattern(design, faces, settings, *, _historical=False):
+    _trace_geometry("prepare.begin",face_count=len(faces) if isinstance(faces,(tuple,list)) else None,
+        mode=getattr(settings,"mode",None),pattern=getattr(settings,"pattern",None),
+        pitch_mm=getattr(settings,"pitch_mm",None),layout_mode=getattr(settings,"layout_mode",None),historical=_historical)
+    try:
+        prepared=_prepare_pattern_impl(design,faces,settings,_historical=_historical)
+    except Exception as error:
+        _trace_geometry("prepare.error",error_type=type(error).__name__,error=_trace_error(error))
+        raise
+    _trace_geometry("prepare.end",cell_count=prepared.cell_count,timings=prepared.timings)
     return prepared
 
 
@@ -540,4 +613,11 @@ def preview_pattern(prepared):
     appearance = prepared.body.appearance or prepared.body.material.appearance or root.material.appearance
     if appearance is None:
         raise ValueError("Fusion could not read the source appearance for the pattern preview.")
-    return hinge.draw_solid_preview(prepared.design, (("A", prepared.result_body),), {"A": appearance})
+    _trace_geometry("draw.begin",cell_count=prepared.cell_count)
+    try:
+        group=hinge.draw_solid_preview(prepared.design, (("A", prepared.result_body),), {"A": appearance})
+    except Exception as error:
+        _trace_geometry("draw.error",error_type=type(error).__name__,error=_trace_error(error))
+        raise
+    _trace_geometry("draw.end",cell_count=prepared.cell_count)
+    return group

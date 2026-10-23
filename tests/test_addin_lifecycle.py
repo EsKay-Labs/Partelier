@@ -181,6 +181,7 @@ class AddinLifecycleTests(unittest.TestCase):
             palette_name: palette, hinge_name: hinge, snap_name: snap, pattern_name: pattern,
         }):
             spec.loader.exec_module(self.module)
+        self.module.diagnostics=SimpleNamespace(start=Mock(),emit=Mock())
         self.library = self.module._tool_library
 
     def tearDown(self):

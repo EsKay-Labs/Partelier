@@ -25,12 +25,14 @@ function fixture(options = {}) {
     for(const id of ["hinge-layout-fields","hinge-fields","hinge-fit-fields","hinge-advanced-fields","hinge-mode","hinge-output-fields","hinge-hole-fields","hinge-hole-toggle","hinge-finish-fields","hinge-finish-choice","hinge-fillet-fields","hinge-design-fields"]) $("hinge-settings").append($(id));
     for(const id of ["snap-family-fields","snap-style-fields","snap-size-fields","snap-fit-fields","snap-layout-fields","snap-construction-fields","snap-finish-toggle","snap-finish-fields","snap-ball-fields","snap-torsion-fields","snap-annular-fields"]) $("snap-settings").append($(id));
     for(const id of ["pattern-design-fields","pattern-size-fields","pattern-scope-fields","pattern-placement-fields"]) $("pattern-settings").append($(id));
-    const document={getElementById:$,createElement:tag=>new Element(tag),querySelector:()=>new Element("a"),querySelectorAll:()=>[],addEventListener(){}};
-    const requests=[],timers=new Map(),config={...options,holdPick:false,holdPreview:false,queuedPreview:false,holdCommit:false,holdStatus:false,statusReleases:[],release:null,failPreview:false,delayedPush:null,saved:null};
+    const documentListeners=new Map();
+    const document={getElementById:$,createElement:tag=>new Element(tag),querySelector:()=>new Element("a"),querySelectorAll:()=>[],addEventListener(name,handler){(documentListeners.get(name)||documentListeners.set(name,[]).get(name)).push(handler);}};
+    const requests=[],timers=new Map(),storage=new Map(Object.entries(options.storageSeed||{})),listeners=new Map(),config={...options,holdPick:false,holdPreview:false,queuedPreview:false,holdCommit:false,holdStatus:false,statusReleases:[],release:null,failPreview:false,failDiagnostic:false,holdDiagnostic:false,delayedPush:null,saved:null};
     let host=options.pattern||idle(),hinge=options.hinge||idle(),snap=options.snap||idle(),sequence=0,timerSequence=0,timeouts=0;
     const clone=x=>JSON.parse(JSON.stringify(x)),push=x=>window.fusionJavaScriptHandler.handle("pattern_state",JSON.stringify(x));
-    const window={setTimeout(fn,ms){if(ms===30000){timeouts++;return 0;}if([160,2000,5000].includes(ms)){const id=++timerSequence;timers.set(id,{fn,ms});return id;}return setTimeout(fn,ms);},clearTimeout(id){timers.delete(id);clearTimeout(id);},adsk:{fusionSendData(action,raw){
+    const window={localStorage:{getItem:key=>{if(config.storageFailure)throw Error("storage unavailable");return storage.get(key)||null;},setItem:(key,value)=>{if(config.storageFailure)throw Error("storage unavailable");storage.set(key,value);}},addEventListener(name,handler){(listeners.get(name)||listeners.set(name,[]).get(name)).push(handler);},setTimeout(fn,ms){if(ms===30000){timeouts++;return 0;}if([160,400,2000,5000].includes(ms)){const id=++timerSequence;timers.set(id,{fn,ms});return id;}return setTimeout(fn,ms);},clearTimeout(id){timers.delete(id);clearTimeout(id);},adsk:{fusionSendData(action,raw){
         const request=JSON.parse(raw);requests.push([action,request]);
+        if(action==="diagnostic_log"){if(config.failDiagnostic)return Promise.reject(Error("diagnostic endpoint unavailable"));if(config.holdDiagnostic)return new Promise(()=>{});return Promise.resolve(JSON.stringify({protocol:1,requestId:request.requestId,ok:true}));}
         const respond=(ok=true,message)=>JSON.stringify({protocol:1,requestId:request.requestId,ok,message,capabilities:config.capabilities||["hinge-palette","hinge-edit","snap-palette","snap-edit","pattern-palette","pattern-edit"],hingeState:clone(hinge),snapState:clone(snap),patternState:clone(host),patternDefaults:defaults});
         for(const tool of ["hinge","snap"]) if(action.startsWith(tool+"_")) {
             let other=tool==="hinge"?hinge:snap;
@@ -65,7 +67,7 @@ function fixture(options = {}) {
     const flush=async()=>{for(let i=0;i<8;i++)await new Promise(resolve=>setImmediate(resolve));};
     const advance=async ms=>{const pending=[...timers.entries()].filter(([,timer])=>timer.ms===ms);pending.forEach(([id])=>timers.delete(id));pending.forEach(([,timer])=>timer.fn());await flush();};
     const settle=()=>advance(160);
-    return {$,window,requests,config,flush,settle,advance,push,setHost:snapshot=>{host=clone(snapshot);},snapshot:()=>clone(host),timeouts:()=>timeouts,pendingTimers:ms=>[...timers.values()].filter(timer=>timer.ms===ms).length,
+    return {$,window,requests,config,flush,settle,advance,push,storage,emitWindow:(name,event)=>{for(const handler of listeners.get(name)||[])handler(event);},emitDocument:(name,event)=>{for(const handler of documentListeners.get(name)||[])handler(event);},setHost:snapshot=>{host=clone(snapshot);},snapshot:()=>clone(host),timeouts:()=>timeouts,pendingTimers:ms=>[...timers.values()].filter(timer=>timer.ms===ms).length,
         async select(id){$("tool-select").value=id;await $("tool-select").emit("change");await flush();},
         async click(id){await $(id).emit("click");await flush();},
         async input(name,value,debounce=true){const input=$("pattern-"+name);input.value=value;for(const fn of $("pattern-settings").listeners.input)fn({target:input});await flush();if(debounce)await settle();}
@@ -169,6 +171,34 @@ function fixture(options = {}) {
     await retiredPoll.advance(2000);await retiredPoll.click("cancel-pattern-button");assert.equal(retiredPoll.pendingTimers(2000),0);await retiredPoll.advance(2000);assert.equal(retiredPoll.requests.filter(([a])=>a==="pattern_status").length,1);
     retiredPoll.config.queuedPreview=false;retiredPoll.config.completePick=true;await retiredPoll.click("begin-pattern-button");const newSession=retiredPoll.snapshot();retiredPoll.config.statusReleases[0]();await retiredPoll.flush();
     assert.equal(retiredPoll.$("create-pattern-button").disabled,false);assert.equal(retiredPoll.snapshot().sessionId,newSession.sessionId);assert.equal(retiredPoll.pendingTimers(2000),0);assert.equal(retiredPoll.pendingTimers(5000),0);await retiredPoll.click("cancel-pattern-button");
+    const drainTrace=async fixture=>{for(let i=0;i<20&&fixture.pendingTimers(400);i++)await fixture.advance(400);};
+    const entries=fixture=>fixture.requests.filter(([action])=>action==="diagnostic_log").flatMap(([,request])=>request.entries);
+    const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
+    const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
+    assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.10.3"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.10.3"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    await logged.click("begin-pattern-button");await logged.click("pattern-select-surface");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
+    logged.config.completePick=true;await logged.click("begin-pattern-button");const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
+    const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));
+    for(const event of ["click","input","action_queued","action_start","action_end","action_error","send_start","send_ack","send_rejected","push_received","state_applied","state_rejected","locks","browser_error","unhandled_rejection"])assert(events.has(event),`missing ${event} diagnostic`);
+    for(const control of ["begin","surface","refresh","cancel","commit"])assert(traceEntries.some(entry=>entry.event==="click"&&entry.context.control===control));
+    assert(traceEntries.some(entry=>entry.event==="input"&&entry.context.name==="pitch_mm"&&entry.context.value===9));
+    for(const [,request]of logged.requests.filter(([action])=>action==="diagnostic_log")){
+        assert(request.entries.length>=1&&request.entries.length<=10);assert(Buffer.byteLength(JSON.stringify(request),"utf8")<16384);
+        for(const entry of request.entries){assert(/^[A-Za-z0-9_.:-]{1,80}$/.test(entry.event));assert(Number.isFinite(entry.at)&&entry.at>=0);assert(Object.keys(entry.context).length<=32);assert(Object.values(entry.context).every(value=>value===null||typeof value==="boolean"||typeof value==="string"&&value.length<=512||typeof value==="number"&&Number.isFinite(value)));}
+    }
+    assert(!JSON.stringify(traceEntries).includes("3 supported faces"));assert(!JSON.stringify(traceEntries).includes("Hexagonal body"));
+    const bounded=fixture();await bounded.flush();await bounded.select("honeycomb");bounded.config.failDiagnostic=true;
+    for(let i=0;i<120;i++)await bounded.input("pitch_mm",8+i,false);
+    assert.equal(JSON.parse(bounded.storage.get("Partelier.patternTrace.v1")).length,80);await drainTrace(bounded);const diagnosticCount=bounded.requests.filter(([action])=>action==="diagnostic_log").length;assert(diagnosticCount<=8);await bounded.advance(400);assert.equal(bounded.requests.filter(([action])=>action==="diagnostic_log").length,diagnosticCount,"failed diagnostics cannot recursively log themselves");
+    bounded.config.holdDiagnostic=true;bounded.config.failDiagnostic=false;await bounded.click("begin-pattern-button");await bounded.click("pattern-select-surface");await drainTrace(bounded);assert.equal(bounded.$("create-pattern-button").disabled,false,"an unanswered diagnostic ACK cannot block the UI queue");await bounded.click("cancel-pattern-button");
+    const noStorage=fixture({storageFailure:true});await noStorage.flush();await noStorage.select("honeycomb");await noStorage.click("begin-pattern-button");await noStorage.click("pattern-select-surface");await drainTrace(noStorage);assert.equal(noStorage.$("create-pattern-button").disabled,false);await noStorage.click("cancel-pattern-button");
+    const polledTrace=fixture();await polledTrace.flush();await polledTrace.select("honeycomb");await polledTrace.click("begin-pattern-button");polledTrace.config.queuedPreview=true;await polledTrace.click("pattern-select-surface");await drainTrace(polledTrace);
+    for(let i=0;i<5;i++){await polledTrace.advance(2000);await drainTrace(polledTrace);}
+    assert.equal(polledTrace.requests.filter(([action])=>action==="pattern_status").length,5);assert(entries(polledTrace).filter(entry=>["send_start","send_ack"].includes(entry.event)&&entry.context.action==="pattern_status").length<=2,"unchanged recovery polls are deduplicated in the trace");
+    polledTrace.config.holdStatus=true;await polledTrace.advance(2000);await polledTrace.advance(5000);await drainTrace(polledTrace);assert(entries(polledTrace).some(entry=>entry.event==="send_timeout"&&entry.context.action==="pattern_status"));await polledTrace.click("cancel-pattern-button");
     const version=JSON.parse(fs.readFileSync(path.join(__dirname,"../Partelier/Partelier.manifest"),"utf8")).version;assert(html.includes(`patterns.js?v=${version}`));
     console.log("Pattern UI contract passed: presets, typed full snapshots, surface scopes, modes, live preview, Edit/Rebuild, three-tool locks, stale sessions and native acknowledgment ordering.");
 })().catch(error=>{console.error(error);process.exitCode=1;});

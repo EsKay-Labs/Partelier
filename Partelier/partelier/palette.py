@@ -2,6 +2,7 @@
 
 import json
 import traceback
+import time
 from pathlib import Path
 from urllib.parse import quote
 
@@ -11,6 +12,7 @@ from .palette_protocol import PROTOCOL_VERSION, SESSION_ACTIONS, SNAP_SESSION_AC
 from .tools.hinge.settings import HingeSettings
 from .tools.snap_fit.settings import SnapFitSettings
 from .tools.patterns.settings import PatternSettings
+from .diagnostics import emit
 
 
 COMMAND_ID = "sktech_partelier_library_b520ea78"
@@ -106,7 +108,11 @@ class ToolLibrary:
             # Qt sends an asynchronous 'response' acknowledgement. An empty
             # immediate return is normal and must not be treated as failure.
             palette.sendInfoToHTML(action, json.dumps(snapshot))
+            if action=='pattern_state':
+                emit('bridge.push.sent',action=action,session_id=snapshot.get('sessionId'),
+                     revision=snapshot.get('revision'),phase=snapshot.get('phase'),preview_current=snapshot.get('previewCurrent'))
         except Exception:
+            emit('bridge.push.error',action=action,error=traceback.format_exc())
             adsk.core.Application.get().log("Partelier could not update the tool library state.")
 
     def _panel(self, ui):
@@ -153,6 +159,10 @@ class ToolLibrary:
         if self._created_handler is None:
             raise RuntimeError("The tool library has stopped. Run the add-in again.")
         request = read_request(action, raw_data)
+        if action=='diagnostic_log':
+            for entry in request.diagnostics:
+                emit('ui.'+entry['event'],ui_at=entry['at'],context=entry['context'])
+            return json.dumps({'protocol':PROTOCOL_VERSION,'requestId':request.request_id,'ok':True})
         snapshot = None
         snap_snapshot = None
         pattern_snapshot = None
@@ -305,10 +315,21 @@ class _HTMLMessage(adsk.core.HTMLEventHandler):
         if args.action == "response":
             args.returnData = "OK"
             return
+        started=time.perf_counter()
+        request_id=None
+        try:
+            payload=json.loads(args.data)
+            if isinstance(payload,dict):request_id=payload.get('requestId')
+        except Exception:pass
+        trace=args.action!='diagnostic_log'
+        if trace:emit('bridge.request.begin',action=args.action,request_id=request_id)
         try:
             args.returnData = self.owner.handle_message(args.action, args.data)
+            if trace:emit('bridge.request.end',action=args.action,request_id=request_id,elapsed_ms=(time.perf_counter()-started)*1000)
         except (ValueError, RuntimeError) as error:
+            emit('bridge.request.error',action=args.action,request_id=request_id,error=str(error),elapsed_ms=(time.perf_counter()-started)*1000)
             args.returnData = json.dumps({"protocol": PROTOCOL_VERSION, "ok": False, "message": str(error)})
         except Exception:
+            emit('bridge.request.exception',action=args.action,request_id=request_id,error=traceback.format_exc(),elapsed_ms=(time.perf_counter()-started)*1000)
             args.returnData = json.dumps({"protocol": PROTOCOL_VERSION, "ok": False, "message": "Fusion could not complete the request. See its log."})
             adsk.core.Application.get().log(f"Partelier HTML bridge request failed:\n{traceback.format_exc()}")

@@ -11,9 +11,15 @@ from .settings import PatternSettings
 from . import fusion, recipe
 from .preview import PatternPreviewRunner
 from ..hinge.visibility import BodyVisibilityLease
+from ...diagnostics import emit
 
 
 COMMIT_ID="sktech_partelier_pattern_commit_23bc07a1"
+
+
+def _active_command():
+    try:return core.Application.get().userInterface.activeCommand
+    except Exception:return None
 
 
 def _design():
@@ -48,6 +54,9 @@ class PatternCommands:
 
     def publish(self,session):
         self.last=session.snapshot()
+        emit('pattern.state',session_id=session.session_id,revision=session.revision,phase=session.phase,
+             closed=session.closed,preview_current=self.last['previewCurrent'],
+             selected=self.last['selections']['surface']['selected'],message=session.message)
         if self.callback:
             try:self.callback(self.last)
             except Exception:self.log("Partelier could not update the pattern palette")
@@ -92,6 +101,8 @@ class PatternCommands:
         if errors:raise RuntimeError("Pattern cleanup needs another Stop attempt. "+str(errors[0]))
 
     def begin_palette(self,settings_dict,editing=False):
+        emit('pattern.begin',editing=editing,busy=self.busy,existing_session=self._session is not None,
+             active_command=_active_command(),settings=settings_dict)
         if self._registration is None:raise ValueError("Run Partelier to enable patterns.")
         if self._session or self.busy:raise ValueError("Finish or cancel the current pattern first.")
         if type(editing) is not bool:raise ValueError("Edit mode must be true or false.")
@@ -103,6 +114,7 @@ class PatternCommands:
         try:
             selections=core.Application.get().userInterface.activeSelections
             entities=[selections.item(i).entity for i in range(selections.count)]
+            emit('pattern.preselection',session_id=session.session_id,count=len(entities))
             if editing and len(entities)==1:
                 session.select_target(entities[0])
             elif not editing and values.selection_scope=='faces' and entities and all(native.BRepFace.cast(e) is not None for e in entities):
@@ -112,6 +124,7 @@ class PatternCommands:
         finally:self._busy=False
 
     def pick(self,session,target):
+        emit('pattern.pick.begin',session_id=session.session_id,target=target,revision=session.revision)
         session.ensure_design()
         session.clear_preview()
         ui=core.Application.get().userInterface
@@ -126,8 +139,14 @@ class PatternCommands:
         session.phase='selecting';session.message=prompt;self.publish(session)
         faces=[]
         while True:
+            emit('pattern.pick.wait',session_id=session.session_id,target=target,filters=filters,count=len(faces),
+                 active_command=_active_command())
             try:selected=ui.selectEntity(prompt,filters)
-            except RuntimeError:selected=None
+            except RuntimeError as error:
+                emit('pattern.pick.interrupted',session_id=session.session_id,error=str(error))
+                selected=None
+            emit('pattern.pick.return',session_id=session.session_id,target=target,
+                 has_entity=selected is not None and selected.entity is not None)
             session.ensure_design()
             if selected is None or selected.entity is None:break
             if session.editing:
@@ -139,12 +158,16 @@ class PatternCommands:
             if face is None:raise ValueError("Select a solid face.")
             if faces and face.body!=faces[0].body:raise ValueError("Choose faces on the same solid body.")
             if face not in faces:faces.append(face)
+            emit('pattern.pick.accepted',session_id=session.session_id,count=len(faces))
             if len(faces)>100:raise ValueError("Select at most 100 faces.")
             session.set_faces(faces)
             self.publish(session)
         session.validate()
+        emit('pattern.pick.end',session_id=session.session_id,count=len(faces),phase=session.phase)
 
     def palette_action(self,action,session_id,revision=None,settings_dict=None,target=None):
+        emit('pattern.action',action=action,session_id=session_id,revision=revision,target=target,
+             owner_busy=self._busy,pending_commit=self._pending is not None,runner_busy=self.runner.busy)
         session=self._session
         if self._busy or self._pending or (session and session.command):
             raise ValueError("Finish picking or wait for pattern creation.")
@@ -236,13 +259,18 @@ class _Session:
         return fusion.prepare_pattern(self.design,self.faces,settings)
 
     def show_preview(self):
+        emit('pattern.preview.request',session_id=self.session_id,revision=self.revision,settings=self.settings.to_dict())
         self.require_selections()
         settings,revision=self.settings,self.revision
         self.phase='computing';self.message='Computing surface pattern…';self.owner.publish(self)
         def completed(prepared):
-            if self.closed or self.owner._session is not self or revision!=self.revision:return
+            if self.closed or self.owner._session is not self or revision!=self.revision:
+                emit('pattern.preview.discarded',session_id=self.session_id,revision=revision,
+                     current_revision=self.revision,closed=self.closed)
+                return
             try:
                 recipe.validate_preview_sources(prepared)
+                emit('pattern.draw.begin',session_id=self.session_id,revision=revision,cells=prepared.cell_count)
                 draw_started=time.perf_counter()
                 candidate=fusion.preview_pattern(prepared)
                 if candidate is None or not candidate.isValid:
@@ -256,6 +284,8 @@ class _Session:
                     if self.preview is None:self.visibility.restore()
                     raise
                 self.preview=candidate;self.prepared=prepared;self.preview_revision=revision
+                emit('pattern.draw.end',session_id=self.session_id,revision=revision,
+                     elapsed_ms=(time.perf_counter()-draw_started)*1000)
                 timings=getattr(prepared,'timings',None)
                 if isinstance(timings,dict):
                     timings['graphics_draw_ms']=(time.perf_counter()-draw_started)*1000
@@ -273,17 +303,21 @@ class _Session:
                 self.owner.publish(self)
             except Exception as error:failed(error)
         def failed(error):
+            emit('pattern.preview.error',session_id=self.session_id,revision=revision,error=str(error),
+                 traceback=traceback.format_exc())
             if self.closed or revision!=self.revision:return
             self.phase='error';self.preview_revision=None;self.message=str(error).replace('hinge','pattern');self.owner.publish(self)
         self.owner.runner.request(self,lambda:self.prepare(settings),completed,failed)
 
     def clear_preview(self):
+        emit('pattern.preview.clear',session_id=self.session_id,phase=self.phase,had_preview=self.preview is not None)
         self.preview_revision=None;self.prepared=None
         if self.preview is not None and self.preview.isValid:
             if self.preview.deleteMe() is False:raise RuntimeError("Fusion could not remove the pattern preview. Cancel or Stop will retry.")
         self.preview=None;self.visibility.restore()
 
     def execute(self,args):
+        emit('pattern.commit.begin',session_id=self.session_id,revision=self.revision,editing=self.editing)
         try:
             prepared=self.prepared
             if prepared is None or self.preview_revision!=self.revision:raise ValueError("Refresh the pattern preview before Create.")
@@ -292,12 +326,15 @@ class _Session:
             if self.editing:recipe.rebuild_pattern(self.design,self.edit_target,prepared)
             else:recipe.create_pattern(self.design,prepared)
             self.phase='created';self.message='Pattern rebuilt successfully.' if self.editing else 'Pattern created on the selected body.'
+            emit('pattern.commit.end',session_id=self.session_id,revision=self.revision)
         except Exception as error:
+            emit('pattern.commit.error',session_id=self.session_id,error=str(error),traceback=traceback.format_exc())
             args.executeFailed=True;args.executeFailedMessage=str(error)[:1200]
             self.phase='error';self.message=str(error);self.owner.log('Partelier could not create or rebuild the pattern')
         self.owner.publish(self)
 
     def close(self):
+        emit('pattern.session.close',session_id=self.session_id,phase=self.phase,closed=self.closed)
         if self.closed:return
         self.owner.runner.cancel(self);self.clear_preview()
         if self.phase!='created':self.phase='cancelled';self.message='Pattern cancelled.'
@@ -309,6 +346,7 @@ class _Session:
 class _Created(core.CommandCreatedEventHandler):
     def __init__(self,owner):super().__init__();self.owner=owner
     def notify(self,args):
+        emit('pattern.commit.created',has_pending=self.owner._pending is not None)
         session=self.owner._pending;self.owner._pending=None;command=args.command
         command.isExecutedWhenPreEmpted=False;command.isRepeatable=False
         try:
@@ -339,6 +377,7 @@ class _Execute(core.CommandEventHandler):
 class _Destroyed(core.CommandEventHandler):
     def __init__(self,session):super().__init__();self.session=session
     def notify(self,args):
+        emit('pattern.commit.destroyed',session_id=self.session.session_id,phase=self.session.phase)
         session=self.session
         for event,handler in session.handlers:
             try:event.remove(handler)
@@ -353,6 +392,7 @@ class _Destroyed(core.CommandEventHandler):
 class _DocumentChanging(core.DocumentEventHandler):
     def __init__(self,owner):super().__init__();self.owner=owner
     def notify(self,args):
+        emit('pattern.document.deactivating',has_session=self.owner._session is not None)
         if self.owner._session:self.owner._session.close()
 
 
@@ -363,4 +403,5 @@ class _CommandEnded(core.ApplicationCommandEventHandler):
         if not session or not session.preview_current or self.owner.busy or args.commandId in {COMMIT_ID,'SelectCommand'}:return
         try:recipe.validate_preview_sources(session.prepared)
         except Exception as error:
+            emit('pattern.source.invalidated',command=args.commandId,session_id=session.session_id,error=str(error))
             session.clear_preview();session.phase='error';session.message=str(error);self.owner.publish(session)

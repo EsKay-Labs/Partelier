@@ -45,6 +45,48 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Local interaction diagnostics (0.10.3)
+
+Reload **Partelier** once, close Scripts and Add-Ins, and reproduce the actual
+interaction. No development bridge is needed for logging. Native records are
+written immediately to `%LOCALAPPDATA%/Partelier/logs/partelier.jsonl`. The file
+rotates at 2 MiB with three backups. Every record includes UTC time, monotonic
+time, a per-start run UUID and sequence number. Startup records identify the
+disk version and loaded instrumentation build; browser boot records identify
+the loaded UI build separately.
+
+The pattern UI traces handled clicks, capture-phase pointer presses on disabled
+controls, input changes, lock states, request IDs, queued actions, bridge replies,
+timeouts, state pushes and reasons for rejecting stale states. Native traces
+cover request entry/return/errors, preselection, each blocking `selectEntity`
+call and its return, selected counts, command/custom-event lifecycle, compute
+callbacks, geometry stages, individual kernel calls, periodic cell progress,
+batch fallback, drawing, commit and cancellation. A queued driver call is logged
+separately from actual event delivery, so lack of delivery is distinguishable
+from a long geometry call.
+
+Browser records use a bounded 80-entry in-memory/localStorage ring and batches
+of at most ten entries. A strict read-only `diagnostic_log` endpoint validates
+the batch independently of model actions. Diagnostic sends run outside the
+geometry queue and never await their own acknowledgments. Missing diagnostic
+replies and file I/O errors cannot fail CAD work. A complete bridge failure may
+prevent browser batches reaching the file; native request records and the
+browser's local ring provide separate evidence of that boundary. Validated saved
+entries replay after reopening the panel, preserving their original browser
+timestamp and adding `replayed=true`.
+
+Logs stay on the local computer. They include settings, session/request IDs,
+state transitions, source file paths and exception text; the UI trace excludes
+body names, selection labels, entity tokens and geometry. Logs are ignored by
+Git and are not included in committed validation evidence. The logging changes
+do not claim to fix the reported interactive selection hang: the actual
+reproduction is needed to identify its cause. Previous 0.10.2 geometry evidence
+remains historical and separate from diagnostic transport/lifecycle checks.
+Local checks pass **839 Python tests** and all three Node DOM suites, including
+rotation, concurrent whole-line writes, strict diagnostic payloads, I/O failures,
+runner trace order, disabled-control capture and missing diagnostic replies.
+[Diagnostic verification record](validation/diagnostics-0.10.3.json).
+
 ## Pattern preparation performance (0.10.2)
 
 Native request `f83e77f7-8151-4b0f-95d2-3bedd2ef37f2` passes **32/32** named

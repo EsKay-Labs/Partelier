@@ -7,6 +7,7 @@ import uuid
 from .tools.hinge.settings import HingeSettings
 from .tools.snap_fit.settings import SnapFitSettings
 from .tools.patterns.settings import PatternSettings
+from .diagnostics import validate_ui_entries
 
 
 PROTOCOL_VERSION = 1
@@ -18,7 +19,7 @@ PATTERN_SETTINGS_ACTIONS=frozenset({"pattern_update","pattern_preview","pattern_
 PATTERN_SESSION_ACTIONS=PATTERN_SETTINGS_ACTIONS|{"pattern_cancel","pattern_focus"}
 ALLOWED_ACTIONS = frozenset({
     "ready", "open_input_check", "hinge_create", "hinge_edit", "hinge_begin", "hinge_status",
-    "snap_begin", "snap_status", "pattern_begin", "pattern_status",
+    "snap_begin", "snap_status", "pattern_begin", "pattern_status", "diagnostic_log",
 }) | SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS
 
 
@@ -30,13 +31,14 @@ class PaletteRequest:
     revision: int | None = None
     editing: bool = False
     target: str | None = None
+    diagnostics: tuple = ()
 
 
 def read_request(action, raw_data):
     """Reject malformed or unsupported messages before any host operation."""
     if action not in ALLOWED_ACTIONS:
         raise ValueError("This action is unavailable in the tool library.")
-    if not isinstance(raw_data, str) or len(raw_data) > 4096:
+    if not isinstance(raw_data, str) or len(raw_data) > (16384 if action=='diagnostic_log' else 4096):
         raise ValueError("The UI message is invalid or too large.")
     try:
         request = json.loads(raw_data)
@@ -49,6 +51,10 @@ def read_request(action, raw_data):
     request_id = request.get("requestId")
     if not isinstance(request_id, str) or not request_id or len(request_id) > 80:
         raise ValueError("The UI message needs a valid request identifier.")
+    if action=='diagnostic_log':
+        if set(request)!={'protocol','requestId','entries'}:
+            raise ValueError('Unexpected diagnostic message data.')
+        return PaletteRequest(request_id,diagnostics=validate_ui_entries(request['entries']))
     snap = action.startswith("snap_")
     pattern = action.startswith("pattern_")
     tool_name = "pattern" if pattern else "snap-fit" if snap else "hinge"

@@ -146,6 +146,15 @@ class PaletteLifecycleTests(unittest.TestCase):
         self.library.handle_message("open_input_check", self.request)
         self.assertEqual(self.diagnostic.execution_count, 1)
 
+    def test_diagnostic_batches_write_events_without_claiming_geometry(self):
+        raw=json.dumps({'protocol':1,'requestId':'trace-1','entries':[
+            {'event':'click','at':123,'context':{'target':'begin-pattern-button','busy':False}}]})
+        with patch.object(self.module,'emit') as emit:
+            reply=json.loads(self.library.handle_message('diagnostic_log',raw))
+        self.assertEqual(reply,{'protocol':1,'requestId':'trace-1','ok':True})
+        emit.assert_called_once_with('ui.click',ui_at=123,context={'target':'begin-pattern-button','busy':False})
+        self.assertEqual(self.diagnostic.execution_count,0)
+
     def test_unsupported_and_malformed_requests_never_launch_a_command(self):
         with self.assertRaises(ValueError):
             self.library.handle_message("create", self.request)
