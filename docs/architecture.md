@@ -520,8 +520,13 @@ Planar and annular features retain different source contracts when editing.
 The outer-finish helper inspects the actual united generated detail, after all
 of its root, arms, hooks and supports have joined. It classifies complete convex
 eligible planar edges, merges continuous collinear segments with matching
-incident normals, and builds explicitly bounded cutters. Cutter geometry stays
-outside the original wall. Any incident inward/negative-X surface and the flat
+incident normals, and builds explicitly bounded cutters. Free fork-slot edges
+are eligible. At the free tip, side cutters extend analytically to the inclined
+nose rather than stopping at the trimmed edge endpoint and creating a triangular
+cap. Only that runout may cross the wall plane, above the retaining shoulder;
+the embedded root remains protected. At a concave slot foot, an intersection of
+two short adjacent cutter extensions joins both bevel faces without moving a
+horizontal end cap into the root. Any incident inward/negative-X surface and the flat
 retaining/contact shoulder are protected. The receiving body B is not
 cosmetically finished: equal family/dimensions/support settings produce identical
 B with outer chamfers on or off. Unsupported or oversized finishing is refused;

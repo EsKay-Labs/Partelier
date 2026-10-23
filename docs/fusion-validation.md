@@ -41,7 +41,33 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
-## Four snap mechanisms and protected finishing (0.8.0)
+## Free-tip corners and fork-slot finishing (0.8.1)
+
+Native request `c70ed109-a193-4420-b3a9-e9059db42d14` passes **56 cases** on
+Fusion 2705.1.30. [Exact evidence](validation/snap-fit-0.8.1.json) records all 34
+runtime/probe hashes, protected contact geometry and material checks. The combined
+SHA256 is `e7a4edd109db288313948609200a2027c9f02ed7c583cd3f3e81319bdb7de2c6`.
+The user's original model, history, topology references and visibility remain
+unchanged after fixture rollback.
+
+The previous 48 cases now also check the inner fork-front edges at the requested
+chamfer size. Material checks prove that the tip-side cuts meet the inclined nose
+without triangular end caps, while the mating face and retaining shoulder retain
+their complete original trims. A concave fork foot receives the intersection of
+the neighboring bevel cutters, so the new inside finish does not leave a horizontal
+end cap at its lower end. The Twin visual fixture has zero axis-aligned triangular
+faces after finishing. Its exact Fusion screenshot is in ignored
+`output/native/snap-hook-A-0.8.1.png` and was visually reviewed.
+
+Eight additional cases vary straight/tapered/twin profiles, repeated clips,
+torsion latches, 0.01/0.6 mm clearance and 0.3/0.4 mm chamfers. The small-clearance
+case checks the nose runout across the wall plane; it stays above the retaining
+shoulder. All existing receiver, round-core, Create/Rebuild and migration checks
+remain in the run. **676 Python tests**, both DOM suites and all 80 Python-file
+compilation checks pass. Physical printing and the other manual acceptance limits
+listed below remain unverified.
+
+## Historical four snap mechanisms and protected finishing (0.8.0)
 
 Final native request `403a3f13-dc02-4507-805f-6ed61a449f7b` passes all **48**
 checks on Fusion 2705.1.30. [Committed evidence](validation/snap-fit-0.8.0.json)

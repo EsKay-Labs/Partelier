@@ -5,11 +5,11 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 later reinforcement/pattern tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current code:** experimental 0.8.0 provides an editable separate-pin hinge
+**Current code:** experimental 0.8.1 provides an editable separate-pin hinge
 and four snap-fit families: Hook latch, Ball detent, Torsion latch and Annular
 ring. Hook latch also offers straight, tapered or twin arms. Snap-fits include
 optional 45-degree root/receiver roofs and complete eligible outer-edge chamfers;
-receiver pockets and internal/contact edges are protected. Both tools use
+receiver pockets and mating/contact edges are protected. Both tools use
 direct model selection, full-result live preview and manual Edit/Rebuild. Hinges
 include five presets.
 Attached output integrates the hinge into the two selected root bodies, retaining
@@ -32,16 +32,16 @@ The final 0.5.0 native report passes 53 stated expectations: 40 generated
 geometry cases, six explicit larger-fillet refusals, six in-place/migration
 cases and one production-session workflow. Four attached fixture treatments each
 pass four Rebuilds without replacing the selected bodies or accumulating history.
-Local checks pass 672 Python tests, both Node DOM suites and syntax/compilation
+Local checks pass 676 Python tests, both Node DOM suites and syntax/compilation
 checks. The current hinge workflow has been user-confirmed
 in Fusion. Broader interaction coverage, save/reopen, Undo/Redo, motion and
 physical printing remain acceptance items. See
 [native evidence and limits](docs/fusion-validation.md). The snap-fit passes
-48 native geometry/persistence/refusal/session cases, including source rollback
+56 native geometry/persistence/refusal/session cases, including source rollback
 and stable body identities. Other tools remain planned; the honeycomb input
 checker creates no geometry.
 
-**Try snap-fits:** Stop then Run Partelier to load 0.8.0. The tool library opens
+**Try snap-fits:** Stop then Run Partelier to load 0.8.1. The tool library opens
 automatically; choose **Snap-fit**, then **Snap type**. For Hook latch, Ball detent
 or Torsion latch, pick the base exterior wall A, the coplanar lid wall B,
 then either facing straight rim. Matching rims may have a gap between them;
@@ -54,8 +54,10 @@ complete circular rim on A. It creates one continuous bead and a matching
 groove. Only the dimensions relevant to the selected family are shown.
 Hook latch offers **Hook style** for straight, tapered or twin arms. **45° print ramps** changes
 the root/receiver shape; **Advanced > Edge finish** controls exposed-edge
-chamfers on the joined detail. Internal arm edges, the retaining shoulder and
-the entire receiver remain unchanged by that finish. Printing ramps assume build-up
+chamfers on the joined detail, including free edges inside a fork. Tip corners
+meet the sloping nose without triangular caps; fork-foot bevels meet without
+flat shelves. Mating faces, the retaining shoulder and the entire receiver remain
+unchanged by that finish. Printing ramps assume build-up
 from A toward B; inspect your actual slicer orientation.
 
 Existing snap-fits load their saved dimensions and finishing choices. Version 1

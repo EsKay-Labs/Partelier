@@ -100,8 +100,17 @@ roof described above. Sloping bead sides depend on the chosen profile dimensions
 are derived from complete eligible convex edges of the **actual united generated
 detail**, after its root, supports and male features have joined. Continuous
 collinear segments with matching incident faces form one path. Finishing is
-restricted to the exterior of the wall before the detail joins user body A.
-It does not chamfer every edge of either source body.
+applied to the detached generated detail before it joins user body A. The
+embedded root stays protected. At a free tip, a side bevel continues far enough
+to meet the inclined nose, including across the wall plane when needed; this
+short runout remains above the retaining shoulder. It does not chamfer every
+edge of either source body.
+
+Free front edges facing a fork slot receive the same finish as its outer sides.
+At a concave slot foot, the intersection of the two adjacent bevel cutters joins
+their sloping faces. Extending either cutter alone would simply move a flat end
+cap into the fixed root. This connection removes the small corner shelf while
+leaving the mating faces and retaining shoulder intact.
 
 Inward-facing beam surfaces and the retaining/contact shoulder are protected.
 The entire detent sphere and torsion-bar core are preserved after finishing;

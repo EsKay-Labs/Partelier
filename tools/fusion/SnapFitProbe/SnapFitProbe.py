@@ -211,6 +211,41 @@ def protected_geometry(prepared):
             "B_whole": _geometry_hash({"volume_cm3": round(float(bodies["B"].volume), 9), "faces": receiver})}
 
 
+def inspect_corner_finish(prepared):
+    settings = prepared.settings
+    if not settings.chamfer_edges or settings.snap_family not in {"hook", "torsion"}:
+        return []
+    bodies = dict(prepared.result_bodies)
+    size = settings.chamfer_size_mm
+    checks = []
+    for unit in prepared.plan.units:
+        for arm in unit.arms:
+            back = settings.clearance_mm-(settings.clearance_mm+settings.hook_depth_mm)*.05*size/settings.lead_in_mm
+            for side, y in ((-1, arm.beam.y_min_mm), (1, arm.beam.y_max_mm)):
+                point = (back, y-side*.1*size, settings.reach_mm-.1*size)
+                if _inside(bodies['A'], *prepared.frame.point_mm(*point)):
+                    raise RuntimeError('A free-tip triangular end cap remains at a bevel/nose junction.')
+                checks.append({'label':'tip_cap_removed', 'point_mm':point, 'inside_a':False})
+        if settings.snap_style == 'twin':
+            outer = settings.clearance_mm+settings.thickness_mm
+            for side, y in ((1, unit.arms[0].beam.y_max_mm), (-1, unit.arms[1].beam.y_min_mm)):
+                for factor, expected in ((.3,False),(.6,True)):
+                    point = (outer-factor*size, y-side*factor*size, -factor*size)
+                    actual = _inside(bodies['A'], *prepared.frame.point_mm(*point))
+                    if actual != expected:
+                        raise RuntimeError('The inside fork foot has a flat end cap or excessive corner removal.')
+                    checks.append({'label':'fork_foot_connection', 'point_mm':point, 'inside_a':actual})
+    for face in _items(bodies['A'].faces):
+        if face.vertices.count != 3 or adsk.core.Plane.cast(face.geometry) is None:
+            continue
+        geometry = _face_geometry(face, prepared.frame)
+        if (geometry['normal'][0] > .999999
+                and all(abs(point[0]-settings.clearance_mm)<1e-6
+                        and point[2]>settings.reach_mm-2*size for point in geometry['vertices_mm'])):
+            raise RuntimeError('A planar triangular tip-cap face remains.')
+    return checks
+
+
 def inspect_preview(prepared):
     """Probe actual catches, twin gaps, chamfers and 45-degree support surfaces."""
     bodies = dict(prepared.result_bodies)
@@ -278,13 +313,11 @@ def inspect_preview(prepared):
             outer_zs = (.2, settings.reach_mm / 3, shoulder - .1,
                         shoulder, shoulder + .1, settings.reach_mm - 2 * settings.chamfer_size_mm)
             for side, edge_y in ((-1, arm.beam.y_min_mm), (1, arm.beam.y_max_mm)):
-                protected_gap_side = (settings.snap_style == "twin"
-                                      and min(abs(edge_y-unit.root.y_min_mm), abs(edge_y-unit.root.y_max_mm)) > 1e-6)
                 for z in outer_zs:
                     inset = settings.chamfer_size_mm * .45 if settings.chamfer_edges else .05
                     witness(prefix + "complete_outer_side",
                             (outer_at(z) - inset, edge_y - side * inset, z),
-                            not settings.chamfer_edges or protected_gap_side, False)
+                            not settings.chamfer_edges, False)
                     if settings.chamfer_edges:
                         retained = settings.chamfer_size_mm * .55
                         witness(prefix + "complete_outer_requested_size",
@@ -328,6 +361,7 @@ def inspect_preview(prepared):
                     False, True)
     if len(prepared.plan.units) != settings.snap_count:
         raise RuntimeError("The plan did not produce the requested clasp count.")
+    witnesses.extend(inspect_corner_finish(prepared))
     STATE.setdefault("detached", []).extend(bodies.values())
     return witnesses
 
@@ -590,6 +624,7 @@ def inspect_family_preview(prepared):
                          shoulder+settings.clearance_mm/2), False, False)
             else:
                 raise RuntimeError("Unsupported family in the fixed native probe.")
+    result.extend(inspect_corner_finish(prepared))
     STATE.setdefault("detached", []).extend(bodies.values())
     return result
 
@@ -786,15 +821,44 @@ def family_visual_cases():
     design = STATE['design']
     captures = []
     for family in ('hook','ball_detent','torsion','annular'):
-        values = settings_module.SnapFitSettings(snap_family=family, chamfer_edges=family!='annular')
+        values = settings_module.SnapFitSettings(snap_family=family, snap_style='twin' if family=='hook' else 'standard', chamfer_edges=family!='annular')
         if family == 'annular':
             _, _, faces, edge = annular_fixture(design)
         else:
             _, _, faces, edge = fixture(design, span=60, thickness=4, upper=30)
         prepared = adapter.prepare_snap_fit(design, *faces, edge, values)
+        if family == 'hook':
+            details=[]
+            finish=importlib.import_module(adapter.__package__+'.finish')
+            for face in _items(dict(prepared.result_bodies)['A'].faces):
+                if face.vertices.count != 3 or adsk.core.Plane.cast(face.geometry) is None:
+                    continue
+                details.append({'normal':finish._local_normal(prepared.frame, adapter.hinge._plane_normal(face)),
+                                'area_mm2':face.area*100,
+                                'vertices_mm':[finish._local_point(prepared.frame, adapter.hinge._xyz(vertex.geometry)) for vertex in _items(face.vertices)]})
+            STATE['report']['tip_triangle_diagnostic']=details
         captures.append(capture_family_visuals(prepared))
     STATE['report']['family_visuals'] = captures
 
+
+
+def corner_regression_cases():
+    design, adapter = STATE['design'], STATE['adapter']
+    defaults = STATE['settings_module'].SnapFitSettings()
+    configs = [
+        {"snap_style":style,"clearance_mm":.01,"hook_depth_mm":2,"lead_in_mm":1,"chamfer_size_mm":.4}
+        for style in ('standard','tapered','twin')]
+    configs += [{"snap_style":style,"clearance_mm":.6} for style in ('standard','twin')]
+    configs += [{"snap_style":"twin","snap_count":3,"width_mm":6,"reach_mm":14},
+                {"snap_family":"torsion"},
+                {"snap_family":"torsion","clearance_mm":.01,"hook_depth_mm":2,"lead_in_mm":1,"chamfer_size_mm":.4}]
+    for index, changes in enumerate(configs):
+        _, _, faces, edge = fixture(design, span=90, thickness=4, upper=30)
+        values = replace(defaults, **changes)
+        prepared = adapter.prepare_snap_fit(design, *faces, edge, values)
+        checks = inspect_family_preview(prepared) if values.snap_family=='torsion' else inspect_preview(prepared)
+        STATE['report']['cases'].append({'name':'corner_regression_'+str(index+1),'success':True,
+            'settings':values.to_dict(),'witnesses':checks})
 
 
 def cases():
@@ -895,6 +959,7 @@ def cases():
     family_cases()
     extra_family_checks()
     session_checks()
+    corner_regression_cases()
     family_visual_cases()
     report["geometry_checks_passed"] = True
 

@@ -70,7 +70,7 @@ def contains(cut, point):
     delta = tuple(value - origin for value, origin in zip(point, cut.center_mm))
     return all(abs(sum(a * b for a, b in zip(delta, axis))) < size / 2
                for axis, size in ((cut.edge_axis, cut.length_mm), (cut.tangent_axis, cut.width_mm),
-                                  (cut.normal_axis, cut.depth_mm))) and point[0] >= 0
+                                  (cut.normal_axis, cut.depth_mm))) and point[0] >= cut.wall_clip_min_mm
 
 
 FRAME = hinge.HingeFrame((0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1))
@@ -132,6 +132,51 @@ class SnapFitFinishTests(unittest.TestCase):
         with native_edges(), self.assertRaisesRegex(ValueError, "No supported exterior"):
             finish.plan_detail_chamfers(body, FRAME, settings)
         body.pointContainment.assert_not_called()
+
+    def test_free_front_edges_inside_fork_receive_the_same_chamfer(self):
+        settings = SnapFitSettings(snap_style="twin")
+        unit = build_snap_fit_plan(settings, 60).units[0]
+        y = unit.arms[0].beam.y_max_mm
+        body = body_for(unit, [edge((1.8, y, 0), (1.8, y, 16), (1, 0, 0), (0, 1, 0))])
+        with native_edges():
+            cuts = finish.plan_detail_chamfers(body, FRAME, settings)
+        self.assertEqual(len(cuts), 1)
+        self.assertTrue(contains(cuts[0], (1.8-.1, y-.1, 8)))
+
+    def test_tip_side_runout_meets_sloping_nose_without_a_triangular_end_cap(self):
+        for clearance in (.03, .3, .6):
+            settings = SnapFitSettings(clearance_mm=clearance)
+            path = finish.EdgePath((clearance, 4, 16), (clearance+1.5, 4, 16),
+                                   (0, 1, 0), (0, 0, 1), "tip")
+            cut = finish._path_cut(path, settings, 0)
+            self.assertLess(cut.start_mm[0], clearance)
+            self.assertTrue(contains(cut, (clearance-.01, 3.95, 15.95)))
+            self.assertFalse(contains(cut, (-.5, 3.95, 13.01)))
+            self.assertEqual(cut.wall_clip_min_mm, -settings.hook_depth_mm)
+
+    def test_regular_paths_and_round_detent_do_not_get_nose_runout(self):
+        path = finish.EdgePath((.3, 4, 16), (1.8, 4, 16), (0, 1, 0), (0, 0, 1), "tip")
+        cut = finish._path_cut(path, SnapFitSettings(snap_family="ball_detent"), 0)
+        self.assertEqual(cut.start_mm, path.start_mm)
+        self.assertEqual(cut.wall_clip_min_mm, 0)
+        vertical = replace(path, start_mm=(1.8, 4, 0), end_mm=(1.8, 4, 16), normal_one=(1, 0, 0), normal_two=(0, 1, 0))
+        cut = finish._path_cut(vertical, SnapFitSettings(), 0)
+        self.assertEqual(cut.start_mm, vertical.start_mm)
+        self.assertEqual(cut.end_mm, vertical.end_mm)
+
+    def test_fork_foot_uses_intersection_patch_without_moving_a_flat_cap_into_root(self):
+        vertex = (1.8, -.75, 0)
+        upright = finish.bevel_cut(vertex, (1.8, -.75, 16), (1,0,0), (0,1,0), .3, "slot side")
+        floor = finish.bevel_cut(vertex, (1.8, .75, 0), (1,0,0), (0,0,1), .3, "slot floor")
+        concave = finish.EdgePath((.3, -.75, 0), vertex, (0,1,0), (0,0,1), "foot")
+        patches = finish._corner_connections((upright, floor), (concave,), .3)
+        self.assertEqual(len(patches), 1)
+        patch = patches[0]
+        removed = (1.7, -.85, -.1)
+        retained = (1.6, -.95, -.2)
+        self.assertTrue(contains(patch.one, removed) and contains(patch.two, removed))
+        self.assertFalse(contains(patch.one, retained) and contains(patch.two, retained))
+        self.assertEqual(finish._corner_connections((upright,), (concave,), .3), ())
 
     def test_actual_concave_arm_root_edge_is_excluded(self):
         settings = SnapFitSettings(snap_style="twin")

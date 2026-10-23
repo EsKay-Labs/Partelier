@@ -1,0 +1,2256 @@
+{
+  "version": 2,
+  "product_version": "0.8.1",
+  "request_id": "c70ed109-a193-4420-b3a9-e9059db42d14",
+  "scenario": "snap_fit",
+  "state": "complete",
+  "success": true,
+  "sources": {
+    "files": {
+      "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+      "Partelier/partelier/addin.py": "02a7b3e8ebfecf33029241cab4bfffb8fc7b7c49d2e9d56ab530dfd454fd88c1",
+      "Partelier/partelier/palette.py": "1b59c6be03207b51fc3940daec973edc238272d1ca4ba68a0e905e30a8383a2d",
+      "Partelier/partelier/palette_protocol.py": "a7cc62f8261d7a16e81813cd37b2494dd264b32f573f78a011f270ed11022df5",
+      "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+      "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+      "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+      "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+      "Partelier/partelier/tools/hinge/finish.py": "f736bc28dcc140edc1d1c9bf810d2223ad2b906c189fcc7e73754b3eeca24280",
+      "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+      "Partelier/partelier/tools/hinge/inplace.py": "78df843a438c6a374d7d66bb9d4bbbd4b353ed11c75ed60cbeda987b16c450d5",
+      "Partelier/partelier/tools/hinge/layout.py": "696a4b9113a49a134cd1dfb165fa05e8089a705d8b3ec7ffb5c9fc350f21627f",
+      "Partelier/partelier/tools/hinge/native_finish.py": "45ca7cfb58e7b7932d9b32370aa7e49d4588122e1ce046f5449f487e76e95979",
+      "Partelier/partelier/tools/hinge/native_preview.py": "f857535bf785bed2fbb3c6f52ed69978f1aaf78518ccd67a926b236d5a781fcb",
+      "Partelier/partelier/tools/hinge/planner.py": "f1c978f6b841dd39990fb20fa6c74852329d8eb02dbc3a008cb89eee0696aa6d",
+      "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+      "Partelier/partelier/tools/hinge/roof_finish.py": "11d0b8f2a57c54638791aae4b09f83037d9705a3798756f1836c80148fe16753",
+      "Partelier/partelier/tools/hinge/rounding.py": "f252f54702466ecbf655314158698a3c48bf39a0a8b9d5f9a2960c968f7076f0",
+      "Partelier/partelier/tools/hinge/seam.py": "1c941780290a90677a82a9c4c4859d70d62d0bdba616bf25a4274f55fc34b9f2",
+      "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+      "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+      "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+      "Partelier/partelier/tools/snap_fit/__init__.py": "9b8cc7733134723b7d49d9a59a1f58c5b0037c63b1689f48506b9f7278f65586",
+      "Partelier/partelier/tools/snap_fit/annular.py": "6491d7a4b596f78778f07ecfddc5d1f201363996c7b3bfb8022c3c0a198cc479",
+      "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+      "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+      "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+      "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+      "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+      "Partelier/partelier/tools/snap_fit/settings.py": "7c5cf3ac4f717f3a0f71054d1b2a0a399b85c82a6a0e6944a34e1160f1dfb025",
+      "Partelier/partelier/tools/snap_fit/torsion.py": "9da9d4e09fa617cb5f8e304a1e28d70ef006e5a61494918e64bf5bf5e5538e05",
+      "Partelier/partelier/tools/solid_pair.py": "81d427d5c9cc6b60da1d6fa19f226ac73cfe81ba72ddbd2a51ff1f9dc684ece5",
+      "tools/fusion/JoinFinishProbe/JoinFinishProbe.py": "67a57e39a6ee093f25efaef8b04f8fc35fd1e4df8db6a5695cd9a351f608126d",
+      "tools/fusion/SnapFitProbe/SnapFitProbe.py": "fdda39fb9ad26700763284b50a69ab1dd4b8d8958b6b02be90b565f0ec104d8a"
+    },
+    "sha256": "e7a4edd109db288313948609200a2027c9f02ed7c583cd3f3e81319bdb7de2c6"
+  },
+  "native": {
+    "fusion_version": "2705.1.30",
+    "unchanged": true,
+    "original_references_valid": true,
+    "geometry_checks_passed": true,
+    "detached_survived_rollback": true
+  },
+  "cases": [
+    {
+      "chamfer_edges": false,
+      "name": "matrix_standard_sharp_print_support_off",
+      "print_support": false,
+      "protected_geometry": {
+        "A_protected": [
+          {
+            "area_mm2": 104.0,
+            "arm": 0,
+            "sha256": "29e33ebb77e7630dc0eaa74f7918a8e7cca9dc2eaebf31ed33dae4d869e0a75e",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 10.4,
+            "arm": 0,
+            "sha256": "813175ce6b207c3fdd1bc176e4481687c7351cd1f04c4c715f679d2824d62095",
+            "surface": "catch",
+            "unit": 0
+          }
+        ],
+        "B_whole": "c2ec8743cbcefa4a361f53bbafe074877e8d94a7d1f33ea19959e9193cb8e838"
+      },
+      "result_volumes_cm3": {
+        "A": 4.5852,
+        "B": 4.279752
+      },
+      "snap_style": "standard",
+      "success": true,
+      "material_checks": 42
+    },
+    {
+      "chamfer_edges": false,
+      "name": "matrix_standard_sharp_print_support_on",
+      "print_support": true,
+      "protected_geometry": {
+        "A_protected": [
+          {
+            "area_mm2": 104.0,
+            "arm": 0,
+            "sha256": "29e33ebb77e7630dc0eaa74f7918a8e7cca9dc2eaebf31ed33dae4d869e0a75e",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 10.4,
+            "arm": 0,
+            "sha256": "813175ce6b207c3fdd1bc176e4481687c7351cd1f04c4c715f679d2824d62095",
+            "surface": "catch",
+            "unit": 0
+          }
+        ],
+        "B_whole": "d0fc3df3a9a12880260b39d728f12bfaa1b11e45a521bed39706456e6835d8d1"
+      },
+      "result_volumes_cm3": {
+        "A": 4.59816,
+        "B": 4.2724850000000005
+      },
+      "snap_style": "standard",
+      "success": true,
+      "material_checks": 42
+    },
+    {
+      "chamfer_edges": true,
+      "name": "matrix_standard_chamfer_print_support_off",
+      "print_support": false,
+      "protected_geometry": {
+        "A_protected": [
+          {
+            "area_mm2": 104.0,
+            "arm": 0,
+            "sha256": "29e33ebb77e7630dc0eaa74f7918a8e7cca9dc2eaebf31ed33dae4d869e0a75e",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 10.4,
+            "arm": 0,
+            "sha256": "813175ce6b207c3fdd1bc176e4481687c7351cd1f04c4c715f679d2824d62095",
+            "surface": "catch",
+            "unit": 0
+          }
+        ],
+        "B_whole": "c2ec8743cbcefa4a361f53bbafe074877e8d94a7d1f33ea19959e9193cb8e838"
+      },
+      "result_volumes_cm3": {
+        "A": 4.5825996,
+        "B": 4.279752
+      },
+      "snap_style": "standard",
+      "success": true,
+      "material_checks": 67,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "chamfer_edges": true,
+      "name": "matrix_standard_chamfer_print_support_on",
+      "print_support": true,
+      "protected_geometry": {
+        "A_protected": [
+          {
+            "area_mm2": 104.0,
+            "arm": 0,
+            "sha256": "29e33ebb77e7630dc0eaa74f7918a8e7cca9dc2eaebf31ed33dae4d869e0a75e",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 10.4,
+            "arm": 0,
+            "sha256": "813175ce6b207c3fdd1bc176e4481687c7351cd1f04c4c715f679d2824d62095",
+            "surface": "catch",
+            "unit": 0
+          }
+        ],
+        "B_whole": "d0fc3df3a9a12880260b39d728f12bfaa1b11e45a521bed39706456e6835d8d1"
+      },
+      "result_volumes_cm3": {
+        "A": 4.595451236688884,
+        "B": 4.2724850000000005
+      },
+      "snap_style": "standard",
+      "success": true,
+      "material_checks": 67,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "chamfer_edges": false,
+      "name": "matrix_tapered_sharp_print_support_off",
+      "print_support": false,
+      "protected_geometry": {
+        "A_protected": [
+          {
+            "area_mm2": 104.0,
+            "arm": 0,
+            "sha256": "29e33ebb77e7630dc0eaa74f7918a8e7cca9dc2eaebf31ed33dae4d869e0a75e",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 10.4,
+            "arm": 0,
+            "sha256": "813175ce6b207c3fdd1bc176e4481687c7351cd1f04c4c715f679d2824d62095",
+            "surface": "catch",
+            "unit": 0
+          }
+        ],
+        "B_whole": "c2ec8743cbcefa4a361f53bbafe074877e8d94a7d1f33ea19959e9193cb8e838"
+      },
+      "result_volumes_cm3": {
+        "A": 4.5516000000000005,
+        "B": 4.279752
+      },
+      "snap_style": "tapered",
+      "success": true,
+      "material_checks": 43
+    },
+    {
+      "chamfer_edges": false,
+      "name": "matrix_tapered_sharp_print_support_on",
+      "print_support": true,
+      "protected_geometry": {
+        "A_protected": [
+          {
+            "area_mm2": 104.0,
+            "arm": 0,
+            "sha256": "29e33ebb77e7630dc0eaa74f7918a8e7cca9dc2eaebf31ed33dae4d869e0a75e",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 10.4,
+            "arm": 0,
+            "sha256": "813175ce6b207c3fdd1bc176e4481687c7351cd1f04c4c715f679d2824d62095",
+            "surface": "catch",
+            "unit": 0
+          }
+        ],
+        "B_whole": "d0fc3df3a9a12880260b39d728f12bfaa1b11e45a521bed39706456e6835d8d1"
+      },
+      "result_volumes_cm3": {
+        "A": 4.564559999999999,
+        "B": 4.2724850000000005
+      },
+      "snap_style": "tapered",
+      "success": true,
+      "material_checks": 43
+    },
+    {
+      "chamfer_edges": true,
+      "name": "matrix_tapered_chamfer_print_support_off",
+      "print_support": false,
+      "protected_geometry": {
+        "A_protected": [
+          {
+            "area_mm2": 104.0,
+            "arm": 0,
+            "sha256": "29e33ebb77e7630dc0eaa74f7918a8e7cca9dc2eaebf31ed33dae4d869e0a75e",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 10.4,
+            "arm": 0,
+            "sha256": "813175ce6b207c3fdd1bc176e4481687c7351cd1f04c4c715f679d2824d62095",
+            "surface": "catch",
+            "unit": 0
+          }
+        ],
+        "B_whole": "c2ec8743cbcefa4a361f53bbafe074877e8d94a7d1f33ea19959e9193cb8e838"
+      },
+      "result_volumes_cm3": {
+        "A": 4.5490350358303235,
+        "B": 4.279752
+      },
+      "snap_style": "tapered",
+      "success": true,
+      "material_checks": 68,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "chamfer_edges": true,
+      "name": "matrix_tapered_chamfer_print_support_on",
+      "print_support": true,
+      "protected_geometry": {
+        "A_protected": [
+          {
+            "area_mm2": 104.0,
+            "arm": 0,
+            "sha256": "29e33ebb77e7630dc0eaa74f7918a8e7cca9dc2eaebf31ed33dae4d869e0a75e",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 10.4,
+            "arm": 0,
+            "sha256": "813175ce6b207c3fdd1bc176e4481687c7351cd1f04c4c715f679d2824d62095",
+            "surface": "catch",
+            "unit": 0
+          }
+        ],
+        "B_whole": "d0fc3df3a9a12880260b39d728f12bfaa1b11e45a521bed39706456e6835d8d1"
+      },
+      "result_volumes_cm3": {
+        "A": 4.561886672519208,
+        "B": 4.2724850000000005
+      },
+      "snap_style": "tapered",
+      "success": true,
+      "material_checks": 68,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "chamfer_edges": false,
+      "name": "matrix_twin_sharp_print_support_off",
+      "print_support": false,
+      "protected_geometry": {
+        "A_protected": [
+          {
+            "area_mm2": 42.25,
+            "arm": 0,
+            "sha256": "f3c39fc275812cf818048f2e330102e233b510bdda46660c8b14f958183b26b1",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 4.225,
+            "arm": 0,
+            "sha256": "b9157ed1850fa0e33640a1bb13194b9a3676a0d2259720ffa511210325df3a16",
+            "surface": "catch",
+            "unit": 0
+          },
+          {
+            "area_mm2": 42.25,
+            "arm": 1,
+            "sha256": "21ea3645ab36859ab3140a02d017fb35e477457ac9548ff7e750733e1c669e60",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 4.225,
+            "arm": 1,
+            "sha256": "b4fa7d619ffed038a8731a526d3dfd988ea156dfedce1423bce492b0f4d64b64",
+            "surface": "catch",
+            "unit": 0
+          }
+        ],
+        "B_whole": "c17c3c32e79f3a2337b6ba1a375abf6616f5dff534f51e00a4cd33cc31413e8a"
+      },
+      "result_volumes_cm3": {
+        "A": 4.5462750000000005,
+        "B": 4.283964000000001
+      },
+      "snap_style": "twin",
+      "success": true,
+      "material_checks": 75
+    },
+    {
+      "chamfer_edges": false,
+      "name": "matrix_twin_sharp_print_support_on",
+      "print_support": true,
+      "protected_geometry": {
+        "A_protected": [
+          {
+            "area_mm2": 42.25,
+            "arm": 0,
+            "sha256": "f3c39fc275812cf818048f2e330102e233b510bdda46660c8b14f958183b26b1",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 4.225,
+            "arm": 0,
+            "sha256": "b9157ed1850fa0e33640a1bb13194b9a3676a0d2259720ffa511210325df3a16",
+            "surface": "catch",
+            "unit": 0
+          },
+          {
+            "area_mm2": 42.25,
+            "arm": 1,
+            "sha256": "21ea3645ab36859ab3140a02d017fb35e477457ac9548ff7e750733e1c669e60",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 4.225,
+            "arm": 1,
+            "sha256": "b4fa7d619ffed038a8731a526d3dfd988ea156dfedce1423bce492b0f4d64b64",
+            "surface": "catch",
+            "unit": 0
+          }
+        ],
+        "B_whole": "f8bcbbc37e4d7d0df38d91254b76af7c08f8b63a10726dae46d49fcfd1af6200"
+      },
+      "result_volumes_cm3": {
+        "A": 4.559235,
+        "B": 4.277457500000001
+      },
+      "snap_style": "twin",
+      "success": true,
+      "material_checks": 75
+    },
+    {
+      "chamfer_edges": true,
+      "name": "matrix_twin_chamfer_print_support_off",
+      "print_support": false,
+      "protected_geometry": {
+        "A_protected": [
+          {
+            "area_mm2": 42.25,
+            "arm": 0,
+            "sha256": "f3c39fc275812cf818048f2e330102e233b510bdda46660c8b14f958183b26b1",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 4.225,
+            "arm": 0,
+            "sha256": "b9157ed1850fa0e33640a1bb13194b9a3676a0d2259720ffa511210325df3a16",
+            "surface": "catch",
+            "unit": 0
+          },
+          {
+            "area_mm2": 42.25,
+            "arm": 1,
+            "sha256": "21ea3645ab36859ab3140a02d017fb35e477457ac9548ff7e750733e1c669e60",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 4.225,
+            "arm": 1,
+            "sha256": "b4fa7d619ffed038a8731a526d3dfd988ea156dfedce1423bce492b0f4d64b64",
+            "surface": "catch",
+            "unit": 0
+          }
+        ],
+        "B_whole": "c17c3c32e79f3a2337b6ba1a375abf6616f5dff534f51e00a4cd33cc31413e8a"
+      },
+      "result_volumes_cm3": {
+        "A": 4.5421182,
+        "B": 4.283964000000001
+      },
+      "snap_style": "twin",
+      "success": true,
+      "material_checks": 119,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -0.78,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            0.78,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.71,
+            -0.84,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.62,
+            -0.9299999999999999,
+            -0.18
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.71,
+            0.84,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.62,
+            0.9299999999999999,
+            -0.18
+          ]
+        }
+      ]
+    },
+    {
+      "chamfer_edges": true,
+      "name": "matrix_twin_chamfer_print_support_on",
+      "print_support": true,
+      "protected_geometry": {
+        "A_protected": [
+          {
+            "area_mm2": 42.25,
+            "arm": 0,
+            "sha256": "f3c39fc275812cf818048f2e330102e233b510bdda46660c8b14f958183b26b1",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 4.225,
+            "arm": 0,
+            "sha256": "b9157ed1850fa0e33640a1bb13194b9a3676a0d2259720ffa511210325df3a16",
+            "surface": "catch",
+            "unit": 0
+          },
+          {
+            "area_mm2": 42.25,
+            "arm": 1,
+            "sha256": "21ea3645ab36859ab3140a02d017fb35e477457ac9548ff7e750733e1c669e60",
+            "surface": "inner_beam",
+            "unit": 0
+          },
+          {
+            "area_mm2": 4.225,
+            "arm": 1,
+            "sha256": "b4fa7d619ffed038a8731a526d3dfd988ea156dfedce1423bce492b0f4d64b64",
+            "surface": "catch",
+            "unit": 0
+          }
+        ],
+        "B_whole": "f8bcbbc37e4d7d0df38d91254b76af7c08f8b63a10726dae46d49fcfd1af6200"
+      },
+      "result_volumes_cm3": {
+        "A": 4.554969836688884,
+        "B": 4.277457500000001
+      },
+      "snap_style": "twin",
+      "success": true,
+      "material_checks": 119,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -0.78,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            0.78,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.71,
+            -0.84,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.62,
+            -0.9299999999999999,
+            -0.18
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.71,
+            0.84,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.62,
+            0.9299999999999999,
+            -0.18
+          ]
+        }
+      ]
+    },
+    {
+      "name": "default_preview",
+      "success": true,
+      "material_checks": 67,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "name": "three_clasp_preview",
+      "success": true,
+      "material_checks": 201,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -24.669999999999998,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -16.73,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            16.73,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            24.669999999999998,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "name": "create_in_place",
+      "success": true,
+      "material_checks": 0
+    },
+    {
+      "chamfer_edges": true,
+      "name": "rebuild_same_history_tapered",
+      "native_combines": 4,
+      "print_support": true,
+      "success": true,
+      "material_checks": 204,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -24.669999999999998,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -18.73,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -2.97,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            2.97,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            18.73,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            24.669999999999998,
+            13.97
+          ]
+        }
+      ]
+    },
+    {
+      "chamfer_edges": true,
+      "name": "rebuild_same_history_twin",
+      "native_combines": 4,
+      "print_support": false,
+      "success": true,
+      "material_checks": 119,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -0.78,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            0.78,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.71,
+            -0.84,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.62,
+            -0.9299999999999999,
+            -0.18
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.71,
+            0.84,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.62,
+            0.9299999999999999,
+            -0.18
+          ]
+        }
+      ]
+    },
+    {
+      "chamfer_edges": false,
+      "name": "rebuild_same_history_standard",
+      "native_combines": 4,
+      "print_support": false,
+      "success": true,
+      "material_checks": 42
+    },
+    {
+      "expected_refusal": true,
+      "message": "Selected rim is too short for the snap width, clearance and end margins.",
+      "name": "short_rim_refused",
+      "success": true,
+      "material_checks": 0
+    },
+    {
+      "expected_refusal": true,
+      "message": "Face B must contain the full blind recess and roof plus remaining wall. Increase wall thickness/height or reduce reach, hook depth or clearance.",
+      "name": "thin_wall_refused",
+      "success": true,
+      "material_checks": 0
+    },
+    {
+      "expected_refusal": true,
+      "message": "Face B must contain the full blind recess and roof plus remaining wall. Increase wall thickness/height or reduce reach, hook depth or clearance.",
+      "name": "short_receiver_refused",
+      "success": true,
+      "material_checks": 0
+    },
+    {
+      "expected_refusal": true,
+      "message": "Chamfer size must be below half the tip thickness, arm width, root length, lead in and hook depth.",
+      "name": "oversized_chamfer_explicit_refusal",
+      "success": true,
+      "material_checks": 0
+    },
+    {
+      "historical_read_unchanged": true,
+      "name": "legacy_v1_read_then_explicit_v3_rebuild",
+      "success": true,
+      "material_checks": 68,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "historical_read_unchanged": true,
+      "name": "legacy_v2_read_then_explicit_v3_rebuild",
+      "success": true,
+      "material_checks": 67,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "gap_mm": 0.3,
+      "name": "lid_edge_gap_create_rebuild",
+      "success": true,
+      "material_checks": 67,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "gap_mm": 0.3,
+      "name": "internal_lips_gap_create_rebuild",
+      "success": true,
+      "material_checks": 67,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "chamfer_edges": false,
+      "name": "family_ball_detent_sharp_no_ramps",
+      "print_support": false,
+      "success": true,
+      "material_checks": 6,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.03351032163829113,
+          "expected_volume_cm3": 0.03351032163829113,
+          "label": "complete_round_core_preserved"
+        }
+      ]
+    },
+    {
+      "chamfer_edges": true,
+      "name": "family_ball_detent_chamfer_no_ramps",
+      "print_support": false,
+      "success": true,
+      "material_checks": 6,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.03351032163829113,
+          "expected_volume_cm3": 0.03351032163829113,
+          "label": "complete_round_core_preserved"
+        }
+      ]
+    },
+    {
+      "chamfer_edges": false,
+      "name": "family_ball_detent_sharp_ramps",
+      "print_support": true,
+      "success": true,
+      "material_checks": 6,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.03351032163829113,
+          "expected_volume_cm3": 0.03351032163829113,
+          "label": "complete_round_core_preserved"
+        }
+      ]
+    },
+    {
+      "chamfer_edges": true,
+      "name": "family_ball_detent_chamfer_ramps",
+      "print_support": true,
+      "success": true,
+      "material_checks": 6,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.03351032163829113,
+          "expected_volume_cm3": 0.03351032163829113,
+          "label": "complete_round_core_preserved"
+        }
+      ]
+    },
+    {
+      "name": "family_ball_detent_create_edit_rebuild",
+      "same_bodies": true,
+      "same_combines": true,
+      "success": true,
+      "material_checks": 6,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.044602238100565496,
+          "expected_volume_cm3": 0.044602238100565496,
+          "label": "complete_round_core_preserved"
+        }
+      ]
+    },
+    {
+      "chamfer_edges": false,
+      "name": "family_torsion_sharp_no_ramps",
+      "print_support": false,
+      "success": true,
+      "material_checks": 9,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.012867963509103793,
+          "expected_volume_cm3": 0.012867963509104345,
+          "label": "complete_round_core_preserved"
+        }
+      ]
+    },
+    {
+      "chamfer_edges": true,
+      "name": "family_torsion_chamfer_no_ramps",
+      "print_support": false,
+      "success": true,
+      "material_checks": 11,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.012867963509104343,
+          "expected_volume_cm3": 0.012867963509104345,
+          "label": "complete_round_core_preserved"
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -1.3033333333333332,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            1.3033333333333332,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "chamfer_edges": false,
+      "name": "family_torsion_sharp_ramps",
+      "print_support": true,
+      "success": true,
+      "material_checks": 9,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.012867963509103793,
+          "expected_volume_cm3": 0.012867963509104345,
+          "label": "complete_round_core_preserved"
+        }
+      ]
+    },
+    {
+      "chamfer_edges": true,
+      "name": "family_torsion_chamfer_ramps",
+      "print_support": true,
+      "success": true,
+      "material_checks": 11,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.012867963509104343,
+          "expected_volume_cm3": 0.012867963509104345,
+          "label": "complete_round_core_preserved"
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -1.3033333333333332,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            1.3033333333333332,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "name": "family_torsion_create_edit_rebuild",
+      "same_bodies": true,
+      "same_combines": true,
+      "success": true,
+      "material_checks": 11,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.016569545053196674,
+          "expected_volume_cm3": 0.01656954505319667,
+          "label": "complete_round_core_preserved"
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -1.47,
+            16.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            1.47,
+            16.97
+          ]
+        }
+      ]
+    },
+    {
+      "chamfer_edges": false,
+      "name": "family_annular_sharp_no_ramps",
+      "print_support": false,
+      "success": true,
+      "material_checks": 32
+    },
+    {
+      "chamfer_edges": false,
+      "name": "family_annular_sharp_ramps",
+      "print_support": true,
+      "success": true,
+      "material_checks": 32
+    },
+    {
+      "name": "family_annular_create_edit_rebuild",
+      "same_bodies": true,
+      "same_combines": true,
+      "success": true,
+      "material_checks": 32
+    },
+    {
+      "expected_refusal": true,
+      "message": "Face B must contain the full blind recess and roof plus remaining wall. Increase wall thickness/height or reduce reach, hook depth or clearance.",
+      "name": "ball_detent_thin_receiver_refused",
+      "success": true,
+      "material_checks": 0
+    },
+    {
+      "expected_refusal": true,
+      "message": "Increase width or reduce torsion radius/thickness to leave clearance between the lever and both posts.",
+      "name": "torsion_post_lever_interference_refused",
+      "success": true,
+      "material_checks": 0
+    },
+    {
+      "expected_refusal": true,
+      "message": "The annular bead must exceed the radial gap and leave valid root, groove and clearance dimensions.",
+      "name": "annular_bead_cannot_engage_refused",
+      "success": true,
+      "material_checks": 0
+    },
+    {
+      "name": "planar_edit_change_to_ball_detent",
+      "same_bodies": true,
+      "same_combines": true,
+      "success": true,
+      "material_checks": 6,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.03351032163829113,
+          "expected_volume_cm3": 0.03351032163829113,
+          "label": "complete_round_core_preserved"
+        }
+      ]
+    },
+    {
+      "name": "planar_edit_change_to_torsion",
+      "same_bodies": true,
+      "same_combines": true,
+      "success": true,
+      "material_checks": 11,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.012867963509104343,
+          "expected_volume_cm3": 0.012867963509104345,
+          "label": "complete_round_core_preserved"
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -1.3033333333333332,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            1.3033333333333332,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "name": "planar_edit_change_to_hook",
+      "same_bodies": true,
+      "same_combines": true,
+      "success": true,
+      "material_checks": 67,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            3.97,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "name": "large_twin_outer_chamfer_preserves_contacts",
+      "requested_chamfer_mm": 0.75,
+      "success": true,
+      "material_checks": 119,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.07375,
+            -5.925,
+            15.925
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.07375,
+            -0.875,
+            15.925
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.07375,
+            0.875,
+            15.925
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.07375,
+            5.925,
+            15.925
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.475,
+            -1.025,
+            -0.22499999999999998
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.2500000000000002,
+            -1.25,
+            -0.44999999999999996
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.475,
+            1.025,
+            -0.22499999999999998
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.2500000000000002,
+            1.25,
+            -0.44999999999999996
+          ]
+        }
+      ]
+    },
+    {
+      "name": "session_preview_update_cancel",
+      "success": true,
+      "material_checks": 0
+    },
+    {
+      "name": "session_create_edit_rebuild",
+      "settings": {
+        "annular_bead_height_mm": 0.5,
+        "annular_bead_width_mm": 2.0,
+        "annular_offset_mm": 3.0,
+        "attachment_overlap_mm": 0.5,
+        "ball_radius_mm": 2.0,
+        "chamfer_edges": false,
+        "chamfer_size_mm": 0.3,
+        "clearance_mm": 0.3,
+        "end_margin_mm": 5.0,
+        "hook_depth_mm": 1.0,
+        "lead_in_mm": 3.0,
+        "print_support": false,
+        "reach_mm": 16.0,
+        "root_length_mm": 4.0,
+        "snap_count": 2,
+        "snap_family": "hook",
+        "snap_style": "tapered",
+        "start_margin_mm": 5.0,
+        "thickness_mm": 1.5,
+        "torsion_radius_mm": 0.8,
+        "width_mm": 6.0
+      },
+      "success": true,
+      "material_checks": 0
+    },
+    {
+      "name": "corner_regression_1",
+      "settings": {
+        "annular_bead_height_mm": 0.5,
+        "annular_bead_width_mm": 2.0,
+        "annular_offset_mm": 3.0,
+        "attachment_overlap_mm": 0.5,
+        "ball_radius_mm": 2.0,
+        "chamfer_edges": true,
+        "chamfer_size_mm": 0.4,
+        "clearance_mm": 0.01,
+        "end_margin_mm": 5.0,
+        "hook_depth_mm": 2.0,
+        "lead_in_mm": 1.0,
+        "print_support": true,
+        "reach_mm": 16.0,
+        "root_length_mm": 4.0,
+        "snap_count": 1,
+        "snap_family": "hook",
+        "snap_style": "standard",
+        "start_margin_mm": 5.0,
+        "thickness_mm": 1.5,
+        "torsion_radius_mm": 0.8,
+        "width_mm": 8.0
+      },
+      "success": true,
+      "material_checks": 67,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            -0.030199999999999998,
+            -3.96,
+            15.96
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            -0.030199999999999998,
+            3.96,
+            15.96
+          ]
+        }
+      ]
+    },
+    {
+      "name": "corner_regression_2",
+      "settings": {
+        "annular_bead_height_mm": 0.5,
+        "annular_bead_width_mm": 2.0,
+        "annular_offset_mm": 3.0,
+        "attachment_overlap_mm": 0.5,
+        "ball_radius_mm": 2.0,
+        "chamfer_edges": true,
+        "chamfer_size_mm": 0.4,
+        "clearance_mm": 0.01,
+        "end_margin_mm": 5.0,
+        "hook_depth_mm": 2.0,
+        "lead_in_mm": 1.0,
+        "print_support": true,
+        "reach_mm": 16.0,
+        "root_length_mm": 4.0,
+        "snap_count": 1,
+        "snap_family": "hook",
+        "snap_style": "tapered",
+        "start_margin_mm": 5.0,
+        "thickness_mm": 1.5,
+        "torsion_radius_mm": 0.8,
+        "width_mm": 8.0
+      },
+      "success": true,
+      "material_checks": 68,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            -0.030199999999999998,
+            -3.96,
+            15.96
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            -0.030199999999999998,
+            3.96,
+            15.96
+          ]
+        }
+      ]
+    },
+    {
+      "name": "corner_regression_3",
+      "settings": {
+        "annular_bead_height_mm": 0.5,
+        "annular_bead_width_mm": 2.0,
+        "annular_offset_mm": 3.0,
+        "attachment_overlap_mm": 0.5,
+        "ball_radius_mm": 2.0,
+        "chamfer_edges": true,
+        "chamfer_size_mm": 0.4,
+        "clearance_mm": 0.01,
+        "end_margin_mm": 5.0,
+        "hook_depth_mm": 2.0,
+        "lead_in_mm": 1.0,
+        "print_support": true,
+        "reach_mm": 16.0,
+        "root_length_mm": 4.0,
+        "snap_count": 1,
+        "snap_family": "hook",
+        "snap_style": "twin",
+        "start_margin_mm": 5.0,
+        "thickness_mm": 1.5,
+        "torsion_radius_mm": 0.8,
+        "width_mm": 8.0
+      },
+      "success": true,
+      "material_checks": 119,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            -0.030199999999999998,
+            -3.96,
+            15.96
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            -0.030199999999999998,
+            -0.79,
+            15.96
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            -0.030199999999999998,
+            0.79,
+            15.96
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            -0.030199999999999998,
+            3.96,
+            15.96
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.3900000000000001,
+            -0.87,
+            -0.12
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.27,
+            -0.99,
+            -0.24
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.3900000000000001,
+            0.87,
+            -0.12
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.27,
+            0.99,
+            -0.24
+          ]
+        }
+      ]
+    },
+    {
+      "name": "corner_regression_4",
+      "settings": {
+        "annular_bead_height_mm": 0.5,
+        "annular_bead_width_mm": 2.0,
+        "annular_offset_mm": 3.0,
+        "attachment_overlap_mm": 0.5,
+        "ball_radius_mm": 2.0,
+        "chamfer_edges": true,
+        "chamfer_size_mm": 0.3,
+        "clearance_mm": 0.6,
+        "end_margin_mm": 5.0,
+        "hook_depth_mm": 1.0,
+        "lead_in_mm": 3.0,
+        "print_support": true,
+        "reach_mm": 16.0,
+        "root_length_mm": 4.0,
+        "snap_count": 1,
+        "snap_family": "hook",
+        "snap_style": "standard",
+        "start_margin_mm": 5.0,
+        "thickness_mm": 1.5,
+        "torsion_radius_mm": 0.8,
+        "width_mm": 8.0
+      },
+      "success": true,
+      "material_checks": 67,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.592,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.592,
+            3.97,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "name": "corner_regression_5",
+      "settings": {
+        "annular_bead_height_mm": 0.5,
+        "annular_bead_width_mm": 2.0,
+        "annular_offset_mm": 3.0,
+        "attachment_overlap_mm": 0.5,
+        "ball_radius_mm": 2.0,
+        "chamfer_edges": true,
+        "chamfer_size_mm": 0.3,
+        "clearance_mm": 0.6,
+        "end_margin_mm": 5.0,
+        "hook_depth_mm": 1.0,
+        "lead_in_mm": 3.0,
+        "print_support": true,
+        "reach_mm": 16.0,
+        "root_length_mm": 4.0,
+        "snap_count": 1,
+        "snap_family": "hook",
+        "snap_style": "twin",
+        "start_margin_mm": 5.0,
+        "thickness_mm": 1.5,
+        "torsion_radius_mm": 0.8,
+        "width_mm": 8.0
+      },
+      "success": true,
+      "material_checks": 119,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.592,
+            -3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.592,
+            -1.33,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.592,
+            1.33,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.592,
+            3.97,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            2.0100000000000002,
+            -1.3900000000000001,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.9200000000000002,
+            -1.48,
+            -0.18
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            2.0100000000000002,
+            1.3900000000000001,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.9200000000000002,
+            1.48,
+            -0.18
+          ]
+        }
+      ]
+    },
+    {
+      "name": "corner_regression_6",
+      "settings": {
+        "annular_bead_height_mm": 0.5,
+        "annular_bead_width_mm": 2.0,
+        "annular_offset_mm": 3.0,
+        "attachment_overlap_mm": 0.5,
+        "ball_radius_mm": 2.0,
+        "chamfer_edges": true,
+        "chamfer_size_mm": 0.3,
+        "clearance_mm": 0.3,
+        "end_margin_mm": 5.0,
+        "hook_depth_mm": 1.0,
+        "lead_in_mm": 3.0,
+        "print_support": true,
+        "reach_mm": 14.0,
+        "root_length_mm": 4.0,
+        "snap_count": 3,
+        "snap_family": "hook",
+        "snap_style": "twin",
+        "start_margin_mm": 5.0,
+        "thickness_mm": 1.5,
+        "torsion_radius_mm": 0.8,
+        "width_mm": 6.0
+      },
+      "success": true,
+      "material_checks": 357,
+      "corner_and_core_checks": [
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -39.67,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -37.480000000000004,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -35.92,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -33.730000000000004,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.71,
+            -37.540000000000006,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.62,
+            -37.63,
+            -0.18
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.71,
+            -35.86,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.62,
+            -35.77,
+            -0.18
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -2.97,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -0.78,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            0.78,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            2.97,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.71,
+            -0.84,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.62,
+            -0.9299999999999999,
+            -0.18
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.71,
+            0.84,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.62,
+            0.9299999999999999,
+            -0.18
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            33.730000000000004,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            35.92,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            37.480000000000004,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            39.67,
+            13.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.71,
+            35.86,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.62,
+            35.77,
+            -0.18
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.71,
+            37.540000000000006,
+            -0.09
+          ]
+        },
+        {
+          "inside_a": true,
+          "label": "fork_foot_connection",
+          "point_mm": [
+            1.62,
+            37.63,
+            -0.18
+          ]
+        }
+      ]
+    },
+    {
+      "name": "corner_regression_7",
+      "settings": {
+        "annular_bead_height_mm": 0.5,
+        "annular_bead_width_mm": 2.0,
+        "annular_offset_mm": 3.0,
+        "attachment_overlap_mm": 0.5,
+        "ball_radius_mm": 2.0,
+        "chamfer_edges": true,
+        "chamfer_size_mm": 0.3,
+        "clearance_mm": 0.3,
+        "end_margin_mm": 5.0,
+        "hook_depth_mm": 1.0,
+        "lead_in_mm": 3.0,
+        "print_support": true,
+        "reach_mm": 16.0,
+        "root_length_mm": 4.0,
+        "snap_count": 1,
+        "snap_family": "torsion",
+        "snap_style": "standard",
+        "start_margin_mm": 5.0,
+        "thickness_mm": 1.5,
+        "torsion_radius_mm": 0.8,
+        "width_mm": 8.0
+      },
+      "success": true,
+      "material_checks": 11,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.012867963509104343,
+          "expected_volume_cm3": 0.012867963509104345,
+          "label": "complete_round_core_preserved"
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            -1.3033333333333332,
+            15.97
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            0.2935,
+            1.3033333333333332,
+            15.97
+          ]
+        }
+      ]
+    },
+    {
+      "name": "corner_regression_8",
+      "settings": {
+        "annular_bead_height_mm": 0.5,
+        "annular_bead_width_mm": 2.0,
+        "annular_offset_mm": 3.0,
+        "attachment_overlap_mm": 0.5,
+        "ball_radius_mm": 2.0,
+        "chamfer_edges": true,
+        "chamfer_size_mm": 0.4,
+        "clearance_mm": 0.01,
+        "end_margin_mm": 5.0,
+        "hook_depth_mm": 2.0,
+        "lead_in_mm": 1.0,
+        "print_support": true,
+        "reach_mm": 16.0,
+        "root_length_mm": 4.0,
+        "snap_count": 1,
+        "snap_family": "torsion",
+        "snap_style": "standard",
+        "start_margin_mm": 5.0,
+        "thickness_mm": 1.5,
+        "torsion_radius_mm": 0.8,
+        "width_mm": 8.0
+      },
+      "success": true,
+      "material_checks": 11,
+      "corner_and_core_checks": [
+        {
+          "actual_volume_cm3": 0.012867963509104349,
+          "expected_volume_cm3": 0.012867963509104349,
+          "label": "complete_round_core_preserved"
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            -0.030199999999999998,
+            -1.2933333333333332,
+            15.96
+          ]
+        },
+        {
+          "inside_a": false,
+          "label": "tip_cap_removed",
+          "point_mm": [
+            -0.030199999999999998,
+            1.2933333333333332,
+            15.96
+          ]
+        }
+      ]
+    }
+  ],
+  "visuals": [
+    {
+      "family": "hook",
+      "images": [
+        "output/native/snap-hook-A-0.8.1.png",
+        "output/native/snap-hook-B-0.8.1.png"
+      ],
+      "view_restored": true
+    },
+    {
+      "family": "ball_detent",
+      "images": [
+        "output/native/snap-ball_detent-A-0.8.1.png",
+        "output/native/snap-ball_detent-B-0.8.1.png"
+      ],
+      "view_restored": true
+    },
+    {
+      "family": "torsion",
+      "images": [
+        "output/native/snap-torsion-A-0.8.1.png",
+        "output/native/snap-torsion-B-0.8.1.png"
+      ],
+      "view_restored": true
+    },
+    {
+      "family": "annular",
+      "images": [
+        "output/native/snap-annular-A-0.8.1.png",
+        "output/native/snap-annular-B-0.8.1.png"
+      ],
+      "view_restored": true
+    }
+  ],
+  "twin_axis_aligned_triangle_faces": [],
+  "local_checks": {
+    "python_tests": 676,
+    "dom_suites": 2
+  },
+  "limits": [
+    "Owned fixtures run in a rollback transaction; no actual user Create/Rebuild is performed.",
+    "No physical printing, assembly forces, fatigue, manual CEF picking, save/reopen or Undo/Redo acceptance.",
+    "Print roofs assume local +Z build-up; slicer orientation is not detected.",
+    "Raw-byte source hashes describe tested working files; checkout line-ending conversion can change hashes."
+  ]
+}
