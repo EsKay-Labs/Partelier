@@ -133,37 +133,37 @@ class PatternCommands:
             prompt,filters='Select an existing Partelier pattern result. Esc cancels picking.','SolidBodies,Faces,Edges'
         elif target=='body' and session.settings.selection_scope=='body':
             prompt,filters='Select the solid to pattern on all its faces. Esc cancels picking.','SolidBodies'
-        elif target=='faces' and session.settings.selection_scope=='faces':
-            prompt,filters='Select faces on one solid. Press Esc when finished.','Faces'
+        elif target in {'faces','add_face'} and session.settings.selection_scope=='faces':
+            prompt,filters='Select one face. Use Add face for more surfaces. Esc cancels picking.','Faces'
         else:raise ValueError("Use the current pattern selection scope.")
         session.phase='selecting';session.message=prompt;self.publish(session)
-        faces=[]
-        while True:
-            emit('pattern.pick.wait',session_id=session.session_id,target=target,filters=filters,count=len(faces),
-                 active_command=_active_command())
-            try:selected=ui.selectEntity(prompt,filters)
-            except RuntimeError as error:
-                emit('pattern.pick.interrupted',session_id=session.session_id,error=str(error))
-                selected=None
-            emit('pattern.pick.return',session_id=session.session_id,target=target,
-                 has_entity=selected is not None and selected.entity is not None)
-            session.ensure_design()
-            if selected is None or selected.entity is None:break
+        faces=list(session.faces) if target=='add_face' else []
+        emit('pattern.pick.wait',session_id=session.session_id,target=target,filters=filters,count=len(faces),
+             active_command=_active_command())
+        try:selected=ui.selectEntity(prompt,filters)
+        except RuntimeError as error:
+            emit('pattern.pick.interrupted',session_id=session.session_id,error=str(error))
+            selected=None
+        emit('pattern.pick.return',session_id=session.session_id,target=target,
+             has_entity=selected is not None and selected.entity is not None)
+        session.ensure_design()
+        if selected is not None and selected.entity is not None:
             if session.editing:
-                session.select_target(selected.entity);return
-            if target=='body':
+                session.select_target(selected.entity)
+            elif target=='body':
                 body=native.BRepBody.cast(selected.entity)
-                session.set_faces([body.faces.item(i) for i in range(body.faces.count)]);return
-            face=native.BRepFace.cast(selected.entity)
-            if face is None:raise ValueError("Select a solid face.")
-            if faces and face.body!=faces[0].body:raise ValueError("Choose faces on the same solid body.")
-            if face not in faces:faces.append(face)
-            emit('pattern.pick.accepted',session_id=session.session_id,count=len(faces))
-            if len(faces)>100:raise ValueError("Select at most 100 faces.")
-            session.set_faces(faces)
+                session.set_faces([body.faces.item(i) for i in range(body.faces.count)])
+            else:
+                face=native.BRepFace.cast(selected.entity)
+                if face is None:raise ValueError("Select a solid face.")
+                if faces and face.body!=faces[0].body:raise ValueError("Choose faces on the same solid body.")
+                if face not in faces:faces.append(face)
+                emit('pattern.pick.accepted',session_id=session.session_id,count=len(faces))
+                if len(faces)>100:raise ValueError("Select at most 100 faces.")
+                session.set_faces(faces)
             self.publish(session)
         session.validate()
-        emit('pattern.pick.end',session_id=session.session_id,count=len(faces),phase=session.phase)
+        emit('pattern.pick.end',session_id=session.session_id,target=target,count=len(session.faces),phase=session.phase)
 
     def palette_action(self,action,session_id,revision=None,settings_dict=None,target=None):
         emit('pattern.action',action=action,session_id=session_id,revision=revision,target=target,

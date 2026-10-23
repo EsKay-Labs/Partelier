@@ -5,7 +5,7 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current code:** experimental 0.10.3 provides surface patterns, an editable separate-pin hinge
+**Current code:** experimental 0.10.4 provides surface patterns, an editable separate-pin hinge
 and four snap-fit families: Hook latch, Ball detent, Torsion latch and Annular
 ring. Hook latch also offers straight, tapered or twin arms. Snap-fits include
 optional 45-degree root/receiver roofs and complete eligible outer-edge chamfers;
@@ -82,7 +82,13 @@ driver delivery, geometry stages and errors. Logs are written automatically to
 Reload Partelier once to activate the instrumentation, then reproduce the issue;
 copying the Fusion console is unnecessary. See [diagnostic details](docs/fusion-validation.md#local-interaction-diagnostics-0103).
 
-**Try the updated tools:** Stop then Run Partelier to load 0.10.3. The tool library opens
+Version 0.10.4 fixes the selection wait confirmed by the new native logs: a
+face click now ends picking and starts preview immediately. **Add face** selects
+one additional face on the same body; the existing **Faces** button replaces the
+selection. Preselected multiple faces and whole-body selection remain available.
+The UI distinguishes surface picking from preview computation.
+
+**Try the updated tools:** Stop then Run Partelier to load 0.10.4. The tool library opens
 automatically; choose **Snap-fit**, then **Snap type**. For Hook latch, Ball detent
 or Torsion latch, pick the base exterior wall A, the coplanar lid wall B,
 then either facing straight rim. Matching rims may have a gap between them;

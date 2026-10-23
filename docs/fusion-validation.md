@@ -45,6 +45,32 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Pattern selection return (0.10.4)
+
+The user reproduced the reported loading state with 0.10.3 diagnostics enabled.
+The actual native trace shows one accepted face, a ready state, and a second
+blocking `selectEntity` call. The original `pattern_begin` request had not
+returned, so the UI could not request preview. No geometry preparation had
+started. The previous instructions required Esc to finish multi-selection, but
+the UI hid those instructions after the first selection and showed updating.
+
+Picking now returns after one face, allowing the begin/focus acknowledgment and
+then automatic preview. An explicit **Add face** action adds one face on the
+same solid; **Faces** replaces the selection. Duplicate picks and Esc keep the
+selection. Preselected multiple faces, body scope and saved-pattern Edit remain
+available. Selection status and help stay distinct from computation.
+
+Local regression checks cover the first-click-to-preview boundary, adding,
+replacement, cancellation, duplicates, cross-body refusals and scope guards.
+All **846 Python tests** and three Node DOM suites pass, along with syntax,
+compilation and whitespace checks. The browser checks cover the Add face request
+and one subsequent preview, keeping
+the selected state while picking, and hiding Add face in Body/Edit. These are
+controlled API/DOM checks; they do not substitute for post-reload native picking.
+The 0.10.3 log establishes the cause in the actual user session. Acceptance of
+the updated picker in Fusion remains pending one product reload and face click.
+See [selection verification record](validation/pattern-selection-0.10.4.json).
+
 ## Local interaction diagnostics (0.10.3)
 
 Reload **Partelier** once, close Scripts and Add-Ins, and reproduce the actual

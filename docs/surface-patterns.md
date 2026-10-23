@@ -14,8 +14,10 @@ and existing holes remain protected.
 ## Use
 
 Choose a shape (hexagons, circles, diamonds, squares or slots), then **Through
-holes**, **Engrave** or **Emboss**. Select faces on one solid and press Esc when
-finished picking. Preselected faces are reused. Start with **Spacing > Automatic**,
+holes**, **Engrave** or **Emboss**. In 0.10.4, selecting one face immediately
+starts preview. Use **Add face** for another face on the same solid, or **Faces**
+to replace the selection. Esc cancels the current pick and keeps the previous
+selection. Multiple preselected faces are reused. Start with **Spacing > Automatic**,
 target pitch, solid web (gap for emboss), border and depth/height. Through holes do not use a depth setting.
 Rotation and offsets live under Advanced.
 

@@ -56,7 +56,7 @@ class PatternProtocolTests(unittest.TestCase):
                         read_request(action, request(settings=values, sessionId=IDENTITY, revision=revision))
 
     def test_focus_accepts_only_canonical_sessions_and_pattern_geometry_targets(self):
-        for target in ("faces", "body", "edit_target"):
+        for target in ("faces", "add_face", "body", "edit_target"):
             self.assertEqual(read_request("pattern_focus", request(sessionId=IDENTITY, target=target)).target, target)
         for target in ("face_a", "surface", "delete", [], 1, None):
             with self.subTest(target=target), self.assertRaises(ValueError):

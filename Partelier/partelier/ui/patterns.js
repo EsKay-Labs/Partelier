@@ -69,7 +69,7 @@
     }
     document.addEventListener("pointerdown", event => {
         const target = event.target?.closest?.("button,select") || event.target;
-        if (["begin-pattern-button","edit-pattern-button","preview-pattern-button","create-pattern-button","cancel-pattern-button","pattern-select-surface"].includes(target?.id) || state.selected && target?.id === "tool-select")
+        if (["begin-pattern-button","edit-pattern-button","preview-pattern-button","create-pattern-button","cancel-pattern-button","pattern-select-surface","pattern-add-face"].includes(target?.id) || state.selected && target?.id === "tool-select")
             trace("pointerdown", { control:target.id,disabled:!!target.disabled,toolLocked:$("tool-select").disabled,pickLocked:$("pattern-select-surface").disabled,createLocked:$("create-pattern-button").disabled });
     },true);
 
@@ -139,8 +139,14 @@
         button.classList.toggle("is-selected", !!picked?.selected); button.append(label, value);
         button.addEventListener("click", () => { trace("click", { control:"surface",target }); cancelTimer(); run(async () => { await sessionAction("pattern_focus", { target }); await refresh(); },"pattern_focus"); });
         $("pattern-selections").replaceChildren(button);
-        $("pattern-selection-help").textContent = editing() ? "Pick a saved Partelier pattern. Esc stops picking." : body ? "Pick a body to pattern its supported faces." : "Pick one or more faces. Esc finishes the selection.";
-        $("pattern-selection-help").hidden = !!identity() && selected();
+        if (!editing() && !body && picked?.selected && identity()) {
+            button.setAttribute("style","grid-column:span 2");
+            const add = document.createElement("button"); add.id = "pattern-add-face"; add.type = "button"; add.className = "selection-button"; add.textContent = "Add face"; add.disabled = button.disabled;
+            add.addEventListener("click", () => { trace("click", { control:"add_face",target:"add_face" }); cancelTimer(); run(async () => { await sessionAction("pattern_focus", { target:"add_face" }); await refresh(); },"pattern_focus"); });
+            $("pattern-selections").append(add);
+        }
+        $("pattern-selection-help").textContent = editing() ? "Pick a saved Partelier pattern." : body ? "Pick one body. Preview updates automatically." : "Pick one face to preview. Use Add face for more surfaces.";
+        $("pattern-selection-help").hidden = !!identity() && selected() && !(state.busy && state.session?.phase === "selecting");
         $("begin-pattern-button").textContent = body ? "Select body" : "Select faces";
     }
     function render() {
@@ -160,7 +166,7 @@
         $("create-pattern-button").textContent = editing() ? "Rebuild pattern" : "Create pattern";
         $("pattern-availability").hidden = supported();
         $("pattern-availability").textContent = state.connected ? "Restart Partelier to enable surface patterns." : "Open Partelier in Fusion to select geometry.";
-        const label = !supported() ? "Fusion required" : state.connectionError ? "connection needs attention" : !ready ? "waiting for geometry" : !valid() ? "check inputs" : state.liveError || state.session?.phase === "error" ? "needs attention" : committing ? "creating" : current() ? "up to date" : busy || timer !== undefined || queued || state.session?.phase === "computing" ? "updating…" : "refresh needed";
+        const label = !supported() ? "Fusion required" : state.connectionError ? "connection needs attention" : busy && (state.expecting || state.session?.phase === "selecting") ? "selecting surfaces" : !ready ? "waiting for geometry" : !valid() ? "check inputs" : state.liveError || state.session?.phase === "error" ? "needs attention" : committing ? "creating" : current() ? "up to date" : busy || timer !== undefined || queued || state.session?.phase === "computing" ? "updating…" : "refresh needed";
         $("pattern-live-preview-status").textContent = `Live preview · ${label}`;
         $("pattern-live-preview-status").classList.toggle("is-current", ready && current());
         $("pattern-live-preview-status").classList.toggle("needs-attention", state.connectionError || ready && (!valid() || state.liveError || state.session?.phase === "error"));
@@ -323,5 +329,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.10.3" }); renderArt(); render();
+    trace("boot", { build:"0.10.4" }); renderArt(); render();
 })();

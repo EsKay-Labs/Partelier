@@ -236,11 +236,95 @@ class PatternCommandTests(unittest.TestCase):
         self.fusion.prepare_pattern.assert_not_called()
         self.manager._registration[0].execute.assert_not_called()
 
-    def test_face_picker_collects_same_body_faces_until_escape(self):
+    def test_first_face_returns_immediately_and_allows_preview_without_escape(self):
         self.picks[:] = [NS(entity=self.faces[0]), NS(entity=self.faces[1]), None]
+        state = self.manager.begin_palette(PatternSettings().to_dict())
+        session = self.manager._session
+        self.assertEqual(session.faces, self.faces[:1])
+        self.assertEqual(state["phase"], "ready")
+        self.assertFalse(self.manager.busy)
+        self.assertEqual(self.ui.selectEntity.call_count, 1)
+        self.assertEqual(len(self.picks), 2)
+        self.preview(session)
+        self.assertTrue(session.preview_current)
+        self.assertEqual(session.prepared.faces, self.faces[:1])
+
+    def test_add_face_preserves_existing_faces_and_returns_after_one_click(self):
+        self.ui.activeSelections = Collection([NS(entity=self.faces[0])])
         self.manager.begin_palette(PatternSettings().to_dict())
-        self.assertEqual(self.manager._session.faces, self.faces[:2])
-        self.assertEqual(self.ui.selectEntity.call_count, 3)
+        session = self.manager._session
+        self.preview(session)
+        self.picks[:] = [NS(entity=self.faces[1]), None]
+        result = self.action(session, "pattern_focus", target="add_face")
+        self.assertEqual(session.faces, self.faces[:2])
+        self.assertEqual(result["phase"], "ready")
+        self.assertEqual(self.ui.selectEntity.call_count, 1)
+        self.assertFalse(self.manager.busy)
+        self.assertFalse(session.preview_current)
+        self.assertTrue(self.body.isLightBulbOn)
+        self.preview(session)
+        self.assertEqual(session.prepared.faces, self.faces[:2])
+
+    def test_add_duplicate_and_escape_keep_selection_without_another_pick(self):
+        session = self.begin()
+        for selected in (NS(entity=self.faces[0]), None):
+            with self.subTest(selected=selected):
+                self.picks[:] = [selected]
+                self.action(session, "pattern_focus", target="add_face")
+                self.assertEqual(session.faces, self.faces)
+                self.assertEqual(session.phase, "ready")
+                self.assertFalse(self.manager.busy)
+        self.assertEqual(self.ui.selectEntity.call_count, 2)
+
+    def test_replacing_faces_uses_only_new_face_and_escape_retains_previous_selection(self):
+        session = self.begin()
+        self.picks[:] = [None]
+        self.action(session, "pattern_focus", target="faces")
+        self.assertEqual(session.faces, self.faces)
+        self.picks[:] = [NS(entity=self.faces[2])]
+        self.action(session, "pattern_focus", target="faces")
+        self.assertEqual(session.faces, self.faces[2:])
+
+    def test_add_face_from_another_body_is_rejected_without_losing_selection(self):
+        session = self.begin()
+        other = NS(kind="face", isValid=True, body=NS(name="Other"))
+        self.picks[:] = [NS(entity=other)]
+        with self.assertRaisesRegex(ValueError, "same solid body"):
+            self.action(session, "pattern_focus", target="add_face")
+        self.assertEqual(session.faces, self.faces)
+        self.assertFalse(self.manager.busy)
+
+    def test_add_face_limit_rejection_preserves_all_existing_faces(self):
+        faces = tuple(NS(kind="face", isValid=True, index=index, body=self.body) for index in range(101))
+        self.ui.activeSelections = Collection([NS(entity=face) for face in faces[:100]])
+        self.manager.begin_palette(PatternSettings().to_dict())
+        session = self.manager._session
+        self.picks[:] = [NS(entity=faces[100])]
+        with self.assertRaisesRegex(ValueError, "at most 100 faces"):
+            self.action(session, "pattern_focus", target="add_face")
+        self.assertEqual(session.faces, faces[:100])
+        self.assertFalse(self.manager.busy)
+
+    def test_initial_escape_returns_without_geometry_or_waiting_for_another_face(self):
+        self.picks[:] = [None]
+        state = self.manager.begin_palette(PatternSettings().to_dict())
+        self.assertEqual(state["phase"], "selecting")
+        self.assertFalse(state["selections"]["surface"]["selected"])
+        self.assertFalse(self.manager.busy)
+        self.assertEqual(self.ui.selectEntity.call_count, 1)
+        self.fusion.prepare_pattern.assert_not_called()
+
+    def test_add_face_is_unavailable_in_body_scope_or_edit_mode(self):
+        self.picks[:] = [NS(entity=self.body)]
+        self.manager.begin_palette(PatternSettings(selection_scope="body").to_dict())
+        session = self.manager._session
+        with self.assertRaisesRegex(ValueError, "selection scope"):
+            self.action(session, "pattern_focus", target="add_face")
+        session.close()
+        session = self.begin(editing=True)
+        with self.assertRaisesRegex(ValueError, "existing Partelier pattern"):
+            self.action(session, "pattern_focus", target="add_face")
+        self.assertEqual(self.ui.selectEntity.call_count, 1)
 
     def test_body_scope_picks_one_body_and_expands_its_faces(self):
         self.picks[:] = [NS(entity=self.body)]

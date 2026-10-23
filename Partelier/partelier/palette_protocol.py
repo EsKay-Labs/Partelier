@@ -90,7 +90,7 @@ def read_request(action, raw_data):
     if action in begin_actions and type(editing) is not bool:
         raise ValueError(f"{tool_name.capitalize()} editing mode must be true or false.")
     target = request.get("target")
-    targets={"faces","body","edit_target"} if pattern else {"face_a", "face_b", "axis_edge", "edit_target"}
+    targets={"faces","add_face","body","edit_target"} if pattern else {"face_a", "face_b", "axis_edge", "edit_target"}
     if action in focus_actions and (not isinstance(target, str) or target not in targets):
         raise ValueError(f"Select a supported {tool_name} geometry target.")
     settings = None

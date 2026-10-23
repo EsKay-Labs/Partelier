@@ -1,0 +1,50 @@
+{
+  "product_version": "0.10.4",
+  "scope": "One-click pattern picking and explicit additive face selection; geometry algorithms unchanged.",
+  "observed_native_reproduction": {
+    "build": "0.10.3",
+    "source": "Actual local diagnostic trace from the user-reproduced loading state; raw logs stay private.",
+    "sequence": [
+      "pattern_begin entered with no preselection",
+      "selectEntity returned one face",
+      "pattern.pick.accepted count=1",
+      "pattern.state phase=ready selected=true preview_current=false",
+      "selectEntity waited again with count=1"
+    ],
+    "preview_requested_before_wait": false,
+    "cause": "The multi-pick loop awaited a second face or Esc before returning the begin acknowledgment. UI hid selection help and showed updating, preventing automatic preview from being requested."
+  },
+  "change": [
+    "Exactly one selectEntity call per Begin/Focus action.",
+    "Explicit add_face target retains existing faces; Faces replaces.",
+    "Add face is available only in selected face-scope sessions, outside Edit.",
+    "Selection help and busy label distinguish picking from computation.",
+    "Multi-preselection, body scope, saved Edit and all existing geometry behavior remain."
+  ],
+  "local_checks": {
+    "python_tests": 846,
+    "node_dom_suites": 3,
+    "javascript_syntax": true,
+    "python_compilation": true,
+    "git_diff_check": true
+  },
+  "regressions": [
+    "First face returns without consuming the next pick and permits preview.",
+    "Browser Begin requests exactly one preview after the returned first face.",
+    "Add preserves faces, returns once and triggers exactly one preview.",
+    "Duplicate/Esc preserve selection; initial Esc leaves no geometry.",
+    "Replacement, cross-body rejection, 100-face limit and Body/Edit scope guards.",
+    "Existing async ownership, rollback, lost ACK recovery and diagnostics suites pass."
+  ],
+  "native_acceptance": "Pending user reload of 0.10.4 and actual face click; controlled API/DOM tests are separate from native picking acceptance.",
+  "geometry_evidence": "No geometry algorithm changes; previous native 0.10.2 32-case report remains historical.",
+  "files": {
+    "Partelier/Partelier.manifest": "2c3f963346a9ff462f786d963c5da259fcf0dc4a9256608ab254cd0047b6f900",
+    "Partelier/partelier/diagnostics.py": "0401d27460c21af907296a33d25c946c84086afd24d6b9fc9330194c84cd47a9",
+    "Partelier/partelier/palette_protocol.py": "dc5a918efaee401999a99a1eedf275fe8930996220a9c2b0faa8213eb68c7983",
+    "Partelier/partelier/tools/patterns/command.py": "b3d95f8af1c335ea6cb9eedf12ad8ca98a2791117ec31752cfad6fdbed001419",
+    "Partelier/partelier/ui/palette.html": "535a6d69af8e617176871147cb059a0f6228c5ce0cf5de6dc6cf18fdf37fb4b2",
+    "Partelier/partelier/ui/palette.js": "29b7052112aad7e74e3b4d2ef1fa2acea03793509d5fb9c66932e66a848e3dc0",
+    "Partelier/partelier/ui/patterns.js": "b4f8645c58feb29f6200ef40f038593edadd42501e82ad8802e345ad947f1ece"
+  }
+}
