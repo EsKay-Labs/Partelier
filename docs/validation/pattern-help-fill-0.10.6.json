@@ -1,0 +1,376 @@
+{
+  "product_version": "0.10.6",
+  "date_local": "2026-10-24",
+  "fusion_version": "2705.1.30",
+  "native_runs": [
+    {
+      "request_id": "e55ff647-9c20-4552-a693-81ad634f26ff",
+      "success": true,
+      "cases": 41,
+      "note": "Initial pass before changing Balanced status text from fitted pitch to actual cell size."
+    },
+    {
+      "request_id": "2611bd09-3a25-4612-ade3-9251935ae9e8",
+      "success": true,
+      "cases": 41,
+      "note": "Final runtime source matches the recorded manifest."
+    }
+  ],
+  "final_native_cases": [
+    {
+      "cells": 5,
+      "name": "plane_through",
+      "passed": true
+    },
+    {
+      "cells": 5,
+      "name": "plane_engrave",
+      "passed": true
+    },
+    {
+      "cells": 5,
+      "name": "plane_emboss",
+      "passed": true
+    },
+    {
+      "cells": 15,
+      "name": "cylinder_through",
+      "passed": true
+    },
+    {
+      "cells": 15,
+      "name": "cylinder_engrave",
+      "passed": true
+    },
+    {
+      "cells": 15,
+      "name": "cylinder_emboss",
+      "passed": true
+    },
+    {
+      "cells": 2,
+      "name": "hex_through",
+      "passed": true
+    },
+    {
+      "cells": 2,
+      "name": "hex_engrave",
+      "passed": true
+    },
+    {
+      "cells": 2,
+      "name": "hex_emboss",
+      "passed": true
+    },
+    {
+      "name": "single_face_density_guidance_and_recovery",
+      "passed": true
+    },
+    {
+      "cells": 36,
+      "name": "full_cylinder_wrap_through",
+      "passed": true
+    },
+    {
+      "cells": 36,
+      "name": "full_cylinder_wrap_engrave",
+      "passed": true
+    },
+    {
+      "cells": 36,
+      "name": "full_cylinder_wrap_emboss",
+      "passed": true
+    },
+    {
+      "cells": 85,
+      "name": "cone_general_surface_engrave",
+      "passed": true
+    },
+    {
+      "cells": 5,
+      "name": "plane_pattern_circle",
+      "passed": true
+    },
+    {
+      "cells": 6,
+      "name": "plane_pattern_diamond",
+      "passed": true
+    },
+    {
+      "cells": 6,
+      "name": "plane_pattern_square",
+      "passed": true
+    },
+    {
+      "cells": 6,
+      "name": "plane_pattern_slot",
+      "passed": true
+    },
+    {
+      "name": "preview_graphics_cleanup",
+      "passed": true
+    },
+    {
+      "extra_bodies": 0,
+      "name": "same_body_create_edit_rebuild",
+      "passed": true,
+      "same_body": true
+    },
+    {
+      "cells": 48,
+      "name": "sphere_general_surface_engrave",
+      "passed": true
+    },
+    {
+      "cells": 24,
+      "name": "finite_trims_keep_middle_columns",
+      "passed": true
+    },
+    {
+      "cells": 27,
+      "name": "automatic_balanced_notched_panel",
+      "passed": true
+    },
+    {
+      "cells": 174,
+      "name": "automatic_dense_target_without_refusal",
+      "passed": true
+    },
+    {
+      "cells": 52,
+      "name": "automatic_full_wrap_through",
+      "passed": true
+    },
+    {
+      "cells": 52,
+      "name": "automatic_full_wrap_engrave",
+      "passed": true
+    },
+    {
+      "cells": 52,
+      "name": "automatic_full_wrap_emboss",
+      "passed": true
+    },
+    {
+      "cells": 11,
+      "fill_create_edit_rebuild_same_body": true,
+      "minimum_gap_mm": 1.5,
+      "name": "fill_fixed_size_plane_hexagon",
+      "passed": true,
+      "requested_size_mm": 5
+    },
+    {
+      "cells": 11,
+      "minimum_gap_mm": 1.5,
+      "name": "fill_fixed_size_plane_circle",
+      "passed": true,
+      "requested_size_mm": 5
+    },
+    {
+      "cells": 12,
+      "minimum_gap_mm": 1.5,
+      "name": "fill_fixed_size_plane_diamond",
+      "passed": true,
+      "requested_size_mm": 5
+    },
+    {
+      "cells": 8,
+      "minimum_gap_mm": 1.5,
+      "name": "fill_fixed_size_plane_square",
+      "passed": true,
+      "requested_size_mm": 5
+    },
+    {
+      "cells": 12,
+      "minimum_gap_mm": 1.5,
+      "name": "fill_fixed_size_plane_slot",
+      "passed": true,
+      "requested_size_mm": 5
+    },
+    {
+      "cells": 36,
+      "effective_u_pitch_mm": 8.377580409572781,
+      "name": "fill_fixed_size_wrap_through",
+      "passed": true,
+      "requested_size_mm": 6
+    },
+    {
+      "cells": 36,
+      "effective_u_pitch_mm": 8.377580409572781,
+      "name": "fill_fixed_size_wrap_engrave",
+      "passed": true,
+      "requested_size_mm": 6
+    },
+    {
+      "cells": 36,
+      "effective_u_pitch_mm": 8.377580409572781,
+      "name": "fill_fixed_size_wrap_emboss",
+      "passed": true,
+      "requested_size_mm": 6
+    },
+    {
+      "cells": 43,
+      "layout_mode": "balanced",
+      "name": "balanced_default_sparse_panel",
+      "passed": true,
+      "soft_limit_per_face": 48
+    },
+    {
+      "name": "direct_prism_twenty_native_equivalences",
+      "passed": true
+    },
+    {
+      "cells": 195,
+      "name": "dense_batch_matches_exact_fallback",
+      "passed": true
+    },
+    {
+      "cells": 5,
+      "name": "production_async_supersede_postrollback_preview",
+      "passed": true
+    },
+    {
+      "name": "production_cached_result_create_rollback",
+      "passed": true,
+      "same_body": true
+    },
+    {
+      "discarded_without_saving": true,
+      "name": "production_disposable_document_cleanup",
+      "original_camera_restored": true,
+      "original_component_and_model_unchanged": true,
+      "original_document_active": true,
+      "passed": true
+    }
+  ],
+  "original_model_restored": true,
+  "production_async_passed": true,
+  "sources": {
+    "files": {
+      "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+      "Partelier/partelier/addin.py": "b281358a644e8f8dfd3a5852562b615c7e9244379b59ff134ac366b506a7b4f1",
+      "Partelier/partelier/diagnostics.py": "6f97d0e7eed5fe46a65c4516def25628dae9e239451b92e3d2c7d871375263cf",
+      "Partelier/partelier/palette.py": "4a0852652eae16b662406557ef093e140c3781755aa1c17a5b09bf5c5814c4ae",
+      "Partelier/partelier/palette_protocol.py": "dc5a918efaee401999a99a1eedf275fe8930996220a9c2b0faa8213eb68c7983",
+      "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+      "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+      "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+      "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+      "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+      "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+      "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+      "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+      "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+      "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+      "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+      "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+      "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+      "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+      "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+      "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+      "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+      "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+      "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+      "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+      "Partelier/partelier/tools/patterns/command.py": "29dd5d131b2e910c664112b165f79850d050455a97dfc2ac049862ffc55c1afb",
+      "Partelier/partelier/tools/patterns/display_export.py": "4c4a4c311e4b92c09971049f3246a73f93a5454bbc462db3636e95b97990f77f",
+      "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+      "Partelier/partelier/tools/patterns/fusion.py": "b563283bdf7581fa7d66b0627b2f9ad939e2f6d46dd096c2211caadc37b98a83",
+      "Partelier/partelier/tools/patterns/planner.py": "7983b3930e8733a1591ff0390acb84473d7a584a80ef8ffd9cc202b77889e858",
+      "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+      "Partelier/partelier/tools/patterns/prism.py": "81ead0af6f892d4190f752972ad0f1ca3671bbff056c31810d9d42919effcd21",
+      "Partelier/partelier/tools/patterns/recipe.py": "d2b5d64663ebff985ca1818e3d3a8ca99fc97c4a0efef453f1a8d024ef00b63f",
+      "Partelier/partelier/tools/patterns/settings.py": "165020bdc7ba77a0807aa3f29de117ae2e17b44933622f765d708f7698120068",
+      "Partelier/partelier/tools/patterns/store.py": "d8379a2663fb72fbf912e79323dafb4f607008893d641459227e59c8af03e52f",
+      "Partelier/partelier/tools/patterns/surfaces.py": "513effd698bc6614c47465b315f6f04ff60d8ebf0f754b74005f282aa7d67a88",
+      "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80",
+      "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+      "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+      "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+      "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+      "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+      "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+      "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+      "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+      "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+      "tools/fusion/JoinFinishProbe/JoinFinishProbe.py": "67a57e39a6ee093f25efaef8b04f8fc35fd1e4df8db6a5695cd9a351f608126d",
+      "tools/fusion/PatternDisplayProbe/PatternDisplayProbe.py": "8ffc107ad7b9b6c76c25506a858dc8d69277033b5156b4272ccee374b6f59fb9",
+      "tools/fusion/PatternProbe/PatternProbe.py": "404895013060006c0e6251a3d9c9612b424f7141a3b1b9b6ccc889bcc2387da5",
+      "tools/fusion/PatternStatusProbe/PatternStatusProbe.py": "8102f16431c7f1507a67af1df22a9d749dff9f7e2a3b02135f6a3eda63ca83ed",
+      "tools/fusion/SnapFitProbe/SnapFitProbe.py": "fdda39fb9ad26700763284b50a69ab1dd4b8d8958b6b02be90b565f0ec104d8a"
+    },
+    "sha256": "6a2544004b25f1ff35f195308f92507ab6d14471fd93dd585bf16015605b5d1a"
+  },
+  "local_checks": {
+    "python_tests": 862,
+    "node_dom_suites": 3,
+    "compileall": true,
+    "diff_check": true
+  },
+  "headless_ui": {
+    "browser": "135.0.3179.73",
+    "headless": true,
+    "native_fusion_cef": false,
+    "viewports": [
+      {
+        "width": 300,
+        "bounds": {
+          "left": 13,
+          "right": 287,
+          "top": 191.15000915527344,
+          "bottom": 659.2500152587891,
+          "width": 300,
+          "height": 850
+        },
+        "escape": true,
+        "focus_returned": true
+      },
+      {
+        "width": 380,
+        "bounds": {
+          "left": 13,
+          "right": 367,
+          "top": 201.90000915527344,
+          "bottom": 648.5000152587891,
+          "width": 380,
+          "height": 850
+        },
+        "escape": true,
+        "focus_returned": true
+      },
+      {
+        "width": 520,
+        "bounds": {
+          "left": 55,
+          "right": 465,
+          "top": 197.8000030517578,
+          "bottom": 652.6000213623047,
+          "width": 520,
+          "height": 850
+        },
+        "escape": true,
+        "focus_returned": true
+      }
+    ],
+    "backdrop_close": true,
+    "details_disclosure": true,
+    "size_gap_conversion": true,
+    "page_errors": []
+  },
+  "ui_source_hashes": {
+    "Partelier/partelier/ui/catalog.js": "c3cb38d584b61ce531aaedee641a1281e4ca784cb71650e07ab8b3894e0cb278",
+    "Partelier/partelier/ui/illustrations.js": "e46a0007ac258d6afdf635a643e40cf6c8b7de1ce8ef9c1b61108494251070f6",
+    "Partelier/partelier/ui/palette.css": "73a1753948cd8a10a6c033a2d7a4b5671661429bbe7874940271c319ca01c8c2",
+    "Partelier/partelier/ui/palette.html": "e351eb30b29f49feb215c8669e2b3d2e7d982ca67c29defb6fe41b160ba34e61",
+    "Partelier/partelier/ui/palette.js": "5b7344b2ec6fbd3d40875fd96187eeb1ba8895fb9a7c02b054d1b463185f7f2c",
+    "Partelier/partelier/ui/pattern-help.js": "9dd79e8c1554d87eee4c975813dc98943b5b985b194521fc33e838a54d9daf67",
+    "Partelier/partelier/ui/patterns.js": "96710efc99fa0de52af03503174db070298d4b815c801083e35cb1819d074390",
+    "Partelier/partelier/ui/snap.js": "f3a79b8e14b1d05094fa98fcfd57961e3a8fa5f19775987e51952b1ccf2a45c7"
+  },
+  "limits": [
+    "Fill uses complete cells and conservative boundary checks; border is a minimum, not an exact terminal contour.",
+    "No global packing optimum, physical printability or arbitrary surface guarantee.",
+    "Native selection is scripted; actual Fusion CEF help interaction awaits user acceptance.",
+    "The accepted 0.10.5 cached preview display route remains unchanged."
+  ]
+}

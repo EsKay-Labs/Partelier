@@ -3,12 +3,12 @@
 // One pattern session serves the honeycomb, perforation and texture presets.
 (() => {
     const $ = id => document.getElementById(id);
-    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 8, web_mm: 1.2, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "fit" });
+    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 14, web_mm: 1.5, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "balanced" });
     const presets = { honeycomb: { pattern: "hexagon", mode: "through" }, perforation: { pattern: "circle", mode: "through" }, knurl: { pattern: "diamond", mode: "emboss" } };
     const choices = {
         pattern: [["hexagon", "Hexagons"], ["circle", "Circles"], ["diamond", "Diamonds"], ["square", "Squares"], ["slot", "Slots"]],
         mode: [["through", "Through holes"], ["engrave", "Engrave"], ["emboss", "Emboss"]],
-        layout_mode: [["fit", "Automatic"], ["fixed", "Exact pitch"]],
+        layout_mode: [["balanced", "Balanced · fewer cells"], ["fill", "Fill face · fixed size"], ["fit", "Automatic size"], ["fixed", "Exact pitch"]],
         selection_scope: [["faces", "Selected faces"], ["body", "Whole body"]]
     };
     const terminal = new Set(["idle", "created", "cancelled"]), retired = new Set();
@@ -110,6 +110,8 @@
     }
     function sync() {
         for (const input of $("pattern-settings").querySelectorAll("[name]")) { input.value = state.settings[input.name]; input.setCustomValidity(""); }
+        $("pattern-cell_size_mm").value = Number((state.settings.pitch_mm-state.settings.web_mm).toFixed(6));
+        $("pattern-cell_size_mm").setCustomValidity("");
         renderArt();
     }
     function renderArt() { $("pattern-illustration").innerHTML = window.PartelierIllustrations.renderPattern(state.settings); }
@@ -124,7 +126,15 @@
         $("pattern-scope-note").hidden = !editing();
         $("pattern-pitch_mm").parentElement.children[0].textContent = state.settings.layout_mode === "fit" ? "Target pitch" : "Pitch";
         $("pattern-pitch_mm").title = state.settings.layout_mode === "fit" ? "Automatic spacing adjusts this target to balance coverage of each face." : "Use this exact distance between repeated features.";
-        $("pattern-web_mm").parentElement.children[0].textContent = state.settings.mode === "emboss" ? "Gap between features" : "Solid web";
+        const sized = ["balanced","fill"].includes(state.settings.layout_mode), size = $("pattern-cell_size_mm");
+        $("pattern-pitch_mm").parentElement.hidden = sized;
+        size.parentElement.hidden = !sized; size.disabled = committing || !sized;
+        size.parentElement.children[0].textContent = state.settings.layout_mode === "balanced" ? "Target cell size" : "Cell size";
+        $("pattern-web_mm").parentElement.children[0].textContent = sized ? "Minimum gap" : state.settings.mode === "emboss" ? "Gap between features" : "Solid web";
+        $("pattern-layout-note").textContent = state.settings.layout_mode === "fill"
+            ? "Σταθερό μέγεθος · ολόκληρα στοιχεία μέχρι το border. Έως 200/face."
+            : state.settings.layout_mode === "balanced" ? "Πιο αραιή αρχή · έως 48/face. Το μέγεθος προσαρμόζεται."
+            : "Παλιός τρόπος ρύθμισης: Pitch = μέγεθος + gap.";
         $("pattern-depth_mm").parentElement.children[0].textContent = state.settings.mode === "engrave" ? "Engraving depth" : "Relief height";
     }
     function renderSelection() {
@@ -268,36 +278,76 @@
         finally { state.expecting = false; }
         await refresh();
     }
-    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Spacing", "pattern-size-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"]]) {
+    let helpTrigger;
+    function addHelp(item, name, caption) {
+        item.classList.add("has-parameter-help");
+        const button = document.createElement("button"); button.type = "button"; button.id = `pattern-help-${name}`;
+        button.className = "parameter-help"; button.textContent = "?";
+        button.setAttribute("aria-label", `Βοήθεια: ${caption}`); button.setAttribute("aria-haspopup", "dialog");
+        button.addEventListener("click", () => {
+            const help = window.PartelierPatternHelp.get(name); if (!help) return;
+            helpTrigger = button;
+            $("pattern-help-title").textContent = help.title;
+            $("pattern-help-description").textContent = help.description;
+            $("pattern-help-detail").textContent = help.detail;
+            $("pattern-help-more").open = false;
+            $("pattern-help-image").innerHTML = help.image;
+            if (!$("pattern-parameter-help").open) $("pattern-parameter-help").showModal();
+        });
+        item.append(button);
+    }
+    $("pattern-help-close").addEventListener("click", () => $("pattern-parameter-help").close());
+    $("pattern-parameter-help").addEventListener("close", () => { if (helpTrigger) helpTrigger.focus(); });
+    $("pattern-parameter-help").addEventListener("click", event => {
+        if (event.target !== $("pattern-parameter-help")) return;
+        const rect = event.target.getBoundingClientRect();
+        if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.target.close();
+    });
+    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Layout", "pattern-size-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"]]) {
         const item = document.createElement("div"); item.className = "parameter-item";
         const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
         const input = document.createElement("select"); input.id = `pattern-${name}`; input.name = name; input.required = true;
         for (const [value, text] of choices[name]) { const option = document.createElement("option"); option.value = value; option.textContent = text; input.append(option); }
-        input.value = defaults[name]; item.append(label, input); $(container).append(item);
+        input.value = defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
     }
-    for (const [container, fields] of [["pattern-size-fields", [["pitch_mm", "Pitch"], ["web_mm", "Solid web"], ["border_mm", "Solid border"], ["depth_mm", "Relief height"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
+    for (const [container, fields] of [["pattern-size-fields", [["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Solid border"], ["depth_mm", "Relief height"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
         for (const [name, caption] of fields) {
             const item = document.createElement("div"); item.className = "parameter-item";
             const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
-            const input = document.createElement("input"); input.id = `pattern-${name}`; input.name = name; input.type = "number"; input.required = true; input.step = "any";
+            const input = document.createElement("input"); input.id = `pattern-${name}`; if (name !== "cell_size_mm") input.name = name; input.type = "number"; input.required = true; input.step = "any";
             if (!signed.has(name)) input.min = "0";
-            input.value = defaults[name]; item.append(label, input); $(container).append(item);
+            input.value = name === "cell_size_mm" ? defaults.pitch_mm-defaults.web_mm : defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
         }
     }
     $("pattern-settings").addEventListener("submit", event => event.preventDefault());
     $("pattern-settings").addEventListener("input", event => {
-        const input = event.target; if (!Object.prototype.hasOwnProperty.call(defaults, input.name)) return;
+        const input = event.target, sized = ["balanced","fill"].includes(state.settings.layout_mode);
+        if (input.id === "pattern-cell_size_mm") {
+            const size = Number(input.value), okay = input.value.trim() !== "" && Number.isFinite(size) && size > 0;
+            input.setCustomValidity(okay ? "" : "Enter a cell size greater than zero.");
+            const pitch = $("pattern-pitch_mm"); pitch.value = okay ? Number((size+state.settings.web_mm).toFixed(6)) : "";
+            pitch.setCustomValidity(okay ? "" : "Enter a cell size greater than zero.");
+            state.settings.pitch_mm = okay ? size+state.settings.web_mm : NaN;
+        } else if (!Object.prototype.hasOwnProperty.call(defaults, input.name)) return;
         const numeric = Number(input.value); trace("input", { name:input.name,value:input.type === "number" ? input.value.trim() && Number.isFinite(numeric) && Math.abs(numeric)<1e12 ? numeric : null : choices[input.name]?.some(([value])=>value===input.value) ? input.value : "unsupported" });
         if (input.name === "selection_scope" && editing()) { input.value = state.settings.selection_scope; message("Create a new pattern to change between selected faces and a whole body.", true); return; }
-        if (input.type === "number") {
+        if (input.id === "pattern-cell_size_mm") { /* Derived locally; the host retains its strict snapshot contract. */ }
+        else if (input.type === "number") {
             const value = Number(input.value), zeroAllowed = input.name === "border_mm";
             const okay = input.value.trim() !== "" && Number.isFinite(value) && (signed.has(input.name) || (zeroAllowed ? value >= 0 : value > 0));
+            if (input.name === "web_mm" && sized && okay && $("pattern-cell_size_mm").checkValidity()) {
+                state.settings.pitch_mm = Number((Number($("pattern-cell_size_mm").value)+value).toFixed(6));
+                $("pattern-pitch_mm").value = state.settings.pitch_mm;
+                $("pattern-pitch_mm").setCustomValidity("");
+            }
             input.setCustomValidity(okay ? "" : signed.has(input.name) ? "Enter a finite number." : zeroAllowed ? "Enter zero or a positive number." : "Enter a number greater than zero."); state.settings[input.name] = value;
         } else {
             input.setCustomValidity(choices[input.name].some(([value]) => value === input.value) ? "" : "Choose a supported option.");
             if (input.name === "selection_scope" && input.value !== state.settings.selection_scope && active()) state.session = { ...state.session, selections: {} };
             state.settings[input.name] = input.value;
         }
+        if (input.id !== "pattern-cell_size_mm" && (input.name !== "web_mm" || !sized))
+            $("pattern-cell_size_mm").value = Number((state.settings.pitch_mm-state.settings.web_mm).toFixed(6));
         state.revision++; state.dirty = true; state.liveError = false; availability(false); renderArt();
         if (active()) message(valid() ? "Updating live preview…" : "Check the highlighted input. Showing the previous valid preview.", !valid());
         render(); schedule();
@@ -329,5 +379,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.10.5" }); renderArt(); render();
+    trace("boot", { build:"0.10.6" }); renderArt(); render();
 })();

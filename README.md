@@ -5,7 +5,7 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current code:** experimental 0.10.5 provides surface patterns, an editable separate-pin hinge
+**Current code:** experimental 0.10.6 provides surface patterns, an editable separate-pin hinge
 and four snap-fit families: Hook latch, Ball detent, Torsion latch and Annular
 ring. Hook latch also offers straight, tapered or twin arms. Snap-fits include
 optional 45-degree root/receiver roofs and complete eligible outer-edge chamfers;
@@ -38,30 +38,35 @@ in Fusion. Broader interaction coverage, save/reopen, Undo/Redo, motion and
 physical printing remain acceptance items. See
 [native evidence and limits](docs/fusion-validation.md). The snap-fit passes
 56 native geometry/persistence/refusal/session cases, including source rollback
-and stable body identities. Patterns pass 32 native geometry and workflow checks,
+and stable body identities. Patterns pass 41 native geometry and workflow checks,
 including full cylinder wraps, regular cone/sphere regions and cached preview
 creation after rollback. The original model, document and camera are restored.
 Other tools remain planned. The older honeycomb input checker remains a separate
 diagnostic and creates no geometry.
 
+**New in 0.10.6:** illustrated **?** help for every pattern parameter, a less dense
+**Balanced** default, and **Fill face** with independent cell size, minimum gap
+and solid border. Fill keeps whole cells; actual edge margins can exceed the
+minimum border. See the [layout and help contract](docs/surface-patterns.md).
+
 **Surface patterns:** choose **Honeycomb**, **Perforations** or **Texture** in the
 tool dropdown. Each opens the same workflow with a different preset. Choose
 hexagons, circles, diamonds, squares or slots and **Through holes**, **Engrave** or
-**Emboss**. Select faces on one solid, then press Esc when finished picking.
-Keep **Spacing > Automatic** to center the layout and fit a uniform pitch near
-your target. The preview reports the actual fitted pitch. Choose **Exact pitch**
-to retain the original layout behavior. Set web/gap, border and depth/height;
-review the live preview before Create.
+**Emboss**. Pick a face to start preview; **Add face** adds another face on the
+same solid. **Balanced** starts with fewer cells and adapts Target cell size.
+**Fill face** preserves Cell size, keeps at least Minimum gap and Solid border,
+and fills with complete cells. A **?** beside each setting explains its behavior
+with an image. Review the live preview before Create.
 Edit/Rebuild updates that same body. Plane and cylinder charts, multiple faceted
 sides and bounded regular regions of smooth surfaces are implemented. Distorted
 or singular regions can be refused or omitted conservatively. Dense curved
 patterns can take noticeably longer to preview. See the
 [surface contract, examples and limits](docs/surface-patterns.md).
-Automatic spacing enlarges overly dense layouts to respect the cell budget.
-Exact pitch retains explicit density refusals with an approximate larger-pitch
-hint. Short trim edges near hinges no longer exclude distant columns beneath
-them: real trim borders remain protected. Older saved patterns open in Exact
-pitch; switch to Automatic and Rebuild to apply the new layout deliberately.
+The hard limits remain 200 cells per face / 400 total. Balanced adjusts cell size;
+Fill face asks for larger cells when too dense. Automatic size and Exact pitch
+retain the previous behaviors for existing recipes. Saved settings are restored
+unchanged by Edit; new defaults apply only to new patterns. Short trim edges near
+hinges no longer exclude distant columns beneath them: real borders remain protected.
 
 Version 0.10.1 also recovers the pattern palette when a preview acknowledgment
 or completion notification is lost. It reads the existing native session status
@@ -95,7 +100,7 @@ geometry remains separate for Create/Rebuild. Display scratch geometry is
 removed inside the rollback computation; temporary files are deleted. The
 unstable direct mesh-calculator experiment remains removed.
 
-**Try the updated tools:** Stop then Run Partelier to load 0.10.5. The tool library opens
+**Try the updated tools:** Stop then Run Partelier to load 0.10.6. The tool library opens
 automatically; choose **Snap-fit**, then **Snap type**. For Hook latch, Ball detent
 or Torsion latch, pick the base exterior wall A, the coplanar lid wall B,
 then either facing straight rim. Matching rims may have a gap between them;

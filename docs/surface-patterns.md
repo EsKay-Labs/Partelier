@@ -17,22 +17,51 @@ Choose a shape (hexagons, circles, diamonds, squares or slots), then **Through
 holes**, **Engrave** or **Emboss**. In 0.10.4, selecting one face immediately
 starts preview. Use **Add face** for another face on the same solid, or **Faces**
 to replace the selection. Esc cancels the current pick and keeps the previous
-selection. Multiple preselected faces are reused. Start with **Spacing > Automatic**,
-target pitch, solid web (gap for emboss), border and depth/height. Through holes do not use a depth setting.
-Rotation and offsets live under Advanced.
+selection. Multiple preselected faces are reused. Start with **Layout > Balanced**,
+**Target cell size**, **Minimum gap** and **Solid border**. Through holes do not
+use a depth setting. Rotation and offsets live under Advanced.
 
-Automatic spacing centers the grid and chooses one uniform pitch per face near
-the target. It never stretches individual hexagons or circles to fill a gap.
-The preview reports the actual fitted pitch, or its range across several faces;
-the target input remains unchanged. Overly dense layouts receive a larger pitch
-to stay within 200 cells per face and 400 in total. With more than two selected
-faces, that total budget is shared according to face area.
+Version **0.10.6** adds a **? beside every pattern setting**, including the new
+cell-size control. Each opens a local dialog with a Greek explanation and an
+original SVG comparison image; no CAD request, geometry computation or setting
+change is performed. Esc, the close button or a backdrop click closes it and
+returns focus to its trigger. The drawings explain settings; they are not model
+previews.
 
-Choose **Exact pitch** to preserve the earlier layout behavior. Dense exact
-layouts still refuse with an approximate larger-pitch hint; that hint does not
-change the input. Full periodic cylinders retain their seam-closing adjustment.
-Existing saved patterns load in Exact pitch. To update one, choose Edit existing,
-switch to Automatic, review the preview and press Rebuild.
+**Balanced** is the new default. It starts with a 12.5 mm target cell size,
+1.5 mm minimum gap and 2 mm solid border. It centers the grid and adjusts one
+uniform cell size per face to fit within a soft limit of **48 cells per face**,
+instead of using the full 200-cell work budget. The requested target remains
+unchanged; the preview reports the actual fitted dimensions. Small faces may
+need smaller cells, and large faces normally receive larger ones.
+
+**Fill face · fixed size** repeats whole cells across the available surface at
+the specified **Cell size** and at least the **Minimum gap**. For hexagons, size
+is the distance between opposite flats; for circles it is the diameter; squares
+use side length, diamonds use the tip-to-tip diagonal and slots use total length.
+Changing Minimum gap in these two new modes preserves the requested cell size.
+Internally the existing strict snapshot still stores `pitch_mm = size + gap`;
+there is no extra persisted field or recipe migration.
+
+Fill does not shrink cells, cut partial cells at borders, or silently drop rows
+to satisfy the work budget. It tries the centered lattice phases, respecting
+finite face trims and the existing surface checks. The solid border is a minimum:
+whole cells and conservative curved-surface checks can leave larger margins.
+This is bounded lattice placement, not a guarantee of globally optimal packing.
+On a full periodic cylinder, circumferential center spacing may increase to
+close the seam; opening size stays fixed and minimum gap is never narrowed.
+
+The hard limits remain **200 cells per face / 400 total**. A dense Fill request
+refuses with a larger-cell-size estimate or suggests Balanced; it never silently
+changes the requested size. With more than two faces, the total work budget is
+shared by area. Unsupported surfaces or insufficient actual mapped web still
+refuse rather than changing the model.
+
+**Automatic size** retains the previous automatic fit algorithm (up to the full
+work budget), with Target pitch and solid web. **Exact pitch** retains the earlier
+fixed lattice. Stored v2 recipes keep their saved mode and full dimensions;
+pre-layout v1 recipes still load as Exact pitch. Edit/Rebuild does not adopt the
+new defaults unless the user changes their settings deliberately.
 
 The preview shows the complete proposed body with its existing Fusion
 appearance. Create changes that same body. Edit accepts its body, face, edge or

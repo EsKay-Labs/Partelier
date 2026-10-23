@@ -214,7 +214,7 @@ def _mapped_cells(faces, settings, *, _return_layouts=False):
     """
     mapped = []
     layouts=[]
-    budgets=_face_budgets([face.area for face in faces]) if settings.layout_mode=='fit' else (MAX_FACE_CELLS,)*len(faces)
+    budgets=_face_budgets([face.area for face in faces]) if settings.layout_mode!='fixed' else (MAX_FACE_CELLS,)*len(faces)
     for index, face in enumerate(faces):
         chart = SurfaceMap(face)
         accepted = 0

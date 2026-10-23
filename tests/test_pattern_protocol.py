@@ -29,7 +29,7 @@ class PatternProtocolTests(unittest.TestCase):
         value = read_request("pattern_begin", request(settings={"pattern": "circle", "mode": "engrave"}, editing=True))
         self.assertIsInstance(value.settings, PatternSettings)
         self.assertEqual(value.settings, PatternSettings(pattern="circle", mode="engrave"))
-        self.assertEqual(value.settings.layout_mode, "fit")
+        self.assertEqual(value.settings.layout_mode, "balanced")
         self.assertTrue(value.editing)
         for editing in (1, "true", None):
             with self.subTest(editing=editing), self.assertRaises(ValueError):
@@ -67,7 +67,7 @@ class PatternProtocolTests(unittest.TestCase):
 
     def test_dimensions_and_enumerations_are_validated_before_host_dispatch(self):
         defaults = PatternSettings().to_dict()
-        invalid = (("pitch_mm", 0), ("pitch_mm", True), ("web_mm", 8), ("depth_mm", math.inf),
+        invalid = (("pitch_mm", 0), ("pitch_mm", True), ("web_mm", 14), ("depth_mm", math.inf),
                    ("border_mm", -1), ("rotation_deg", math.nan), ("offset_u_mm", "1"),
                    ("pattern", "unsupported"), ("mode", "generate"), ("selection_scope", "all-models"),
                    ("layout_mode", "stretch"), ("layout_mode", True))

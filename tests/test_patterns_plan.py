@@ -20,7 +20,7 @@ class PatternSettingsTests(unittest.TestCase):
         self.assertEqual(len(PatternSettings().to_dict()),11)
 
     def test_invalid_dimensions_modes_and_partial_snapshots_are_refused(self):
-        for values in ({'pitch_mm':0},{'web_mm':8},{'depth_mm':-1},{'border_mm':-1},
+        for values in ({'pitch_mm':0},{'web_mm':14},{'depth_mm':-1},{'border_mm':-1},
                        {'pitch_mm':True},{'rotation_deg':float('nan')},{'mode':'bad'},
                        {'selection_scope':'mesh'},{'offset_u_mm':float('inf')},
                        {'pitch_mm':10**1000}):
@@ -29,7 +29,7 @@ class PatternSettingsTests(unittest.TestCase):
 
 
 def _fixed(**values):
-    return PatternSettings(**{'layout_mode':'fixed',**values})
+    return PatternSettings(**{'pitch_mm':8,'web_mm':1.2,'layout_mode':'fixed',**values})
 
 
 class PatternLayoutTests(unittest.TestCase):

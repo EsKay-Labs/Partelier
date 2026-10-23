@@ -449,6 +449,26 @@ class PatternCommandTests(unittest.TestCase):
         self.assertTrue(session.preview_current)
         self.assertEqual(session.faces, self.faces)
 
+    def test_balanced_preview_reports_actual_cell_size_instead_of_hidden_pitch(self):
+        original = self.fusion.prepare_pattern.side_effect
+        def prepare(*args):
+            result = original(*args)
+            result.layouts = (NS(cell_count=3, effective_pitch_mm=20),
+                              NS(cell_count=4, effective_pitch_mm=22))
+            return result
+        self.fusion.prepare_pattern.side_effect = prepare
+        session = self.begin(PatternSettings(web_mm=1.5))
+        self.preview(session)
+        self.assertIn('cell size 18.50–20.50 mm', session.message)
+        self.assertNotIn('pitch', session.message)
+
+    def test_fill_preview_reports_the_three_user_dimensions(self):
+        session = self.begin(PatternSettings(layout_mode='fill',pitch_mm=11.5,web_mm=1.5,border_mm=2))
+        self.preview(session)
+        self.assertIn('size 10 mm',session.message)
+        self.assertIn('minimum gap 1.5 mm',session.message)
+        self.assertIn('border ≥ 2 mm',session.message)
+
     def test_create_reuses_exact_reviewed_detached_result_without_recomputing(self):
         session = self.begin()
         self.preview(session)

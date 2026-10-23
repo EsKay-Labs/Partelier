@@ -295,12 +295,18 @@ class _Session:
                             ' '.join(f'{key}={value:.3f}' for key,value in timings.items() if type(value) in (int,float)))
                     except Exception:pass
                 self.phase='preview';self.message=str(prepared.cell_count)+' cells. Review the pattern before Create.'
-                if self.settings.layout_mode=='fit':
+                if self.settings.layout_mode in ('fit','balanced'):
                     pitches=[layout.effective_pitch_mm for layout in getattr(prepared,'layouts',()) if layout.cell_count]
                     if pitches:
                         low,high=min(pitches),max(pitches)
+                        if self.settings.layout_mode=='balanced':
+                            low-=self.settings.web_mm;high-=self.settings.web_mm
                         caption=f'{low:.2f}' if abs(high-low)<.005 else f'{low:.2f}–{high:.2f}'
-                        self.message=f'{prepared.cell_count} cells · fitted pitch {caption} mm'
+                        dimension='cell size' if self.settings.layout_mode=='balanced' else 'fitted pitch'
+                        self.message=f'{prepared.cell_count} cells · {dimension} {caption} mm'
+                elif self.settings.layout_mode=='fill':
+                    self.message=(f'{prepared.cell_count} cells · size {self.settings.pitch_mm-self.settings.web_mm:g} mm'
+                                  f' · minimum gap {self.settings.web_mm:g} mm · border ≥ {self.settings.border_mm:g} mm')
                 self.owner.publish(self)
             except Exception as error:failed(error)
         def failed(error):

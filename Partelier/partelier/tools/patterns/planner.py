@@ -7,6 +7,7 @@ import math
 MAX_CANDIDATES = 4000
 MAX_CELLS = 400
 MAX_FACE_CELLS = 200
+BALANCED_FACE_CELLS = 48
 
 
 class PatternDensityError(ValueError):
@@ -45,6 +46,13 @@ def density_error(settings, areas_mm2, *, face_index=0, face_cells=0,
     message = (f"Pattern is too dense. {reason} ({selected}). A cell is one pattern repetition. "
                f"Current Pitch: {settings.pitch_mm:g} mm. {suggestion} "
                f"Limits: {MAX_FACE_CELLS} cells per face, {MAX_CELLS} total.")
+    if settings.layout_mode == 'fill':
+        size_hint = max(.001, hint-settings.web_mm)
+        message = (f"Fill face is too dense. {reason}. "
+                   f"Current Cell size: {settings.pitch_mm-settings.web_mm:g} mm; "
+                   f"Minimum gap: {settings.web_mm:g} mm. "
+                   f"Try Cell size about {size_hint:g} mm or higher (estimate), or choose Balanced. "
+                   f"Limits: {MAX_FACE_CELLS} cells per face, {MAX_CELLS} total. Your size was not changed.")
     return PatternDensityError(message, hint if hint<=10000 else None)
 
 
@@ -210,12 +218,14 @@ def _complete(center, polygon, bounds, periodic):
     return True
 
 
-def _fit_grid(settings, bounds, pitch, period, phase):
+def _fit_grid(settings, bounds, pitch, period, phase, *, preserve_size=False):
     periodic = period is not None
     if periodic:
-        columns = max(3, int(round(period/pitch)))
+        columns = int(math.floor(period/pitch)) if preserve_size else max(3, int(round(period/pitch)))
+        if columns < 3:
+            raise ValueError("Reduce cell size to fit at least three cells around the curved face.")
         pitch = period/columns
-    effective = replace(settings, pitch_mm=pitch)
+    effective = settings if preserve_size else replace(settings, pitch_mm=pitch)
     polygon = _polygon(effective)
     unrotated = _polygon(replace(effective, rotation_deg=0.0))
     # Match SurfaceMap's existing conservative 1.05 circumradius margin.
@@ -225,7 +235,7 @@ def _fit_grid(settings, bounds, pitch, period, phase):
     opening_u = opening_v = 2*reserve
     triangular = settings.pattern in ("hexagon", "circle")
     factor = math.sqrt(3)/2 if triangular else 1.0
-    step_v = factor*pitch
+    step_v = factor*(settings.pitch_mm if preserve_size else pitch)
     angle = math.radians(settings.rotation_deg)
     width, height = _projected_size(bounds, angle) if not periodic else (period, bounds[3]-bounds[2])
     if not periodic:
@@ -338,10 +348,12 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
                 raise ValueError("Pattern trim acceptance must be callable.")
             cells = tuple(cell for cell in cells if accept(cell))
         return Layout(cells, settings.pitch_mm, settings.pitch_mm, "fixed")
-    if mode != "fit":
-        raise ValueError("Choose fit or fixed pattern layout.")
+    if mode not in ("balanced", "fill", "fit"):
+        raise ValueError("Choose balanced, fill, fit or fixed pattern layout.")
     if type(max_cells) is not int or not 1 <= max_cells <= MAX_FACE_CELLS:
         raise ValueError("The face budget must be between 1 and 200 cells.")
+    if mode == "balanced":
+        max_cells = min(max_cells, BALANCED_FACE_CELLS)
     if accept is not None and not callable(accept):
         raise ValueError("Pattern trim acceptance must be callable.")
     periodic = period_u_mm is not None
@@ -354,24 +366,37 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
             raise ValueError("A full wrap currently needs rotation in multiples of "+str(symmetry)+" degrees for this shape.")
     available = _fit_bounds(bounds, settings.border_mm, periodic)
     if available is None:
-        return Layout((), settings.pitch_mm, settings.pitch_mm, "fit")
+        return Layout((), settings.pitch_mm, settings.pitch_mm, mode)
     if periodic and abs(available[1]-available[0]-period_u_mm) > max(1e-7, period_u_mm*1e-7):
         raise ValueError("The full-wrap chart width must match its period.")
     proposals = []
+    dense_count = 0
+    candidate_overflow = False
     triangular = settings.pattern in ("hexagon", "circle")
-    for pitch in _pitch_candidates(settings, available, period_u_mm, max_cells):
+    pitches = (settings.pitch_mm,) if mode == "fill" else _pitch_candidates(settings, available, period_u_mm, max_cells)
+    for pitch in pitches:
         for phase in ((0,1) if triangular else (0,)):
-            cells, actual = _fit_grid(settings, available, pitch, period_u_mm, phase)
+            cells, actual = _fit_grid(settings, available, pitch, period_u_mm, phase, preserve_size=mode == "fill")
+            if mode == "fill" and (cells is None or len(cells) > max_cells):
+                candidate_overflow |= cells is None
+                dense_count = max(dense_count, len(cells) if cells is not None else 0)
+                continue
             if not cells or len(cells) > max_cells:
                 continue
-            score = _layout_score(cells, actual, settings.pitch_mm, available, periodic)
+            score = len(cells) if mode == "fill" else _layout_score(cells, actual, settings.pitch_mm, available, periodic)
             proposals.append((score, -abs(math.log(actual/settings.pitch_mm)), len(cells), -phase, actual, cells))
     if not proposals:
-        return Layout((), settings.pitch_mm, settings.pitch_mm, "fit")
+        if mode == "fill" and (dense_count or candidate_overflow):
+            # Refuse, never silently enlarge a fixed-size cell or truncate the grid.
+            raise density_error(settings, [(bounds[1]-bounds[0])*(bounds[3]-bounds[2])],
+                                face_cells=dense_count,
+                                total_cells=MAX_CELLS+1 if dense_count>max_cells and max_cells<MAX_FACE_CELLS else 0,
+                                candidates=MAX_CANDIDATES+1 if candidate_overflow else None)
+        return Layout((), settings.pitch_mm, settings.pitch_mm, mode)
     proposals.sort(key=lambda proposal: proposal[:4], reverse=True)
     if accept is None:
         best = proposals[0]
-        return Layout(best[5], best[4], settings.pitch_mm, "fit")
+        return Layout(best[5], best[4], settings.pitch_mm, mode)
     accepted = []
     cache = {}
     checks = 0
@@ -387,15 +412,15 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
             if cache[key]:
                 cells.append(cell)
         if cells:
-            score = _layout_score(tuple(cells), proposal[4], settings.pitch_mm, available, periodic)
+            score = len(cells) if mode == "fill" else _layout_score(tuple(cells), proposal[4], settings.pitch_mm, available, periodic)
             # Prefer a phase that fits the real face instead of two distant
             # isolated clusters with an apparently large envelope.
             score -= .2*(1-len(cells)/len(proposal[5]))
             accepted.append((score, proposal[1], len(cells), proposal[3], proposal[4], tuple(cells)))
     if not accepted:
-        return Layout((), settings.pitch_mm, settings.pitch_mm, "fit")
+        return Layout((), settings.pitch_mm, settings.pitch_mm, mode)
     best = max(accepted, key=lambda proposal: proposal[:4])
-    return Layout(best[5], best[4], settings.pitch_mm, "fit")
+    return Layout(best[5], best[4], settings.pitch_mm, mode)
 
 
 def build_cells(settings, bounds, period_u_mm=None):

@@ -212,7 +212,7 @@ class PatternFitLayoutTests(unittest.TestCase):
             ({'pattern':'circle','offset_u_mm':1.7},(-30,70,2,34),100,60,
              '7cf7297f2e33a308627c43598b63c4593effca0bfccdf2a4d4d695eab9449ef2'))
         for values,bounds,period,count,digest in fixtures:
-            settings=PatternSettings(layout_mode='fixed',**values)
+            settings=PatternSettings(pitch_mm=8,web_mm=1.2,layout_mode='fixed',**values)
             cells=build_cells(settings,bounds,period)
             actual=hashlib.sha256(json.dumps([(cell.center_mm,cell.polygon_mm) for cell in cells],
                                              separators=(',',':')).encode()).hexdigest()

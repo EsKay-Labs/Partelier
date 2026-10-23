@@ -46,6 +46,40 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Illustrated pattern help and independent cell size (0.10.6)
+
+Final native request `2611bd09-3a25-4612-ade3-9251935ae9e8` passes **41 cases**
+on Fusion 2705.1.30 with an unchanged runtime source manifest. The initial run
+`e55ff647-9c20-4552-a693-81ad634f26ff` also passes 41 cases, before the final
+Balanced status-text adjustment. Nine new cases cover all five Fill shapes on a
+plane, exact fixed-size full-cylinder wraps for Through/Engrave/Emboss, and the
+less dense Balanced default. All previous geometry and production async cases
+remain in the matrix.
+
+The plane Fill cases retain 5 mm elements with a 1.5 mm minimum gap; the
+cylinder cases retain 6 mm elements while closing the circumferential seam.
+Fill Create/Edit/Rebuild retains settings, body identity and owned history.
+The 300 × 170 mm notched-panel default produces **43 cells**, within the new
+48-cell soft per-face budget. All native preparation guards run, the owned
+scratch document is discarded, and the original model/component/camera are restored.
+
+Local validation passes **862 Python tests**, all **three Node DOM suites**,
+compilation and whitespace checks. New checks cover polygon-to-polygon gaps,
+whole-cell borders, fixed wrap size, density refusal, legacy golden geometry,
+actual size status, all 12 help buttons, no CAD dispatch from help, and size/gap
+independence through invalid intermediate edits.
+
+A separate headless Edge 135 browser check at 300/380/520 px verifies dialog
+bounds, Esc/focus return, backdrop closing, extra-details disclosure and size/gap
+conversion without page errors. Screenshots were inspected. This is browser QA,
+not acceptance of the actual Fusion CEF palette or model picking. User acceptance
+of the previous cached preview/orbit implementation remains recorded below.
+
+See [source hashes and scoped evidence](validation/pattern-help-fill-0.10.6.json)
+and the [layout behavior and limits](surface-patterns.md). Fill uses complete
+cells with conservative checks, so the requested border is a minimum. It is not
+a clipped full-surface fill or a globally optimal packing solver.
+
 ## Cached export display (0.10.5)
 
 Live sessions now cache display triangles with Fusion's standard STL exporter.

@@ -413,7 +413,7 @@ def _case(label, function, *, optional=False):
 
 
 def _fixed_settings(**values):
-    return STATE['settings_module'].PatternSettings(**{'layout_mode':'fixed',**values})
+    return STATE['settings_module'].PatternSettings(**{'pitch_mm':8,'web_mm':1.2,'layout_mode':'fixed',**values})
 
 
 def run_direct_prism_proof(design,direct,adapter,settings_class):
@@ -502,7 +502,7 @@ def _performance_cases(design):
         design,direct,adapter,STATE['settings_module'].PatternSettings))
     _,body,faces=fixture(design,'notched_panel')
     def batch_equivalence():
-        settings=STATE['settings_module'].PatternSettings()
+        settings=STATE['settings_module'].PatternSettings(pitch_mm=8,web_mm=1.2,layout_mode='fit')
         fast=prepare_checked(design,faces,settings)
         if not fast.timings['batch_used']:
             raise RuntimeError('The dense native Through fixture did not exercise the batch path.')
@@ -592,7 +592,7 @@ def _fit_cases(design):
     _case('automatic_balanced_notched_panel',lambda:panel_result('fit'))
     _,body,plane_faces=fixture(design,'plane')
     def automatic_density():
-        settings=Settings(pitch_mm=1,web_mm=.2)
+        settings=Settings(pitch_mm=1,web_mm=.2,layout_mode='fit')
         prepared=prepare_checked(design,plane_faces,settings)
         if not 0<prepared.cell_count<=200 or prepared.layouts[0].effective_pitch_mm<=1 or settings.pitch_mm!=1:
             raise RuntimeError('Automatic spacing failed to fit a dense target within its budget.')
@@ -615,7 +615,7 @@ def _fit_cases(design):
     _,body,wrap_faces=fixture(design,'cylinder_wrap')
     for mode in ('through','engrave','emboss'):
         def wrapped(mode=mode):
-            settings=Settings(mode=mode,web_mm=2)
+            settings=Settings(mode=mode,pitch_mm=8,web_mm=2,layout_mode='fit')
             prepared=prepare_checked(design,wrap_faces,settings)
             detail=inspect(prepared,'cylinder_wrap')
             chart=adapter.SurfaceMap(wrap_faces[0]);layout=prepared.layouts[0]
@@ -636,6 +636,56 @@ def _fit_cases(design):
             detail['periodic_closure_uniform']=True
             return detail
         _case('automatic_full_wrap_'+mode,wrapped)
+
+
+def _fill_cases(design):
+    Settings=STATE['settings_module'].PatternSettings
+    adapter=STATE['adapter'];recipe=STATE['recipe']
+    for shape in ('hexagon','circle','diamond','square','slot'):
+        def planar(shape=shape):
+            _,body,faces=fixture(design,'plane')
+            settings=Settings(pattern=shape,pitch_mm=6.5,web_mm=1.5,layout_mode='fill')
+            prepared=prepare_checked(design,faces,settings)
+            if prepared.cell_count<4:raise RuntimeError('Fill face did not populate the plane.')
+            polygon=prepared.layouts[0].cells[0].polygon_mm
+            width=max(x for x,y in polygon)-min(x for x,y in polygon)
+            if abs(width-5)>1e-7:raise RuntimeError('Fill face changed the requested cell size.')
+            detail=inspect(prepared,'plane');detail['requested_size_mm']=5;detail['minimum_gap_mm']=1.5
+            if shape=='hexagon':
+                history,count=design.timeline.count,design.rootComponent.bRepBodies.count
+                anchor=recipe.create_pattern(design,prepared)
+                target=recipe.read_edit_target(design,body)
+                changed=replace(settings,pitch_mm=7.5)
+                updated=recipe.prepare_edit_pattern(design,target,changed)
+                if recipe.rebuild_pattern(design,target,updated)!=anchor:
+                    raise RuntimeError('Fill Rebuild replaced its owned anchor.')
+                current=recipe.read_edit_target(design,body)
+                if (current.settings!=changed or current.record.target!=body
+                        or design.timeline.count!=history+3 or design.rootComponent.bRepBodies.count!=count
+                        or _signature(body)!=_signature(updated.result_body)):
+                    raise RuntimeError('Fill Create/Edit/Rebuild lost settings, body identity or exact result.')
+                detail['fill_create_edit_rebuild_same_body']=True
+            return detail
+        _case('fill_fixed_size_plane_'+shape,planar)
+    for mode in ('through','engrave','emboss'):
+        def wrapped(mode=mode):
+            _,body,faces=fixture(design,'cylinder_wrap')
+            settings=Settings(layout_mode='fill',mode=mode,pitch_mm=8,web_mm=2,depth_mm=.5)
+            prepared=prepare_checked(design,faces,settings)
+            polygon=prepared.layouts[0].cells[0].polygon_mm
+            if abs(max(x for x,y in polygon)-min(x for x,y in polygon)-6)>1e-7:
+                raise RuntimeError('Full wrap changed the requested fixed cell size.')
+            detail=inspect(prepared,'cylinder_wrap');detail['requested_size_mm']=6
+            detail['effective_u_pitch_mm']=prepared.layouts[0].effective_pitch_mm
+            return detail
+        _case('fill_fixed_size_wrap_'+mode,wrapped)
+    def balanced():
+        _,body,faces=fixture(design,'notched_panel')
+        settings=Settings()
+        prepared=prepare_checked(design,faces,settings)
+        if not 0<prepared.cell_count<=48:raise RuntimeError('Balanced default exceeded its soft cell budget.')
+        return {'cells':prepared.cell_count,'layout_mode':settings.layout_mode,'soft_limit_per_face':48}
+    _case('balanced_default_sparse_panel',balanced)
 
 
 def cases():
@@ -780,6 +830,7 @@ def cases():
         return details
     _case("sphere_general_surface_engrave", sphere_case)
     _fit_cases(design)
+    _fill_cases(design)
     _performance_cases(design)
     STATE["report"]["geometry_checks_passed"] = all(case["passed"] for case in STATE["report"]["cases"])
 

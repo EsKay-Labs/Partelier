@@ -2,7 +2,7 @@
 // Exercise all three actual controllers through one native-message fixture.
 const assert = require("node:assert/strict"), fs = require("node:fs"), vm = require("node:vm"), path = require("node:path");
 const ui = path.join(__dirname, "..", "Partelier", "partelier", "ui"), html = fs.readFileSync(path.join(ui, "palette.html"), "utf8");
-const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 8, web_mm: 1.2, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "fit" };
+const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 14, web_mm: 1.5, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "balanced" };
 const idle = () => ({ sessionId: null, revision: 0, phase: "idle", editing: false, settings: null, selections: {}, message: "" });
 function fixture(options = {}) {
     const ids = new Map();
@@ -18,7 +18,7 @@ function fixture(options = {}) {
         querySelectorAll(selector) { const all=[]; const visit=element=>{for(const child of element.children) if(child instanceof Element) {if(selector==="[name]"?!!child.name:child.tagName==="input"&&child.type==="number"&&child.disabled) all.push(child);visit(child);}};visit(this);return all; }
         setCustomValidity(message) { this.custom=message; }
         checkValidity() { if(this.tagName==="form") return this.querySelectorAll("[name]").every(x=>x.checkValidity()); if(this.disabled) return true; if(this.custom) return false; if(this.tagName==="select"&&this.required) return this.children.some(x=>x.value===this.value); if(this.type!=="number") return true; const v=Number(this.value),s=Number(this.step),m=this.min===undefined?-Infinity:Number(this.min); return this.value!==""&&Number.isFinite(v)&&v>=m&&(this.max===undefined||v<=Number(this.max))&&(!Number.isFinite(s)||Math.abs((v-m)/s-Math.round((v-m)/s))<1e-8); }
-        reportValidity() { return this.checkValidity(); } focus() {} showModal() {} close() {}
+        reportValidity() { return this.checkValidity(); } focus() { this.focused=true; } showModal() { this.open=true; } close() { this.open=false; this.emit("close"); }
     }
     for(const match of html.matchAll(/<([a-z]+)[^>]*\bid="([^"]+)"/g)) { const e=new Element(match[1]);e.id=match[2]; }
     const $=id=>{assert(ids.has(id),`Missing ${id}`);return ids.get(id);};
@@ -63,7 +63,7 @@ function fixture(options = {}) {
         return Promise.resolve(result);
     }}};
     const context=vm.createContext({window,document,console,setTimeout,clearTimeout});
-    for(const file of ["catalog.js","illustrations.js","snap.js","patterns.js","palette.js"])vm.runInContext(fs.readFileSync(path.join(ui,file),"utf8"),context,{filename:file});
+    for(const file of ["catalog.js","illustrations.js","pattern-help.js","snap.js","patterns.js","palette.js"])vm.runInContext(fs.readFileSync(path.join(ui,file),"utf8"),context,{filename:file});
     const flush=async()=>{for(let i=0;i<8;i++)await new Promise(resolve=>setImmediate(resolve));};
     const advance=async ms=>{const pending=[...timers.entries()].filter(([,timer])=>timer.ms===ms);pending.forEach(([id])=>timers.delete(id));pending.forEach(([,timer])=>timer.fn());await flush();};
     const settle=()=>advance(160);
@@ -74,6 +74,38 @@ function fixture(options = {}) {
     };
 }
 (async()=>{
+    const guide=fixture();await guide.flush();await guide.select("honeycomb");
+    const beforeHelp=guide.requests.length;
+    for(const name of [...Object.keys(defaults),"cell_size_mm"]) {
+        await guide.click("pattern-help-"+name);
+        assert.equal(guide.$("pattern-parameter-help").open,true);
+        assert(guide.$("pattern-help-title").textContent.length>6);
+        assert(guide.$("pattern-help-description").textContent.length>40);
+        assert(guide.$("pattern-help-image").innerHTML.includes(`data-help-image="${name}"`));
+        assert.equal(guide.$("pattern-help-"+name).type,"button","help never submits the parameter form");
+        await guide.click("pattern-help-close");
+        assert.equal(guide.$("pattern-parameter-help").open,false);
+        assert.equal(guide.$("pattern-help-"+name).focused,true,"closing restores focus to the help trigger");
+    }
+    assert.equal(guide.requests.length,beforeHelp,"illustrated help never sends CAD or preview requests");
+    assert.equal(guide.$("pattern-cell_size_mm").value,"12.5");
+    assert.equal(guide.$("pattern-pitch_mm").parentElement.hidden,true);
+    guide.config.completePick=true;await guide.click("begin-pattern-button");
+    await guide.input("layout_mode","fill");await guide.input("cell_size_mm",10);
+    assert.equal(guide.snapshot().settings.pitch_mm,11.5);
+    await guide.input("web_mm",2);
+    assert.equal(guide.snapshot().settings.pitch_mm,12,"changing minimum gap preserves the explicit 10 mm cell size");
+    assert.equal(guide.$("pattern-cell_size_mm").value,"10");
+    assert.deepEqual(Object.keys(guide.snapshot().settings).sort(),Object.keys(defaults).sort(),"derived size does not change the host snapshot schema");
+    const beforeInvalidSize=guide.requests.length;await guide.input("cell_size_mm",0);
+    assert.equal(guide.requests.length,beforeInvalidSize);assert.equal(guide.$("create-pattern-button").disabled,true);
+    await guide.input("cell_size_mm",9);assert.equal(guide.snapshot().settings.pitch_mm,11);
+    await guide.input("web_mm","");assert.equal(guide.$("pattern-cell_size_mm").value,"9");
+    await guide.input("web_mm",1.5);assert.equal(guide.snapshot().settings.pitch_mm,10.5,"clearing and retyping gap must not resize the cell");
+    guide.config.holdPreview=true;guide.$("preview-pattern-button").emit("click");await guide.flush();
+    const duringPreview=guide.requests.length;await guide.click("pattern-help-border_mm");
+    assert.equal(guide.$("pattern-parameter-help").open,true);assert.equal(guide.requests.length,duringPreview,"help remains local during native computation");
+    await guide.click("pattern-help-close");guide.config.release();guide.config.holdPreview=false;await guide.flush();
     const firstPick=fixture();await firstPick.flush();await firstPick.select("honeycomb");firstPick.config.completePick=true;
     await firstPick.click("begin-pattern-button");
     assert.deepEqual(firstPick.requests.filter(([action])=>action.startsWith("pattern_")).map(([action])=>action),["pattern_begin","pattern_preview"],"the first face returned by Begin starts preview without another picking action");
@@ -81,9 +113,9 @@ function fixture(options = {}) {
     const f=fixture();await f.flush();await f.select("honeycomb");
     assert.equal(f.$("pattern-tool").hidden,false);assert.equal(f.$("planned-tool").hidden,true);assert.equal(f.$("hinge-action-dock").hidden,true);assert.equal(f.$("snap-action-dock").hidden,true);
     assert.equal(f.$("pattern-pattern").value,"hexagon");assert.equal(f.$("pattern-mode").value,"through");assert.equal(f.$("pattern-depth_mm").disabled,true);
-    assert.equal(f.$("pattern-layout_mode").value,"fit");assert.equal(f.$("pattern-layout_mode").parentElement.children[0].textContent,"Spacing");
-    assert.equal(f.$("pattern-pitch_mm").parentElement.children[0].textContent,"Target pitch");
-    assert.deepEqual(f.$("pattern-layout_mode").children.map(option=>[option.value,option.textContent]),[["fit","Automatic"],["fixed","Exact pitch"]]);
+    assert.equal(f.$("pattern-layout_mode").value,"balanced");assert.equal(f.$("pattern-layout_mode").parentElement.children[0].textContent,"Layout");
+    assert.equal(f.$("pattern-pitch_mm").parentElement.children[0].textContent,"Pitch");
+    assert.deepEqual(f.$("pattern-layout_mode").children.map(option=>[option.value,option.textContent]),[["balanced","Balanced · fewer cells"],["fill","Fill face · fixed size"],["fit","Automatic size"],["fixed","Exact pitch"]]);
     assert.equal(f.$("begin-pattern-button").disabled,false);assert.equal(f.$("create-pattern-button").disabled,true);
     assert(!f.$("pattern-selections").children.some(element=>element.id==="pattern-add-face"));
     assert.deepEqual(f.$("pattern-settings").querySelectorAll("[name]").map(x=>x.name).sort(),Object.keys(defaults).sort());
@@ -189,9 +221,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.10.5"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.10.6"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.10.5"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.10.6"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.click("begin-pattern-button");await logged.click("pattern-select-surface");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.click("begin-pattern-button");const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));
