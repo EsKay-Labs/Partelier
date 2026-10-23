@@ -5,7 +5,7 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current code:** experimental 0.9.1 provides surface patterns, an editable separate-pin hinge
+**Current code:** experimental 0.10.0 provides surface patterns, an editable separate-pin hinge
 and four snap-fit families: Hook latch, Ball detent, Torsion latch and Annular
 ring. Hook latch also offers straight, tapered or twin arms. Snap-fits include
 optional 45-degree root/receiver roofs and complete eligible outer-edge chamfers;
@@ -32,13 +32,13 @@ The final 0.5.0 native report passes 53 stated expectations: 40 generated
 geometry cases, six explicit larger-fillet refusals, six in-place/migration
 cases and one production-session workflow. Four attached fixture treatments each
 pass four Rebuilds without replacing the selected bodies or accumulating history.
-Local checks pass 760 Python tests, all three Node DOM suites and syntax/compilation
+Local checks pass 792 Python tests, all three Node DOM suites and syntax/compilation
 checks. The current hinge workflow has been user-confirmed
 in Fusion. Broader interaction coverage, save/reopen, Undo/Redo, motion and
 physical printing remain acceptance items. See
 [native evidence and limits](docs/fusion-validation.md). The snap-fit passes
 56 native geometry/persistence/refusal/session cases, including source rollback
-and stable body identities. Patterns pass 24 native geometry and workflow checks,
+and stable body identities. Patterns pass 30 native geometry and workflow checks,
 including full cylinder wraps, regular cone/sphere regions and cached preview
 creation after rollback. The original model, document and camera are restored.
 Other tools remain planned. The older honeycomb input checker remains a separate
@@ -48,17 +48,22 @@ diagnostic and creates no geometry.
 tool dropdown. Each opens the same workflow with a different preset. Choose
 hexagons, circles, diamonds, squares or slots and **Through holes**, **Engrave** or
 **Emboss**. Select faces on one solid, then press Esc when finished picking.
-Set pitch, web/gap, border and depth/height; review the live preview before Create.
+Keep **Spacing > Automatic** to center the layout and fit a uniform pitch near
+your target. The preview reports the actual fitted pitch. Choose **Exact pitch**
+to retain the original layout behavior. Set web/gap, border and depth/height;
+review the live preview before Create.
 Edit/Rebuild updates that same body. Plane and cylinder charts, multiple faceted
 sides and bounded regular regions of smooth surfaces are implemented. Distorted
 or singular regions can be refused or omitted conservatively. Dense curved
 patterns can take noticeably longer to preview. See the
 [surface contract, examples and limits](docs/surface-patterns.md).
-If a single face exceeds the cell budget, the message now explains that cells
-are repetitions and estimates a larger Pitch from the selected surface areas.
-The hint is approximate and never changes dimensions automatically.
+Automatic spacing enlarges overly dense layouts to respect the cell budget.
+Exact pitch retains explicit density refusals with an approximate larger-pitch
+hint. Short trim edges near hinges no longer exclude distant columns beneath
+them: real trim borders remain protected. Older saved patterns open in Exact
+pitch; switch to Automatic and Rebuild to apply the new layout deliberately.
 
-**Try the updated tools:** Stop then Run Partelier to load 0.9.1. The tool library opens
+**Try the updated tools:** Stop then Run Partelier to load 0.10.0. The tool library opens
 automatically; choose **Snap-fit**, then **Snap type**. For Hook latch, Ball detent
 or Torsion latch, pick the base exterior wall A, the coplanar lid wall B,
 then either facing straight rim. Matching rims may have a gap between them;

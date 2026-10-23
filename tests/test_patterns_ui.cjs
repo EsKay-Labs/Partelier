@@ -2,7 +2,7 @@
 // Exercise all three actual controllers through one native-message fixture.
 const assert = require("node:assert/strict"), fs = require("node:fs"), vm = require("node:vm"), path = require("node:path");
 const ui = path.join(__dirname, "..", "Partelier", "partelier", "ui"), html = fs.readFileSync(path.join(ui, "palette.html"), "utf8");
-const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 8, web_mm: 1.2, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces" };
+const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 8, web_mm: 1.2, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "fit" };
 const idle = () => ({ sessionId: null, revision: 0, phase: "idle", editing: false, settings: null, selections: {}, message: "" });
 function fixture(options = {}) {
     const ids = new Map();
@@ -73,6 +73,9 @@ function fixture(options = {}) {
     const f=fixture();await f.flush();await f.select("honeycomb");
     assert.equal(f.$("pattern-tool").hidden,false);assert.equal(f.$("planned-tool").hidden,true);assert.equal(f.$("hinge-action-dock").hidden,true);assert.equal(f.$("snap-action-dock").hidden,true);
     assert.equal(f.$("pattern-pattern").value,"hexagon");assert.equal(f.$("pattern-mode").value,"through");assert.equal(f.$("pattern-depth_mm").disabled,true);
+    assert.equal(f.$("pattern-layout_mode").value,"fit");assert.equal(f.$("pattern-layout_mode").parentElement.children[0].textContent,"Spacing");
+    assert.equal(f.$("pattern-pitch_mm").parentElement.children[0].textContent,"Target pitch");
+    assert.deepEqual(f.$("pattern-layout_mode").children.map(option=>[option.value,option.textContent]),[["fit","Automatic"],["fixed","Exact pitch"]]);
     assert.equal(f.$("begin-pattern-button").disabled,false);assert.equal(f.$("create-pattern-button").disabled,true);
     assert.deepEqual(f.$("pattern-settings").querySelectorAll("[name]").map(x=>x.name).sort(),Object.keys(defaults).sort());
     assert(f.$("pattern-illustration").innerHTML.includes('data-pattern-surface="cylinder"'));assert(f.$("pattern-illustration").innerHTML.includes('data-pattern-cell="hexagon"'));
@@ -91,6 +94,16 @@ function fixture(options = {}) {
     const previews=()=>f.requests.filter(([a])=>a==="pattern_preview").length,before=previews();
     await f.input("pitch_mm",10,false);await f.input("pitch_mm",11,false);assert.equal(previews(),before);assert.equal(f.$("create-pattern-button").disabled,true);await f.settle();assert.equal(previews(),before+1);
     assert.deepEqual(Object.keys(f.snapshot().settings).sort(),Object.keys(defaults).sort());assert.equal(f.snapshot().settings.offset_u_mm,-1.5);assert.equal(typeof f.snapshot().settings.pattern,"string");
+    const beforeSpacing=previews();await f.input("layout_mode","fixed");assert.equal(previews(),beforeSpacing+1);assert.equal(f.snapshot().settings.layout_mode,"fixed");assert.equal(f.$("pattern-pitch_mm").parentElement.children[0].textContent,"Pitch");
+    assert.equal(f.snapshot().selections.surface.selected,true,"spacing changes keep the selected faces");assert.equal(f.$("create-pattern-button").disabled,false);
+    await f.input("layout_mode","fit");assert.equal(f.snapshot().settings.layout_mode,"fit");assert.equal(f.$("pattern-pitch_mm").parentElement.children[0].textContent,"Target pitch");
+    const fitted=f.snapshot(),status=f.$("pattern-operation-status"),fittedMessage="42 cells · fitted pitch 7.4–7.8 mm";
+    f.push({...fitted,message:fittedMessage});assert.equal(status.hidden,false);assert.equal(status.textContent,fittedMessage);assert.equal(f.$("pattern-live-preview-status").textContent,"Live preview · up to date");
+    f.push({...fitted,revision:fitted.revision-1,message:"12 cells · fitted pitch 99 mm"});assert.equal(status.textContent,fittedMessage,"stale preview metadata cannot replace the current fitted pitch");
+    const previousHtml=status.innerHTML,plainMessage="42 cells · fitted pitch <b>7.4 mm</b>";
+    f.push({...fitted,message:plainMessage});assert.equal(status.textContent,plainMessage);assert.equal(status.innerHTML,previousHtml,"preview metadata is written as text, never HTML");
+    f.push({...fitted,message:"Surfaces selected."});assert.equal(status.hidden,true,"ordinary informative messages stay collapsed");
+    f.push({...fitted,message:fittedMessage});assert.equal(status.hidden,false);
     await f.input("mode","engrave");assert.equal(f.$("pattern-depth_mm").parentElement.children[0].textContent,"Engraving depth");
     const invalidBefore=f.requests.length;await f.input("depth_mm",0);assert.equal(f.$("pattern-settings").checkValidity(),false);assert.equal(f.requests.length,invalidBefore);
     await f.input("mode","through");assert.equal(f.snapshot().settings.depth_mm,1);assert.equal(f.$("pattern-depth_mm").disabled,true);assert.equal(f.$("pattern-settings").checkValidity(),true);
@@ -101,8 +114,9 @@ function fixture(options = {}) {
     await f.click("pattern-select-surface");assert.equal(f.requests.filter(([a])=>a==="pattern_focus").at(-1)[1].target,"body");assert.equal(f.$("create-pattern-button").disabled,false);
     f.config.holdCommit=true;f.$("create-pattern-button").emit("click");await f.flush();const committing=f.snapshot();f.push(committing);assert.equal(f.$("pattern-pattern").disabled,true);f.push({...committing,sessionId:null,phase:"created",message:"Pattern created."});f.config.release();f.config.holdCommit=false;await f.flush();assert.equal(f.$("tool-select").disabled,false);assert.equal(f.$("cancel-pattern-button").disabled,true);
     f.config.completePick=true;await f.click("begin-pattern-button");const retiring=f.snapshot();await f.click("cancel-pattern-button");f.push({...retiring,phase:"preview"});assert.equal(f.$("tool-select").disabled,false);f.config.delayedPush={...retiring,phase:"preview"};await f.click("begin-pattern-button");assert.notEqual(f.snapshot().sessionId,retiring.sessionId);await f.click("cancel-pattern-button");
-    f.config.saved={...defaults,pattern:"square",mode:"engrave",pitch_mm:12,depth_mm:.7,selection_scope:"body"};await f.click("edit-pattern-button");assert.equal(f.$("pattern-pattern").value,"square");assert.equal(f.$("pattern-depth_mm").value,"0.7");assert.equal(f.$("pattern-selection_scope").disabled,true);
-    const beforeScope=f.requests.length;await f.input("selection_scope","faces");assert.equal(f.requests.length,beforeScope);assert.equal(f.$("pattern-selection_scope").value,"body");await f.input("depth_mm",.8);await f.click("create-pattern-button");assert.equal(f.snapshot().settings.depth_mm,.8);assert.equal(f.$("pattern-selection_scope").disabled,false);
+    f.config.saved={...defaults,pattern:"square",mode:"engrave",pitch_mm:12,depth_mm:.7,selection_scope:"body",layout_mode:"fixed"};await f.click("edit-pattern-button");assert.equal(f.$("pattern-pattern").value,"square");assert.equal(f.$("pattern-depth_mm").value,"0.7");assert.equal(f.$("pattern-selection_scope").disabled,true);
+    assert.equal(f.$("pattern-layout_mode").value,"fixed","migrated recipes retain exact spacing when Edit opens");assert.equal(f.$("pattern-pitch_mm").parentElement.children[0].textContent,"Pitch");
+    const beforeScope=f.requests.length;await f.input("selection_scope","faces");assert.equal(f.requests.length,beforeScope);assert.equal(f.$("pattern-selection_scope").value,"body");await f.input("depth_mm",.8);await f.click("create-pattern-button");assert.equal(f.snapshot().settings.depth_mm,.8);assert.equal(f.snapshot().settings.layout_mode,"fixed");assert.equal(f.$("pattern-selection_scope").disabled,false);
     await f.select("snap");await f.click("begin-snap-button");assert.equal(f.$("tool-select").disabled,true);await f.select("honeycomb");assert.equal(f.$("begin-pattern-button").disabled,true,"Snap and Pattern cannot claim geometry together");await f.select("snap");await f.click("cancel-snap-button");assert.equal(f.$("tool-select").disabled,false);
     await f.select("hinge");await f.click("begin-hinge-button");assert.equal(f.$("tool-select").disabled,true);await f.click("cancel-hinge-button");assert.equal(f.$("tool-select").disabled,false);
     const recovered=fixture({pattern:{...retiring,sessionId:"d28c515a-66dc-4c66-a57b-999999999999",phase:"preview",settings:{...defaults,pattern:"circle",mode:"engrave",depth_mm:.6}}});await recovered.flush();assert.equal(recovered.$("tool-select").value,"perforation");assert.equal(recovered.$("pattern-mode").value,"engrave");assert.equal(recovered.$("create-pattern-button").disabled,false);

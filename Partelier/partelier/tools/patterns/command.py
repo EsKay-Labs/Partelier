@@ -255,6 +255,12 @@ class _Session:
                     raise
                 self.preview=candidate;self.prepared=prepared;self.preview_revision=revision
                 self.phase='preview';self.message=str(prepared.cell_count)+' cells. Review the pattern before Create.'
+                if self.settings.layout_mode=='fit':
+                    pitches=[layout.effective_pitch_mm for layout in getattr(prepared,'layouts',()) if layout.cell_count]
+                    if pitches:
+                        low,high=min(pitches),max(pitches)
+                        caption=f'{low:.2f}' if abs(high-low)<.005 else f'{low:.2f}–{high:.2f}'
+                        self.message=f'{prepared.cell_count} cells · fitted pitch {caption} mm'
                 self.owner.publish(self)
             except Exception as error:failed(error)
         def failed(error):

@@ -13,7 +13,7 @@ import time
 
 from ..hinge import fusion as hinge
 from ..hinge.support import _prism
-from .planner import MAX_CELLS, MAX_FACE_CELLS, build_cells, density_error
+from .planner import MAX_CELLS, MAX_FACE_CELLS, build_cells, build_layout, density_error
 from .surfaces import SurfaceMap
 
 
@@ -37,6 +37,7 @@ class PreparedPattern:
     record: object = None
     saved_recipe: object = None
     accepted_samples: tuple = ()
+    layouts: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -147,20 +148,51 @@ def validate_sources(prepared, *, _historical=False):
         raise ValueError("The pattern source geometry changed. Refresh or reselect its faces.")
 
 
-def _mapped_cells(faces, settings):
+def _face_budgets(areas):
+    """Share the bounded automatic work budget; keep small faces selectable."""
+    count=len(areas)
+    if count<=2:return (MAX_FACE_CELLS,)*count
+    if count>MAX_TOTAL_CELLS:raise ValueError("Select fewer faces for automatic spacing.")
+    result=[1]*count
+    remaining=MAX_TOTAL_CELLS-count
+    active=set(range(count))
+    weights=[max(float(area),1e-9) for area in areas]
+    while remaining and active:
+        total=sum(weights[index] for index in active)
+        quotas={index:remaining*weights[index]/total for index in active}
+        saturated=[index for index in active if quotas[index]>=MAX_FACE_CELLS-result[index]]
+        if saturated:
+            for index in saturated:
+                amount=MAX_FACE_CELLS-result[index]
+                result[index]+=amount;remaining-=amount;active.remove(index)
+            continue
+        for index in sorted(active):
+            amount=min(remaining,int(quotas[index]))
+            result[index]+=amount;remaining-=amount
+        for index in sorted(active,key=lambda i:(-(quotas[i]-int(quotas[i])),i)):
+            if not remaining:break
+            if result[index]<MAX_FACE_CELLS:result[index]+=1;remaining-=1
+        break
+    return tuple(result)
+
+
+def _mapped_cells(faces, settings, *, _return_layouts=False):
     """Skip charts with no complete cells; refuse an empty overall result.
 
     This lets whole-body selection retain small rim faces unchanged. An invalid
     chart, excessive curvature or reduced web still refuses the whole request.
     """
     mapped = []
+    layouts=[]
+    budgets=_face_budgets([face.area for face in faces]) if settings.layout_mode=='fit' else (MAX_FACE_CELLS,)*len(faces)
     for index, face in enumerate(faces):
         chart = SurfaceMap(face)
         accepted = 0
-        for cell in build_cells(settings, chart.bounds, period_u_mm=chart.period_u_mm):
+        layout=build_layout(settings,chart.bounds,period_u_mm=chart.period_u_mm,max_cells=budgets[index],
+            accept=lambda cell:chart.accepts(*cell.center_mm,cell.radius_mm,settings.border_mm))
+        layouts.append(layout)
+        for cell in layout.cells:
             u, v = cell.center_mm
-            if not chart.accepts(u, v, cell.radius_mm, settings.border_mm):
-                continue
             center = chart.sample(u, v)
             boundary = tuple(chart.sample(u + du, v + dv) for du, dv in cell.polygon_mm)
             midpoints = tuple(chart.sample(u + (a[0] + b[0]) / 2, v + (a[1] + b[1]) / 2)
@@ -186,7 +218,7 @@ def _mapped_cells(faces, settings):
     if not mapped:
         raise ValueError("No complete pattern cells fit inside the selected faces and border. Reduce pitch or border.")
     _check_webs(mapped, settings.web_mm)
-    return tuple(mapped)
+    return (tuple(mapped),tuple(layouts)) if _return_layouts else tuple(mapped)
 
 
 def _segment_distance(a, b, c, d):
@@ -400,7 +432,7 @@ def prepare_pattern(design, faces, settings, *, _historical=False):
     started = time.perf_counter()
     faces, body = _selection(design, faces, _historical)
     signature, tokens = _signature(body, faces), _tokens(body, faces)
-    mapped = _mapped_cells(faces, settings)
+    mapped, layouts = _mapped_cells(faces, settings, _return_layouts=True)
     planned = time.perf_counter()
     _, native = _api()
     manager = native.TemporaryBRepManager.get()
@@ -451,7 +483,7 @@ def prepare_pattern(design, faces, settings, *, _historical=False):
         {"source_and_plan_ms": (planned - started) * 1000,
          "temporary_geometry_ms": (time.perf_counter() - planned) * 1000,
          "total_ms": (time.perf_counter() - started) * 1000}, len(mapped), tokens,
-         accepted_samples=tuple(diagnostics))
+         accepted_samples=tuple(diagnostics), layouts=layouts)
     validate_sources(prepared, _historical=_historical)
     return prepared
 

@@ -333,6 +333,35 @@ class PatternCommandTests(unittest.TestCase):
         self.assertEqual(session.phase, "selecting")
         self.assertFalse(session.snapshot()["selections"]["surface"]["selected"])
 
+    def test_spacing_change_retains_faces_but_requires_review_of_replacement_preview(self):
+        session = self.begin(PatternSettings(layout_mode="fixed"))
+        self.preview(session)
+        previous, reviewed = session.preview, session.prepared
+        automatic = replace(session.settings, layout_mode="fit")
+        state = self.action(session, "pattern_update", settings=automatic, revision=1)
+        self.assertEqual(session.faces, self.faces)
+        self.assertTrue(state["selections"]["surface"]["selected"])
+        self.assertFalse(state["previewCurrent"])
+        self.assertIs(session.preview, previous, "keep the last valid view while spacing is recalculated")
+        self.assertIs(session.prepared, reviewed)
+        self.assertTrue(previous.isValid)
+        self.ui.selectEntity.assert_not_called()
+        with self.assertRaisesRegex(ValueError, "current pattern preview"):
+            self.action(session, "pattern_commit")
+        self.manager._registration[0].execute.assert_not_called()
+        self.recipe.create_pattern.assert_not_called()
+        self.action(session, "pattern_preview")
+        self.manager.runner.compute()
+        self.assertTrue(previous.isValid, "replacement waits for the computation rollback boundary")
+        self.assertFalse(session.preview_current)
+        self.manager.runner.rollback()
+        self.assertFalse(previous.isValid)
+        self.assertIsNot(session.preview, previous)
+        self.assertEqual(session.prepared.settings.layout_mode, "fit")
+        self.assertEqual(session.preview_revision, 1)
+        self.assertTrue(session.preview_current)
+        self.assertEqual(session.faces, self.faces)
+
     def test_create_reuses_exact_reviewed_detached_result_without_recomputing(self):
         session = self.begin()
         self.preview(session)

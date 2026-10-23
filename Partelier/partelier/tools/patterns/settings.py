@@ -16,6 +16,7 @@ class PatternSettings:
     offset_u_mm: float = 0.0
     offset_v_mm: float = 0.0
     selection_scope: str = "faces"
+    layout_mode: str = "fit"
 
     def __post_init__(self):
         for key in ("pitch_mm", "web_mm", "depth_mm", "border_mm", "rotation_deg", "offset_u_mm", "offset_v_mm"):
@@ -36,6 +37,8 @@ class PatternSettings:
             raise ValueError("Choose through, engrave or emboss.")
         if self.selection_scope not in ("faces", "body"):
             raise ValueError("Choose selected faces or the whole body.")
+        if self.layout_mode not in ("fit", "fixed"):
+            raise ValueError("Choose Automatic spacing or Exact pitch.")
         if min(self.pitch_mm, self.web_mm, self.depth_mm) <= 0 or self.border_mm < 0:
             raise ValueError("Pitch, web and depth must be positive; border may be zero.")
         if self.web_mm >= self.pitch_mm:

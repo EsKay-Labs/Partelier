@@ -17,7 +17,7 @@ class PatternSettingsTests(unittest.TestCase):
             for mode in ('through','engrave','emboss'):
                 value=PatternSettings(pattern=pattern,mode=mode,rotation_deg=-30,offset_u_mm=-2)
                 self.assertEqual(PatternSettings.from_dict(value.to_dict()),value)
-        self.assertEqual(len(PatternSettings().to_dict()),10)
+        self.assertEqual(len(PatternSettings().to_dict()),11)
 
     def test_invalid_dimensions_modes_and_partial_snapshots_are_refused(self):
         for values in ({'pitch_mm':0},{'web_mm':8},{'depth_mm':-1},{'border_mm':-1},
@@ -28,9 +28,13 @@ class PatternSettingsTests(unittest.TestCase):
         with self.assertRaises(ValueError):PatternSettings.from_dict({'pitch_mm':8})
 
 
+def _fixed(**values):
+    return PatternSettings(**{'layout_mode':'fixed',**values})
+
+
 class PatternLayoutTests(unittest.TestCase):
     def test_one_face_density_refusal_explains_cells_and_estimates_a_recoverable_pitch(self):
-        settings=PatternSettings()
+        settings=_fixed()
         error=density_error(settings,[40000],face_cells=201,total_cells=201)
         self.assertIn('1 face selected',str(error))
         self.assertIn('one pattern repetition',str(error))
@@ -47,14 +51,14 @@ class PatternLayoutTests(unittest.TestCase):
         self.assertEqual(settings.pitch_mm,8, 'guidance must never silently resize settings')
 
     def test_total_density_hint_accounts_for_every_selected_face(self):
-        settings=PatternSettings(pattern='square')
+        settings=_fixed(pattern='square')
         error=density_error(settings,[12000]*3,face_index=2,face_cells=100,total_cells=401)
         self.assertIn('in total (3 faces selected)',str(error))
         self.assertGreater(error.suggested_pitch_mm,settings.pitch_mm)
         self.assertIn('400 total',str(error))
 
     def test_candidate_budget_also_explains_pitch_and_refuses_without_silent_clipping(self):
-        settings=PatternSettings(pitch_mm=1,web_mm=.2)
+        settings=_fixed(pitch_mm=1,web_mm=.2)
         with self.assertRaises(PatternDensityError) as caught:
             build_cells(settings,(0,100,0,100))
         self.assertIn('candidate positions',str(caught.exception))
@@ -63,14 +67,14 @@ class PatternLayoutTests(unittest.TestCase):
         self.assertLess(len(build_cells(recovered,(0,100,0,100))),400)
 
     def test_hexagon_web_is_the_distance_between_adjacent_opening_flats(self):
-        values=PatternSettings()
+        values=_fixed()
         cells=build_cells(values,(-24,24,-24,24))
         apothem=max(x for x,y in cells[0].polygon_mm)
         self.assertAlmostEqual(values.pitch_mm-2*apothem,values.web_mm)
         self.assertAlmostEqual(cells[0].radius_mm,(values.pitch_mm-values.web_mm)/math.sqrt(3))
 
     def test_cylinder_rows_close_without_duplicate_or_narrower_seam_spacing(self):
-        values=PatternSettings(pitch_mm=8)
+        values=_fixed(pitch_mm=8)
         cells=build_cells(values,(0,100,-20,20),100)
         rows={}
         for cell in cells:rows.setdefault(round(cell.center_mm[1],8),[]).append(cell.center_mm[0])
@@ -81,7 +85,7 @@ class PatternLayoutTests(unittest.TestCase):
             self.assertAlmostEqual(min(steps),max(steps))
 
     def test_rotation_applies_to_centres_as_well_as_openings(self):
-        values=PatternSettings(pattern='square',rotation_deg=30)
+        values=_fixed(pattern='square',rotation_deg=30)
         cells=build_cells(values,(-25,25,-25,25))
         distances=[math.dist(cells[10].center_mm,other.center_mm) for other in cells if other!=cells[10]]
         self.assertAlmostEqual(min(distances),values.pitch_mm)
@@ -89,14 +93,14 @@ class PatternLayoutTests(unittest.TestCase):
 
     def test_unsafe_wrap_rotation_and_unbounded_density_are_refused(self):
         with self.assertRaisesRegex(ValueError,'multiples'):
-            build_cells(PatternSettings(rotation_deg=15),(0,100,0,40),100)
+            build_cells(_fixed(rotation_deg=15),(0,100,0,40),100)
         with self.assertRaisesRegex(ValueError,'dense'):
-            build_cells(PatternSettings(pitch_mm=.1,web_mm=.01),(0,100,0,100))
-        with self.assertRaises(ValueError):build_cells(PatternSettings(),(0,float('inf'),0,10))
+            build_cells(_fixed(pitch_mm=.1,web_mm=.01),(0,100,0,100))
+        with self.assertRaises(ValueError):build_cells(_fixed(),(0,float('inf'),0,10))
 
     def test_offsets_are_signed_and_periodic_not_empty_shifts(self):
-        a=build_cells(PatternSettings(offset_u_mm=-2),(0,40,0,40))
-        b=build_cells(PatternSettings(offset_u_mm=6),(0,40,0,40))
+        a=build_cells(_fixed(offset_u_mm=-2),(0,40,0,40))
+        b=build_cells(_fixed(offset_u_mm=6),(0,40,0,40))
         self.assertEqual(a,b)
 
 
@@ -129,6 +133,7 @@ class SurfaceChartTests(unittest.TestCase):
         core.Point3D=NS(create=point)
         core.Plane=NS(cast=lambda value:value if kind=='plane' else None)
         core.Cylinder=NS(cast=lambda value:value if kind.startswith('cylinder') else None)
+        core.Line3D=NS(cast=lambda value:None)
         core.Application=NS(get=lambda:NS(measureManager=NS(measureMinimumDistance=lambda p,e:NS(value=abs(p.z-e.z)))))
         evaluator=Evaluator(kind)
         if kind=='cylinder_v':
@@ -146,7 +151,15 @@ class SurfaceChartTests(unittest.TestCase):
         face=NS(evaluator=evaluator,pointOnFace=point(0,0),geometry=object(),edges=Collection([]))
         seam=NS(isDegenerate=False,coEdges=Collection([NS(loop=NS(face=face)),NS(loop=NS(face=face))]))
         if kind.startswith('cylinder'):
-            rims=[NS(z=z,isDegenerate=False,coEdges=Collection([])) for z in (-2,2)]
+            class RimEvaluator:
+                def __init__(self,z):self.z=z
+                def getParameterExtents(self):return True,0,2*math.pi
+                def getStrokes(self,start,end,tolerance):
+                    count=math.ceil((end-start)/(2*math.acos(1-tolerance/2)))
+                    return True,[point(2*math.cos(start+(end-start)*i/count),
+                                       2*math.sin(start+(end-start)*i/count),self.z)
+                                 for i in range(count+1)]
+            rims=[NS(z=z,isDegenerate=False,geometry=object(),evaluator=RimEvaluator(z),coEdges=Collection([])) for z in (-2,2)]
             face.edges=Collection(rims+[seam])
         modules=patch.dict('sys.modules',{'adsk':adsk,'adsk.core':core});modules.start();self.addCleanup(modules.stop)
         return SurfaceMap(face)

@@ -1,6 +1,6 @@
 """Deterministic chart-space layouts. Surface acceptance happens separately."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import math
 
 
@@ -78,7 +78,7 @@ def _polygon(settings):
     return tuple((x*math.cos(angle)-y*math.sin(angle),x*math.sin(angle)+y*math.cos(angle)) for x,y in points)
 
 
-def build_cells(settings, bounds, period_u_mm=None):
+def _build_legacy(settings, bounds, period_u_mm=None):
     settings.validate()
     if len(bounds)!=4 or not all(math.isfinite(v) for v in bounds):
         raise ValueError("The selected face has no finite pattern region.")
@@ -137,3 +137,300 @@ def build_cells(settings, bounds, period_u_mm=None):
             if original[0]-1e-8<=u<original[1]-1e-8 and original[2]-1e-8<=v<=original[3]+1e-8:
                 result.append(Cell((u,v),polygon))
     return tuple(result)
+
+@dataclass(frozen=True)
+class Layout:
+    """Complete cells with one resolved, isotropic pitch for this face."""
+    cells: tuple
+    effective_pitch_mm: float
+    requested_pitch_mm: float
+    layout_mode: str
+
+    @property
+    def cell_count(self):
+        return len(self.cells)
+
+    @property
+    def pitch_mm(self):
+        return self.effective_pitch_mm
+
+
+FIT_SHORTLIST = 3
+FIT_ACCEPT_LIMIT = MAX_FACE_CELLS * FIT_SHORTLIST
+_FIT_EPSILON = 1e-8
+
+
+def _fit_bounds(bounds, border, periodic):
+    if (not isinstance(bounds, (tuple, list)) or len(bounds) != 4
+            or not all(isinstance(value, (int, float)) and not isinstance(value, bool)
+                       and math.isfinite(value) for value in bounds)):
+        raise ValueError("The selected face has no finite pattern region.")
+    low_u, high_u, low_v, high_v = map(float, bounds)
+    if low_u >= high_u or low_v >= high_v:
+        raise ValueError("The selected face has no usable pattern region.")
+    if not periodic:
+        low_u, high_u = low_u + border, high_u - border
+    low_v, high_v = low_v + border, high_v - border
+    if low_u >= high_u or low_v >= high_v:
+        return None
+    return low_u, high_u, low_v, high_v
+
+
+def _extents(polygon):
+    return (max(point[0] for point in polygon)-min(point[0] for point in polygon),
+            max(point[1] for point in polygon)-min(point[1] for point in polygon))
+
+
+def _center_envelope(cells):
+    polygon = cells[0].polygon_mm
+    return (min(cell.center_mm[0] for cell in cells)+min(point[0] for point in polygon),
+            max(cell.center_mm[0] for cell in cells)+max(point[0] for point in polygon),
+            min(cell.center_mm[1] for cell in cells)+min(point[1] for point in polygon),
+            max(cell.center_mm[1] for cell in cells)+max(point[1] for point in polygon))
+
+
+def _projected_size(bounds, angle):
+    width, height = bounds[1]-bounds[0], bounds[3]-bounds[2]
+    return (abs(math.cos(angle))*width+abs(math.sin(angle))*height,
+            abs(math.sin(angle))*width+abs(math.cos(angle))*height)
+
+
+def _complete(center, polygon, bounds, periodic):
+    low_u, high_u, low_v, high_v = bounds
+    reserve = max(math.hypot(u,v) for u,v in polygon)*1.05
+    if (center[1]-reserve < low_v-_FIT_EPSILON or center[1]+reserve > high_v+_FIT_EPSILON
+            or (not periodic and (center[0]-reserve < low_u-_FIT_EPSILON
+                                  or center[0]+reserve > high_u+_FIT_EPSILON))):
+        return False
+    for du, dv in polygon:
+        if not low_v-_FIT_EPSILON <= center[1]+dv <= high_v+_FIT_EPSILON:
+            return False
+        if not periodic and not low_u-_FIT_EPSILON <= center[0]+du <= high_u+_FIT_EPSILON:
+            return False
+    return True
+
+
+def _fit_grid(settings, bounds, pitch, period, phase):
+    periodic = period is not None
+    if periodic:
+        columns = max(3, int(round(period/pitch)))
+        pitch = period/columns
+    effective = replace(settings, pitch_mm=pitch)
+    polygon = _polygon(effective)
+    unrotated = _polygon(replace(effective, rotation_deg=0.0))
+    # Match SurfaceMap's existing conservative 1.05 circumradius margin.
+    # Count proposals by eligible CENTER space, so native acceptance cannot
+    # remove an entire outer row/column solely because of this same guard.
+    reserve = max(math.hypot(u,v) for u,v in unrotated)*1.05
+    opening_u = opening_v = 2*reserve
+    triangular = settings.pattern in ("hexagon", "circle")
+    factor = math.sqrt(3)/2 if triangular else 1.0
+    step_v = factor*pitch
+    angle = math.radians(settings.rotation_deg)
+    width, height = _projected_size(bounds, angle) if not periodic else (period, bounds[3]-bounds[2])
+    if not periodic:
+        columns = math.floor((width-opening_u+_FIT_EPSILON)/pitch)+1
+    rows = math.floor((height-opening_v+_FIT_EPSILON)/step_v)+1
+    if min(columns, rows) < 1:
+        return (), pitch
+    if rows*columns > MAX_CANDIDATES:
+        return None, pitch
+    center = ((bounds[0]+bounds[1])/2, (bounds[2]+bounds[3])/2)
+    offset_u = math.remainder(settings.offset_u_mm, pitch)
+    offset_v = math.remainder(settings.offset_v_mm, step_v)
+    result = []
+    for row in range(rows):
+        short = triangular and (row+phase)%2
+        count = columns if periodic or not short else columns-1
+        for column in range(count):
+            local_v = (row-(rows-1)/2)*step_v+offset_v
+            if periodic:
+                local_u = column*pitch+(pitch/2 if short else 0)+offset_u
+                position = (bounds[0]+local_u%period, center[1]+local_v)
+            else:
+                local_u = (column-(count-1)/2)*pitch+offset_u
+                position = (center[0]+local_u*math.cos(angle)-local_v*math.sin(angle),
+                            center[1]+local_u*math.sin(angle)+local_v*math.cos(angle))
+            if _complete(position, polygon, bounds, periodic):
+                result.append(Cell(position, polygon))
+    if (result and not periodic and offset_u == 0 and offset_v == 0):
+        # Rotation/whole-cell pruning can leave a noncentral finite envelope.
+        # A common translation preserves every lattice spacing and is safe:
+        # the complete envelope is no larger than the available rectangle.
+        envelope = _center_envelope(result)
+        shift = (center[0]-(envelope[0]+envelope[1])/2,
+                 center[1]-(envelope[2]+envelope[3])/2)
+        result = [Cell((cell.center_mm[0]+shift[0], cell.center_mm[1]+shift[1]), polygon)
+                  for cell in result]
+    return tuple(result), pitch
+
+
+def _pitch_candidates(settings, bounds, period, max_cells):
+    triangular = settings.pattern in ("hexagon", "circle")
+    factor = math.sqrt(3)/2 if triangular else 1.0
+    width, height = bounds[1]-bounds[0], bounds[3]-bounds[2]
+    area = width*height
+    # Start near the requested size; a dense selection raises this baseline
+    # before constructing any cells, so auto-fit cannot allocate huge grids.
+    base = max(settings.pitch_mm, math.sqrt(area/(factor*max_cells))*.85)
+    unit = _polygon(replace(settings, pitch_mm=settings.web_mm+1, rotation_deg=0.0))
+    unit_u = unit_v = 2*max(math.hypot(u,v) for u,v in unit)*1.05
+    projected_u, projected_v = _projected_size(bounds, math.radians(settings.rotation_deg))
+    if period is not None:
+        projected_u, projected_v = period, height
+    values = {settings.pitch_mm, base}
+    for ratio in (.85, .9, .95, 1.05, 1.1, 1.15, 1.25, 1.4, 1.6, 2, 4, 8):
+        values.add(base*ratio)
+    for target in (settings.pitch_mm, base):
+        if period is not None:
+            approximate = max(3, round(period/target))
+            for columns in range(max(3, approximate-3), approximate+4):
+                values.add(period/columns)
+            values.add(period/3)
+        else:
+            approximate = max(1, round(projected_u/target))
+            for columns in range(max(1, approximate-3), approximate+4):
+                values.add((projected_u+settings.web_mm*unit_u)/(columns-1+unit_u))
+        approximate = max(1, round(projected_v/(factor*target)))
+        for rows in range(max(1, approximate-3), approximate+4):
+            values.add((projected_v+settings.web_mm*unit_v)/((rows-1)*factor+unit_v))
+    # A narrow but otherwise usable face can require a smaller cell than the
+    # normal +/-15% neighborhood. This is still one uniform reported pitch.
+    values.add(min((projected_u+settings.web_mm*unit_u)/unit_u,
+                   (projected_v+settings.web_mm*unit_v)/unit_v))
+    minimum = settings.web_mm+max(1e-6, settings.web_mm*1e-6)
+    values = {value for value in values if minimum < value <= 10000 and math.isfinite(value)}
+    if period is not None:
+        values = {period/max(3, round(period/value)) for value in values}
+        values = {value for value in values if minimum < value <= 10000}
+    return tuple(sorted(values))
+
+
+def _layout_score(cells, pitch, requested, bounds, periodic):
+    envelope = _center_envelope(cells)
+    width, height = bounds[1]-bounds[0], bounds[3]-bounds[2]
+    fill_u = 1.0 if periodic else min(1.0, (envelope[1]-envelope[0])/width)
+    fill_v = min(1.0, (envelope[3]-envelope[2])/height)
+    envelope_fill = fill_u*fill_v
+    polygon = cells[0].polygon_mm
+    area = abs(sum(a[0]*b[1]-b[0]*a[1]
+                   for a,b in zip(polygon, polygon[1:]+polygon[:1])))/2
+    opening_fill = min(1.0, len(cells)*area/(width*height))
+    # Coverage and a close requested size both matter; a single huge opening
+    # cannot win just because it happens to touch the rectangle's four sides.
+    return .8*envelope_fill+.2*opening_fill-.35*abs(math.log(pitch/requested))
+
+
+def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS, accept=None):
+    """Resolve a centered bounded lattice without any CAD/host dependency.
+
+    ``accept(cell)`` is optional final trim/curvature acceptance. Pure envelope
+    scoring selects at most three proposals BEFORE invoking it; callbacks are
+    capped at 3*max_cells, independent of the number of pure pitch candidates.
+    The caller still verifies physical web thickness after surface mapping.
+    """
+    settings.validate()
+    mode = getattr(settings, "layout_mode", "fixed")
+    if mode == "fixed":
+        cells = _build_legacy(settings, bounds, period_u_mm)
+        if accept is not None:
+            if not callable(accept):
+                raise ValueError("Pattern trim acceptance must be callable.")
+            cells = tuple(cell for cell in cells if accept(cell))
+        return Layout(cells, settings.pitch_mm, settings.pitch_mm, "fixed")
+    if mode != "fit":
+        raise ValueError("Choose fit or fixed pattern layout.")
+    if type(max_cells) is not int or not 1 <= max_cells <= MAX_FACE_CELLS:
+        raise ValueError("The face budget must be between 1 and 200 cells.")
+    if accept is not None and not callable(accept):
+        raise ValueError("Pattern trim acceptance must be callable.")
+    periodic = period_u_mm is not None
+    if periodic:
+        if (not isinstance(period_u_mm, (int,float)) or isinstance(period_u_mm, bool)
+                or not math.isfinite(period_u_mm) or period_u_mm <= 0):
+            raise ValueError("The wrap period must be finite and positive.")
+        symmetry = {"hexagon":60, "square":90, "diamond":90, "slot":180}.get(settings.pattern)
+        if symmetry and abs(settings.rotation_deg/symmetry-round(settings.rotation_deg/symmetry)) > 1e-8:
+            raise ValueError("A full wrap currently needs rotation in multiples of "+str(symmetry)+" degrees for this shape.")
+    available = _fit_bounds(bounds, settings.border_mm, periodic)
+    if available is None:
+        return Layout((), settings.pitch_mm, settings.pitch_mm, "fit")
+    if periodic and abs(available[1]-available[0]-period_u_mm) > max(1e-7, period_u_mm*1e-7):
+        raise ValueError("The full-wrap chart width must match its period.")
+    proposals = []
+    triangular = settings.pattern in ("hexagon", "circle")
+    for pitch in _pitch_candidates(settings, available, period_u_mm, max_cells):
+        for phase in ((0,1) if triangular else (0,)):
+            cells, actual = _fit_grid(settings, available, pitch, period_u_mm, phase)
+            if not cells or len(cells) > max_cells:
+                continue
+            score = _layout_score(cells, actual, settings.pitch_mm, available, periodic)
+            proposals.append((score, -abs(math.log(actual/settings.pitch_mm)), len(cells), -phase, actual, cells))
+    if not proposals:
+        return Layout((), settings.pitch_mm, settings.pitch_mm, "fit")
+    proposals.sort(key=lambda proposal: proposal[:4], reverse=True)
+    if accept is None:
+        best = proposals[0]
+        return Layout(best[5], best[4], settings.pitch_mm, "fit")
+    accepted = []
+    cache = {}
+    checks = 0
+    for proposal in proposals[:FIT_SHORTLIST]:
+        cells = []
+        for cell in proposal[5]:
+            key = (round(proposal[4], 9), *(round(value, 9) for value in cell.center_mm))
+            if key not in cache:
+                if checks >= min(FIT_ACCEPT_LIMIT, max_cells*FIT_SHORTLIST):
+                    break
+                cache[key] = bool(accept(cell))
+                checks += 1
+            if cache[key]:
+                cells.append(cell)
+        if cells:
+            score = _layout_score(tuple(cells), proposal[4], settings.pitch_mm, available, periodic)
+            # Prefer a phase that fits the real face instead of two distant
+            # isolated clusters with an apparently large envelope.
+            score -= .2*(1-len(cells)/len(proposal[5]))
+            accepted.append((score, proposal[1], len(cells), proposal[3], proposal[4], tuple(cells)))
+    if not accepted:
+        return Layout((), settings.pitch_mm, settings.pitch_mm, "fit")
+    best = max(accepted, key=lambda proposal: proposal[:4])
+    return Layout(best[5], best[4], settings.pitch_mm, "fit")
+
+
+def build_cells(settings, bounds, period_u_mm=None):
+    """Compatibility tuple API; new adapters should report build_layout pitch."""
+    if getattr(settings, "layout_mode", "fixed") == "fixed":
+        return _build_legacy(settings, bounds, period_u_mm)
+    return build_layout(settings, bounds, period_u_mm).cells
+
+
+def allocate_face_budgets(areas_mm2, *, max_total=MAX_CELLS, max_face=MAX_FACE_CELLS):
+    """Deterministic area-weighted integer budgets, capped per face and total."""
+    areas = tuple(areas_mm2)
+    if (type(max_total) is not int or max_total < 1 or not areas or len(areas) > max_total
+            or type(max_face) is not int or not 1 <= max_face <= MAX_FACE_CELLS
+            or not all(isinstance(value,(int,float)) and not isinstance(value,bool)
+                       and math.isfinite(value) and value > 0 for value in areas)):
+        raise ValueError("Provide positive finite face areas within the total pattern budget.")
+    allocations = [1]*len(areas)
+    remaining = min(max_total, max_face*len(areas))-len(areas)
+    while remaining:
+        active = [index for index,value in enumerate(allocations) if value < max_face]
+        total_area = sum(areas[index] for index in active)
+        shares = {index:remaining*areas[index]/total_area for index in active}
+        added = 0
+        for index in active:
+            count = min(max_face-allocations[index], math.floor(shares[index]))
+            allocations[index] += count
+            added += count
+        remaining -= added
+        if remaining:
+            ranked = sorted((index for index in active if allocations[index] < max_face),
+                            key=lambda index: (-(shares[index]-math.floor(shares[index])), index))
+            for index in ranked:
+                if not remaining:
+                    break
+                allocations[index] += 1
+                remaining -= 1
+    return tuple(allocations)

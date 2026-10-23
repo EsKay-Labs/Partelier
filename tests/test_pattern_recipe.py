@@ -119,7 +119,7 @@ class PatternRecipeTests(unittest.TestCase):
         with patch.object(package, "fusion", self.fusion, create=True):
             spec.loader.exec_module(self.module)
         self.module.STORE = self.store
-        self.saved = {"version": 1, "tool": "surface_pattern", "feature_id": self.record.feature_id,
+        self.saved = {"version": 2, "tool": "surface_pattern", "feature_id": self.record.feature_id,
                       "settings": self.settings.to_dict(), "sources": deepcopy(self.tokens)}
         self.write_recipe(self.saved)
 
@@ -146,7 +146,7 @@ class PatternRecipeTests(unittest.TestCase):
         self.assertEqual(self.events, ["validate-current", "create", "save"])
         saved = json.loads(self.anchor.attributes.itemByName(self.module.GROUP, "recipe").value)
         self.assertEqual(saved, self.saved)
-        self.assertEqual(len(saved["settings"]), 10)
+        self.assertEqual(len(saved["settings"]), 11)
         self.assertEqual(saved["sources"], self.tokens)
         selected = object()
         self.events.clear()
@@ -176,7 +176,7 @@ class PatternRecipeTests(unittest.TestCase):
 
     def test_recipe_envelope_and_exact_settings_are_strict_on_public_edit_read(self):
         malformed = []
-        for key, value in (("version", True), ("version", 2), ("tool", "snap_fit"), ("feature_id", "another-pattern")):
+        for key, value in (("version", True), ("version", 3), ("tool", "snap_fit"), ("feature_id", "another-pattern")):
             damaged = deepcopy(self.saved)
             damaged[key] = value
             malformed.append(damaged)
@@ -202,6 +202,36 @@ class PatternRecipeTests(unittest.TestCase):
                 self.assertEqual(self.events, [])
                 self.assert_no_persistence()
         self.store.input_scope.assert_not_called()
+
+    def test_legacy_read_preserves_exact_spacing_and_migrates_only_on_rebuild(self):
+        legacy=deepcopy(self.saved)
+        legacy['version']=1
+        legacy['settings'].pop('layout_mode')
+        self.write_recipe(legacy)
+        original=self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value
+        target=self.read()
+        self.assertEqual(target.settings.layout_mode,'fixed')
+        self.assertEqual(target.recipe,legacy)
+        self.assertEqual(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value,original)
+        self.assert_no_persistence()
+        settings=replace(target.settings,depth_mm=.8)
+        prepared=self.module.prepare_edit_pattern(self.design,target,settings)
+        self.module.rebuild_pattern(self.design,target,prepared)
+        saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
+        self.assertEqual(saved['version'],2)
+        self.assertEqual(saved['settings']['layout_mode'],'fixed')
+        self.assertEqual(saved['settings']['pitch_mm'],legacy['settings']['pitch_mm'])
+
+    def test_recipe_version_must_match_its_exact_settings_schema(self):
+        legacy_with_new_field=deepcopy(self.saved)
+        legacy_with_new_field['version']=1
+        current_without_new_field=deepcopy(self.saved)
+        current_without_new_field['settings'].pop('layout_mode')
+        for damaged in (legacy_with_new_field,current_without_new_field):
+            with self.subTest(damaged=damaged):
+                self.write_recipe(damaged)
+                with self.assertRaises(ValueError):self.read()
+                self.assert_no_persistence()
 
     def test_invalid_opaque_source_lists_are_refused_before_history_resolution(self):
         malformed = [None, {}, {**self.tokens, "unexpected": "token"}]

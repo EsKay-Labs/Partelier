@@ -28,6 +28,85 @@ def _cross(one,two):
     return (one[1]*two[2]-one[2]*two[1],one[2]*two[0]-one[0]*two[2],one[0]*two[1]-one[1]*two[0])
 
 
+TRIM_TOLERANCE_MM = .005
+MAX_BOUNDARY_POINTS = 100000
+
+
+def _segment_distance_squared(point, one, two):
+    vector = tuple(b-a for a,b in zip(one,two))
+    squared = _dot(vector,vector)
+    if squared <= 1e-24:
+        return sum((p-a)**2 for p,a in zip(point,one))
+    fraction = max(0.0,min(1.0,sum((p-a)*v for p,a,v in zip(point,one,vector))/squared))
+    return sum((p-a-fraction*v)**2 for p,a,v in zip(point,one,vector))
+
+
+@dataclass(frozen=True)
+class _TrimBoundary:
+    points_mm: tuple
+    tolerance_mm: float
+    bounds_mm: tuple
+
+    def distance_mm(self,point_mm):
+        """Conservative distance to a finite curve, never its support line."""
+        squared = min(_segment_distance_squared(point_mm,one,two)
+                      for one,two in zip(self.points_mm,self.points_mm[1:]))
+        return max(0.0,math.sqrt(squared)-self.tolerance_mm)
+
+    def clears(self,point_mm,required_mm):
+        # Strokes deviate from the bounded curve by at most tolerance_mm.
+        # Inflate the refusal radius so approximation cannot reduce a border.
+        limit = required_mm+self.tolerance_mm
+        if limit <= 0:
+            return True
+        squared_limit = limit*limit
+        bounds_squared = sum(max(low-value,0.0,value-high)**2
+            for value,(low,high) in zip(point_mm,self.bounds_mm))
+        if bounds_squared >= squared_limit:
+            return True
+        return all(_segment_distance_squared(point_mm,one,two) >= squared_limit
+                   for one,two in zip(self.points_mm,self.points_mm[1:]))
+
+
+def _boundary_from_edge(edge,core):
+    """Cache finite trim endpoints/strokes once; all lengths leave in mm.
+
+    Native point-to-BRepEdge measurement can project onto an unbounded support
+    curve. Evaluator parameter extents instead identify the actual trimmed
+    edge. Curved strokes carry the documented maximum-deviation allowance.
+    """
+    evaluator = edge.evaluator
+    ok,start,end = evaluator.getParameterExtents()
+    if not ok or not all(math.isfinite(value) for value in (start,end)) or end <= start:
+        raise ValueError("A pattern trim edge has no finite boundary. Select a regular face region.")
+    if core.Line3D.cast(edge.geometry) is not None:
+        one,first = evaluator.getPointAtParameter(start)
+        two,last = evaluator.getPointAtParameter(end)
+        if not one or not two or first is None or last is None:
+            raise ValueError("Fusion could not read the finite endpoints of a pattern boundary.")
+        values = (first,last)
+        tolerance = 0.0
+    else:
+        ok,values = evaluator.getStrokes(start,end,TRIM_TOLERANCE_MM/10)
+        if not ok or values is None or len(values) < 2:
+            raise ValueError("Fusion could not bound a curved pattern edge. Select a simpler face region.")
+        tolerance = TRIM_TOLERANCE_MM
+    if len(values) > MAX_BOUNDARY_POINTS:
+        raise ValueError("The pattern trim is too complex. Select a smaller or simpler face region.")
+    points = []
+    for value in values:
+        point = tuple(float(component)*10 for component in _xyz(value))
+        if not all(math.isfinite(component) for component in point):
+            raise ValueError("Fusion returned a non-finite pattern trim boundary.")
+        if not points or sum((a-b)**2 for a,b in zip(point,points[-1])) > 1e-24:
+            points.append(point)
+    if len(points) < 2:
+        raise ValueError("A pattern trim boundary collapsed. Select a regular face region.")
+    bounds = tuple((min(point[axis] for point in points),max(point[axis] for point in points))
+                   for axis in range(3))
+    return _TrimBoundary(tuple(points),tolerance,bounds)
+
+
 @dataclass(frozen=True)
 class SurfaceSample:
     point_mm: tuple
@@ -81,6 +160,9 @@ class SurfaceMap:
             if len(coedges)==2 and all(coedge.loop.face==face for coedge in coedges):
                 continue  # A periodic seam is not a real trim boundary.
             self._edges.append(edge)
+        self._boundaries=tuple(_boundary_from_edge(edge,core) for edge in self._edges)
+        if sum(len(boundary.points_mm) for boundary in self._boundaries)>MAX_BOUNDARY_POINTS:
+            raise ValueError("The selected face has too much trim detail. Select a smaller or simpler face region.")
 
     def _parameter(self,u,v):
         raw_u=self._origin[0]+u/self._scale[0]
@@ -122,12 +204,9 @@ class SurfaceMap:
                          math.sqrt(_dot(_xyz(dv),_xyz(dv)))*10)
                 if not ok or any(not .8<length/scale<1.25 for length,scale in zip(lengths,self._scale)):
                     return False
-            point=self._core.Point3D.create(*(value/10 for value in center.point_mm))
-            measure=self._core.Application.get().measureManager
-            for edge in self._edges:
-                result=measure.measureMinimumDistance(point,edge)
-                if result is None or result.value*10<reserve+border_mm-1e-6:
-                    return False
+            if any(not boundary.clears(center.point_mm,reserve+border_mm-1e-6)
+                   for boundary in self._boundaries):
+                return False
             return True
         except ValueError:
             return False

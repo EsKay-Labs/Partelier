@@ -5,21 +5,32 @@ Texture in the existing HTML palette. These entries start different presets of
 the same tool. Hinge and snap-fit geometry remains locked at the user-approved
 behavior.
 
-Version 0.9.1 clarifies dense-layout refusals: one face may contain hundreds of
-cells. The message identifies the face/total budget, the current Pitch and an
-approximate larger Pitch based on the selected surface areas and lattice. The
-hint ignores border, trimming and distortion effects; it is guidance, not a
-guaranteed fit or an automatic dimension change. Increasing Pitch spreads the
-repetitions farther apart. Doubling it roughly quarters their number on a broad
-surface. The 200-per-face/400-total limits remain in place.
+Version 0.10.0 adds **Automatic** spacing and fixes distance checks against short
+trim edges. A short edge beside a top cutout is measured as a finite segment,
+not as an infinite supporting line that could exclude a whole column below it.
+Curved trim boundaries use cached conservative strokes. Real outside borders
+and existing holes remain protected.
 
 ## Use
 
 Choose a shape (hexagons, circles, diamonds, squares or slots), then **Through
 holes**, **Engrave** or **Emboss**. Select faces on one solid and press Esc when
-finished picking. Preselected faces are reused. Start with pitch, solid web (gap
-for emboss), border and depth/height. Through holes do not use a depth setting.
+finished picking. Preselected faces are reused. Start with **Spacing > Automatic**,
+target pitch, solid web (gap for emboss), border and depth/height. Through holes do not use a depth setting.
 Rotation and offsets live under Advanced.
+
+Automatic spacing centers the grid and chooses one uniform pitch per face near
+the target. It never stretches individual hexagons or circles to fill a gap.
+The preview reports the actual fitted pitch, or its range across several faces;
+the target input remains unchanged. Overly dense layouts receive a larger pitch
+to stay within 200 cells per face and 400 in total. With more than two selected
+faces, that total budget is shared according to face area.
+
+Choose **Exact pitch** to preserve the earlier layout behavior. Dense exact
+layouts still refuse with an approximate larger-pitch hint; that hint does not
+change the input. Full periodic cylinders retain their seam-closing adjustment.
+Existing saved patterns load in Exact pitch. To update one, choose Edit existing,
+switch to Automatic, review the preview and press Rebuild.
 
 The preview shows the complete proposed body with its existing Fusion
 appearance. Create changes that same body. Edit accepts its body, face, edge or
@@ -30,6 +41,19 @@ preview and restores visibility.
 ## Surface contract
 
 Actual Fusion CAD examples from the passing native checks:
+
+![Automatic honeycomb filling a panel below three top cutouts](images/patterns-balanced-panel.png)
+
+The owned 300 × 170 mm notched-panel fixture produces 27 complete cells with a
+41.81 mm fitted pitch from a 40 mm target. Opposite margins match: 4.90 mm at
+the sides and 6.38 mm at the ends. Cuts occupy the left, middle and right below
+the cutouts, while their real borders remain solid. This is an example, not a
+promise of equal outer margins on arbitrary trimmed or curved faces.
+
+![Automatic honeycomb wrapping a hollow cylinder](images/patterns-automatic-cylinder.png)
+
+Automatic spacing also closes the cylinder seam with equal cyclic gaps. This
+fixture has 52 cells at 7.73 mm from an 8 mm target; its end rims remain solid.
 
 | Through holes on a cylinder | Raised hexagons on a cylinder |
 | --- | --- |
@@ -49,6 +73,10 @@ Actual Fusion CAD examples from the passing native checks:
 - Other smooth faces use a local surface chart. Singularities, strong distortion
   or excessive curvature are excluded or explicitly refused. This is not a
   guarantee of uniform geodesic spacing on every possible freeform surface.
+  Native Automatic checks cover planes and cylinders; the positive cone/sphere
+  examples use Exact pitch. Automatic can refuse a curved region when its local
+  metric would reduce the requested physical web. Exact pitch is an alternative,
+  subject to the same physical-web checks.
 - Cells remain complete. Cells too close to a real boundary or a trimmed hole
   are omitted conservatively. A periodic surface seam is not treated as an edge
   border. There are no clipped partial cells or keep-solid masks in this version.
@@ -70,8 +98,10 @@ rotation is unrestricted. Nonperiodic faces allow arbitrary rotation.
 
 ## Limits and persistence
 
-Pattern preparation enforces 100 selected faces, 200 cells per face, 400 total and 4,000 layout
-candidates. Smaller pitch or excessive density produces a specific refusal.
+Pattern preparation enforces 100 selected faces, 200 cells per face and 400 total.
+Automatic planning evaluates bounded candidate layouts and checks at most three
+finalists against each native surface. Exact pitch retains the 4,000-candidate
+limit and specific density refusals.
 Sources must be native faces of one solid in the active root of a parametric
 design, with the timeline at its end. Assembly proxies are not supported.
 
@@ -81,8 +111,11 @@ overall result is refused. Curved circles are comparatively expensive: the
 took 0.85–2.31 seconds depending on operation. These are measured cases, not a
 guarantee of instant live updates on dense geometry.
 
-The full ten-field settings snapshot is immutable and validated. The recipe
-stores selected face/body references. Source geometry and owned history are
+The full eleven-field settings snapshot is immutable and validated. Version 2
+recipes include the spacing mode and selected face/body references. Strict
+version 1 recipes with ten fields remain readable as Exact pitch; reading never
+rewrites their attributes. Only successful deliberate Rebuild saves version 2.
+Source geometry and owned history are
 checked before Create/Rebuild; a stale preview cannot be committed. Upstream
 changes require an explicit Edit/Rebuild and missing/split face references may
 require reselection.

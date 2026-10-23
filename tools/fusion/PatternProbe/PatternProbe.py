@@ -209,6 +209,15 @@ def fixture(design, kind):
                 if ok and normal.x > .85 and sum(a*b for a,b in zip(_xyz(face.pointOnFace), _xyz(normal))) > 1.3:
                     faces.append(face)
         faces = tuple(faces)
+    elif kind == "notched_panel":
+        temporary=_box(manager,-150,150,-3,0,0,170)
+        for low,high in ((-25,-15),(-5,5),(15,25)):
+            temporary=_boolean(manager,temporary,_box(manager,low,high,-4,1,155,168))
+        feature,body=_persist(design,temporary,kind)
+        faces=tuple(face for face in _items(body.faces)
+            if adsk.core.Plane.cast(face.geometry) is not None
+            and abs(face.boundingBox.minPoint.y)<1e-7
+            and abs(face.boundingBox.maxPoint.y)<1e-7 and face.area*100>49000)
     elif kind == "sphere":
         origin = adsk.core.Point3D.create(0, 0, 0)
         temporary = _boolean(manager, manager.createSphere(origin, 1.6), manager.createSphere(origin, 1.3))
@@ -345,6 +354,11 @@ def capture_pattern(prepared, label):
         view.upVector = adsk.core.Vector3D.create(0, 0, 1)
         if view.setExtents(6, 6) is False:
             raise RuntimeError("Could not frame the owned pattern visual.")
+        if label=='balanced-notched-panel':
+            view.target=adsk.core.Point3D.create(0,-.15,8.5)
+            view.eye=adsk.core.Point3D.create(0,35,8.5)
+            view.upVector=adsk.core.Vector3D.create(0,0,1)
+            view.setExtents(34,25.5)
         viewport.camera = view
         group = STATE["adapter"].preview_pattern(prepared)
         viewport.refresh()
@@ -398,9 +412,104 @@ def _case(label, function, *, optional=False):
         STATE["report"]["cases"].append({"name": label, "passed": True, "bounded_refusal": message})
 
 
+def _fixed_settings(**values):
+    return STATE['settings_module'].PatternSettings(**{'layout_mode':'fixed',**values})
+
+
+def _fit_cases(design):
+    adapter=STATE['adapter']
+    Settings=STATE['settings_module'].PatternSettings
+    _,panel,faces=fixture(design,'notched_panel')
+    def panel_result(layout_mode):
+        settings=Settings(layout_mode=layout_mode,pitch_mm=40,web_mm=10,border_mm=3)
+        prepared=prepare_checked(design,faces,settings)
+        chart=adapter.SurfaceMap(faces[0])
+        samples=[chart.sample(*cell.center_mm) for cell in prepared.layouts[0].cells]
+        groups=[[],[],[]]
+        for sample in samples:
+            x,_,z=sample.point_mm
+            if z<130:
+                if x< -60:groups[0].append(sample)
+                elif abs(x)<45:groups[1].append(sample)
+                elif x>60:groups[2].append(sample)
+        if not all(groups) or prepared.cell_count<20:
+            raise RuntimeError('Short top-slot edges still exclude the available middle of the panel.')
+        for group in groups:
+            sample=group[0]
+            point=_add(sample.point_mm,sample.normal,-1.5)
+            if not _inside(panel,point) or _inside(prepared.result_body,point):
+                raise RuntimeError('An accepted left/middle/right panel cell did not cut actual material.')
+        for x in (-14.5,5.5,25.5):
+            point=(x,-1.5,160)
+            if not _inside(panel,point) or not _inside(prepared.result_body,point):
+                raise RuntimeError('The real border of an existing top slot was lost.')
+        detail={'cells':prepared.cell_count,'middle_cells_below_slots':len(groups[1]),
+                'existing_trim_borders_retained':True,'selected_faces':1,
+                'target_pitch_mm':settings.pitch_mm,
+                'effective_pitch_mm':prepared.layouts[0].effective_pitch_mm}
+        if layout_mode=='fit':
+            points=[chart.sample(cell.center_mm[0]+u,cell.center_mm[1]+v).point_mm
+                    for cell in prepared.layouts[0].cells for u,v in cell.polygon_mm]
+            left=min(p[0] for p in points)+150;right=150-max(p[0] for p in points)
+            bottom=min(p[2] for p in points);top=170-max(p[2] for p in points)
+            if min(left,right,bottom,top)<3-.01 or abs(left-right)>.05 or abs(bottom-top)>.05:
+                raise RuntimeError('Automatic panel layout did not balance opposite real margins.')
+            detail['opposite_margins_mm']=[left,right,bottom,top]
+            capture_pattern(prepared,'balanced-notched-panel')
+        return detail
+    _case('finite_trims_keep_middle_columns',lambda:panel_result('fixed'))
+    _case('automatic_balanced_notched_panel',lambda:panel_result('fit'))
+    _,body,plane_faces=fixture(design,'plane')
+    def automatic_density():
+        settings=Settings(pitch_mm=1,web_mm=.2)
+        prepared=prepare_checked(design,plane_faces,settings)
+        if not 0<prepared.cell_count<=200 or prepared.layouts[0].effective_pitch_mm<=1 or settings.pitch_mm!=1:
+            raise RuntimeError('Automatic spacing failed to fit a dense target within its budget.')
+        history,count=design.timeline.count,design.rootComponent.bRepBodies.count
+        anchor=STATE['recipe'].create_pattern(design,prepared)
+        target=STATE['recipe'].read_edit_target(design,body)
+        changed=replace(settings,pitch_mm=3)
+        updated=STATE['recipe'].prepare_edit_pattern(design,target,changed)
+        if STATE['recipe'].rebuild_pattern(design,target,updated)!=anchor:
+            raise RuntimeError('Automatic Rebuild replaced the owned feature.')
+        current=STATE['recipe'].read_edit_target(design,body)
+        if (current.settings!=changed or current.record.target!=body
+                or design.timeline.count!=history+3 or design.rootComponent.bRepBodies.count!=count
+                or _signature(body)!=_signature(updated.result_body)):
+            raise RuntimeError('Automatic Create/Rebuild lost settings, identity or its exact full result.')
+        return {'cells':prepared.cell_count,'target_pitch_mm':1,
+                'effective_pitch_mm':prepared.layouts[0].effective_pitch_mm,'settings_unchanged':True,
+                'automatic_create_rebuild_same_body':True}
+    _case('automatic_dense_target_without_refusal',automatic_density)
+    _,body,wrap_faces=fixture(design,'cylinder_wrap')
+    for mode in ('through','engrave','emboss'):
+        def wrapped(mode=mode):
+            settings=Settings(mode=mode,web_mm=2)
+            prepared=prepare_checked(design,wrap_faces,settings)
+            detail=inspect(prepared,'cylinder_wrap')
+            chart=adapter.SurfaceMap(wrap_faces[0]);layout=prepared.layouts[0]
+            rows={}
+            for cell in layout.cells:
+                u,v=cell.center_mm;rows.setdefault(round(v,7),[]).append(u)
+                sample=chart.sample(u,v)
+                distance=.5 if mode=='emboss' else -.5
+                if _inside(prepared.result_body,_add(sample.point_mm,sample.normal,distance))!=(mode=='emboss'):
+                    raise RuntimeError('An automatic wrapped cell did not change real material.')
+            for row in rows.values():
+                row.sort()
+                gaps=[b-a for a,b in zip(row,row[1:])]+[chart.period_u_mm-row[-1]+row[0]]
+                if max(gaps)-min(gaps)>1e-5:
+                    raise RuntimeError('Automatic cylinder spacing has an oversized seam gap.')
+            if mode=='through':capture_pattern(prepared,'automatic-cylinder-wrap')
+            detail['effective_pitch_mm']=layout.effective_pitch_mm
+            detail['periodic_closure_uniform']=True
+            return detail
+        _case('automatic_full_wrap_'+mode,wrapped)
+
+
 def cases():
     design = STATE["design"]
-    Settings = STATE["settings_module"].PatternSettings
+    Settings = _fixed_settings
     recipe = STATE["recipe"]
     fixtures = {}
     for kind in ("plane", "cylinder", "hex"):
@@ -495,6 +604,14 @@ def cases():
         target = recipe.read_edit_target(design, plane)
         history_refs = dict(target.record.recipe["combines"])
         source_signature = prepared.source_signature
+        legacy=json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)
+        legacy['version']=1;legacy['settings'].pop('layout_mode')
+        legacy_raw=json.dumps(legacy,separators=(',',':'))
+        anchor.attributes.add(recipe.GROUP,'recipe',legacy_raw)
+        legacy_target=recipe.read_edit_target(design,plane)
+        if (legacy_target.settings.layout_mode!='fixed'
+                or anchor.attributes.itemByName(recipe.GROUP,'recipe').value!=legacy_raw):
+            raise RuntimeError('Reading a legacy recipe changed its spacing mode or saved metadata.')
         for mode in ("engrave", "emboss", "through"):
             target = recipe.read_edit_target(design, plane)
             settings = replace(target.settings, mode=mode, pattern="circle", depth_mm=.8)
@@ -514,8 +631,11 @@ def cases():
                 raise RuntimeError("Rebuild added geometry/history, lost settings, or changed the target identity/state.")
             if _signature(plane) != _signature(updated.result_body):
                 raise RuntimeError("Rebuild did not persist the exact full preview shape.")
+        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=2:
+            raise RuntimeError('The explicit legacy rebuild did not migrate its recipe.')
         return {"same_body": True, "extra_bodies": 0, "owned_features": 3, "rebuild_modes": 3,
-                "face_edge_body_feature_edit": True, "original_source_signature": source_signature}
+                "face_edge_body_feature_edit": True, "original_source_signature": source_signature,
+                'legacy_read_unchanged_then_migrated_on_rebuild':True}
     _case("same_body_create_edit_rebuild", persistence)
     def sphere_case():
         _, body, sphere_faces = fixture(design, "sphere")
@@ -528,6 +648,7 @@ def cases():
         capture_pattern(prepared, "sphere-engrave")
         return details
     _case("sphere_general_surface_engrave", sphere_case)
+    _fit_cases(design)
     STATE["report"]["geometry_checks_passed"] = all(case["passed"] for case in STATE["report"]["cases"])
 
 
@@ -607,7 +728,7 @@ def _runtime_start():
     runner._requested_event_id = "sktech_partelier_pattern_probe_compute_event_67744d4a"
     runner._event_id = runner._requested_event_id
     STATE["runtime_runner"] = runner
-    Settings = STATE["settings_module"].PatternSettings
+    Settings = _fixed_settings
     def compute(label, settings):
         def operation():
             STATE["runtime_computed"].append(label)

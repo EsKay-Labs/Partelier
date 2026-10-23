@@ -3,11 +3,12 @@
 // One pattern session serves the honeycomb, perforation and texture presets.
 (() => {
     const $ = id => document.getElementById(id);
-    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 8, web_mm: 1.2, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces" });
+    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 8, web_mm: 1.2, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "fit" });
     const presets = { honeycomb: { pattern: "hexagon", mode: "through" }, perforation: { pattern: "circle", mode: "through" }, knurl: { pattern: "diamond", mode: "emboss" } };
     const choices = {
         pattern: [["hexagon", "Hexagons"], ["circle", "Circles"], ["diamond", "Diamonds"], ["square", "Squares"], ["slot", "Slots"]],
         mode: [["through", "Through holes"], ["engrave", "Engrave"], ["emboss", "Emboss"]],
+        layout_mode: [["fit", "Automatic"], ["fixed", "Exact pitch"]],
         selection_scope: [["faces", "Selected faces"], ["body", "Whole body"]]
     };
     const terminal = new Set(["idle", "created", "cancelled"]), retired = new Set();
@@ -26,7 +27,7 @@
     function message(text, error = false) {
         $("pattern-operation-status").textContent = text;
         $("pattern-operation-status").classList.toggle("error", error);
-        $("pattern-operation-status").hidden = !text || (!error && !/created|rebuilt|cancelled|Starting|Creating|Rebuilding/i.test(text));
+        $("pattern-operation-status").hidden = !text || (!error && !/created|rebuilt|cancelled|Starting|Creating|Rebuilding|^\d+ cells\b/i.test(text));
     }
     function cancelTimer() { if (timer !== undefined) window.clearTimeout(timer); timer = undefined; }
     function sync() {
@@ -43,6 +44,8 @@
         }
         $("pattern-selection_scope").disabled = committing || editing();
         $("pattern-scope-note").hidden = !editing();
+        $("pattern-pitch_mm").parentElement.children[0].textContent = state.settings.layout_mode === "fit" ? "Target pitch" : "Pitch";
+        $("pattern-pitch_mm").title = state.settings.layout_mode === "fit" ? "Automatic spacing adjusts this target to balance coverage of each face." : "Use this exact distance between repeated features.";
         $("pattern-web_mm").parentElement.children[0].textContent = state.settings.mode === "emboss" ? "Gap between features" : "Solid web";
         $("pattern-depth_mm").parentElement.children[0].textContent = state.settings.mode === "engrave" ? "Engraving depth" : "Relief height";
     }
@@ -145,7 +148,7 @@
         finally { state.expecting = false; }
         await refresh();
     }
-    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["mode", "Action", "pattern-design-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"]]) {
+    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Spacing", "pattern-size-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"]]) {
         const item = document.createElement("div"); item.className = "parameter-item";
         const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
         const input = document.createElement("select"); input.id = `pattern-${name}`; input.name = name; input.required = true;

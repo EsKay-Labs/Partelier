@@ -44,11 +44,50 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Balanced patterns and finite trim boundaries (0.10.0)
+
+Native request `dcfc7f44-3c31-4c30-92ba-393bd219b11b` passes **30/30** cases on
+Fusion 2705.1.30. [Exact evidence](validation/patterns-0.10.0.json) records all
+44 native-tested source hashes. The original document, component, camera,
+geometry, attributes, visibility and graphics match the initial snapshot after
+the disposable test document is discarded. Source references remain valid.
+
+An owned 300 × 170 mm panel with three small top slots tests the reported gap:
+both Exact pitch and Automatic cut actual material in its left, middle and right,
+while retaining the real slot borders. Automatic produces 27 cells at 41.8106 mm
+from a 40 mm target, with equal opposite outer margins of 4.9026 and 6.3788 mm.
+The finite-edge checks avoid Fusion's point-to-edge measurement of the infinite
+supporting curve; line endpoints and conservative cached curved-edge strokes
+retain the real trim extents.
+
+A dense 1 mm Automatic target resolves to 174 cells at 1.8565 mm without changing
+the target setting. Create/Rebuild retains the same body and three owned
+features. Full-cylinder Automatic layouts pass Through, Engrave and Emboss with
+52 cells at 7.7332 mm and equal cyclic gaps across the seam. Legacy version 1
+settings read as Exact pitch without rewriting attributes, then migrate to a
+complete version 2 snapshot only on deliberate Rebuild. All previous positive
+geometry, bounded refusal, production async preview and cached-Create cases
+remain covered.
+
+Six native captures restore the view after each capture. The new panel and
+cylinder captures were visually inspected. Local checks pass **792 Python tests**,
+all three Node DOM suites and **36 responsive UI combinations**: two widths,
+three tool presets, three actions and two spacing modes. These browser checks
+remain separate from manual Fusion CEF acceptance. Automatic native positives
+cover planes and cylinders; the regular cone/sphere positives use Exact pitch.
+Physical-web and distortion refusals remain in force for curved regions.
+
+The first run of this same matrix passed its 29 geometry/preview cases but failed
+the final original-display comparison: switching documents cancelled an already
+open product preview, revealing its source and removing its own graphics group.
+No original geometry, history or attributes changed. The identical clean rerun
+above passed all 30 cases without weakening the restoration checks.
+
 ## Pattern density guidance (0.9.1)
 
 Native request `8f0fc496-26bc-48b2-a682-2bafacca6d0c` passes **24/24** cases,
 including the complete previous pattern matrix and production preview workflow.
-[Exact evidence](validation/patterns-0.9.1.json) matches all 44 current native-tested
+[Exact evidence](validation/patterns-0.9.1.json) matches all 44 historical native-tested
 source files. A dense single-face fixture is refused with clear repetition
 counts and an approximate Pitch hint; applying its suggested 2.4 mm instead of
 1 mm produces 84 accepted layout cells, below the 200-cell limit. The original

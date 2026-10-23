@@ -29,6 +29,7 @@ class PatternProtocolTests(unittest.TestCase):
         value = read_request("pattern_begin", request(settings={"pattern": "circle", "mode": "engrave"}, editing=True))
         self.assertIsInstance(value.settings, PatternSettings)
         self.assertEqual(value.settings, PatternSettings(pattern="circle", mode="engrave"))
+        self.assertEqual(value.settings.layout_mode, "fit")
         self.assertTrue(value.editing)
         for editing in (1, "true", None):
             with self.subTest(editing=editing), self.assertRaises(ValueError):
@@ -37,8 +38,10 @@ class PatternProtocolTests(unittest.TestCase):
             with self.subTest(settings=supplied), self.assertRaises(ValueError):
                 read_request("pattern_begin", request(settings=supplied, editing=False))
 
-    def test_live_actions_require_all_ten_fields_and_valid_revision(self):
-        values = PatternSettings(pattern="slot", mode="emboss", rotation_deg=-45, offset_u_mm=-2).to_dict()
+    def test_live_actions_require_all_eleven_fields_and_valid_revision(self):
+        values = PatternSettings(pattern="slot", mode="emboss", rotation_deg=-45, offset_u_mm=-2,
+                                 layout_mode="fixed").to_dict()
+        self.assertEqual(len(values), 11)
         for action in ("pattern_update", "pattern_preview", "pattern_commit"):
             with self.subTest(action=action):
                 parsed = read_request(action, request(settings=values, sessionId=IDENTITY, revision=5))
@@ -66,7 +69,8 @@ class PatternProtocolTests(unittest.TestCase):
         defaults = PatternSettings().to_dict()
         invalid = (("pitch_mm", 0), ("pitch_mm", True), ("web_mm", 8), ("depth_mm", math.inf),
                    ("border_mm", -1), ("rotation_deg", math.nan), ("offset_u_mm", "1"),
-                   ("pattern", "unsupported"), ("mode", "generate"), ("selection_scope", "all-models"))
+                   ("pattern", "unsupported"), ("mode", "generate"), ("selection_scope", "all-models"),
+                   ("layout_mode", "stretch"), ("layout_mode", True))
         for name, value in invalid:
             with self.subTest(name=name, value=value), self.assertRaises(ValueError):
                 read_request("pattern_preview", request(settings={**defaults, name: value}, sessionId=IDENTITY, revision=0))
