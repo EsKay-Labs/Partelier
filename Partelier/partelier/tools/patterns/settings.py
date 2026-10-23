@@ -18,6 +18,8 @@ class PatternSettings:
     selection_scope: str = "faces"
     layout_mode: str = "balanced"
     edge_mode: str = "clip"
+    density: str = "balanced"
+    size_locked: bool = False
 
     def __post_init__(self):
         for key in ("pitch_mm", "web_mm", "depth_mm", "border_mm", "rotation_deg", "offset_u_mm", "offset_v_mm"):
@@ -38,8 +40,10 @@ class PatternSettings:
             raise ValueError("Choose through, engrave or emboss.")
         if self.selection_scope not in ("faces", "body"):
             raise ValueError("Choose selected faces or the whole body.")
-        if self.layout_mode not in ("balanced", "fill", "fit", "fixed"):
-            raise ValueError("Choose Balanced, Fill face, Automatic size or Exact pitch.")
+        if self.layout_mode not in ("auto", "balanced", "fill", "fit", "fixed"):
+            raise ValueError("Choose Auto fit, Balanced, Fill face, Automatic size or Exact pitch.")
+        if self.density not in ('sparse','balanced','dense') or type(self.size_locked) is not bool:
+            raise ValueError('Choose a supported density and automatic or locked size.')
         if self.edge_mode not in ('clip','whole'):
             raise ValueError('Choose clipped or whole edge cells.')
         if min(self.pitch_mm, self.web_mm, self.depth_mm) <= 0 or self.border_mm < 0:

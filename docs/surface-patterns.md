@@ -17,16 +17,58 @@ Choose a shape (hexagons, circles, diamonds, squares or slots), then **Through
 holes**, **Engrave** or **Emboss**. In 0.10.4, selecting one face immediately
 starts preview. Use **Add face** for another face on the same solid, or **Faces**
 to replace the selection. Esc cancels the current pick and keeps the previous
-selection. Multiple preselected faces are reused. Start with **Layout > Balanced**,
-**Cell size**, **Minimum gap** and **Border**. These names stay the same in all
+selection. Multiple preselected faces are reused. Choose **Layout > Auto fit** for
+surface-dependent size and count, or keep **Balanced** for an exact size and a sparse grid.
+Adjust **Cell size**, **Minimum gap** and **Border**. These names stay the same in all
 layout and action modes. Through holes hide the unused **Depth / height** field.
 Rotation, offsets and **Edge cells** live under Advanced.
 
-Version **0.10.8** starts new patterns with a **12.5 mm Cell size**, **5 mm Minimum
+Version **0.11.0** retains the new-pattern defaults of **12.5 mm Cell size**, **5 mm Minimum
 gap**, **2 mm Border** and **Clip at border**. The local **?** dialogs explain
 every field in Greek with an original SVG comparison; they do not request CAD
 geometry or change settings. Close with Esc, the close button or a backdrop
 click; focus returns to the help trigger.
+
+### Auto fit
+
+Choose **Sparse**, **Balanced** or **Dense** in Density. Auto fit uses face-chart
+dimensions, aspect ratio, border and gap to propose size and count. Sparse starts
+near three repetitions on the shorter dimension, Balanced near five, and Dense
+near seven, subject to work caps of 24/64/128 cells per face and 400 total.
+It compares centered/half-step phases for balanced margins, surface coverage,
+opening count and reduced tiny boundary fragments. Partial cells still reach
+the border. Density is a preference, so constrained small faces may resolve to
+the same layout for more than one density.
+
+**Cell size** shows the computed proposal once preview completes. Editing it
+automatically switches Size to **Custom size**: that exact dimension is retained
+and spacing adapts. Select **Automatic** to unlock it. Density changes do not
+clear a custom lock. A multi-face result can have different automatic sizes;
+preview reports their range and the field shows the smallest proposal. Locking
+that field chooses one common requested size for the selected faces.
+
+On planes, automatic size avoids openings narrower than the requested gap; an explicit
+Custom size can be smaller. Periodic cylinders close with an integer column
+count, cap the opening's angular footprint, and can increase vertical spacing
+on tall cylinders. All existing physical gap, trim, normal and solid guards
+still run. General curved or heavily trimmed regions can still be refused.
+The layout is a bounded visual heuristic, not optimal packing, a guarantee of
+beauty, strength analysis or a printability check. New polygon/tessellation
+families are separate future work; this feature supports the existing five shapes.
+
+Efficiency is explicit: at most **16 chart-space grids**, only the best **two**
+sent to cached surface acceptance, at most **2 × the face budget** acceptance
+calls. No candidate CAD bodies or timeline features are built during this
+search. Only the selected layout proceeds to exact geometry and the existing
+cached STL preview. `pattern.auto_fit` logs proposal/acceptance counts.
+Interior cells share their cleaned shape template and pass a bounding-box test;
+only cells crossing the inset rectangle run polygon clipping. A differential
+check retains boundary vertices and the degenerate-fragment threshold.
+
+Settings snapshots now have 14 fields (`density`, `size_locked` added). Recipe
+v4 saves the choices; v1/v2/v3 retain their original settings and geometry mode
+on Edit, injecting inactive Balanced density/unlocked defaults in memory. The
+stored recipe changes only after explicit Rebuild.
 
 **Balanced** preserves the requested Cell size and centers a sparse grid with a
 soft limit of **48 cells per face**. It increases center spacing when needed,

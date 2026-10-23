@@ -35,7 +35,7 @@ def _parse(raw,record):
     except (ValueError,TypeError) as error:
         raise ValueError("The saved pattern recipe is damaged.") from error
     if (not isinstance(value,dict) or set(value)!={"version","tool","feature_id","settings","sources"}
-            or type(value['version']) is not int or value['version'] not in (1,2,3)
+            or type(value['version']) is not int or value['version'] not in (1,2,3,4)
             or value['tool']!='surface_pattern' or value['feature_id']!=record.feature_id):
         raise ValueError("The saved pattern recipe has an unsupported structure.")
     sources=value['sources']
@@ -46,12 +46,16 @@ def _parse(raw,record):
             or len(set(sources['faces']))!=len(sources['faces'])):
         raise ValueError("The saved pattern face references are damaged.")
     supplied=value['settings']
-    if value['version'] in (1,2):
-        legacy_fields=set(PatternSettings().to_dict())-{'edge_mode'}
+    if value['version'] in (1,2,3):
+        legacy_fields=set(PatternSettings().to_dict())-{'density','size_locked'}
+        if value['version']<3:legacy_fields-={'edge_mode'}
         if value['version']==1:legacy_fields-={'layout_mode'}
         if not isinstance(supplied,dict) or set(supplied)!=legacy_fields:
             raise ValueError("The saved legacy pattern settings are damaged.")
-        settings=PatternSettings.from_dict({**supplied,**({'layout_mode':'fixed'} if value['version']==1 else {}),'edge_mode':'whole'})
+        if supplied.get('layout_mode') not in (None,'fixed','fit','fill','balanced'):
+            raise ValueError('The saved legacy layout is unsupported.')
+        settings=PatternSettings.from_dict({**supplied,**({'layout_mode':'fixed'} if value['version']==1 else {}),
+            **({'edge_mode':'whole'} if value['version']<3 else {}),'density':'balanced','size_locked':False})
     else:
         settings=PatternSettings.from_dict(supplied)
     return value,settings
@@ -103,7 +107,7 @@ def validate_preview_sources(prepared):
 
 
 def _save(anchor,record,prepared):
-    value={'version':3,'tool':'surface_pattern','feature_id':record.feature_id,
+    value={'version':4,'tool':'surface_pattern','feature_id':record.feature_id,
            'settings':prepared.settings.to_dict(),'sources':prepared.source_tokens}
     raw=json.dumps(value,separators=(',',':'))
     _parse(raw,record)

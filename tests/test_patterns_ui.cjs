@@ -2,7 +2,7 @@
 // Exercise all three actual controllers through one native-message fixture.
 const assert = require("node:assert/strict"), fs = require("node:fs"), vm = require("node:vm"), path = require("node:path");
 const ui = path.join(__dirname, "..", "Partelier", "partelier", "ui"), html = fs.readFileSync(path.join(ui, "palette.html"), "utf8");
-const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 17.5, web_mm: 5, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "balanced", edge_mode: "clip" };
+const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 17.5, web_mm: 5, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "balanced", edge_mode: "clip", density: "balanced", size_locked: false };
 const idle = () => ({ sessionId: null, revision: 0, phase: "idle", editing: false, settings: null, selections: {}, message: "" });
 function fixture(options = {}) {
     const ids = new Map();
@@ -122,6 +122,34 @@ function fixture(options = {}) {
     const duringPreview=guide.requests.length;await guide.click("pattern-help-border_mm");
     assert.equal(guide.$("pattern-parameter-help").open,true);assert.equal(guide.requests.length,duringPreview,"help remains local during native computation");
     await guide.click("pattern-help-close");guide.config.release();guide.config.holdPreview=false;await guide.flush();
+    const auto=fixture({completePick:true});await auto.flush();await auto.select("honeycomb");
+    await auto.input("layout_mode","auto");await auto.click("begin-pattern-button");
+    assert.equal(auto.$("pattern-density").parentElement.hidden,false);
+    auto.push({...auto.snapshot(),suggestedSizeMm:18.25,previewCurrent:true});
+    assert.equal(auto.$("pattern-cell_size_mm").value,"18.25","show the host proposal without changing the saved seed");
+    const autoBefore=auto.requests.filter(([a])=>a==="pattern_preview").length;
+    await auto.input("cell_size_mm",9);
+    assert.equal(auto.snapshot().settings.size_locked,true);
+    assert.equal(auto.snapshot().settings.pitch_mm,14);
+    assert.equal(auto.$("pattern-size_locked").value,"true");
+    assert.equal(auto.requests.filter(([a])=>a==="pattern_preview").length,autoBefore+1);
+    await auto.input("density","dense");
+    assert.equal(auto.snapshot().settings.size_locked,true,"density does not undo a manual size lock");
+    assert.equal(auto.snapshot().settings.pitch_mm,14);
+    await auto.input("size_locked","false");
+    assert.equal(auto.snapshot().settings.size_locked,false,"the wire snapshot retains a real boolean");
+    auto.push({...auto.snapshot(),suggestedSizeMm:18.25,previewCurrent:true});
+    await auto.input("size_locked","true");
+    assert.equal(auto.snapshot().settings.pitch_mm,23.25,"locking the displayed proposal adopts its actual dimension");
+    await auto.input("cell_size_mm","");
+    assert.equal(auto.$("create-pattern-button").disabled,true);
+    await auto.input("size_locked","false");
+    assert.equal(auto.snapshot().settings.size_locked,false,"Automatic recovers from an unfinished custom-size edit");
+    assert(Number.isFinite(auto.snapshot().settings.pitch_mm));
+    await auto.input("layout_mode","fill");
+    assert.equal(auto.$("pattern-density").parentElement.hidden,true);
+    assert.equal(auto.$("pattern-density").disabled,true);
+    await auto.click("cancel-pattern-button");
     const firstPick=fixture();await firstPick.flush();await firstPick.select("honeycomb");firstPick.config.completePick=true;
     await firstPick.click("begin-pattern-button");
     assert.deepEqual(firstPick.requests.filter(([action])=>action.startsWith("pattern_")).map(([action])=>action),["pattern_begin","pattern_preview"],"the first face returned by Begin starts preview without another picking action");
@@ -131,7 +159,7 @@ function fixture(options = {}) {
     assert.equal(f.$("pattern-pattern").value,"hexagon");assert.equal(f.$("pattern-mode").value,"through");assert.equal(f.$("pattern-depth_mm").disabled,true);
     assert.equal(f.$("pattern-layout_mode").value,"balanced");assert.equal(f.$("pattern-layout_mode").parentElement.children[0].textContent,"Layout");
     assert.equal(f.$("pattern-pitch_mm").parentElement.children[0].textContent,"Pitch");
-    assert.deepEqual(f.$("pattern-layout_mode").children.map(option=>[option.value,option.textContent]),[["balanced","Balanced · fewer cells"],["fill","Fill face · fixed size"],["fit","Automatic size"],["fixed","Exact pitch"]]);
+    assert.deepEqual(f.$("pattern-layout_mode").children.map(option=>[option.value,option.textContent]),[["auto","Auto fit · visual balance"],["balanced","Balanced · fewer cells"],["fill","Fill face · fixed size"],["fit","Automatic size"],["fixed","Exact pitch"]]);
     assert.equal(f.$("begin-pattern-button").disabled,false);assert.equal(f.$("create-pattern-button").disabled,true);
     assert(!f.$("pattern-selections").children.some(element=>element.id==="pattern-add-face"));
     assert.deepEqual(f.$("pattern-settings").querySelectorAll("[name]").map(x=>x.name).sort(),Object.keys(defaults).sort());
@@ -237,9 +265,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.10.8"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.11.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.10.8"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.11.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.click("begin-pattern-button");await logged.click("pattern-select-surface");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.click("begin-pattern-button");const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));

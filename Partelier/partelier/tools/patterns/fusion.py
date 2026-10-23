@@ -18,6 +18,7 @@ from .surfaces import SurfaceMap
 from .prism import prism as _direct_prism
 from .batch import try_through_difference
 from . import display_export
+from . import clipping
 from ...diagnostics import emit
 
 
@@ -223,6 +224,8 @@ def _mapped_cells(faces, settings, *, _return_layouts=False):
         def accept(cell):
             if settings.edge_mode=='whole':return chart.accepts(*cell.center_mm,cell.radius_mm,settings.border_mm)
             fragments[cell]=chart.clipped_cells(cell,settings.border_mm)
+            if settings.layout_mode=='auto':
+                return sum(clipping.area(part.polygon_mm) for part in fragments[cell])/max(1e-12,clipping.area(cell.polygon_mm))
             return bool(fragments[cell])
         layout=build_layout(settings,chart.bounds,period_u_mm=chart.period_u_mm,max_cells=budgets[index],
             accept=accept)

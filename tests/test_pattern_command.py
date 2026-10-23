@@ -463,6 +463,22 @@ class PatternCommandTests(unittest.TestCase):
         self.assertIn('grid gap ≈ 4.00 mm', session.message)
         self.assertNotIn('pitch', session.message)
 
+    def test_auto_preview_reports_proposal_and_never_overwrites_the_saved_seed(self):
+        original=self.fusion.prepare_pattern.side_effect
+        def prepare(*args):
+            result=original(*args)
+            result.layouts=(NS(cell_count=7,cell_size_mm=18.25,proposals_evaluated=16,acceptance_checks=30),)
+            return result
+        self.fusion.prepare_pattern.side_effect=prepare
+        session=self.begin(PatternSettings(layout_mode='auto'))
+        self.preview(session)
+        self.assertIn('Auto fit · balanced',session.message)
+        self.assertIn('cell size 18.25 mm',session.message)
+        self.assertEqual(session.snapshot()['suggestedSizeMm'],18.25)
+        self.assertEqual(session.settings.pitch_mm,17.5)
+        session.clear_preview()
+        self.assertIsNone(session.snapshot()['suggestedSizeMm'])
+
     def test_fill_preview_reports_the_three_user_dimensions(self):
         session = self.begin(PatternSettings(layout_mode='fill',pitch_mm=11.5,web_mm=1.5,border_mm=2))
         self.preview(session)

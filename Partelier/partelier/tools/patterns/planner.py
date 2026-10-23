@@ -154,6 +154,9 @@ class Layout:
     effective_pitch_mm: float
     requested_pitch_mm: float
     layout_mode: str
+    cell_size_mm: float = None
+    proposals_evaluated: int = 0
+    acceptance_checks: int = 0
 
     @property
     def cell_count(self):
@@ -218,9 +221,9 @@ def _complete(center, polygon, bounds, periodic):
     return True
 
 
-def _fit_grid(settings, bounds, pitch, period, phase, *, preserve_size=False, spread=False):
+def _fit_grid(settings, bounds, pitch, period, phase, *, preserve_size=False, spread=False, row_pitch_mm=None, fast_clip=False):
     if settings.edge_mode=='clip':
-        return _clipped_grid(settings,bounds,pitch,period,phase,preserve_size=preserve_size,spread=spread)
+        return _clipped_grid(settings,bounds,pitch,period,phase,preserve_size=preserve_size,spread=spread,row_pitch_mm=row_pitch_mm,fast_clip=fast_clip)
     periodic = period is not None
     if periodic:
         columns = int(math.floor(period/pitch)) if preserve_size else max(3, int(round(period/pitch)))
@@ -238,6 +241,7 @@ def _fit_grid(settings, bounds, pitch, period, phase, *, preserve_size=False, sp
     triangular = settings.pattern in ("hexagon", "circle")
     factor = math.sqrt(3)/2 if triangular else 1.0
     step_v = factor*(settings.pitch_mm if preserve_size and not spread else pitch)
+    if row_pitch_mm is not None:step_v=factor*row_pitch_mm
     angle = math.radians(settings.rotation_deg)
     width, height = _projected_size(bounds, angle) if not periodic else (period, bounds[3]-bounds[2])
     if not periodic:
@@ -277,7 +281,7 @@ def _fit_grid(settings, bounds, pitch, period, phase, *, preserve_size=False, sp
     return tuple(result), pitch
 
 
-def _clipped_grid(settings,bounds,pitch,period,phase,*,preserve_size=False,spread=False):
+def _clipped_grid(settings,bounds,pitch,period,phase,*,preserve_size=False,spread=False,row_pitch_mm=None,fast_clip=False):
     periodic=period is not None
     columns=None
     if periodic:
@@ -286,8 +290,12 @@ def _clipped_grid(settings,bounds,pitch,period,phase,*,preserve_size=False,sprea
         pitch=period/columns
     effective=settings if preserve_size else replace(settings,pitch_mm=pitch)
     polygon=_polygon(effective)
+    if fast_clip:
+        polygon=clipping.clean(polygon)
+        if not polygon:return (),pitch
     triangular=settings.pattern in ('hexagon','circle')
     step_v=(settings.pitch_mm if preserve_size and not spread else pitch)*(math.sqrt(3)/2 if triangular else 1)
+    if row_pitch_mm is not None:step_v=row_pitch_mm*(math.sqrt(3)/2 if triangular else 1)
     angle=math.radians(settings.rotation_deg)
     width,height=_projected_size(bounds,angle) if not periodic else (period,bounds[3]-bounds[2])
     columns=columns if periodic else math.ceil(width/pitch)+3
@@ -296,6 +304,8 @@ def _clipped_grid(settings,bounds,pitch,period,phase,*,preserve_size=False,sprea
     center=((bounds[0]+bounds[1])/2,(bounds[2]+bounds[3])/2)
     offset_u,offset_v=math.remainder(settings.offset_u_mm,pitch),math.remainder(settings.offset_v_mm,step_v)
     result=[]
+    if fast_clip:
+        extent=(min(x for x,y in polygon),max(x for x,y in polygon),min(y for x,y in polygon),max(y for x,y in polygon))
     for row in range(rows):
         v=(row-(rows-1)/2)*step_v+offset_v
         stagger=pitch/2 if triangular and (row+phase)%2 else 0
@@ -303,6 +313,14 @@ def _clipped_grid(settings,bounds,pitch,period,phase,*,preserve_size=False,sprea
             u=(column-(columns-1)/2)*pitch+stagger+offset_u
             position=((bounds[0]+(column*pitch+stagger+offset_u)%period,center[1]+v) if periodic else
                       (center[0]+u*math.cos(angle)-v*math.sin(angle),center[1]+u*math.sin(angle)+v*math.cos(angle)))
+            if fast_clip:
+                low_v,high_v=position[1]+extent[2],position[1]+extent[3]
+                low_u,high_u=position[0]+extent[0],position[0]+extent[1]
+                if (high_v<=bounds[2] or low_v>=bounds[3] or
+                        not periodic and (high_u<=bounds[0] or low_u>=bounds[1])):continue
+                if low_v>=bounds[2] and high_v<=bounds[3] and (periodic or low_u>=bounds[0] and high_u<=bounds[1]):
+                    result.append(Cell(position,polygon))
+                    continue
             world=tuple((position[0]+x,position[1]+y) for x,y in polygon)
             clipped=clipping.rectangle(world,bounds,periodic)
             if not clipped:continue
@@ -384,8 +402,8 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
                 raise ValueError("Pattern trim acceptance must be callable.")
             cells = tuple(cell for cell in cells if accept(cell))
         return Layout(cells, settings.pitch_mm, settings.pitch_mm, "fixed")
-    if mode not in ("balanced", "fill", "fit", "fixed"):
-        raise ValueError("Choose balanced, fill, fit or fixed pattern layout.")
+    if mode not in ("auto", "balanced", "fill", "fit", "fixed"):
+        raise ValueError("Choose auto, balanced, fill, fit or fixed pattern layout.")
     if type(max_cells) is not int or not 1 <= max_cells <= MAX_FACE_CELLS:
         raise ValueError("The face budget must be between 1 and 200 cells.")
     if mode == "balanced":
@@ -405,6 +423,9 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
         return Layout((), settings.pitch_mm, settings.pitch_mm, mode)
     if periodic and abs(available[1]-available[0]-period_u_mm) > max(1e-7, period_u_mm*1e-7):
         raise ValueError("The full-wrap chart width must match its period.")
+    if mode == 'auto':
+        from .auto_fit import build_auto_layout
+        return build_auto_layout(settings,available,period_u_mm,max_cells,accept)
     proposals = []
     dense_count = 0
     candidate_overflow = False

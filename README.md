@@ -5,7 +5,7 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current code:** experimental 0.10.8 provides surface patterns, an editable separate-pin hinge
+**Current code:** experimental 0.11.0 provides surface patterns, an editable separate-pin hinge
 and four snap-fit families: Hook latch, Ball detent, Torsion latch and Annular
 ring. Hook latch also offers straight, tapered or twin arms. Snap-fits include
 optional 45-degree root/receiver roofs and complete eligible outer-edge chamfers;
@@ -32,7 +32,7 @@ The final 0.5.0 native report passes 53 stated expectations: 40 generated
 geometry cases, six explicit larger-fillet refusals, six in-place/migration
 cases and one production-session workflow. Four attached fixture treatments each
 pass four Rebuilds without replacing the selected bodies or accumulating history.
-Local checks pass 839 Python tests, all three Node DOM suites and syntax/compilation
+Local checks pass 891 Python tests, all three Node DOM suites and syntax/compilation
 checks. The current hinge workflow has been user-confirmed
 in Fusion. Broader interaction coverage, save/reopen, Undo/Redo, motion and
 physical printing remain acceptance items. See
@@ -44,7 +44,15 @@ creation after rollback. The original model, document and camera are restored.
 Other tools remain planned. The older honeycomb input checker remains a separate
 diagnostic and creates no geometry.
 
-**New in 0.10.8:** **Balanced** now preserves the requested **Cell size** and
+**New in 0.11.0:** choose **Layout > Auto fit** to propose opening size and count
+from the selected surface, with **Sparse / Balanced / Dense** density. Editing
+Cell size locks it; choose **Size > Automatic** to resume suggestions. The search
+compares at most 16 numeric grids and only two reach surface acceptance before
+the selected layout creates exact geometry. Gap/border and existing source,
+curvature and solid guards remain. Saved v1/v2/v3 recipes retain their original
+layout; new recipes use v4. See the [Auto fit contract](docs/surface-patterns.md#auto-fit).
+
+Version 0.10.8 made **Balanced** preserve the requested **Cell size** and
 uses wider gaps to keep its sparse layout within 48 cells per face. Changing
 Cell size updates the actual openings even on large faces.
 
@@ -105,7 +113,7 @@ geometry remains separate for Create/Rebuild. Display scratch geometry is
 removed inside the rollback computation; temporary files are deleted. The
 unstable direct mesh-calculator experiment remains removed.
 
-**Try the updated tools:** Stop then Run Partelier to load 0.10.8. The tool library opens
+**Try the updated tools:** Stop then Run Partelier to load 0.11.0. The tool library opens
 automatically; choose **Snap-fit**, then **Snap type**. For Hook latch, Ball detent
 or Torsion latch, pick the base exterior wall A, the coplanar lid wall B,
 then either facing straight rim. Matching rims may have a gap between them;

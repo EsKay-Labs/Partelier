@@ -3,12 +3,14 @@
 // One pattern session serves the honeycomb, perforation and texture presets.
 (() => {
     const $ = id => document.getElementById(id);
-    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 17.5, web_mm: 5, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "balanced", edge_mode: "clip" });
+    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 17.5, web_mm: 5, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "balanced", edge_mode: "clip", density: "balanced", size_locked: false });
     const presets = { honeycomb: { pattern: "hexagon", mode: "through" }, perforation: { pattern: "circle", mode: "through" }, knurl: { pattern: "diamond", mode: "emboss" } };
     const choices = {
         pattern: [["hexagon", "Hexagons"], ["circle", "Circles"], ["diamond", "Diamonds"], ["square", "Squares"], ["slot", "Slots"]],
         mode: [["through", "Through holes"], ["engrave", "Engrave"], ["emboss", "Emboss"]],
-        layout_mode: [["balanced", "Balanced · fewer cells"], ["fill", "Fill face · fixed size"], ["fit", "Automatic size"], ["fixed", "Exact pitch"]],
+        layout_mode: [["auto", "Auto fit · visual balance"], ["balanced", "Balanced · fewer cells"], ["fill", "Fill face · fixed size"], ["fit", "Automatic size"], ["fixed", "Exact pitch"]],
+        density: [["sparse", "Sparse"], ["balanced", "Balanced"], ["dense", "Dense"]],
+        size_locked: [["false", "Automatic"], ["true", "Custom size"]],
         selection_scope: [["faces", "Selected faces"], ["body", "Whole body"]],
         edge_mode: [["clip", "Clip at border"], ["whole", "Whole cells only"]]
     };
@@ -112,6 +114,8 @@
     function sync() {
         for (const input of $("pattern-settings").querySelectorAll("[name]")) { input.value = state.settings[input.name]; input.setCustomValidity(""); }
         $("pattern-cell_size_mm").value = Number((state.settings.pitch_mm-state.settings.web_mm).toFixed(6));
+        if (state.settings.layout_mode === "auto" && !state.settings.size_locked && Number.isFinite(state.session?.suggestedSizeMm) && state.session.suggestedSizeMm > 0)
+            $("pattern-cell_size_mm").value = Number(state.session.suggestedSizeMm.toFixed(6));
         $("pattern-cell_size_mm").setCustomValidity("");
         renderArt();
     }
@@ -125,6 +129,10 @@
         }
         $("pattern-selection_scope").disabled = committing || editing();
         $("pattern-scope-note").hidden = !editing();
+        for (const name of ["density", "size_locked"]) {
+            const control = $("pattern-"+name); control.parentElement.hidden = state.settings.layout_mode !== "auto";
+            control.disabled = committing || state.settings.layout_mode !== "auto";
+        }
         $("pattern-pitch_mm").parentElement.children[0].textContent = "Pitch";
         $("pattern-pitch_mm").title = state.settings.layout_mode === "fit" ? "Automatic spacing adjusts this target to balance coverage of each face." : "Use this exact distance between repeated features.";
         const sized = true, size = $("pattern-cell_size_mm");
@@ -132,7 +140,9 @@
         size.parentElement.hidden = !sized; size.disabled = committing || !sized;
         size.parentElement.children[0].textContent = "Cell size";
         $("pattern-web_mm").parentElement.children[0].textContent = "Minimum gap";
-        $("pattern-layout-note").textContent = state.settings.layout_mode === "fill"
+        $("pattern-layout-note").textContent = state.settings.layout_mode === "auto"
+            ? state.settings.size_locked ? "Το μέγεθος κλειδώθηκε · προσαρμόζονται οι αποστάσεις." : "Αυτόματη πρόταση μεγέθους και πλήθους. Άλλαξε το Cell size για να το κλειδώσεις."
+            : state.settings.layout_mode === "fill"
             ? "Σταθερό μέγεθος · γέμισμα μέχρι το border. Έως 200/face."
             : state.settings.layout_mode === "balanced" ? "Σταθερό μέγεθος · έως 48/face, με μεγαλύτερα κενά όπου χρειάζεται."
             : "Το Automatic size προσαρμόζει το μέγεθος· το Exact pitch το διατηρεί.";
@@ -304,7 +314,7 @@
         const rect = event.target.getBoundingClientRect();
         if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.target.close();
     });
-    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Layout", "pattern-size-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"], ["edge_mode", "Edge cells", "pattern-scope-fields"]]) {
+    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Layout", "pattern-size-fields"], ["density", "Density", "pattern-size-fields"], ["size_locked", "Size", "pattern-size-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"], ["edge_mode", "Edge cells", "pattern-scope-fields"]]) {
         const item = document.createElement("div"); item.className = "parameter-item";
         const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
         const input = document.createElement("select"); input.id = `pattern-${name}`; input.name = name; input.required = true;
@@ -329,6 +339,7 @@
             const pitch = $("pattern-pitch_mm"); pitch.value = okay ? Number((size+state.settings.web_mm).toFixed(6)) : "";
             pitch.setCustomValidity(okay ? "" : "Enter a cell size greater than zero.");
             state.settings.pitch_mm = okay ? size+state.settings.web_mm : NaN;
+            if (state.settings.layout_mode === "auto") { state.settings.size_locked = true; $("pattern-size_locked").value = "true"; }
         } else if (!Object.prototype.hasOwnProperty.call(defaults, input.name)) return;
         const numeric = Number(input.value); trace("input", { name:input.name,value:input.type === "number" ? input.value.trim() && Number.isFinite(numeric) && Math.abs(numeric)<1e12 ? numeric : null : choices[input.name]?.some(([value])=>value===input.value) ? input.value : "unsupported" });
         if (input.name === "selection_scope" && editing()) { input.value = state.settings.selection_scope; message("Create a new pattern to change between selected faces and a whole body.", true); return; }
@@ -345,7 +356,19 @@
         } else {
             input.setCustomValidity(choices[input.name].some(([value]) => value === input.value) ? "" : "Choose a supported option.");
             if (input.name === "selection_scope" && input.value !== state.settings.selection_scope && active()) state.session = { ...state.session, selections: {} };
-            state.settings[input.name] = input.value;
+            if (input.name === "size_locked" && input.value === "true" && $("pattern-cell_size_mm").checkValidity()) {
+                state.settings.pitch_mm = Number($("pattern-cell_size_mm").value)+state.settings.web_mm;
+                $("pattern-pitch_mm").value = state.settings.pitch_mm;
+            }
+            if (input.name === "size_locked" && input.value === "false") {
+                const field = $("pattern-cell_size_mm"), currentSize = Number(field.value);
+                const size = field.value.trim() && Number.isFinite(currentSize) && currentSize > 0 ? currentSize
+                    : defaults.pitch_mm-defaults.web_mm;
+                state.settings.pitch_mm = size+state.settings.web_mm;
+                field.setCustomValidity(""); $("pattern-pitch_mm").setCustomValidity("");
+                $("pattern-pitch_mm").value = state.settings.pitch_mm;
+            }
+            state.settings[input.name] = input.name === "size_locked" ? input.value === "true" : input.value;
         }
         if (input.id !== "pattern-cell_size_mm" && (input.name !== "web_mm" || !sized))
             $("pattern-cell_size_mm").value = Number((state.settings.pitch_mm-state.settings.web_mm).toFixed(6));
@@ -380,5 +403,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.10.8" }); renderArt(); render();
+    trace("boot", { build:"0.11.0" }); renderArt(); render();
 })();

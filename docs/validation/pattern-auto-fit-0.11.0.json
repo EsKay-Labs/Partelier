@@ -1,0 +1,1247 @@
+{
+  "product_version": "0.11.0",
+  "date_local": "2026-10-24",
+  "fusion_version": "2705.1.30",
+  "native_source_manifest": {
+    "files": {
+      "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+      "Partelier/partelier/addin.py": "b281358a644e8f8dfd3a5852562b615c7e9244379b59ff134ac366b506a7b4f1",
+      "Partelier/partelier/diagnostics.py": "976e36cc6f3773edd05e01ed3109d3f4d3f6ed2f0789611f6fd31cf5ada69e7c",
+      "Partelier/partelier/palette.py": "4a0852652eae16b662406557ef093e140c3781755aa1c17a5b09bf5c5814c4ae",
+      "Partelier/partelier/palette_protocol.py": "dc5a918efaee401999a99a1eedf275fe8930996220a9c2b0faa8213eb68c7983",
+      "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+      "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+      "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+      "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+      "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+      "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+      "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+      "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+      "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+      "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+      "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+      "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+      "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+      "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+      "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+      "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+      "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+      "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+      "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+      "Partelier/partelier/tools/patterns/auto_fit.py": "5be4178c056629c6486ae2558653ad1eaf7f6fcaa10820309ed74ceea4345289",
+      "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+      "Partelier/partelier/tools/patterns/clipping.py": "1d5583190a77e6b164e000353c9237aa446fe762bd6c4d20f72703ddb7968822",
+      "Partelier/partelier/tools/patterns/command.py": "2dcfbf92f43573b8cf497cd87659ba4d3c6fc51aa316ab7ceebe1d593ad9e4b2",
+      "Partelier/partelier/tools/patterns/display_export.py": "4c4a4c311e4b92c09971049f3246a73f93a5454bbc462db3636e95b97990f77f",
+      "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+      "Partelier/partelier/tools/patterns/fusion.py": "58ed2c47e9f9b047352f8381e413add1bd3cd9575597cb849fc1897ae711a167",
+      "Partelier/partelier/tools/patterns/planner.py": "05a3377a53ea0782c17c91d3ec3a5b2d87773c69e21d2f1dff910ea237fe3239",
+      "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+      "Partelier/partelier/tools/patterns/prism.py": "81ead0af6f892d4190f752972ad0f1ca3671bbff056c31810d9d42919effcd21",
+      "Partelier/partelier/tools/patterns/recipe.py": "e2be025c340fbef802a008f19afe050b0e70a61efe87fb395af7adc3f81c013d",
+      "Partelier/partelier/tools/patterns/settings.py": "0503d5220cd6e4c4b038b15b2ccd154008189347a3ead5dcce9fdc6677d6b296",
+      "Partelier/partelier/tools/patterns/store.py": "d8379a2663fb72fbf912e79323dafb4f607008893d641459227e59c8af03e52f",
+      "Partelier/partelier/tools/patterns/surfaces.py": "8a4e392b38e22f8c3579271b11499b0b7480f3e0abf829785a9f9be9761da74f",
+      "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80",
+      "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+      "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+      "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+      "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+      "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+      "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+      "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+      "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+      "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+      "tools/fusion/JoinFinishProbe/JoinFinishProbe.py": "67a57e39a6ee093f25efaef8b04f8fc35fd1e4df8db6a5695cd9a351f608126d",
+      "tools/fusion/PatternDisplayProbe/PatternDisplayProbe.py": "c880518c0ef0bb883d949da1d24094a41695b86314453bcc918811bcd2b8a1a8",
+      "tools/fusion/PatternProbe/PatternProbe.py": "69bcb8ee8fa95873cd18e0aaa07158293cea5955cc29330b7dec666a0dc57f02",
+      "tools/fusion/PatternStatusProbe/PatternStatusProbe.py": "8102f16431c7f1507a67af1df22a9d749dff9f7e2a3b02135f6a3eda63ca83ed",
+      "tools/fusion/SnapFitProbe/SnapFitProbe.py": "fdda39fb9ad26700763284b50a69ab1dd4b8d8958b6b02be90b565f0ec104d8a"
+    },
+    "sha256": "ae4b069a4876e601f865ced8bd1c2b68889ae5d84639bd5973980c933bb866b3"
+  },
+  "native_matrix": {
+    "request_id": "419e7514-ca81-437e-9fb8-b9c71d54541f",
+    "success": true,
+    "cases_passed": 74,
+    "geometry_checks_passed": true,
+    "unchanged": true,
+    "cached_create_passed": true,
+    "production_async_passed": true,
+    "cases": [
+      {
+        "name": "clipped_plane_hexagon_through",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_hexagon_engrave",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_hexagon_emboss",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_circle_through",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_circle_engrave",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_circle_emboss",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_diamond_through",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_diamond_engrave",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_diamond_emboss",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_square_through",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_square_engrave",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_square_emboss",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_slot_through",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_slot_engrave",
+        "passed": true
+      },
+      {
+        "name": "clipped_plane_slot_emboss",
+        "passed": true
+      },
+      {
+        "name": "clipped_wrap_through",
+        "passed": true
+      },
+      {
+        "name": "clipped_wrap_engrave",
+        "passed": true
+      },
+      {
+        "name": "clipped_wrap_emboss",
+        "passed": true
+      },
+      {
+        "name": "clipped_faceted_hex_body",
+        "passed": true
+      },
+      {
+        "name": "clipped_real_trim_plane_hole",
+        "passed": true
+      },
+      {
+        "name": "clipped_real_trim_notched_panel",
+        "passed": true
+      },
+      {
+        "name": "auto_notched_panel_sparse",
+        "passed": true
+      },
+      {
+        "name": "auto_notched_panel_balanced",
+        "passed": true
+      },
+      {
+        "name": "auto_notched_panel_dense",
+        "passed": true
+      },
+      {
+        "name": "auto_density_order",
+        "passed": true
+      },
+      {
+        "name": "auto_plane_hexagon",
+        "passed": true
+      },
+      {
+        "name": "auto_plane_circle",
+        "passed": true
+      },
+      {
+        "name": "auto_plane_diamond",
+        "passed": true
+      },
+      {
+        "name": "auto_plane_square",
+        "passed": true
+      },
+      {
+        "name": "auto_plane_slot",
+        "passed": true
+      },
+      {
+        "name": "auto_wrap_through",
+        "passed": true
+      },
+      {
+        "name": "auto_wrap_engrave",
+        "passed": true
+      },
+      {
+        "name": "auto_wrap_emboss",
+        "passed": true
+      },
+      {
+        "name": "plane_through",
+        "passed": true
+      },
+      {
+        "name": "plane_engrave",
+        "passed": true
+      },
+      {
+        "name": "plane_emboss",
+        "passed": true
+      },
+      {
+        "name": "cylinder_through",
+        "passed": true
+      },
+      {
+        "name": "cylinder_engrave",
+        "passed": true
+      },
+      {
+        "name": "cylinder_emboss",
+        "passed": true
+      },
+      {
+        "name": "hex_through",
+        "passed": true
+      },
+      {
+        "name": "hex_engrave",
+        "passed": true
+      },
+      {
+        "name": "hex_emboss",
+        "passed": true
+      },
+      {
+        "name": "single_face_density_guidance_and_recovery",
+        "passed": true
+      },
+      {
+        "name": "full_cylinder_wrap_through",
+        "passed": true
+      },
+      {
+        "name": "full_cylinder_wrap_engrave",
+        "passed": true
+      },
+      {
+        "name": "full_cylinder_wrap_emboss",
+        "passed": true
+      },
+      {
+        "name": "cone_general_surface_engrave",
+        "passed": true
+      },
+      {
+        "name": "plane_pattern_circle",
+        "passed": true
+      },
+      {
+        "name": "plane_pattern_diamond",
+        "passed": true
+      },
+      {
+        "name": "plane_pattern_square",
+        "passed": true
+      },
+      {
+        "name": "plane_pattern_slot",
+        "passed": true
+      },
+      {
+        "name": "preview_graphics_cleanup",
+        "passed": true
+      },
+      {
+        "name": "same_body_create_edit_rebuild",
+        "passed": true
+      },
+      {
+        "name": "sphere_general_surface_engrave",
+        "passed": true
+      },
+      {
+        "name": "finite_trims_keep_middle_columns",
+        "passed": true
+      },
+      {
+        "name": "automatic_balanced_notched_panel",
+        "passed": true
+      },
+      {
+        "name": "automatic_dense_target_without_refusal",
+        "passed": true
+      },
+      {
+        "name": "automatic_full_wrap_through",
+        "passed": true
+      },
+      {
+        "name": "automatic_full_wrap_engrave",
+        "passed": true
+      },
+      {
+        "name": "automatic_full_wrap_emboss",
+        "passed": true
+      },
+      {
+        "name": "fill_fixed_size_plane_hexagon",
+        "passed": true
+      },
+      {
+        "name": "fill_fixed_size_plane_circle",
+        "passed": true
+      },
+      {
+        "name": "fill_fixed_size_plane_diamond",
+        "passed": true
+      },
+      {
+        "name": "fill_fixed_size_plane_square",
+        "passed": true
+      },
+      {
+        "name": "fill_fixed_size_plane_slot",
+        "passed": true
+      },
+      {
+        "name": "fill_fixed_size_wrap_through",
+        "passed": true
+      },
+      {
+        "name": "fill_fixed_size_wrap_engrave",
+        "passed": true
+      },
+      {
+        "name": "fill_fixed_size_wrap_emboss",
+        "passed": true
+      },
+      {
+        "name": "balanced_default_sparse_panel",
+        "passed": true
+      },
+      {
+        "name": "direct_prism_twenty_native_equivalences",
+        "passed": true
+      },
+      {
+        "name": "dense_batch_matches_exact_fallback",
+        "passed": true
+      },
+      {
+        "name": "production_async_supersede_postrollback_preview",
+        "passed": true
+      },
+      {
+        "name": "production_cached_result_create_rollback",
+        "passed": true
+      },
+      {
+        "name": "production_disposable_document_cleanup",
+        "passed": true
+      }
+    ],
+    "auto_cases": [
+      {
+        "acceptance_checks": 35,
+        "cells": 18,
+        "density": "sparse",
+        "name": "auto_notched_panel_sparse",
+        "passed": true,
+        "proposals": 16,
+        "size_mm": 69.7,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 298.31909999484196,
+          "source_and_plan_ms": 4216.511700011324,
+          "temporary_geometry_ms": 1098.390900006052,
+          "tool_clip_ms": 126.58420007210225,
+          "tool_construction_ms": 186.52659992221743,
+          "total_ms": 5314.902800018899,
+          "wall_checks_ms": 485.41010002372786
+        }
+      },
+      {
+        "acceptance_checks": 120,
+        "cells": 60,
+        "density": "balanced",
+        "name": "auto_notched_panel_balanced",
+        "passed": true,
+        "proposals": 16,
+        "size_mm": 28.721744454218566,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 580.7233999948949,
+          "source_and_plan_ms": 1129.772599961143,
+          "temporary_geometry_ms": 1933.7809000280686,
+          "tool_clip_ms": 195.97270025406033,
+          "tool_construction_ms": 306.85989977791905,
+          "total_ms": 3063.553799991496,
+          "wall_checks_ms": 848.4099003253505
+        }
+      },
+      {
+        "acceptance_checks": 224,
+        "cells": 112,
+        "density": "dense",
+        "name": "auto_notched_panel_dense",
+        "passed": true,
+        "proposals": 16,
+        "size_mm": 18.714285714285715,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 1375.9212999721058,
+          "source_and_plan_ms": 1583.0224999808706,
+          "temporary_geometry_ms": 3670.8693000255153,
+          "tool_clip_ms": 318.8360001659021,
+          "tool_construction_ms": 501.31039920961484,
+          "total_ms": 5253.892000007909,
+          "wall_checks_ms": 1472.1689003054053
+        }
+      },
+      {
+        "density_counts": [
+          18,
+          60,
+          112
+        ],
+        "name": "auto_density_order",
+        "passed": true
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "name": "auto_plane_hexagon",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 2.8,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 246.5041002142243,
+          "source_and_plan_ms": 263.99980002315715,
+          "temporary_geometry_ms": 1400.086999987252,
+          "tool_clip_ms": 93.91709958435968,
+          "tool_construction_ms": 215.8615998341702,
+          "total_ms": 1664.0871000126936,
+          "wall_checks_ms": 785.8110000379384
+        },
+        "volume_delta_mm3": -141.46334676154336,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -11.962084325460458,
+              -7.171994718767142,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -11.985781622047671,
+              -8.636244172471349,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.882153760279033,
+              -7.442510934588761,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "name": "auto_plane_circle",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 2.8,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 893.4976002783515,
+          "source_and_plan_ms": 1418.934100016486,
+          "temporary_geometry_ms": 4778.991199971642,
+          "tool_clip_ms": 234.44119992200285,
+          "tool_construction_ms": 608.8491997215897,
+          "total_ms": 6197.925599990413,
+          "wall_checks_ms": 2986.3290000357665
+        },
+        "volume_delta_mm3": -128.1109207544606,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -12.0,
+              -8.612186924792368,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.880798872134581,
+              -7.449984676231637,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.031515508346725,
+              -8.9206331437563,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 35,
+        "name": "auto_plane_diamond",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 3.04,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 196.97770028142259,
+          "source_and_plan_ms": 180.62220001593232,
+          "temporary_geometry_ms": 1185.0905999890529,
+          "tool_clip_ms": 80.98869991954416,
+          "tool_construction_ms": 184.23690035706386,
+          "total_ms": 1365.713000006508,
+          "wall_checks_ms": 665.5792997335084
+        },
+        "volume_delta_mm3": -80.54631264577327,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -11.805234814480986,
+              -8.8035047482052,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -12.54667554592675,
+              -9.11379862811722,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -13.123174563759928,
+              -8.115325333881465,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 35,
+        "name": "auto_plane_square",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 3.04,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 166.61569982534274,
+          "source_and_plan_ms": 189.8638000129722,
+          "temporary_geometry_ms": 1065.3229999588802,
+          "tool_clip_ms": 74.92530019953847,
+          "tool_construction_ms": 164.62039994075894,
+          "total_ms": 1255.1869999733754,
+          "wall_checks_ms": 598.1243996066041
+        },
+        "volume_delta_mm3": -157.6595475753062,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -12.594156589051313,
+              -7.0660172839162385,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -12.594156589051313,
+              -8.580173872967551,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.48,
+              -7.26862181195963,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 35,
+        "name": "auto_plane_slot",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 2.9714285714285715,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 466.0742998821661,
+          "source_and_plan_ms": 563.4235999896191,
+          "temporary_geometry_ms": 3339.8832000093535,
+          "tool_clip_ms": 156.7817999748513,
+          "tool_construction_ms": 420.7822997123003,
+          "total_ms": 3903.3070000004955,
+          "wall_checks_ms": 2237.4533998663537
+        },
+        "volume_delta_mm3": -56.274036506329224,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -11.311729895853004,
+              -8.43430399524089,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -12.041710728965514,
+              -8.151551445052284,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -13.347423608449876,
+              -8.337282968214426,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "name": "auto_wrap_through",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 4.702064327658225,
+        "timings": {
+          "batch_aggregate_ms": 91.51240001665428,
+          "batch_apply_ms": 61.305099981836975,
+          "batch_total_ms": 152.81749999849126,
+          "batch_union_calls": 44,
+          "batch_used": true,
+          "result_application_ms": 159.62290001334623,
+          "source_and_plan_ms": 319.82169998809695,
+          "temporary_geometry_ms": 1384.6619999967515,
+          "tool_clip_ms": 72.80520035419613,
+          "tool_construction_ms": 147.44329993845895,
+          "total_ms": 1704.48379998561,
+          "wall_checks_ms": 1003.8321001920849
+        },
+        "volume_delta_mm3": -2585.140626878481,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.000000000000002,
+            "next_entry_mm": 29.00000000000001,
+            "point_mm": [
+              15.650361611740893,
+              3.326587053084147,
+              4.856841263119723
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.000000000000001,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              12.944271909999161,
+              9.404564036679567,
+              4.856841263119723
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.9999999999999996,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              8.000000000000005,
+              13.856406460551016,
+              4.856841263119723
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "name": "auto_wrap_engrave",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 4.702064327658225,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 281.16060025058687,
+          "source_and_plan_ms": 333.3758999942802,
+          "temporary_geometry_ms": 2511.196999985259,
+          "tool_clip_ms": 73.14309995854273,
+          "tool_construction_ms": 154.90970003884286,
+          "total_ms": 2844.5731999818236,
+          "wall_checks_ms": 1940.0493000866845
+        },
+        "volume_delta_mm3": -430.59752792644446,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.000000000000002,
+            "next_entry_mm": 29.00000000000001,
+            "point_mm": [
+              15.650361611740893,
+              3.326587053084147,
+              4.856841263119723
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.000000000000001,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              12.944271909999161,
+              9.404564036679567,
+              4.856841263119723
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.9999999999999996,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              8.000000000000005,
+              13.856406460551016,
+              4.856841263119723
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "name": "auto_wrap_emboss",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 4.702064327658225,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 264.4890997908078,
+          "source_and_plan_ms": 339.07449996331707,
+          "temporary_geometry_ms": 599.5334000326693,
+          "tool_clip_ms": 82.63329975306988,
+          "tool_construction_ms": 172.41439974168316,
+          "total_ms": 938.6082999990322,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 430.5161035811711,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              15.650361611740893,
+              3.326587053084147,
+              4.856841263119723
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              12.944271909999161,
+              9.404564036679567,
+              4.856841263119723
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.000000000000005,
+              13.856406460551016,
+              4.856841263119723
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "native_display_workflow": {
+    "request_id": "d2ea602e-7b5b-4884-83c0-5f08b54752db",
+    "success": true,
+    "display_cycles_passed": 12,
+    "auto_proposal": {
+      "acceptance_checks": 78,
+      "cells": 39,
+      "proposals": 16,
+      "size_mm": 28.5,
+      "timings": {
+        "batch_used": false,
+        "display_capture_ms": 214.97579995775595,
+        "result_application_ms": 270.22359997499734,
+        "source_and_plan_ms": 272.91739999782294,
+        "temporary_geometry_ms": 727.12529997807,
+        "tool_clip_ms": 89.12239997880533,
+        "tool_construction_ms": 181.35450000409037,
+        "total_ms": 1000.0429999781772,
+        "wall_checks_ms": 185.28819998027757
+      }
+    },
+    "auto_rebuild": {
+      "cells": 76,
+      "density": "dense",
+      "owned_features": 3,
+      "same_body": true,
+      "settings_restored": true,
+      "size_mm": 8
+    },
+    "auto_workflow_passed": true,
+    "original_model_and_camera_unchanged": true,
+    "cleanup_errors": []
+  },
+  "local": {
+    "python_tests": 891,
+    "node_dom_suites": [
+      "patterns",
+      "palette",
+      "snap_fit"
+    ],
+    "headless_edge": [
+      {
+        "width": 300,
+        "dialog_bounds": {
+          "x": 13,
+          "y": 228.5500030517578,
+          "width": 274,
+          "height": 442.90000915527344
+        },
+        "page_errors": [],
+        "manual_lock_passed": true
+      },
+      {
+        "width": 380,
+        "dialog_bounds": {
+          "x": 13,
+          "y": 236.60000610351562,
+          "width": 354,
+          "height": 426.8000183105469
+        },
+        "page_errors": [],
+        "manual_lock_passed": true
+      },
+      {
+        "width": 520,
+        "dialog_bounds": {
+          "x": 55,
+          "y": 222.60000610351562,
+          "width": 410,
+          "height": 454.8000183105469
+        },
+        "page_errors": [],
+        "manual_lock_passed": true
+      }
+    ],
+    "controls_screenshot_inspected": "380 px",
+    "compilation_passed": true,
+    "whitespace_check_passed": true
+  },
+  "ui_source_hashes": {
+    "Partelier/partelier/ui/catalog.js": {
+      "working_bytes_sha256": "c3cb38d584b61ce531aaedee641a1281e4ca784cb71650e07ab8b3894e0cb278",
+      "staged_bytes_sha256": "c3cb38d584b61ce531aaedee641a1281e4ca784cb71650e07ab8b3894e0cb278"
+    },
+    "Partelier/partelier/ui/illustrations.js": {
+      "working_bytes_sha256": "e46a0007ac258d6afdf635a643e40cf6c8b7de1ce8ef9c1b61108494251070f6",
+      "staged_bytes_sha256": "e46a0007ac258d6afdf635a643e40cf6c8b7de1ce8ef9c1b61108494251070f6"
+    },
+    "Partelier/partelier/ui/palette.css": {
+      "working_bytes_sha256": "73a1753948cd8a10a6c033a2d7a4b5671661429bbe7874940271c319ca01c8c2",
+      "staged_bytes_sha256": "73a1753948cd8a10a6c033a2d7a4b5671661429bbe7874940271c319ca01c8c2"
+    },
+    "Partelier/partelier/ui/palette.html": {
+      "working_bytes_sha256": "e07f7a7772b7c621a85037aeef32a100a2938117b9870f4ce2c2f24a6d2e4c55",
+      "staged_bytes_sha256": "e07f7a7772b7c621a85037aeef32a100a2938117b9870f4ce2c2f24a6d2e4c55"
+    },
+    "Partelier/partelier/ui/palette.js": {
+      "working_bytes_sha256": "176c73461596004bdf4d144708664b6b76a9d439bd398a5eb88452719c721807",
+      "staged_bytes_sha256": "176c73461596004bdf4d144708664b6b76a9d439bd398a5eb88452719c721807"
+    },
+    "Partelier/partelier/ui/pattern-help.js": {
+      "working_bytes_sha256": "1035cd573a8bdf571871f1f328b062ee0734ef50e8f4f58327c4848c8b8af95b",
+      "staged_bytes_sha256": "1035cd573a8bdf571871f1f328b062ee0734ef50e8f4f58327c4848c8b8af95b"
+    },
+    "Partelier/partelier/ui/patterns.js": {
+      "working_bytes_sha256": "64652e963ac299ca2c35089d208885666c8a9d35b707ae175ca866aae326ceea",
+      "staged_bytes_sha256": "64652e963ac299ca2c35089d208885666c8a9d35b707ae175ca866aae326ceea"
+    },
+    "Partelier/partelier/ui/snap.js": {
+      "working_bytes_sha256": "f3a79b8e14b1d05094fa98fcfd57961e3a8fa5f19775987e51952b1ccf2a45c7",
+      "staged_bytes_sha256": "619d13aca3fc45ceea21055b06d88a423224a9cd8ee4d93c9d79a78b4a8a59c0"
+    }
+  },
+  "pure_planning_benchmark": {
+    "scope": "Alternating reference full polygon clipping / optimized interior-bounds path, same process and inputs. Pure numeric planning only: excludes surface acceptance, CAD, export and rendering. Concurrent native validation may affect absolute timings.",
+    "repetitions_per_path_per_case": 5,
+    "warmups_per_path_per_case": 1,
+    "face_mm": [
+      300,
+      170
+    ],
+    "cases": [
+      {
+        "shape": "hexagon",
+        "density": "sparse",
+        "reference_ms": 23.478399962186813,
+        "optimized_ms": 11.264199973084033,
+        "ratio": 2.084337992781448,
+        "cells": 18,
+        "size_mm": 69.7,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "hexagon",
+        "density": "balanced",
+        "reference_ms": 53.25940001057461,
+        "optimized_ms": 19.747400016058236,
+        "ratio": 2.6970335318707783,
+        "cells": 57,
+        "size_mm": 28.200000000000003,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "hexagon",
+        "density": "dense",
+        "reference_ms": 95.24729999247938,
+        "optimized_ms": 33.9422999531962,
+        "ratio": 2.806153387478693,
+        "cells": 121,
+        "size_mm": 18.153846153846153,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "circle",
+        "density": "sparse",
+        "reference_ms": 83.52220000233501,
+        "optimized_ms": 30.94200004125014,
+        "ratio": 2.699314843610235,
+        "cells": 18,
+        "size_mm": 69.7,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "circle",
+        "density": "balanced",
+        "reference_ms": 185.23730000015348,
+        "optimized_ms": 55.77350000385195,
+        "ratio": 3.321242166752315,
+        "cells": 57,
+        "size_mm": 28.200000000000003,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "circle",
+        "density": "dense",
+        "reference_ms": 345.24539997801185,
+        "optimized_ms": 84.09580000443384,
+        "ratio": 4.1053821945900895,
+        "cells": 108,
+        "size_mm": 19.213493939299948,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "diamond",
+        "density": "sparse",
+        "reference_ms": 19.584099994972348,
+        "optimized_ms": 10.665099951438606,
+        "ratio": 1.83627908637937,
+        "cells": 15,
+        "size_mm": 69.7,
+        "proposals": 16,
+        "same_count_and_size": false
+      },
+      {
+        "shape": "diamond",
+        "density": "balanced",
+        "reference_ms": 38.10870001325384,
+        "optimized_ms": 14.67369997408241,
+        "ratio": 2.5970750445057322,
+        "cells": 45,
+        "size_mm": 29.200000000000003,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "diamond",
+        "density": "dense",
+        "reference_ms": 67.61620001634583,
+        "optimized_ms": 22.452600009273738,
+        "ratio": 3.011508688900969,
+        "cells": 91,
+        "size_mm": 19.428571428571427,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "square",
+        "density": "sparse",
+        "reference_ms": 19.435899972449988,
+        "optimized_ms": 9.100799972657114,
+        "ratio": 2.1356254429109693,
+        "cells": 15,
+        "size_mm": 55.2,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "square",
+        "density": "balanced",
+        "reference_ms": 37.94399998150766,
+        "optimized_ms": 15.611200011335313,
+        "ratio": 2.430562670003361,
+        "cells": 45,
+        "size_mm": 29.200000000000003,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "square",
+        "density": "dense",
+        "reference_ms": 68.44160001492128,
+        "optimized_ms": 24.280300014652312,
+        "ratio": 2.8188119575795674,
+        "cells": 91,
+        "size_mm": 19.428571428571427,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "slot",
+        "density": "sparse",
+        "reference_ms": 62.11050000274554,
+        "optimized_ms": 21.39269997132942,
+        "ratio": 2.9033502122680295,
+        "cells": 15,
+        "size_mm": 69.7,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "slot",
+        "density": "balanced",
+        "reference_ms": 140.72959998156875,
+        "optimized_ms": 32.43269998347387,
+        "ratio": 4.3391268705127155,
+        "cells": 45,
+        "size_mm": 28.444444444444443,
+        "proposals": 16,
+        "same_count_and_size": true
+      },
+      {
+        "shape": "slot",
+        "density": "dense",
+        "reference_ms": 254.62969997897744,
+        "optimized_ms": 53.85069997282699,
+        "ratio": 4.72843807243849,
+        "cells": 91,
+        "size_mm": 18.714285714285715,
+        "proposals": 16,
+        "same_count_and_size": true
+      }
+    ],
+    "comparable_cases": 14,
+    "median_ratio_comparable_cases": 2.8124826725291303,
+    "comparison_limit": "One sparse diamond case selects a different proposal and is excluded from the aggregate comparison. Individual grid boundary vertices are separately regression-tested against reference clipping."
+  },
+  "superseded_run": {
+    "request_id": "3159d379-9d2b-47d6-92d2-650ded160a18",
+    "reason": "Optimization changed sources during this preliminary run; bridge correctly rejects it as final-source evidence. The two final requests above use identical unchanged source manifests."
+  },
+  "limits": [
+    "Native selections are programmatic; actual Fusion CEF/pointer acceptance remains separate.",
+    "Heuristic visual balance is not optimal packing, strength analysis or physical print validation.",
+    "Benchmark excludes surface acceptance, CAD creation, mesh export and rendering; timings depend on machine and load."
+  ]
+}

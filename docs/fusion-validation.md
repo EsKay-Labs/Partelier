@@ -46,6 +46,59 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Bounded visual Auto fit (0.11.0)
+
+Auto fit adds Sparse / Balanced / Dense suggestions to the existing five shapes.
+It chooses size and count from chart dimensions and aspect ratio, evaluates
+coverage, opposite margins and tiny edge fragments, and retains physical
+border/gap/curvature/solid guards. Editing Cell size locks it; Automatic restores
+suggestions. Recipe v4 saves density and the boolean lock, while v1/v2/v3 load
+without rewriting their stored recipes. The default Balanced layout is retained;
+Auto fit is explicitly selected in Layout.
+
+Final native matrix `419e7514-ca81-437e-9fb8-b9c71d54541f` passes **74 cases**
+on Fusion 2705.1.30, including 12 new Auto fit checks: three densities on a notched
+panel, density ordering, five engraved planar shapes and full-cylinder
+Through/Engrave/Emboss. The panel resolves to 18/60/112 cells and approximately
+69.70/28.72/18.71 mm openings. Original model snapshots, references and the
+production async/cached-create checks pass.
+
+Native display/workflow request `d2ea602e-7b5b-4884-83c0-5f08b54752db` passes
+all 12 cached display cycles, the previous Balanced size regression, and the
+new Auto fit Preview/Create/Edit/Rebuild path. Its 200 × 160 mm face proposes
+39 cells at 28.5 mm, with 16 numeric proposals and 78 surface acceptance calls.
+Exact preparation plus standard STL display capture takes about 1.00 s in this
+fixture; that is not a general preview latency guarantee. Rebuild with a locked
+8 mm opening and Dense density produces 76 cells, preserves the same target
+and three owned history features, and reloads both new settings correctly.
+The original model/document/camera are restored without cleanup errors.
+Both final native requests have the same unchanged runtime/probe manifest,
+verified against working files and staged Git bytes.
+
+Local checks pass **891 Python tests**, all **three Node DOM suites**, compilation
+and whitespace checks. Headless Edge at 300/380/520 px checks responsive controls,
+automatic locking and help bounds/Esc dismissal; the controls screenshot was
+inspected. New tests cover strict settings, v3 compatibility, suggested-size
+state, stale-size rejection, exact dimensions, density ordering, minimum gaps,
+wraps, work bounds, and equivalence of fast/reference boundary clipping,
+including tiny degenerate fragments.
+
+Efficiency is bounded at 16 numeric grids and two surface-checked proposals per
+face. Interior cells reuse a cleaned shape template and bypass polygon clipping.
+An alternating same-process comparison on a 300 × 170 mm chart measures numeric
+planning medians of about 9–84 ms across 15 shape/density cases. Fourteen cases
+retain the same count/size and show a median 2.81× reduction; a sparse diamond
+case chooses a different proposal and is excluded from that aggregate. The
+matching dense-circle case changes from 345 to 84 ms (4.11×). These measurements
+exclude surface queries, CAD, export and rendering and depend on machine/load.
+
+The preliminary run `3159d379-9d2b-47d6-92d2-650ded160a18` passes its geometry
+checks but is correctly rejected by the bridge because optimization changed
+sources during that run. It is not counted as final-source evidence. See
+[scoped evidence, timings and source hashes](validation/pattern-auto-fit-0.11.0.json).
+Selections are programmatic; actual Fusion CEF/pointer acceptance, aesthetic
+preference and physical printing remain separate from these checks.
+
 ## Balanced preserves requested Cell size (0.10.8)
 
 Balanced previously enlarged openings to satisfy its 48-cell soft budget. On

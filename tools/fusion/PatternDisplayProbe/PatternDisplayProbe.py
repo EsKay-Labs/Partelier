@@ -258,6 +258,37 @@ def _start_workflow(package,design,box,checkpoint,report,finish,runtime):
             report['balanced_size_control_passed']=True
             report['workflow_passed']=True
             report['rollback_export_create_edit_rebuild']=True
+            queue('auto_new')
+        except Exception as error:failed(error)
+    def auto_created(prepared):
+        try:
+            draw_checked(prepared)
+            layout=prepared.layouts[0]
+            if not 0<prepared.cell_count<=64 or layout.proposals_evaluated>16 or layout.acceptance_checks>128:
+                raise RuntimeError('Auto fit production planning exceeded its work bounds.')
+            if (root.bRepBodies.count,design.timeline.count)!=runtime['auto_before']:
+                raise RuntimeError('Auto preview export leaked scratch history.')
+            runtime['auto_anchor']=recipe.create_pattern(design,prepared)
+            runtime['auto_target']=recipe.read_edit_target(design,runtime['auto_source'])
+            report['auto_proposal']={'size_mm':layout.cell_size_mm,'cells':prepared.cell_count,
+                'proposals':layout.proposals_evaluated,'acceptance_checks':layout.acceptance_checks,'timings':prepared.timings}
+            queue('auto_edit')
+        except Exception as error:failed(error)
+    def auto_rebuilt(prepared):
+        try:
+            draw_checked(prepared)
+            if prepared.layouts[0].cell_size_mm!=8:raise RuntimeError('Auto Rebuild changed the locked size.')
+            if recipe.rebuild_pattern(design,runtime['auto_target'],prepared)!=runtime['auto_anchor']:
+                raise RuntimeError('Auto Rebuild replaced its anchor.')
+            before_bodies,before_history=runtime['auto_before']
+            target=recipe.read_edit_target(design,runtime['auto_source'])
+            if (root.bRepBodies.count!=before_bodies or design.timeline.count!=before_history+3
+                    or target.record.target!=runtime['auto_source'] or not target.settings.size_locked
+                    or target.settings.density!='dense' or target.settings.pitch_mm!=13):
+                raise RuntimeError('Auto Rebuild lost target identity, history or saved settings.')
+            report['auto_rebuild']={'size_mm':8,'density':'dense','cells':prepared.cell_count,
+                'same_body':True,'owned_features':3,'settings_restored':True}
+            report['auto_workflow_passed']=True
             queue('finish')
         except Exception as error:failed(error)
     class Stage(core.CustomEventHandler):
@@ -268,6 +299,19 @@ def _start_workflow(package,design,box,checkpoint,report,finish,runtime):
                     session=command._Session(NS(),design,replace(settings,pitch_mm=10),True)
                     session.edit_target=runtime['target']
                     runner.request(session,lambda:compute(session),rebuilt,failed)
+                elif args.additionalInfo=='auto_new':
+                    feature=root.features.baseFeatures.add()
+                    feature.startEdit();root.bRepBodies.add(box(30,0,20,16,.3),feature);feature.finishEdit()
+                    source=feature.bodies.item(0);runtime['auto_source']=source
+                    runtime['auto_before']=(root.bRepBodies.count,design.timeline.count)
+                    session=command._Session(NS(),design,replace(settings,layout_mode='auto'),False)
+                    session.faces=tuple(face for face in (source.faces.item(i) for i in range(source.faces.count))
+                        if core.Plane.cast(face.geometry) is not None and face.evaluator.getNormalAtPoint(face.pointOnFace)[1].z>.99)
+                    runner.request(session,lambda:compute(session),auto_created,failed)
+                elif args.additionalInfo=='auto_edit':
+                    session=command._Session(NS(),design,replace(settings,layout_mode='auto',density='dense',size_locked=True,pitch_mm=13),True)
+                    session.edit_target=runtime['auto_target']
+                    runner.request(session,lambda:compute(session),auto_rebuilt,failed)
                 else:finish()
             except Exception as error:failed(error)
     handler=Stage();runtime['handler']=handler

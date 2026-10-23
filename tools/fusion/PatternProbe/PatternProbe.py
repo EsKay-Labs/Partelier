@@ -756,11 +756,54 @@ def _clip_cases(design):
         _case('clipped_real_trim_'+kind,trimmed)
 
 
+def _auto_cases(design):
+    Settings=STATE['settings_module'].PatternSettings
+    planner=importlib.import_module(STATE['adapter'].__package__+'.auto_fit')
+    counts=[]
+    for density in ('sparse','balanced','dense'):
+        def panel(density=density):
+            _,body,faces=fixture(design,'notched_panel')
+            settings=Settings(layout_mode='auto',density=density,web_mm=5,border_mm=2)
+            prepared=prepare_checked(design,faces,settings)
+            layout=prepared.layouts[0]
+            if not 0<layout.cell_count<=planner.DENSITIES[density][1]:raise RuntimeError('Auto density work bound failed.')
+            if layout.proposals_evaluated>16 or layout.acceptance_checks>2*planner.DENSITIES[density][1]:
+                raise RuntimeError('Auto planning exceeded its explicit work budget.')
+            counts.append(layout.cell_count)
+            return {'cells':prepared.cell_count,'size_mm':layout.cell_size_mm,'density':density,
+                    'proposals':layout.proposals_evaluated,'acceptance_checks':layout.acceptance_checks,'timings':prepared.timings}
+        _case('auto_notched_panel_'+density,panel)
+    def ordered():
+        if len(counts)!=3 or not counts[0]<counts[1]<counts[2]:raise RuntimeError('Native density choices did not change the cell count.')
+        return {'density_counts':counts}
+    _case('auto_density_order',ordered)
+    for shape in ('hexagon','circle','diamond','square','slot'):
+        def planar(shape=shape):
+            _,body,faces=fixture(design,'plane')
+            settings=Settings(layout_mode='auto',pattern=shape,web_mm=1.2,border_mm=2,depth_mm=.5,mode='engrave')
+            prepared=prepare_checked(design,faces,settings)
+            detail=inspect(prepared,'plane');detail['size_mm']=prepared.layouts[0].cell_size_mm
+            return detail
+        _case('auto_plane_'+shape,planar)
+    for mode in ('through','engrave','emboss'):
+        def wrapped(mode=mode):
+            _,body,faces=fixture(design,'cylinder_wrap')
+            settings=Settings(layout_mode='auto',web_mm=2,border_mm=2,depth_mm=.5,mode=mode)
+            prepared=prepare_checked(design,faces,settings)
+            layout=prepared.layouts[0]
+            period=STATE['adapter'].SurfaceMap(faces[0]).period_u_mm
+            if abs(round(period/layout.pitch_mm)*layout.pitch_mm-period)>1e-7:raise RuntimeError('Auto wrap did not close.')
+            detail=inspect(prepared,'cylinder_wrap');detail['size_mm']=layout.cell_size_mm
+            return detail
+        _case('auto_wrap_'+mode,wrapped)
+
+
 def cases():
     design = STATE["design"]
     Settings = _fixed_settings
     recipe = STATE["recipe"]
     _clip_cases(design)
+    _auto_cases(design)
     fixtures = {}
     for kind in ("plane", "cylinder", "hex"):
         fixtures[kind] = fixture(design, kind)
@@ -856,6 +899,7 @@ def cases():
         source_signature = prepared.source_signature
         legacy=json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)
         legacy['version']=1;legacy['settings'].pop('layout_mode');legacy['settings'].pop('edge_mode')
+        legacy['settings'].pop('density');legacy['settings'].pop('size_locked')
         legacy_raw=json.dumps(legacy,separators=(',',':'))
         anchor.attributes.add(recipe.GROUP,'recipe',legacy_raw)
         legacy_target=recipe.read_edit_target(design,plane)
@@ -881,7 +925,7 @@ def cases():
                 raise RuntimeError("Rebuild added geometry/history, lost settings, or changed the target identity/state.")
             if _signature(plane) != _signature(updated.result_body):
                 raise RuntimeError("Rebuild did not persist the exact full preview shape.")
-        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=3:
+        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=4:
             raise RuntimeError('The explicit legacy rebuild did not migrate its recipe.')
         return {"same_body": True, "extra_bodies": 0, "owned_features": 3, "rebuild_modes": 3,
                 "face_edge_body_feature_edit": True, "original_source_signature": source_signature,

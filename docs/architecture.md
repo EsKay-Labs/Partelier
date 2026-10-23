@@ -41,6 +41,7 @@ must be recorded during native validation; developer checks use local Python.
 | `Partelier/partelier/ui/snap.js` | Independent snap-fit form/session controller; library shell forwards host messages |
 | `tools/fusion/HingeFixture/` / `SnapFitFixture/` | Standalone new-document reference fixtures |
 | `tools/fusion/SnapFitProbe/` | Fixed rollback-only snap-fit native checks |
+| `Partelier/partelier/tools/patterns/auto_fit.py` | Bounded numeric visual-layout scoring, density and exact-size locks; at most two surface-checked proposals |
 
 Fusion requires a matching Python entry point and manifest in the add-in folder.
 The bundle uses package-relative imports, following Autodesk's

@@ -217,9 +217,12 @@ class _Session:
     def snapshot(self):
         valid=(self.edit_target is not None if self.editing else bool(self.faces) and all(face.isValid for face in self.faces))
         label=('Pattern selected' if self.editing else str(len(self.faces))+' face(s) on '+self.faces[0].body.name) if valid else 'Not selected'
+        sizes=([layout.cell_size_mm for layout in self.prepared.layouts if layout.cell_count and layout.cell_size_mm is not None]
+               if self.settings.layout_mode=='auto' and self.preview_current else [])
         return {'sessionId':self.session_id,'revision':self.revision,'phase':self.phase,'editing':self.editing,
                 'settings':self.settings.to_dict(),'selections':{'surface':{'selected':bool(valid),'label':label}},
-                'previewCurrent':self.preview_current,'message':self.message}
+                'previewCurrent':self.preview_current,'message':self.message,
+                'suggestedSizeMm':min(sizes) if sizes else None}
 
     def ensure_design(self):
         if self.closed or _design()!=self.design:raise ValueError("The active design changed. Start a new pattern.")
@@ -295,7 +298,15 @@ class _Session:
                             ' '.join(f'{key}={value:.3f}' for key,value in timings.items() if type(value) in (int,float)))
                     except Exception:pass
                 self.phase='preview';self.message=str(prepared.cell_count)+' cells. Review the pattern before Create.'
-                if self.settings.layout_mode=='balanced':
+                if self.settings.layout_mode=='auto':
+                    sizes=[layout.cell_size_mm for layout in prepared.layouts if layout.cell_count]
+                    caption=f'{min(sizes):.2f}' if max(sizes)-min(sizes)<.005 else f'{min(sizes):.2f}–{max(sizes):.2f}'
+                    self.message=f'Auto fit · {self.settings.density} · {prepared.cell_count} cells · cell size {caption} mm'
+                    emit('pattern.auto_fit',session_id=self.session_id,revision=revision,
+                         proposals=sum(layout.proposals_evaluated for layout in prepared.layouts),
+                         acceptance_checks=sum(layout.acceptance_checks for layout in prepared.layouts),
+                         cells=prepared.cell_count,sizes_mm=sizes)
+                elif self.settings.layout_mode=='balanced':
                     size=self.settings.pitch_mm-self.settings.web_mm
                     pitches=[layout.effective_pitch_mm for layout in getattr(prepared,'layouts',()) if layout.cell_count]
                     gap=min(pitches)-size if pitches else self.settings.web_mm
