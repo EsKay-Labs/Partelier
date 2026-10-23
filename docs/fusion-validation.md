@@ -46,7 +46,49 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
-## Preview orbit investigation — unresolved
+## Cached export display (0.10.5)
+
+Live sessions now cache display triangles with Fusion's standard STL exporter.
+They do not access the direct native mesh-manager/calculator path implicated by
+the abandoned experiments. A source guard rejects temporary export bodies;
+exact CAD is copied into one owned BaseFeature during rollback computation,
+exported in centimetres as binary STL at Medium refinement, then removed.
+Native wrapper references, including exception traceback frames, are released
+before their owner is deleted. The temporary directory is also removed.
+
+Plain validated arrays survive rollback. One opaque mesh reuses the source
+appearance, and one batched outline retains trimmed edge clarity. Shallow joins
+use angle-weighted normals, with sharp edges retained. Create and Edit/Rebuild
+continue to consume exact BRep geometry; recipes/settings are unchanged. A local
+AST guard excludes the failed API calls from the exporter and fixed probe.
+
+The fixed **pattern_display** scenario now explicitly exercises this different
+standard-export route. A dry run imports no Fusion API. Native runs use an owned
+unsaved document and three export/draw/cleanup repetitions each on a box, a
+192-opening plate, a cylinder and a sphere. Six fixed camera refresh samples per
+cycle compare the plate with its original BRep display. The actual Session.prepare
+then runs inside the production rollback runner, followed by cached drawing,
+same-body Create, Edit preparation inside another rollback command, and Rebuild.
+The probe verifies scratch cleanup, target/anchor identity, history/body counts
+and restoration of the original model/camera. Durable checkpoints precede native
+export operations and display phases. The user model is never used as a fixture.
+
+Final source-identical native runs pass **36 display cycles** and **three complete
+Create/Edit/Rebuild workflows** in the same Fusion process, with original state
+restored after every run. In the final paired run, the plate's original camera
+refresh averages 157.1 ms over six samples, versus 5.3 ms over 18 cached-export
+samples. Initial display capture averages 526.6 ms on that fixture. Raw paired
+samples for all three runs are retained; the first run overlapped local CPU tests,
+so aggregates include varying host load. Local checks pass **854 Python tests**,
+all three Node DOM suites, compilation and syntax.
+
+See [exact verification and source hashes](validation/pattern-display-0.10.5.json).
+These are scripted camera refresh timings, not a universal interactive FPS or
+stability guarantee. Physical printing and the user's palette/orbit acceptance
+remain separate. The earlier native geometry matrix remains historical: the
+surface/planner/boolean algorithms were not changed by this display work.
+
+## Historical preview orbit investigation (0.10.4)
 
 The 0.10.4 user session confirms a completed preview of 193 cells: 3,801 ms of
 geometry preparation and 1,056 ms of initial graphics drawing. No new geometry
@@ -68,13 +110,12 @@ configuring the native calculator, not one proven faulting call. Windows
 reported heap corruption (`0xc0000374`, `ntdll.dll`) for both crashes. The good
 isolated timings do not establish repeated-run stability or interactive FPS.
 
-**All candidate rendering code was removed from the installable bundle. The
-product remains 0.10.4 and orbit lag remains unresolved.** The development-only
-`pattern_display` scenario now returns a disabled report without importing
-`adsk` or accessing a model, preventing replay of the native experiment. Local
-checks include a guard against any Fusion import in that disabled scenario.
-The failed prototypes remain only under ignored local `output/native/` for
-investigation. No further host test or product reload is needed for this rollback.
+At the end of that investigation, all candidate rendering code was removed and
+the product was restored to 0.10.4 with orbit lag unresolved. The display probe
+was disabled to prevent replay. Those direct-calculator prototypes remain only
+under ignored local `output/native/` for investigation. The subsequent 0.10.5
+standard-export implementation is a separate route, described above; it does
+not restore the failed calculator calls.
 
 [Investigation record](validation/pattern-display-investigation.json).
 

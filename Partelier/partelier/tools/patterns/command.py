@@ -8,7 +8,7 @@ import adsk.core as core
 import adsk.fusion as native
 
 from .settings import PatternSettings
-from . import fusion, recipe
+from . import fusion, recipe, display_export
 from .preview import PatternPreviewRunner
 from ..hinge.visibility import BodyVisibilityLease
 from ...diagnostics import emit
@@ -255,8 +255,9 @@ class _Session:
         self.require_selections()
         if self.editing:
             target=recipe.read_edit_target(self.design,self.edit_target.anchor)
-            return recipe.prepare_edit_pattern(self.design,target,settings)
-        return fusion.prepare_pattern(self.design,self.faces,settings)
+            prepared=recipe.prepare_edit_pattern(self.design,target,settings)
+        else:prepared=fusion.prepare_pattern(self.design,self.faces,settings)
+        return display_export.prepare(prepared)
 
     def show_preview(self):
         emit('pattern.preview.request',session_id=self.session_id,revision=self.revision,settings=self.settings.to_dict())

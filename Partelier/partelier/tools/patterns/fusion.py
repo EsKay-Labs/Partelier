@@ -17,6 +17,7 @@ from .planner import MAX_CELLS, MAX_FACE_CELLS, build_cells, build_layout, densi
 from .surfaces import SurfaceMap
 from .prism import prism as _direct_prism
 from .batch import try_through_difference
+from . import display_export
 from ...diagnostics import emit
 
 
@@ -41,6 +42,7 @@ class PreparedPattern:
     saved_recipe: object = None
     accepted_samples: tuple = ()
     layouts: tuple = ()
+    display_mesh: object = None
 
 
 @dataclass(frozen=True)
@@ -615,7 +617,10 @@ def preview_pattern(prepared):
         raise ValueError("Fusion could not read the source appearance for the pattern preview.")
     _trace_geometry("draw.begin",cell_count=prepared.cell_count)
     try:
-        group=hinge.draw_solid_preview(prepared.design, (("A", prepared.result_body),), {"A": appearance})
+        if prepared.display_mesh is None:
+            group=hinge.draw_solid_preview(prepared.design, (("A", prepared.result_body),), {"A": appearance})
+        else:
+            group=display_export.draw(prepared.design,prepared.result_body,appearance,prepared.display_mesh)
     except Exception as error:
         _trace_geometry("draw.error",error_type=type(error).__name__,error=_trace_error(error))
         raise

@@ -1,0 +1,248 @@
+{
+  "product_version": "0.10.5",
+  "route": "standard_binary_stl_export",
+  "fusion_version": "2705.1.30",
+  "native_runs": [
+    {
+      "request_id": "73490792-3f19-4091-b48f-771f551ce724",
+      "success": true,
+      "display_cycles": 12,
+      "rollback_export_create_edit_rebuild": true,
+      "original_model_and_camera_unchanged": true
+    },
+    {
+      "request_id": "c79ea7d4-33c4-4011-bdc3-25994c2dc57e",
+      "success": true,
+      "display_cycles": 12,
+      "rollback_export_create_edit_rebuild": true,
+      "original_model_and_camera_unchanged": true
+    },
+    {
+      "request_id": "bcd23f24-c805-42aa-8073-8e3e8498389d",
+      "success": true,
+      "display_cycles": 12,
+      "rollback_export_create_edit_rebuild": true,
+      "original_model_and_camera_unchanged": true
+    }
+  ],
+  "sources": {
+    "files": {
+      "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+      "Partelier/partelier/addin.py": "b281358a644e8f8dfd3a5852562b615c7e9244379b59ff134ac366b506a7b4f1",
+      "Partelier/partelier/diagnostics.py": "b010d0e2eca2d536dea1f8b4417533091013314f4488a4f1a03db2c22784676d",
+      "Partelier/partelier/palette.py": "4a0852652eae16b662406557ef093e140c3781755aa1c17a5b09bf5c5814c4ae",
+      "Partelier/partelier/palette_protocol.py": "dc5a918efaee401999a99a1eedf275fe8930996220a9c2b0faa8213eb68c7983",
+      "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+      "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+      "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+      "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+      "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+      "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+      "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+      "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+      "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+      "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+      "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+      "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+      "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+      "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+      "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+      "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+      "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+      "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+      "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+      "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+      "Partelier/partelier/tools/patterns/command.py": "ab926c1c456f1e2ce6ab54a14b86bd27abf5897b342433f8c7d457b3be346543",
+      "Partelier/partelier/tools/patterns/display_export.py": "4c4a4c311e4b92c09971049f3246a73f93a5454bbc462db3636e95b97990f77f",
+      "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+      "Partelier/partelier/tools/patterns/fusion.py": "c2a318284ee543b5b56ee49ddf79320da1b25cd3552f9b0e2691da7efe8768b2",
+      "Partelier/partelier/tools/patterns/planner.py": "633bf7b2954d54dcb5499e00e13c241dcedbce42105244cb38212c07f2fc3333",
+      "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+      "Partelier/partelier/tools/patterns/prism.py": "81ead0af6f892d4190f752972ad0f1ca3671bbff056c31810d9d42919effcd21",
+      "Partelier/partelier/tools/patterns/recipe.py": "d2b5d64663ebff985ca1818e3d3a8ca99fc97c4a0efef453f1a8d024ef00b63f",
+      "Partelier/partelier/tools/patterns/settings.py": "7767d2ee8da3f21fb5cf272407a7ceb51ce99f35f10378c3dafb67beaab1184b",
+      "Partelier/partelier/tools/patterns/store.py": "d8379a2663fb72fbf912e79323dafb4f607008893d641459227e59c8af03e52f",
+      "Partelier/partelier/tools/patterns/surfaces.py": "513effd698bc6614c47465b315f6f04ff60d8ebf0f754b74005f282aa7d67a88",
+      "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80",
+      "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+      "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+      "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+      "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+      "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+      "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+      "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+      "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+      "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+      "tools/fusion/JoinFinishProbe/JoinFinishProbe.py": "67a57e39a6ee093f25efaef8b04f8fc35fd1e4df8db6a5695cd9a351f608126d",
+      "tools/fusion/PatternDisplayProbe/PatternDisplayProbe.py": "8ffc107ad7b9b6c76c25506a858dc8d69277033b5156b4272ccee374b6f59fb9",
+      "tools/fusion/PatternProbe/PatternProbe.py": "6b7bbfb6e1afff04afcdff1e3072cd5b7fdeaefd0cb52abb43223dbe4e8568c6",
+      "tools/fusion/PatternStatusProbe/PatternStatusProbe.py": "8102f16431c7f1507a67af1df22a9d749dff9f7e2a3b02135f6a3eda63ca83ed",
+      "tools/fusion/SnapFitProbe/SnapFitProbe.py": "fdda39fb9ad26700763284b50a69ab1dd4b8d8958b6b02be90b565f0ec104d8a"
+    },
+    "sha256": "7daf5bd670f450196528888182ddcefb6448658db06a1c8c9170d8b2556a7ed7"
+  },
+  "ui_files": {
+    "Partelier/Partelier.manifest": "037c7f72b1bf5aa05a4063908d03ce1479c6c84d68bf1e8605baa0ec4bf46201",
+    "Partelier/partelier/ui/palette.html": "2f97d64301fa8299ac719bb636cdffd2484b902aa6ea5bc735731a43b8474512",
+    "Partelier/partelier/ui/palette.js": "ae9da67c16a9c64667ea45c49690089816721e35081b85f8764bac58af61fa04",
+    "Partelier/partelier/ui/patterns.js": "cecf80960090f820c2312d79fddbf577b9403d174e978d951a1979ca7e773732"
+  },
+  "display_cycles": 36,
+  "production_create_edit_rebuild_workflows": 3,
+  "fixtures": [
+    "box",
+    "192-square-opening plate",
+    "cylinder",
+    "sphere"
+  ],
+  "dense_fixture": {
+    "width_mm": 40,
+    "height_mm": 30,
+    "thickness_mm": 3,
+    "openings": 192,
+    "source_faces": 774,
+    "display_triangles": 3852
+  },
+  "dense_camera_refresh": {
+    "original_samples": 18,
+    "original_mean_ms": 250.22305000392305,
+    "export_display_samples": 54,
+    "export_display_mean_ms": 8.893327779973063,
+    "export_display_median_ms": 5.156950006494299,
+    "display_capture_mean_ms": 821.5343333366844
+  },
+  "coverage": [
+    "Centimetre export and source bounds.",
+    "Repeated export/draw/cleanup with camera movement.",
+    "Standard export from actual Session.prepare inside the production rollback command.",
+    "Display arrays survive rollback and draw as CustomGraphicsMesh.",
+    "Same-body Create, Edit export inside rollback, and same-anchor Rebuild with retained counts/history.",
+    "Original model/reference signatures, visibility, active document and camera restored.",
+    "No direct native mesh-manager/calculator API; AST guard covers exporter and fixed probe.",
+    "Binary STL bounds/count/finite-coordinate validation, hard corners, smooth normals, exception cleanup and wrapper release before owner deletion."
+  ],
+  "local_checks": {
+    "python_tests": 854,
+    "node_dom_suites": 3,
+    "python_compilation": true,
+    "javascript_syntax": true,
+    "git_diff_check": true
+  },
+  "native_captures_reviewed": [
+    "dense plate",
+    "cylinder",
+    "sphere"
+  ],
+  "interactive_acceptance": "Pending product reload and user orbit check; diagnostics remain automatic.",
+  "limits": [
+    "Scripted synchronous camera refresh measurements are not universal FPS or stability guarantees.",
+    "Display uses Medium STL refinement and a 200000-triangle budget; Create/Rebuild retains exact BRep.",
+    "The source appearance is reused; texture UV mapping is not preserved.",
+    "Existing surface geometry, density and printability limits remain unchanged."
+  ],
+  "paired_dense_measurements": [
+    {
+      "request_id": "73490792-3f19-4091-b48f-771f551ce724",
+      "original_samples_ms": [
+        367.25279997335747,
+        443.8376000034623,
+        470.9722000407055,
+        475.81229999195784,
+        446.00830000126734,
+        438.38100001448765
+      ],
+      "export_display_samples_ms": [
+        7.558400044217706,
+        8.715900010429323,
+        11.227899987716228,
+        7.324000005610287,
+        9.35639999806881,
+        7.25389999570325,
+        10.16809995053336,
+        6.986899999901652,
+        6.91759999608621,
+        11.753200029488653,
+        7.782000000588596,
+        7.369700004346669,
+        36.35230002691969,
+        91.504400013946,
+        18.52419995702803,
+        19.80299997376278,
+        17.160899995360523,
+        15.447499987203628
+      ],
+      "original_mean_ms": 440.377366670873,
+      "export_display_mean_ms": 16.73368333205063,
+      "capture_mean_ms": 1318.760599999223
+    },
+    {
+      "request_id": "c79ea7d4-33c4-4011-bdc3-25994c2dc57e",
+      "original_samples_ms": [
+        151.48840000620112,
+        152.87200000602752,
+        151.91869996488094,
+        152.43040001951158,
+        158.3350999862887,
+        152.14890002971515
+      ],
+      "export_display_samples_ms": [
+        4.629499977454543,
+        4.256400046870112,
+        3.807600005529821,
+        4.318699997384101,
+        4.159599950071424,
+        4.467299964744598,
+        5.253500014077872,
+        5.966000026091933,
+        4.858400032389909,
+        5.783999979030341,
+        4.914799996186048,
+        5.147400021087378,
+        5.717899999581277,
+        3.9743000525049865,
+        3.777100006118417,
+        3.881599986925721,
+        4.258400003891438,
+        3.771500021684915
+      ],
+      "original_mean_ms": 153.19891666877083,
+      "export_display_mean_ms": 4.608000004534713,
+      "capture_mean_ms": 619.2326333451396
+    },
+    {
+      "request_id": "bcd23f24-c805-42aa-8073-8e3e8498389d",
+      "original_samples_ms": [
+        159.29999999934807,
+        152.09789999062195,
+        152.50490000471473,
+        154.13769998122007,
+        162.270900036674,
+        162.2458000201732
+      ],
+      "export_display_samples_ms": [
+        18.22199998423457,
+        3.6413000198081136,
+        3.977700020186603,
+        4.229799960739911,
+        3.9056000532582402,
+        3.859699994791299,
+        5.471200041938573,
+        4.255999985616654,
+        4.334299999754876,
+        4.106300009880215,
+        4.755500005558133,
+        4.7265999601222575,
+        6.32789998780936,
+        4.621599975507706,
+        4.695700015872717,
+        4.374200012534857,
+        5.166499991901219,
+        5.4175000404939055
+      ],
+      "original_mean_ms": 157.09286667212533,
+      "export_display_mean_ms": 5.3383000033338455,
+      "capture_mean_ms": 526.6097666656909
+    }
+  ],
+  "measurement_context": "First final run overlapped local CPU tests; aggregates include varying host load. Final paired run is reported separately."
+}

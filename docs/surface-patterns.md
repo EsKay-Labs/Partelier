@@ -61,6 +61,26 @@ failure or touching/overlap discards the aggregate and restarts the original
 sequential path from pristine inputs. Engrave and Emboss retain sequential
 application. Final results still require one solid and fresh source references.
 
+Version 0.10.5 displays live sessions with one cached triangle mesh and one
+bounded outline batch. The standard binary STL exporter supplies centimetre
+coordinates at Medium refinement; only display data is approximated. Shallow
+joins use angle-weighted smooth normals, while edges over 30 degrees stay sharp.
+The source appearance is reused with an opaque display; textured UV mapping is
+not reproduced by this display buffer.
+
+Display capture briefly copies the result into one owned BaseFeature inside the
+rollback compute command. Export options and body wrappers are released before
+removing that feature. Temporary files are removed and no display history/body
+remains after computation. Camera motion reads the cached graphics; it does not
+request CAD geometry or another export. Create/Rebuild still uses the original
+exact temporary BRep, never the display triangles. The direct native mesh
+calculator used by the abandoned experiments is not accessed.
+
+The display export is limited to 200,000 triangles. A refused display leaves the
+last valid preview and its source visibility contract intact, without allowing
+Create for the failed revision. Preparing an export adds a measured initial
+cost; it does not eliminate the separate CAD preparation stage.
+
 ## Surface contract
 
 Actual Fusion CAD examples from the passing native checks:
@@ -136,9 +156,10 @@ guarantee of instant live updates on dense geometry.
 
 With the 0.10.2 path, the owned 195-cell notched-panel fixture prepares in
 4.00 s versus 8.30 s before the changes; drawing/viewport refresh adds 1.85 s.
-These are separate measured stages on that fixture, not a universal speed
-guarantee. Through preparation has no timeline features to disable. The final
-three owned features provide the existing Edit/Rebuild support.
+These are historical 0.10.2 measurements, not a universal speed guarantee.
+Through geometry itself creates no timeline features. In 0.10.5, display capture
+adds/removes its own scratch BaseFeature inside rollback; the final three owned
+features still provide Edit/Rebuild support.
 
 The full eleven-field settings snapshot is immutable and validated. Version 2
 recipes include the spacing mode and selected face/body references. Strict

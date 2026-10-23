@@ -261,20 +261,20 @@ class ValidationBridgeTests(unittest.TestCase):
             with self.subTest(scenario=scenario), self.assertRaises(ValueError):
                 bridge.validate_request(candidate, request["request_id"])
 
-    def test_disabled_display_probe_reports_without_importing_or_accessing_fusion(self):
+    def test_export_display_probe_dry_run_reports_without_importing_or_accessing_fusion(self):
         import builtins
         original_import = builtins.__import__
         def guarded_import(name, *args, **kwargs):
             if name == "adsk" or name.startswith("adsk."):
-                raise AssertionError("The disabled display probe must never access Fusion.")
+                raise AssertionError("The dry-run display probe must never access Fusion.")
             return original_import(name, *args, **kwargs)
         callback = Mock()
         output = self.queue / "disabled-display.json"
         with patch("builtins.__import__", side_effect=guarded_import):
             module = load_file("disabled_display_test", REPO.joinpath(*bridge.PROBES["pattern_display"]))
-            module.run({"report_path": str(output), "on_complete": callback})
+            module.run({"report_path": str(output), "on_complete": callback, "dry_run": True})
         result = json.loads(output.read_text(encoding="utf-8"))
-        self.assertTrue(result["disabled"])
+        self.assertTrue(result["dry_run"])
         self.assertFalse(result["success"])
         self.assertFalse(result["model_accessed"])
         callback.assert_called_once_with(result)

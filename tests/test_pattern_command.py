@@ -170,6 +170,7 @@ class PatternCommandTests(unittest.TestCase):
                         preview.__name__: preview}), patch.object(package, "fusion", self.fusion, create=True), patch.object(package, "recipe", self.recipe, create=True):
             spec.loader.exec_module(self.module)
         self.module.BodyVisibilityLease = Lease
+        self.module.display_export = NS(prepare=Mock(side_effect=lambda prepared:prepared))
         self.manager = self.module.PatternCommands()
         self.manager.start()
         self.body = NS(kind="body", isValid=True, name="Cylinder", isLightBulbOn=True)
@@ -338,8 +339,10 @@ class PatternCommandTests(unittest.TestCase):
         self.assertEqual(snapshot["phase"], "computing")
         self.fusion.prepare_pattern.assert_not_called()
         self.fusion.preview_pattern.assert_not_called()
+        self.module.display_export.prepare.assert_not_called()
         job = self.manager.runner.compute()
         self.assertIsNotNone(job.result)
+        self.module.display_export.prepare.assert_called_once_with(job.result)
         self.fusion.preview_pattern.assert_not_called()
         self.assertTrue(self.body.isLightBulbOn)
         self.manager.runner.rollback()
