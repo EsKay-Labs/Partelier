@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from Partelier.partelier.tools.patterns.settings import PatternSettings
-from Partelier.partelier.tools.patterns.planner import build_cells
+from Partelier.partelier.tools.patterns.planner import build_cells, density_error, PatternDensityError
 from Partelier.partelier.tools.patterns.surfaces import SurfaceMap
 
 
@@ -29,6 +29,39 @@ class PatternSettingsTests(unittest.TestCase):
 
 
 class PatternLayoutTests(unittest.TestCase):
+    def test_one_face_density_refusal_explains_cells_and_estimates_a_recoverable_pitch(self):
+        settings=PatternSettings()
+        error=density_error(settings,[40000],face_cells=201,total_cells=201)
+        self.assertIn('1 face selected',str(error))
+        self.assertIn('one pattern repetition',str(error))
+        self.assertNotIn('select fewer',str(error))
+        self.assertIn('estimate',str(error))
+        self.assertGreater(error.suggested_pitch_mm,settings.pitch_mm)
+        recovered=replace(settings,pitch_mm=error.suggested_pitch_mm)
+        # A broad physical flat face at the recommended pitch fits the budget,
+        # even before trim/border rejection removes any boundary cells.
+        cells=build_cells(recovered,(0,200,0,200))
+        fitted=[cell for cell in cells if all(2<=cell.center_mm[i]+delta<=198
+                for vertex in cell.polygon_mm for i,delta in enumerate(vertex))]
+        self.assertLessEqual(len(fitted),200)
+        self.assertEqual(settings.pitch_mm,8, 'guidance must never silently resize settings')
+
+    def test_total_density_hint_accounts_for_every_selected_face(self):
+        settings=PatternSettings(pattern='square')
+        error=density_error(settings,[12000]*3,face_index=2,face_cells=100,total_cells=401)
+        self.assertIn('in total (3 faces selected)',str(error))
+        self.assertGreater(error.suggested_pitch_mm,settings.pitch_mm)
+        self.assertIn('400 total',str(error))
+
+    def test_candidate_budget_also_explains_pitch_and_refuses_without_silent_clipping(self):
+        settings=PatternSettings(pitch_mm=1,web_mm=.2)
+        with self.assertRaises(PatternDensityError) as caught:
+            build_cells(settings,(0,100,0,100))
+        self.assertIn('candidate positions',str(caught.exception))
+        self.assertIn('Current Pitch: 1 mm',str(caught.exception))
+        recovered=replace(settings,pitch_mm=caught.exception.suggested_pitch_mm)
+        self.assertLess(len(build_cells(recovered,(0,100,0,100))),400)
+
     def test_hexagon_web_is_the_distance_between_adjacent_opening_flats(self):
         values=PatternSettings()
         cells=build_cells(values,(-24,24,-24,24))

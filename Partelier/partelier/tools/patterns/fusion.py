@@ -13,12 +13,11 @@ import time
 
 from ..hinge import fusion as hinge
 from ..hinge.support import _prism
-from .planner import build_cells
+from .planner import MAX_CELLS, MAX_FACE_CELLS, build_cells, density_error
 from .surfaces import SurfaceMap
 
 
-MAX_FACE_CELLS = 200
-MAX_TOTAL_CELLS = 400
+MAX_TOTAL_CELLS = MAX_CELLS
 EPSILON_MM = .001
 EMBED_MM = .02
 MIN_NORMAL_DOT = .90
@@ -182,7 +181,8 @@ def _mapped_cells(faces, settings):
                                       tuple(sample.point_mm for sample in boundary), radius, sag))
             accepted += 1
             if accepted > MAX_FACE_CELLS or len(mapped) > MAX_TOTAL_CELLS:
-                raise ValueError("Pattern is too dense: use at most 200 cells per face and 400 in total. Increase pitch or select fewer faces.")
+                raise density_error(settings, [float(source.area)*100 for source in faces],
+                                    face_index=index, face_cells=accepted, total_cells=len(mapped))
     if not mapped:
         raise ValueError("No complete pattern cells fit inside the selected faces and border. Reduce pitch or border.")
     _check_webs(mapped, settings.web_mm)

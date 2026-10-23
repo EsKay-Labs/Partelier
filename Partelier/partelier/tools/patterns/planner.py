@@ -6,6 +6,46 @@ import math
 
 MAX_CANDIDATES = 4000
 MAX_CELLS = 400
+MAX_FACE_CELLS = 200
+
+
+class PatternDensityError(ValueError):
+    """A bounded refusal with an explicitly approximate, non-applied hint."""
+
+    def __init__(self, message, suggested_pitch_mm):
+        super().__init__(message)
+        self.suggested_pitch_mm = suggested_pitch_mm
+
+
+def density_error(settings, areas_mm2, *, face_index=0, face_cells=0,
+                  total_cells=0, candidates=None):
+    """Estimate a useful pitch without building additional cells or solids.
+
+    Surface area/lattice area ignores borders, trims and chart distortion, so
+    this is guidance rather than a guaranteed fit or an automatic size change.
+    """
+    factor = math.sqrt(3)/2 if settings.pattern in ('hexagon', 'circle') else 1
+    estimates = [area/(factor*settings.pitch_mm**2) for area in areas_mm2
+                 if isinstance(area, (int, float)) and math.isfinite(area) and area>0]
+    ratio = max([1.0, sum(estimates)/MAX_CELLS,
+                 face_cells/MAX_FACE_CELLS, total_cells/MAX_CELLS]
+                + [count/MAX_FACE_CELLS for count in estimates])
+    hint = math.ceil(max(settings.pitch_mm*1.25,
+                         settings.pitch_mm*math.sqrt(ratio)*1.1)*10)/10
+    faces = len(areas_mm2)
+    selected = f"{faces} face{'s' if faces!=1 else ''} selected"
+    if candidates is not None:
+        reason = f"The layout exceeds {MAX_CANDIDATES:,} candidate positions"
+    elif face_cells>MAX_FACE_CELLS:
+        reason = f"Face {face_index+1} exceeds {MAX_FACE_CELLS} pattern cells"
+    else:
+        reason = f"The selection exceeds {MAX_CELLS} pattern cells in total"
+    suggestion = (f"Try Pitch about {hint:g} mm or higher (estimate)."
+                  if hint<=10000 else "Use a smaller face region; the estimated pitch exceeds the supported range.")
+    message = (f"Pattern is too dense. {reason} ({selected}). A cell is one pattern repetition. "
+               f"Current Pitch: {settings.pitch_mm:g} mm. {suggestion} "
+               f"Limits: {MAX_FACE_CELLS} cells per face, {MAX_CELLS} total.")
+    return PatternDensityError(message, hint if hint<=10000 else None)
 
 
 @dataclass(frozen=True)
@@ -74,7 +114,8 @@ def build_cells(settings, bounds, period_u_mm=None):
     step_v=pitch*math.sqrt(3)/2 if settings.pattern in ("hexagon", "circle") else pitch
     rows=math.ceil((high_v-low_v)/step_v)+2
     if rows*columns>MAX_CANDIDATES:
-        raise ValueError("Pattern is too dense. Increase pitch or select fewer/smaller faces.")
+        raise density_error(settings, [(original[1]-original[0])*(original[3]-original[2])],
+                            candidates=rows*columns)
     polygon=_polygon(settings)
     result=[]
     # Center the grid, while keeping offsets periodic rather than moving it away.

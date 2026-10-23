@@ -44,6 +44,18 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Pattern density guidance (0.9.1)
+
+Native request `8f0fc496-26bc-48b2-a682-2bafacca6d0c` passes **24/24** cases,
+including the complete previous pattern matrix and production preview workflow.
+[Exact evidence](validation/patterns-0.9.1.json) matches all 44 current native-tested
+source files. A dense single-face fixture is refused with clear repetition
+counts and an approximate Pitch hint; applying its suggested 2.4 mm instead of
+1 mm produces 84 accepted layout cells, below the 200-cell limit. The original
+settings and model remain unchanged. Local checks pass 760 Python tests and
+all three Node DOM suites. The surface-area hint is explicitly approximate and
+does not automatically change a design or remove the existing work limits.
+
 ## Surface patterns (0.9.0)
 
 The final fixed `patterns` scenario passes **23/23** native cases in Fusion

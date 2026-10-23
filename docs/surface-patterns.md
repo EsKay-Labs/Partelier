@@ -5,6 +5,14 @@ Texture in the existing HTML palette. These entries start different presets of
 the same tool. Hinge and snap-fit geometry remains locked at the user-approved
 behavior.
 
+Version 0.9.1 clarifies dense-layout refusals: one face may contain hundreds of
+cells. The message identifies the face/total budget, the current Pitch and an
+approximate larger Pitch based on the selected surface areas and lattice. The
+hint ignores border, trimming and distortion effects; it is guidance, not a
+guaranteed fit or an automatic dimension change. Increasing Pitch spreads the
+repetitions farther apart. Doubling it roughly quarters their number on a broad
+surface. The 200-per-face/400-total limits remain in place.
+
 ## Use
 
 Choose a shape (hexagons, circles, diamonds, squares or slots), then **Through

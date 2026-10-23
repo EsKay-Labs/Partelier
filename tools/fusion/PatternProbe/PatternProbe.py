@@ -414,6 +414,28 @@ def cases():
             _case(kind + "_" + mode, one)
             if _signature(body) != original:
                 raise RuntimeError("Temporary pattern preparation changed its original fixture body.")
+    def density_recovery():
+        _, body, faces = fixtures["plane"]
+        before = snapshot(design)
+        settings = Settings(pitch_mm=1, web_mm=.2)
+        planner = importlib.import_module(STATE["package_name"]+".tools.patterns.planner")
+        try:
+            STATE["adapter"].prepare_pattern(design, faces, settings)
+        except planner.PatternDensityError as error:
+            hint = error.suggested_pitch_mm
+            if (hint is None or hint<=settings.pitch_mm or '1 face selected' not in str(error)
+                    or 'estimate' not in str(error) or 'select fewer' in str(error)):
+                raise RuntimeError("The one-face density refusal lacks actionable, honest guidance.")
+        else:
+            raise RuntimeError("A dense single face bypassed its cell budget.")
+        recovered = replace(settings, pitch_mm=hint)
+        cells = STATE["adapter"]._mapped_cells(faces, recovered)
+        if not 0<len(cells)<=200 or settings.pitch_mm!=1 or snapshot(design)!=before:
+            raise RuntimeError("The density hint did not recover a bounded layout without changing sources/settings.")
+        return {"one_selected_face": True, "current_pitch_mm":1,
+                "suggested_pitch_mm":hint, "recovered_cells":len(cells),
+                "source_and_settings_unchanged":True, "guidance_is_estimate":True}
+    _case("single_face_density_guidance_and_recovery",density_recovery)
     _, wrap_body, wrap_faces = fixture(design, "cylinder_wrap")
     for mode in ("through", "engrave", "emboss"):
         def wrapped(mode=mode):
