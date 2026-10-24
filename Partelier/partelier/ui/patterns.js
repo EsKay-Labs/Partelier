@@ -71,7 +71,7 @@
         } catch (_) {}
     }
     function traceSnapshot(snapshot) {
-        return { nativePhase: ["idle","selecting","ready","computing","preview","opening","error","created","cancelled"].includes(snapshot?.phase) ? snapshot.phase : "invalid",
+        return { nativePhase: ["idle","selecting","picking_faces","ready","computing","preview","opening","error","created","cancelled"].includes(snapshot?.phase) ? snapshot.phase : "invalid",
             nativeRevision: Number.isInteger(snapshot?.revision) ? snapshot.revision : null, nativeSelected: !!snapshot?.selections?.surface?.selected };
     }
     if (typeof window.addEventListener === "function") {
@@ -187,12 +187,16 @@
             done.disabled = state.busy || !state.session.canFinishFaces;
             done.addEventListener("click", () => { cancelTimer(); run(async () => { await sessionAction("pattern_finish_faces"); await refresh(); },"pattern_finish_faces"); });
             $("pattern-selections").append(done);
+            const clear = document.createElement("button"); clear.id = "pattern-clear-faces"; clear.type = "button"; clear.className = "selection-button"; clear.textContent = "Clear selection";
+            clear.disabled = state.busy || !picked?.selected;
+            clear.addEventListener("click", () => { cancelTimer(); run(() => sessionAction("pattern_clear_faces"),"pattern_clear_faces"); });
+            $("pattern-selections").append(clear);
         } else if (!editing() && !body && picked?.selected && identity()) {
             const add = document.createElement("button"); add.id = "pattern-add-face"; add.type = "button"; add.className = "selection-button"; add.textContent = "Add faces"; add.disabled = button.disabled;
             add.addEventListener("click", () => { trace("click", { control:"add_face",target:"add_face" }); cancelTimer(); run(async () => { await sessionAction("pattern_focus", { target:"add_face" }); await refresh(); },"pattern_focus"); });
             $("pattern-selections").append(add);
         }
-        $("pattern-selection-help").textContent = picking ? "Selected faces are blue in Fusion. Hold Ctrl to add/remove faces, then click Done below. Cancel stays available." : editing() ? "Pick a saved Partelier pattern." : body ? "Pick one body. Preview updates automatically." : picked?.selected ? "Add faces opens blue face selection. Hold Ctrl to add/remove sides, then click Done." : "Pick one face to preview. Use Add faces for more sides.";
+        $("pattern-selection-help").textContent = picking ? "Click sides to add them. Selected faces stay blue. Done updates preview. Clear selection starts over." : editing() ? "Pick a saved Partelier pattern." : body ? "Pick one body. Preview updates automatically." : picked?.selected ? "Add faces keeps your selection. Click more sides, then Done to update preview." : "Select all the sides you need, then Done to preview.";
         $("pattern-selection-help").hidden = (editing() || body) && !!identity() && selected() && !(state.busy && state.session?.phase === "selecting");
         $("begin-pattern-button").textContent = body ? "Select body" : "Select faces";
     }
@@ -434,5 +438,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.13.2" }); renderArt(); render();
+    trace("boot", { build:"0.13.4" }); renderArt(); render();
 })();

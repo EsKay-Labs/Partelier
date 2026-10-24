@@ -119,7 +119,10 @@ class PatternCommands:
             if editing and len(entities)==1:
                 session.select_target(entities[0])
             elif not editing and values.selection_scope=='faces' and entities and all(native.BRepFace.cast(e) is not None for e in entities):
+                if len(entities)>100:raise ValueError('Select at most 100 faces.')
+                if any(face.body!=entities[0].body for face in entities):raise ValueError('Choose faces on the same solid body.')
                 session.set_faces(entities)
+                self.pick(session,'add_face')
             else:self.pick(session,'edit_target' if editing else values.selection_scope)
             return self.publish(session)
         finally:self._busy=False
@@ -152,10 +155,11 @@ class PatternCommands:
         emit('pattern.pick.begin',session_id=session.session_id,target=target,revision=session.revision)
         session.ensure_design()
         session.clear_preview()
-        if target=='add_face':
-            if session.editing or session.settings.selection_scope!='faces' or not session.faces:
-                raise ValueError('Select the first face before adding faces on the same body.')
+        if target in {'faces','add_face'} and not session.editing:
+            if session.settings.selection_scope!='faces':
+                raise ValueError('Use face selection scope before selecting individual faces.')
             if session.face_picker is not None:raise ValueError('Finish the current face selection with Done.')
+            if target=='faces':session.faces=()
             session.face_picker=FaceSelection(session)
             try:session.face_picker.start()
             except Exception as error:
@@ -215,7 +219,7 @@ class PatternCommands:
         if session is None or session.closed or session.session_id!=session_id:
             raise ValueError("This pattern session has ended. Start a new pattern.")
         session.ensure_design()
-        if session.face_picker is not None and action not in {'pattern_finish_faces','pattern_cancel'}:
+        if session.face_picker is not None and action not in {'pattern_finish_faces','pattern_clear_faces','pattern_cancel'}:
             raise ValueError('Finish face selection with Done, or Cancel the pattern.')
         try:
             if action in {'pattern_update','pattern_preview','pattern_commit'}:
@@ -237,6 +241,9 @@ class PatternCommands:
                 finally:self._busy=False
             elif action=='pattern_cancel':session.close()
             elif action=='pattern_finish_faces':session.finish_faces()
+            elif action=='pattern_clear_faces':
+                if session.face_picker is None:raise ValueError('Start selecting faces before clearing them.')
+                session.face_picker.clear()
             else:raise ValueError("This pattern action is unavailable.")
             return self.publish(session)
         except Exception as error:
@@ -268,7 +275,7 @@ class _Session:
                 'settings':self.settings.to_dict(),'selections':{'surface':{'selected':bool(valid),'label':label}},
                 'previewCurrent':self.preview_current,'message':self.message,
                 'pickingFaces':self.face_picker is not None,
-                'canFinishFaces':bool(self.face_picker is not None and valid and not self.face_picker.error),
+                'canFinishFaces':bool(self.face_picker is not None and self.face_picker.ready and valid and not self.face_picker.error),
                 'suggestedSizeMm':min(sizes) if sizes else None}
 
     def ensure_design(self):
@@ -279,6 +286,7 @@ class _Session:
 
     def finish_faces(self):
         if self.face_picker is None:raise ValueError('There is no active face selection.')
+        self.face_picker.synchronize()
         if self.face_picker.error:raise ValueError(self.face_picker.error)
         if not self.faces:raise ValueError('Select at least one face before clicking Done.')
         self.face_picker.stop();self.face_picker=None

@@ -564,22 +564,34 @@ the current version, updates the same BaseFeature tool sources and retains both
 selected bodies and the four native Combine references.
 
 
-## Non-modal pattern face selection (0.13.2)
+## Non-modal additive pattern face selection (0.13.4)
 
 `patterns/face_selection.py` subscribes to the native
 [UserInterface.activeSelectionChanged event](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/core_UserInterface_activeSelectionChanged.htm).
-It reads the normal Select command's face list and seeds/restores native
-`activeSelections.all` only when entering/exiting the mode. No selection
-collection is mutated inside the selection-change callback. Fusion owns the
-blue highlight and Ctrl add/remove interaction. The previous repeated
-`selectEntity` loop blocked the HTML request and is no longer used for Add faces.
-The initial face, body and Edit target keep their single native pick.
+Version 0.13.4 uses an additive face set owned by the session. Initial selection
+and Replace faces start empty; Add faces preserves the existing sources. Each
+native selection event merges valid same-body faces (bounded to 100). Normal
+single clicks therefore accumulate faces without requiring Ctrl. One coalesced
+owned main-thread custom event restores the full native blue selection outside
+the selection-change callback. Clear selection resets both the accumulated set
+and body constraint; it never computes geometry.
 
-The session retains the listener and prior native selection until explicit
+The initial face picker no longer uses modal `selectEntity` or starts preview on
+the first face. Body scope and Edit target retain their single native pick. The
+session retains the listener and original native selection until explicit
 `pattern_finish_faces`, Cancel, Stop or document deactivation. Snapshots expose
-`pickingFaces` and `canFinishFaces`; the HTML leaves Done/Cancel usable, disables
-settings/Create, and skips automatic preview until Done returns ready. Invalid,
-empty and oversized selections keep Cancel available. Finish rejects incomplete
-selection on the host as well as in the UI. Cleanup unsubscribes before restoring
-native selection and retains its owner if cleanup needs a retry. Geometry,
-face-source persistence and recipe version 5 are unchanged.
+`pickingFaces` and `canFinishFaces`; HTML keeps Done/Clear/Cancel usable, disables
+settings/Create, and suppresses automatic preview until Done returns ready.
+`pattern_clear_faces` is session-only and accepts no settings, paths or targets.
+Done merges live native selection before stopping, so a missed callback does not
+lose the last click. Cleanup unsubscribes before restoring original selection.
+Geometry, face-source persistence and recipe version 5 are unchanged.
+
+A finished preview can leave `ui.activeCommand` empty. The picker explicitly
+starts native `SelectCommand`, listens to UI `commandStarting`, and seeds the
+initial selection through its owned custom event after native activation.
+Built-in `commandCreated` was not delivered by the observed host and is not used.
+Done stays unavailable during activation; Cancel releases pending hooks/event.
+Other active modeling commands are rejected rather than interrupted. The
+installable add-in adds no polling, timer or worker thread. PatternStatusProbe
+also reports active native selection types and available Select definitions.

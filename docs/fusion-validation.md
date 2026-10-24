@@ -6,6 +6,49 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.13.4 additive selection, preview only after Done
+
+User acceptance of 0.13.3 clarified the required workflow: normal clicks must
+accumulate faces, and even the initial face must wait for Done before preview.
+The previous native test selected two faces simultaneously and missed ordinary
+click replacement. Initial selection, Replace and Add now share one non-modal
+additive picker. Clear selection explicitly resets it. Native highlights are
+restored by one coalesced main-thread custom event, outside selection callbacks.
+Settings/Create are disabled while picking; Done and Cancel remain available.
+
+Fusion 2705.1.30 request **cf98e010-a8b9-4e8d-ab82-1627b5d7ce16** passes **8 focused
+cases**. The picker test starts empty, selects face one, then replaces the native
+selection with ONLY face two to model ordinary click behavior. Both sources and
+both native blue selections survive, with no prepared geometry/preview before
+Done. Explicit Clear and empty Cancel release the owned listener and event.
+The separate real sequence **preview → Add faces → second single-face selection
+→ Done → new preview → Cancel** also passes, including activation from the empty
+native command ID after rollback. Its refreshed preview has **5 cells on each
+broad face**. Done deliberately recovers a missed callback from live selection.
+
+Six-sided box geometry (hexagon through, triangle engrave, Cairo emboss),
+detached flat-colour lifetime, production async supersession, cached Create,
+disposable-document cleanup and original snapshot/reference preservation pass.
+The fixture uses programmatic native selections and real event delivery; it
+does not prove physical pointer/CEF interaction. The bounded startup timeout is
+test-only and its worker only fires a thread-safe custom event; production has
+no worker, timer or polling loop. Unchanged shared/polygon matrices were not rerun.
+
+Local checks: **926 Python tests**, including **42 controller contracts**, all
+three Node DOM suites, compilation and whitespace checks. Headless Edge checks
+Done, Clear, Cancel, help, face count and overflow at 300/380/520 px. Strict
+protocol tests cover the new session-only Clear action. Fingerprints and scoped
+evidence: `docs/validation/additive-face-selection-0.13.4.json`.
+Physical user acceptance after loading 0.13.4 remains separate.
+
+The internal 0.13.3 run **90b150ad-f672-4d72-bada-36e11407b3e2** established the
+post-preview empty-command activation issue, but did not model normal separate
+clicks. Five preceding failed activation candidates are retained in the new
+evidence artifact as failures, not successful validation. Their original
+snapshots were restored. Read-only request **4c69de1d-3b31-4799-9ece-bce544f1d032**
+observed the empty command ID; **abb64363-ac5a-4971-be25-6d2cc7467265** confirmed an
+idle product session before this run.
+
 ## 0.13.2 non-modal blue face selection
 
 The 0.13.1 repeated `selectEntity` loop accepted sides but kept its HTML request

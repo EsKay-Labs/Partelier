@@ -12,6 +12,7 @@ import importlib.util
 import json
 import math
 import time
+import threading
 from pathlib import Path
 import sys
 import traceback
@@ -1209,7 +1210,7 @@ def _runtime_completed(prepared):
             "passed": True, "computed": STATE["runtime_computed"],
             "completed": STATE["runtime_completed"], "source_refs_fresh_after_destroy": True,
             "exact_scratch_rollback": True, **details})
-        queue_probe_event("runtime:commit")
+        queue_probe_event('runtime:after_preview_pick')
     except Exception as error:
         _runtime_fail(error)
 
@@ -1238,16 +1239,24 @@ def _runtime_start():
     session=commands._Session(owner,design,_fixed_settings(),False)
     owner._session=session
     native_faces=_items(body.faces)[:2]
-    session.set_faces(native_faces[:1])
     STATE.update(face_selection_owner=owner,face_selection_session=session,face_selection_faces=native_faces,
         face_selection_visibility=body.isLightBulbOn)
     body.isLightBulbOn=True
-    result=owner.palette_action('pattern_focus',session.session_id,target='add_face')
-    if owner.busy or not result['pickingFaces'] or app.userInterface.activeSelections.count!=1:
-        raise RuntimeError('Non-modal face selection did not return with a native selected seed.')
-    values=adsk.core.ObjectCollection.create()
-    for face in native_faces:values.add(face)
+    result=owner.palette_action('pattern_focus',session.session_id,target='faces')
+    if owner.busy or not result['pickingFaces'] or app.userInterface.activeSelections.count!=0:
+        raise RuntimeError('Initial face selection did not return empty without computing preview.')
+    values=adsk.core.ObjectCollection.create();values.add(native_faces[0])
     app.userInterface.activeSelections.all=values
+    queue_probe_event('runtime:face_selection_second')
+
+
+def _runtime_face_selection_second():
+    owner=STATE['face_selection_owner'];session=STATE['face_selection_session']
+    if len(session.faces)!=1 or session.prepared is not None or session.preview is not None or owner.runner.busy:
+        raise RuntimeError('First face did not wait for Done without preview computation.')
+    # A normal click replaces native selection with ONLY the second face.
+    values=adsk.core.ObjectCollection.create();values.add(STATE['face_selection_faces'][1])
+    adsk.core.Application.get().userInterface.activeSelections.all=values
     queue_probe_event('runtime:face_selection_done')
 
 
@@ -1262,7 +1271,7 @@ def _runtime_face_selection_done():
     if owner.busy or result['pickingFaces'] or picker.bound or session.phase!='ready':
         raise RuntimeError('Done did not release the native selection listener and return ready.')
     owner.palette_action('pattern_focus',session.session_id,target='add_face')
-    ui.activeSelections.all=adsk.core.ObjectCollection.create()
+    owner.palette_action('pattern_clear_faces',session.session_id)
     queue_probe_event('runtime:face_selection_cancel')
 
 
@@ -1280,7 +1289,7 @@ def _runtime_face_selection_cancel():
         raise RuntimeError('Native face picking changed model, history, visibility or appearance.')
     STATE['report']['face_selection_passed']=True
     STATE['report']['face_selection']={'native_event_delivery':True,'native_selected_faces':2,
-        'no_modal_wait':True,'done_released_handler':True,'empty_selection_cancel_passed':True,'model_unchanged':True,
+        'no_modal_wait':True,'normal_clicks_accumulate':True,'no_preview_before_done':True,'clear_selection_passed':True,'done_released_handler':True,'empty_selection_cancel_passed':True,'model_unchanged':True,
         'physical_pointer_or_cef_picking':False}
     _runtime_compute_start()
 
@@ -1307,6 +1316,93 @@ def _runtime_compute_start():
                    stale_completed, _runtime_fail)
     runner.request(object(), compute("newest", Settings(mode="emboss", web_mm=2, depth_mm=.8)),
                    _runtime_completed, _runtime_fail)
+
+
+def _runtime_after_preview_pick():
+    """Reproduce the product's blank-command state AFTER real preview rollback."""
+    commands=importlib.import_module(STATE['package_name']+'.tools.patterns.command')
+    app=adsk.core.Application.get();design=STATE['runtime_design'];body=STATE['runtime_body']
+    prepared=STATE['cached_prepared']
+    owner=commands.PatternCommands()
+    owner.runner._command_id='sktech_partelier_probe_repick_compute_67744d4a'
+    owner.runner._requested_event_id='sktech_partelier_probe_repick_event_67744d4a'
+    owner.runner._event_id=owner.runner._requested_event_id
+    STATE['repick_owner']=owner
+    session=commands._Session(owner,design,prepared.settings,False)
+    owner._session=session
+    session.faces=prepared.faces;session.prepared=prepared;session.preview_revision=0
+    body.isLightBulbOn=True
+    session.preview=STATE['adapter'].preview_pattern(prepared)
+    session.visibility.hide((body,));session.phase='preview'
+    first=prepared.faces[0]
+    other=max((face for face in _items(body.faces) if face!=first),key=lambda face:float(face.area))
+    STATE['repick_faces']=(first,other)
+    before=app.userInterface.activeCommand
+    def activated(snapshot):
+        if snapshot.get('pickingFaces') and snapshot.get('canFinishFaces') and not STATE.get('repick_activation_queued'):
+            STATE['repick_activation_queued']=True
+            STATE['repick_activation_timer'].cancel()
+            queue_probe_event('runtime:after_preview_select_ready')
+    owner.callback=activated
+    # Test-only timeout: let Fusion's deferred command start reach an idle UI
+    # turn. This worker calls only the documented thread-safe event wake-up.
+    timer=threading.Timer(3,lambda:app.fireCustomEvent(EVENT,'runtime:select_activation_timeout'))
+    timer.daemon=True
+    STATE['repick_activation_timer']=timer
+    timer.start()
+    owner.palette_action('pattern_focus',session.session_id,target='add_face')
+    if owner.busy or session.preview is not None:
+        raise RuntimeError('Repicking after native preview did not activate normal Select and release preview.')
+    STATE['repick_command_before']=before
+
+
+def _runtime_after_preview_select_ready():
+    app=adsk.core.Application.get();session=STATE['repick_owner']._session
+    if app.userInterface.activeCommand!='SelectCommand' or not session.face_picker.ready:
+        raise RuntimeError('Deferred Select activation did not seed face selection: '+
+            repr((app.userInterface.activeCommand,session.face_picker.ready,session.face_picker.error)))
+    values=adsk.core.ObjectCollection.create()
+    values.add(STATE['repick_faces'][1])
+    app.userInterface.activeSelections.all=values
+    queue_probe_event('runtime:after_preview_finish')
+
+
+def _runtime_after_preview_finish():
+    owner=STATE['repick_owner'];session=owner._session
+    if session.faces!=STATE['repick_faces'] or adsk.core.Application.get().userInterface.activeSelections.count!=2:
+        raise RuntimeError('A second single-face selection discarded the first or lost its blue highlight.')
+    # Deliberately discard the cached event result. Done must re-read live native
+    # selections, so a delayed/missed callback cannot silently reuse face one.
+    session.faces=STATE['repick_faces'][:1]
+    owner.palette_action('pattern_finish_faces',session.session_id)
+    if session.faces!=STATE['repick_faces']:
+        raise RuntimeError('Done reused the first face instead of synchronizing both native selections.')
+    def state(snapshot):
+        if snapshot['phase']=='preview':queue_probe_event('runtime:after_preview_verified')
+        elif snapshot['phase']=='error':_runtime_fail(RuntimeError(snapshot['message']))
+    owner.callback=state
+    owner.palette_action('pattern_preview',session.session_id,revision=session.revision,
+                         settings_dict=session.settings.to_dict())
+
+
+def _runtime_after_preview_verified():
+    owner=STATE['repick_owner'];session=owner._session;prepared=session.prepared
+    if (not session.preview_current or len(prepared.faces)!=2 or len(prepared.layouts)!=2
+            or not all(layout.cell_count for layout in prepared.layouts)):
+        raise RuntimeError('The refreshed production preview did not cover both broad faces.')
+    detail={'name':'production_preview_repick_two_faces','passed':True,
+        'command_before':STATE['repick_command_before'],'activated_select':True,
+        'normal_clicks_accumulate':True,'native_highlight_count':2,'done_resynchronized_without_callback':True,'selected_faces':len(prepared.faces),
+        'cells_per_face':[layout.cell_count for layout in prepared.layouts]}
+    STATE['report']['cases'].append(detail)
+    STATE['report']['after_preview_repick_passed']=True
+    owner.callback=None
+    owner.palette_action('pattern_cancel',session.session_id)
+    owner.stop()
+    STATE['runtime_body'].isLightBulbOn=STATE['face_selection_visibility']
+    if snapshot(STATE['runtime_design'])!=STATE['runtime_before']:
+        raise RuntimeError('The preview/repick/Done/preview/Cancel cycle did not restore its owned document.')
+    queue_probe_event('runtime:commit')
 
 
 class RuntimeCommitPreview(adsk.core.CommandEventHandler):
@@ -1403,9 +1499,14 @@ def _runtime_cleanup():
         except Exception as error:
             errors.append(label+": "+str(error))
     try:
+        timer=STATE.get('repick_activation_timer')
+        if timer is not None:timer.cancel()
         picker_owner=STATE.get('face_selection_owner')
         if picker_owner is not None:
             attempt('stop native face selection',picker_owner.stop)
+        repick_owner=STATE.get('repick_owner')
+        if repick_owner is not None:
+            attempt('stop post-preview face selection',repick_owner.stop)
         runner = STATE.get("runtime_runner")
         if runner is not None:
             attempt("stop owned preview runner", runner.stop)
@@ -1471,10 +1572,26 @@ def _drive_runtime(information):
             finish_report()
         elif information == "runtime:start":
             _runtime_start()
+        elif information == 'runtime:face_selection_second':
+            _runtime_face_selection_second()
         elif information == 'runtime:face_selection_done':
             _runtime_face_selection_done()
         elif information == 'runtime:face_selection_cancel':
             _runtime_face_selection_cancel()
+        elif information == 'runtime:after_preview_pick':
+            _runtime_after_preview_pick()
+        elif information == 'runtime:after_preview_select_ready':
+            _runtime_after_preview_select_ready()
+        elif information == 'runtime:select_activation_timeout':
+            if not STATE.get('repick_activation_queued'):
+                picker=STATE['repick_owner']._session.face_picker
+                raise RuntimeError('Fusion selection activation timed out: '+repr((
+                    adsk.core.Application.get().userInterface.activeCommand,picker.ready,picker.seeded,
+                    adsk.core.Application.get().userInterface.activeSelections.count)))
+        elif information == 'runtime:after_preview_finish':
+            _runtime_after_preview_finish()
+        elif information == 'runtime:after_preview_verified':
+            _runtime_after_preview_verified()
         elif information == "runtime:commit":
             _runtime_commit()
         elif information == "runtime:commit_drive":
@@ -1594,6 +1711,7 @@ def finish_report():
                              and STATE.get("destroyed") and report["unchanged"]
                              and report["detached_survived_rollback"] and report["colour_survived_rollback"] and not cancellation_requested()
                              and report.get('face_selection_passed')
+                             and report.get('after_preview_repick_passed')
                              and report.get("production_async_passed")
                              and not report.get("error") and not report.get("drive_error")
                              and not report.get("runtime_error") and not report.get("runtime_cleanup_error"))

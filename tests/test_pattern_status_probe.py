@@ -16,7 +16,8 @@ spec.loader.exec_module(probe)
 
 class PatternStatusProbeTests(unittest.TestCase):
     def app(self):
-        return NS(version='test', userInterface=NS(activeCommand='active-user-command'))
+        return NS(version='test', userInterface=NS(activeCommand='active-user-command',
+            activeSelections=NS(count=0),commandDefinitions=NS(count=0)))
 
     def owner(self, request=None):
         runner = NS(_current=request, _command=None, _pending=None, busy=request is not None,

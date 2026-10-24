@@ -13,18 +13,18 @@ and existing holes remain protected.
 
 ## Use
 
-Choose one of 15 shapes or mosaics, then **Through
-holes**, **Engrave** or **Emboss**. In 0.10.4, selecting one face immediately
-starts preview. In **0.13.2**, **Add faces** returns immediately and opens normal
-Fusion selection with the chosen faces highlighted blue. **Hold Ctrl to add or
-remove faces**, then click the blue **Done · update preview** button in Partelier.
-The preview computes once after Done; Cancel remains available throughout.
-The count tracks the native selection. Esc/empty canvas clears native selection;
-choose faces again or Cancel, rather than waiting for Esc to finish a picker.
-At most 100 faces on the same solid may be selected. **Replace faces** starts
-over with one face; Esc before a replacement keeps the previous selection.
-Faces need not be coplanar.
-Multiple preselected faces are also reused. The default **Layout > Auto fit** uses
+Choose one of 15 shapes or mosaics, then **Through holes**, **Engrave**,
+**Emboss** or **Flat colour**. In **0.13.4**, **Select faces** immediately opens
+non-modal face selection. Normal clicks add sides without discarding earlier
+faces; the complete set stays blue. **No preview computes until Done**.
+Use **Clear selection** to start over, or Cancel to exit. Preselected faces are
+reused but still wait for Done. After a preview, **Add faces** retains the
+existing set; **Replace faces** starts an empty selection using the same workflow.
+Settings/Create wait until Done; subsequent parameter changes update preview
+normally. At most 100 faces on one solid may be selected, including different
+sides of a box; the faces need not be coplanar. Native Ctrl/empty-canvas
+selection changes do not remove accumulated faces; use Clear selection.
+The default **Layout > Auto fit** uses
 surface-dependent size and count; choose **Balanced** for an exact size and a sparse grid.
 Adjust **Cell size**, **Minimum gap** and **Border**. These names stay the same in all
 layout and action modes. Through holes hide the unused **Depth / height** field.

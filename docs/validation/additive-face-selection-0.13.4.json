@@ -1,0 +1,408 @@
+{
+  "version": "0.13.4",
+  "local": {
+    "python_tests": 926,
+    "pattern_command_tests": 42,
+    "node_ui_suites": 3,
+    "headless_edge": {
+      "checks": [
+        {
+          "width": 300,
+          "doneVisibleAndClickable": true,
+          "cancelClickable": true,
+          "helpVisible": true,
+          "noOverflow": true
+        },
+        {
+          "width": 380,
+          "doneVisibleAndClickable": true,
+          "cancelClickable": true,
+          "helpVisible": true,
+          "noOverflow": true
+        },
+        {
+          "width": 520,
+          "doneVisibleAndClickable": true,
+          "cancelClickable": true,
+          "helpVisible": true,
+          "noOverflow": true
+        }
+      ],
+      "errors": []
+    },
+    "compilation_passed": true,
+    "whitespace_passed": true
+  },
+  "native": {
+    "request_id": "cf98e010-a8b9-4e8d-ab82-1627b5d7ce16",
+    "report_sha256": "b8a3dbb4e22457422312d8ebd51e26a50f5f83e60c9dd3180efa7fb51f6fb5a2",
+    "fusion_version": "2705.1.30",
+    "case_count": 8,
+    "face_selection": {
+      "clear_selection_passed": true,
+      "done_released_handler": true,
+      "empty_selection_cancel_passed": true,
+      "model_unchanged": true,
+      "native_event_delivery": true,
+      "native_selected_faces": 2,
+      "no_modal_wait": true,
+      "no_preview_before_done": true,
+      "normal_clicks_accumulate": true,
+      "physical_pointer_or_cef_picking": false
+    },
+    "post_preview_repick_passed": true,
+    "post_preview_case": {
+      "activated_select": true,
+      "cells_per_face": [
+        5,
+        5
+      ],
+      "command_before": "",
+      "done_resynchronized_without_callback": true,
+      "name": "production_preview_repick_two_faces",
+      "native_highlight_count": 2,
+      "normal_clicks_accumulate": true,
+      "passed": true,
+      "selected_faces": 2
+    },
+    "box_cases": [
+      {
+        "cells_per_face": [
+          5,
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "first_wall_only": true,
+        "mode": "through",
+        "name": "box_six_outer_faces_hexagon_through",
+        "passed": true,
+        "programmatic_native_face_list": true,
+        "selected_faces": 6,
+        "shape": "hexagon",
+        "source_identity_retained": true
+      },
+      {
+        "cells_per_face": [
+          6,
+          6,
+          6,
+          6,
+          6,
+          6
+        ],
+        "first_wall_only": false,
+        "mode": "engrave",
+        "name": "box_six_outer_faces_triangle_engrave",
+        "passed": true,
+        "programmatic_native_face_list": true,
+        "selected_faces": 6,
+        "shape": "triangle",
+        "source_identity_retained": true
+      },
+      {
+        "cells_per_face": [
+          8,
+          8,
+          8,
+          8,
+          8,
+          8
+        ],
+        "first_wall_only": false,
+        "mode": "emboss",
+        "name": "box_six_outer_faces_cairo_emboss",
+        "passed": true,
+        "programmatic_native_face_list": true,
+        "selected_faces": 6,
+        "shape": "cairo",
+        "source_identity_retained": true
+      }
+    ],
+    "scope": "six-side box geometry and non-modal native face selection",
+    "cases": [
+      {
+        "name": "box_six_outer_faces_hexagon_through",
+        "passed": true
+      },
+      {
+        "name": "box_six_outer_faces_triangle_engrave",
+        "passed": true
+      },
+      {
+        "name": "box_six_outer_faces_cairo_emboss",
+        "passed": true
+      },
+      {
+        "name": "flat_colour_rollback_lifetime",
+        "passed": true
+      },
+      {
+        "name": "production_async_supersede_postrollback_preview",
+        "passed": true
+      },
+      {
+        "name": "production_preview_repick_two_faces",
+        "passed": true
+      },
+      {
+        "name": "production_cached_result_create_rollback",
+        "passed": true
+      },
+      {
+        "name": "production_disposable_document_cleanup",
+        "passed": true
+      }
+    ],
+    "unchanged": true,
+    "original_references_valid": true,
+    "geometry_checks_passed": true,
+    "production_async_passed": true,
+    "cached_create_passed": true,
+    "detached_survived_rollback": true,
+    "colour_survived_rollback": true,
+    "polygon_regressions_included": false
+  },
+  "sources": {
+    "files": {
+      "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+      "Partelier/partelier/addin.py": "b281358a644e8f8dfd3a5852562b615c7e9244379b59ff134ac366b506a7b4f1",
+      "Partelier/partelier/diagnostics.py": "60871f5f35a3a81f53a872e2ff668200030f801c94df7efc0c756053ef152447",
+      "Partelier/partelier/palette.py": "df072eeb8940d35586c0df36c9d05784953b3f4001fb1950ed5908a4b1dcb863",
+      "Partelier/partelier/palette_protocol.py": "558c68e710bd22ba2733060c6a0c602d6974f8f6ee95016d7eb167888daf9a56",
+      "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+      "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+      "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+      "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+      "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+      "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+      "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+      "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+      "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+      "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+      "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+      "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+      "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+      "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+      "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+      "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+      "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+      "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+      "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+      "Partelier/partelier/tools/patterns/auto_fit.py": "5be4178c056629c6486ae2558653ad1eaf7f6fcaa10820309ed74ceea4345289",
+      "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+      "Partelier/partelier/tools/patterns/clipping.py": "1d5583190a77e6b164e000353c9237aa446fe762bd6c4d20f72703ddb7968822",
+      "Partelier/partelier/tools/patterns/colour_export.py": "5bde50f0d872fc57b30bc88d5a73e7d3460f80c06529cebe10f846a2348bb5ff",
+      "Partelier/partelier/tools/patterns/colour_store.py": "cf2f2ff1ecb6e28397a57373bc8e68b6ce6319a84423db8c2ca4ffc5c66b84dd",
+      "Partelier/partelier/tools/patterns/command.py": "654af28eaf020e53276483a4170abecdbcc5159ab86b586b32944644a931a121",
+      "Partelier/partelier/tools/patterns/display_export.py": "aa5f683d270129781249d40d7d7f6e8eeacf93e8cb391af581f2e69dbbde0c5f",
+      "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+      "Partelier/partelier/tools/patterns/face_selection.py": "809ad6728c9273bd9dd35e5674e415257b71863e443387841b926713c33dcec3",
+      "Partelier/partelier/tools/patterns/fusion.py": "62cc8092ea7af9569abe4b219215060cb2c25a574c2b9c85f6124f41c1847fa8",
+      "Partelier/partelier/tools/patterns/grilles.py": "07bdc21ed540aab104e581065b199d281dda68627dd391d9cbd79e97339981ac",
+      "Partelier/partelier/tools/patterns/inlay.py": "2fbc2ce692013442910062306cc6938caf464dde43e4dce54b32b30612608a1a",
+      "Partelier/partelier/tools/patterns/planner.py": "70f66da217988ec0031a9671df987a53b106e05fe05a82f073f52200094d83be",
+      "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+      "Partelier/partelier/tools/patterns/prism.py": "cb1ada026a5ef1964b68b0e749c45e6ae03d19ece19a518938ef4e7c444f58a5",
+      "Partelier/partelier/tools/patterns/recipe.py": "5e73aededf4bc41b8abbc71bf32a41df15dfb3a966ff821d634c90f22d02df44",
+      "Partelier/partelier/tools/patterns/settings.py": "d73032fb5fad34c151c6754a182dfe3c1148b60679530f6c42d1a2da8b0d15d3",
+      "Partelier/partelier/tools/patterns/store.py": "d8379a2663fb72fbf912e79323dafb4f607008893d641459227e59c8af03e52f",
+      "Partelier/partelier/tools/patterns/surfaces.py": "8a4e392b38e22f8c3579271b11499b0b7480f3e0abf829785a9f9be9761da74f",
+      "Partelier/partelier/tools/patterns/tiled_layout.py": "fd39879c2540ddb1924728783f288a5704a656263bfc9ae896c81fb70d8ed4da",
+      "Partelier/partelier/tools/patterns/tiles.py": "7d7c94fd7e897ee82b4ec5de5a8a33da5f962157cc82bd27746a9917fd931fd1",
+      "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80",
+      "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+      "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+      "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+      "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+      "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+      "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+      "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+      "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+      "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+      "tools/fusion/JoinFinishProbe/JoinFinishProbe.py": "67a57e39a6ee093f25efaef8b04f8fc35fd1e4df8db6a5695cd9a351f608126d",
+      "tools/fusion/PatternDisplayProbe/PatternDisplayProbe.py": "21f0af2aca048766f4e3deaca93bb438bbbf9c9a4b40c51f68455211a2dcbdef",
+      "tools/fusion/PatternProbe/PatternProbe.py": "d78b061b7874eaea25d7aa056bd8c8f2b698acafc062060fd077b8c5b6a61a1e",
+      "tools/fusion/PatternStatusProbe/PatternStatusProbe.py": "b3534c9b27d768a351e512b048c85eb6f1fdc27baf62de8d1763e0bcd64e0e72",
+      "tools/fusion/SnapFitProbe/SnapFitProbe.py": "fdda39fb9ad26700763284b50a69ab1dd4b8d8958b6b02be90b565f0ec104d8a"
+    },
+    "sha256": "9ff0ad8ff4523c5d0a0bb5f7091a64b3cf7652feafa89fa08b917bec8de9f77e"
+  },
+  "git_blob_sha256": {
+    "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+    "Partelier/partelier/addin.py": "b281358a644e8f8dfd3a5852562b615c7e9244379b59ff134ac366b506a7b4f1",
+    "Partelier/partelier/diagnostics.py": "a5eaabe7c428e420d29c6ecd2f99a9310259392a285842401d1ce6946c773fd4",
+    "Partelier/partelier/palette.py": "94b378124095384efda79e1a3a524c807a408e2dac2d9d071e93733ee3611c30",
+    "Partelier/partelier/palette_protocol.py": "4a958ea98c03c5f83574a86306b531b91c84545f364e918a1b31741f8364abac",
+    "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+    "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+    "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+    "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+    "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+    "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+    "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+    "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+    "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+    "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+    "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+    "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+    "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+    "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+    "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+    "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+    "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+    "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+    "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+    "Partelier/partelier/tools/patterns/auto_fit.py": "5be4178c056629c6486ae2558653ad1eaf7f6fcaa10820309ed74ceea4345289",
+    "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+    "Partelier/partelier/tools/patterns/clipping.py": "1d5583190a77e6b164e000353c9237aa446fe762bd6c4d20f72703ddb7968822",
+    "Partelier/partelier/tools/patterns/colour_export.py": "dc9404373256ce66d4fc934c11cfa7917885318a804fe1d066bebf13db98079e",
+    "Partelier/partelier/tools/patterns/colour_store.py": "cf2f2ff1ecb6e28397a57373bc8e68b6ce6319a84423db8c2ca4ffc5c66b84dd",
+    "Partelier/partelier/tools/patterns/command.py": "654af28eaf020e53276483a4170abecdbcc5159ab86b586b32944644a931a121",
+    "Partelier/partelier/tools/patterns/display_export.py": "3cfdc6031090dbe8c52422b41926f35d04c9e2e153131572b79711af094f19ff",
+    "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+    "Partelier/partelier/tools/patterns/face_selection.py": "809ad6728c9273bd9dd35e5674e415257b71863e443387841b926713c33dcec3",
+    "Partelier/partelier/tools/patterns/fusion.py": "7011e51aa183d4cea65fae00a6a975eb722c1bcb89ab9e16688d1d0f7862708b",
+    "Partelier/partelier/tools/patterns/grilles.py": "52de538853d6064d318b5dd92629a31fa62a4f6a31b6ec34154b672c7a6c1a16",
+    "Partelier/partelier/tools/patterns/inlay.py": "1e3bb0c9396636cfec62182f437d0bfffb14489d9d116ff40b1aa9151b074218",
+    "Partelier/partelier/tools/patterns/planner.py": "49e86fc8874f31a8b98d0b12dc201b7ec697495bc369fe50c7d33e68c72fa51e",
+    "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+    "Partelier/partelier/tools/patterns/prism.py": "615e236e5d104a31a201028f28c596baf28f398f781b8e97731a19cbeb3a5950",
+    "Partelier/partelier/tools/patterns/recipe.py": "6620e242c9a8d6bd8408376d5b398759b7b9f5902f081af4d9501c9ae433de90",
+    "Partelier/partelier/tools/patterns/settings.py": "d936927e4fa8d42dda82888918cd55474d6dc56f5362484f768c1767ae4a4825",
+    "Partelier/partelier/tools/patterns/store.py": "d8379a2663fb72fbf912e79323dafb4f607008893d641459227e59c8af03e52f",
+    "Partelier/partelier/tools/patterns/surfaces.py": "8a4e392b38e22f8c3579271b11499b0b7480f3e0abf829785a9f9be9761da74f",
+    "Partelier/partelier/tools/patterns/tiled_layout.py": "fd39879c2540ddb1924728783f288a5704a656263bfc9ae896c81fb70d8ed4da",
+    "Partelier/partelier/tools/patterns/tiles.py": "7d7c94fd7e897ee82b4ec5de5a8a33da5f962157cc82bd27746a9917fd931fd1",
+    "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80",
+    "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+    "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+    "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+    "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+    "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+    "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+    "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+    "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+    "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+    "tools/fusion/JoinFinishProbe/JoinFinishProbe.py": "67a57e39a6ee093f25efaef8b04f8fc35fd1e4df8db6a5695cd9a351f608126d",
+    "tools/fusion/PatternDisplayProbe/PatternDisplayProbe.py": "9afe5f97e6f663a9288e8cdc4572be2b88f010707c3124e5e629224741aadaef",
+    "tools/fusion/PatternProbe/PatternProbe.py": "4ddad92c41bd548799524fb7a80c7413214e0ab51e79e39069bb6b1807f3196c",
+    "tools/fusion/PatternStatusProbe/PatternStatusProbe.py": "b3534c9b27d768a351e512b048c85eb6f1fdc27baf62de8d1763e0bcd64e0e72",
+    "tools/fusion/SnapFitProbe/SnapFitProbe.py": "fdda39fb9ad26700763284b50a69ab1dd4b8d8958b6b02be90b565f0ec104d8a"
+  },
+  "source_normalization": "Native working fingerprints and staged blobs are verified equal after CRLF/LF normalization.",
+  "ui_sources": {
+    "Partelier/partelier/ui/catalog.js": {
+      "working_sha256": "26b6de6e5e16593a6d440412c4eca3631bd0839dcbea8e7f13124d95bef3dd49",
+      "git_blob_sha256": "58634caaf4d5662ab6b9660f6d3de097af8f2859d6ff9cd8366f5c284f28bd62"
+    },
+    "Partelier/partelier/ui/illustrations.js": {
+      "working_sha256": "d009c82b7fd74e7277231d0712a3283147e21a2e70ebeab5359b83d93a25d7e4",
+      "git_blob_sha256": "cb759520a27f8ccd8ac80170edd642eb80d5216dc9b0bd533d9be6f96f50dae5"
+    },
+    "Partelier/partelier/ui/palette.css": {
+      "working_sha256": "73df5a002d466becb7f93331ffbd94525e9d8ea46082ecca502eef256fe33e1e",
+      "git_blob_sha256": "73df5a002d466becb7f93331ffbd94525e9d8ea46082ecca502eef256fe33e1e"
+    },
+    "Partelier/partelier/ui/palette.html": {
+      "working_sha256": "3a6b9bfb9bece15b5e9e4759b0972306a5809daf3acdc9cad5407f1a2ddbca08",
+      "git_blob_sha256": "cf07dd998849f1ae02e8604d9911659e4c66ddcf14704332de8800e0b0b0b92c"
+    },
+    "Partelier/partelier/ui/palette.js": {
+      "working_sha256": "e7717f9dbb9e8abcb7f4d48f866013448f43cf9cba2a7c001a1b4dd8bb2b27b9",
+      "git_blob_sha256": "2a5204786f62e65167f147f3c932daa0b001bb1effe204c367f370978920d176"
+    },
+    "Partelier/partelier/ui/pattern-help.js": {
+      "working_sha256": "d9e0a8fd02e09f5191e4e7f0ddc7438c60427e60de1e6105dc5bd16a1e85efeb",
+      "git_blob_sha256": "70db1337c529bc054a6137d253a53416fc66844f2f93623ce8fe2d6a16603978"
+    },
+    "Partelier/partelier/ui/patterns.js": {
+      "working_sha256": "6dcadea05d3a7a692e4e0c93995881d3b0a30b1696c0193242799bde12773cc5",
+      "git_blob_sha256": "89ebc85f02de6c90927061e5c6fd5b6594e467318dd572be87371005e417d0ae"
+    },
+    "Partelier/partelier/ui/snap.js": {
+      "working_sha256": "f3a79b8e14b1d05094fa98fcfd57961e3a8fa5f19775987e51952b1ccf2a45c7",
+      "git_blob_sha256": "619d13aca3fc45ceea21055b06d88a423224a9cd8ee4d93c9d79a78b4a8a59c0"
+    },
+    "Partelier/partelier/ui/pattern-previews/cairo.svg": {
+      "working_sha256": "62b61fafaa82d48f38e556bbe1171a300f67718e4551fbbd3205091c7d02ccc0",
+      "git_blob_sha256": "62b61fafaa82d48f38e556bbe1171a300f67718e4551fbbd3205091c7d02ccc0"
+    },
+    "Partelier/partelier/ui/pattern-previews/elongated_hexagon.svg": {
+      "working_sha256": "7db784fb5b6c3c25e3c839ca0444f10f022569e9fc09b31eb8f8f0ebef2439e9",
+      "git_blob_sha256": "7db784fb5b6c3c25e3c839ca0444f10f022569e9fc09b31eb8f8f0ebef2439e9"
+    },
+    "Partelier/partelier/ui/pattern-previews/octagon.svg": {
+      "working_sha256": "780bde96fbdd424212d89ac63253ed61605a80aeb930c8886a89e0e129e541c7",
+      "git_blob_sha256": "780bde96fbdd424212d89ac63253ed61605a80aeb930c8886a89e0e129e541c7"
+    },
+    "Partelier/partelier/ui/pattern-previews/octagon_square.svg": {
+      "working_sha256": "b6d30d19271015390c5f69474c335c09c113e8701dc2d31d197b2750cd9ca0fa",
+      "git_blob_sha256": "b6d30d19271015390c5f69474c335c09c113e8701dc2d31d197b2750cd9ca0fa"
+    },
+    "Partelier/partelier/ui/pattern-previews/pentagon.svg": {
+      "working_sha256": "360322d0a82041063823db1cc90217f3289dc62d6fdb4710afb32574f49aa522",
+      "git_blob_sha256": "360322d0a82041063823db1cc90217f3289dc62d6fdb4710afb32574f49aa522"
+    },
+    "Partelier/partelier/ui/pattern-previews/rhombille.svg": {
+      "working_sha256": "cf3f4dfccee06f77df5359c66e8937aaa770a26a292cd9d396ce9adc9c3f8468",
+      "git_blob_sha256": "cf3f4dfccee06f77df5359c66e8937aaa770a26a292cd9d396ce9adc9c3f8468"
+    },
+    "Partelier/partelier/ui/pattern-previews/rounded_hexagon.svg": {
+      "working_sha256": "6b72e822e36c215d791ffeb77fccff5e70dd56df71db34c0f74c4fad4eceb506",
+      "git_blob_sha256": "6b72e822e36c215d791ffeb77fccff5e70dd56df71db34c0f74c4fad4eceb506"
+    },
+    "Partelier/partelier/ui/pattern-previews/rounded_triangle.svg": {
+      "working_sha256": "dbc97b47ceecb4fc6d2691f433a7d739346f441e556a9900e05300725333d462",
+      "git_blob_sha256": "dbc97b47ceecb4fc6d2691f433a7d739346f441e556a9900e05300725333d462"
+    },
+    "Partelier/partelier/ui/pattern-previews/triangle.svg": {
+      "working_sha256": "d4905b8f6ab2203020cdb75569225dd42dfbbf0dd9eb83d91794da3375ac44cc",
+      "git_blob_sha256": "d4905b8f6ab2203020cdb75569225dd42dfbbf0dd9eb83d91794da3375ac44cc"
+    },
+    "Partelier/partelier/ui/pattern-previews/trihex.svg": {
+      "working_sha256": "a216a27473d0249b6594e340c4ebf24c25b1ac7c9b06aff6b7f196c3196cd07f",
+      "git_blob_sha256": "a216a27473d0249b6594e340c4ebf24c25b1ac7c9b06aff6b7f196c3196cd07f"
+    }
+  },
+  "limits": [
+    "The native selector lifecycle uses real activeSelections changes and event delivery; actual physical pointer/CEF acceptance remains to be confirmed.",
+    "Initial selection and Add faces accumulate normal single clicks, restore blue highlights through a deferred event, and compute only after Done. Clear explicitly resets the set. No motif, mapper or recipe schema changed.",
+    "Selections remain limited to one root-component solid and at most 100 faces.",
+    "This focused run has four geometry cases plus post-preview repicking, production async, cached-Create and cleanup checks; the unchanged shared/polygon matrices are not included."
+  ],
+  "preflights_not_counted_as_success": [
+    {
+      "request_id": "a5a80ca6-e535-400c-ab32-8365c12db2a4",
+      "success": false,
+      "unchanged": true,
+      "error": "Traceback (most recent call last):\n  File \"C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\tools\\fusion\\PatternProbe\\PatternProbe.py\", line 1548, in _drive_runtime\n    _runtime_after_preview_pick()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\tools\\fusion\\PatternProbe\\PatternProbe.py\", line 1334, in _runtime_after_preview_pick\n    raise RuntimeError('Repicking after native preview did not activate normal Select and release preview.')\nRuntimeError: Repicking after native preview did not activate normal Select and release preview.\n"
+    },
+    {
+      "request_id": "5259c71a-1671-4d3a-ad1a-531fbd00487a",
+      "success": false,
+      "unchanged": true,
+      "error": "Traceback (most recent call last):\n  File \"C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\tools\\fusion\\PatternProbe\\PatternProbe.py\", line 1558, in _drive_runtime\n    _runtime_after_preview_select_ready()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\tools\\fusion\\PatternProbe\\PatternProbe.py\", line 1342, in _runtime_after_preview_select_ready\n    raise RuntimeError('Deferred Select activation did not seed face selection: '+\n        repr((app.userInterface.activeCommand,session.face_picker.ready,session.face_picker.error)))\nRuntimeError: Deferred Select activation did not seed face selection: ('', False, None)\n"
+    },
+    {
+      "request_id": "572d53e3-a88a-42a9-938d-524bc70a4f3d",
+      "success": false,
+      "unchanged": true,
+      "error": "Traceback (most recent call last):\n  File \"C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\tools\\fusion\\PatternProbe\\PatternProbe.py\", line 1575, in _drive_runtime\n    raise RuntimeError('Fusion did not activate normal Select within the validation timeout.')\nRuntimeError: Fusion did not activate normal Select within the validation timeout.\n"
+    },
+    {
+      "request_id": "c1441449-c44c-4100-a7ac-b33a0a8085b5",
+      "success": false,
+      "unchanged": true,
+      "error": "Traceback (most recent call last):\n  File \"C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\tools\\fusion\\PatternProbe\\PatternProbe.py\", line 1575, in _drive_runtime\n    raise RuntimeError('Fusion did not activate normal Select within the validation timeout.')\nRuntimeError: Fusion did not activate normal Select within the validation timeout.\n"
+    },
+    {
+      "request_id": "f11e19c0-b89b-4f47-aa2e-0fbe05408603",
+      "success": false,
+      "unchanged": true,
+      "error": "Traceback (most recent call last):\n  File \"C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\tools\\fusion\\PatternProbe\\PatternProbe.py\", line 1576, in _drive_runtime\n    raise RuntimeError('Fusion selection activation timed out: '+repr((\n        adsk.core.Application.get().userInterface.activeCommand,picker.ready,picker.seeded,\n        adsk.core.Application.get().userInterface.activeSelections.count)))\nRuntimeError: Fusion selection activation timed out: ('SelectCommand', False, False, 0)\n"
+    }
+  ]
+}

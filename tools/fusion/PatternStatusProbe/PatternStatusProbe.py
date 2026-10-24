@@ -45,7 +45,12 @@ def inspect(app):
             'prepared_timings': getattr(getattr(session, 'prepared', None), 'timings', None),
             'prepared_cell_count': getattr(getattr(session, 'prepared', None), 'cell_count', None),
         })
+    ui=app.userInterface
+    selections=[ui.activeSelections.item(i).entity.objectType for i in range(min(100,ui.activeSelections.count))]
+    select_definitions=[{'id':ui.commandDefinitions.item(i).id,'name':ui.commandDefinitions.item(i).name}
+        for i in range(ui.commandDefinitions.count) if 'select' in ui.commandDefinitions.item(i).id.lower()][:40]
     return {'scenario': 'pattern_status', 'success': True, 'read_only': True,
+            'native_selection_types':selections,'select_definitions':select_definitions,
             'fusion_version': app.version, 'active_command': app.userInterface.activeCommand,
             'owners': owners}
 
