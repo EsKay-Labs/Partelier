@@ -6,7 +6,11 @@
     const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 17.5, web_mm: 5, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "balanced", edge_mode: "clip", density: "balanced", size_locked: false });
     const presets = { honeycomb: { pattern: "hexagon", mode: "through" }, perforation: { pattern: "circle", mode: "through" }, knurl: { pattern: "diamond", mode: "emboss" } };
     const choices = {
-        pattern: [["hexagon", "Hexagons"], ["circle", "Circles"], ["diamond", "Diamonds"], ["square", "Squares"], ["slot", "Slots"]],
+        pattern: [["hexagon", "Hexagons"], ["rounded_hexagon", "Rounded hexagons"], ["elongated_hexagon", "Elongated hexagons"],
+            ["triangle", "Triangles · alternating"], ["rounded_triangle", "Rounded triangles"], ["pentagon", "Pentagons"],
+            ["cairo", "Cairo pentagons"], ["octagon", "Octagons"], ["trihex", "Hexagons + triangles"],
+            ["octagon_square", "Octagons + squares"], ["rhombille", "Rhombille · cube grid"],
+            ["circle", "Circles"], ["diamond", "Diamonds"], ["square", "Squares"], ["slot", "Slots"]],
         mode: [["through", "Through holes"], ["engrave", "Engrave"], ["emboss", "Emboss"]],
         layout_mode: [["auto", "Auto fit · visual balance"], ["balanced", "Balanced · fewer cells"], ["fill", "Fill face · fixed size"], ["fit", "Automatic size"], ["fixed", "Exact pitch"]],
         density: [["sparse", "Sparse"], ["balanced", "Balanced"], ["dense", "Dense"]],
@@ -403,5 +407,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.11.0" }); renderArt(); render();
+    trace("boot", { build:"0.12.0" }); renderArt(); render();
 })();

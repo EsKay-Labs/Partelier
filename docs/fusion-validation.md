@@ -46,6 +46,56 @@ completion cannot reset a newly started bridge session. CLI timeout still leaves
 a request pending within the current session; Stop cancels it. No external
 connection is used.
 
+## Ten polygon varieties (0.12.0)
+
+The Pattern selector now contains 15 real geometry choices. Ten new families
+share the existing operations and persistence: alternating/rounded triangles,
+regular pentagons, Cairo pentagons, octagons, trihexagonal and octagon/square
+mosaics, rhombille, rounded hexagons and elongated hexagons. Shapes are convex
+analytic templates, with actual perpendicular half-gap offsets. Profiles are
+reused across phase proposals. Existing five-family planning paths remain intact.
+
+Native matrix `dd7ac9bc-1f10-4e11-97c3-d612637504fb` passes **115 cases** on
+Fusion 2705.1.30. Its 41 new checks cover all ten families in planar
+Through/Engrave/Emboss, all ten in full-cylinder Auto fit/Engrave, and four
+cross-family Edit/Rebuild changes. Root-body identity/count and the same three
+owned history features remain stable across those changes. Material/depth
+witnesses, borders, physical-gap guards and repeat-unit closure run on native
+geometry. The original model/reference snapshot and production async/cached
+Create checks pass. The new cylinder check uses `repeat_u_mm`, which is distinct
+from the reference Cell size plus Minimum gap in a multi-tile motif.
+
+Clean display/workflow request `43ff7db2-25f3-414a-ba28-9da4e6d70ea2` passes
+all 12 cached display cycles, the prior Balanced size regression and Auto fit
+Create/Edit/Rebuild. The original model/document/camera are restored without
+cleanup errors. Both final requests have an identical unchanged Python/probe
+manifest, verified against working files and staged Git bytes.
+
+Preflight display request `2ff2d5c2-cc25-4a09-a954-4d18668c6cfa` began with an
+active product preview. Normal document deactivation retired that preview. Its
+original-state check is false, so it is explicitly not counted as successful
+validation; its display workflows pass and cleanup reports no errors. The clean
+requests above run after this transition and pass exact unchanged-state checks.
+
+Local validation passes **902 Python tests**, all **three Node DOM suites**,
+compilation and whitespace checks. New tests independently check motif area and
+non-overlap over neighboring repeat units, convexity, corner containment,
+actual polygon gaps after rotation/spreading, exact locks, density order,
+wrap closure, no duplicate cells, and the 16-proposal/two-acceptance-pass limits.
+Headless Edge at 300/380/520 px selects all ten new choices, checks local sample
+availability and horizontal bounds; gallery and selected-family screenshots
+were inspected. Static samples are generated from the real planner rather than
+separately drawn approximations of the tile layout.
+
+Pure numeric Auto fit on a 300 × 170 mm chart, Balanced density, measures medians
+of about **11–60 ms** across the ten families (five measured repetitions per
+family). This excludes surface acceptance, exact CAD, export and drawing.
+Reference dimensions depend on family, rounded corners use bounded polygonal
+arcs, and new full-wrap mosaics currently need 180° rotation increments. These
+checks establish geometry/work bounds, not physical printability, strength,
+optimal packing or actual Fusion CEF/pointer acceptance. See the
+[scoped cases, timings and source hashes](validation/pattern-varieties-0.12.0.json).
+
 ## Bounded visual Auto fit (0.11.0)
 
 Auto fit adds Sparse / Balanced / Dense suggestions to the existing five shapes.

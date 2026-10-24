@@ -306,6 +306,10 @@ class _Session:
                          proposals=sum(layout.proposals_evaluated for layout in prepared.layouts),
                          acceptance_checks=sum(layout.acceptance_checks for layout in prepared.layouts),
                          cells=prepared.cell_count,sizes_mm=sizes)
+                elif any(getattr(layout,'repeat_u_mm',None) is not None for layout in getattr(prepared,'layouts',())):
+                    sizes=[layout.cell_size_mm for layout in prepared.layouts if layout.cell_count]
+                    caption=f'{min(sizes):.2f}' if max(sizes)-min(sizes)<.005 else f'{min(sizes):.2f}–{max(sizes):.2f}'
+                    self.message=f'{prepared.cell_count} cells · cell size {caption} mm · minimum gap {self.settings.web_mm:g} mm'
                 elif self.settings.layout_mode=='balanced':
                     size=self.settings.pitch_mm-self.settings.web_mm
                     pitches=[layout.effective_pitch_mm for layout in getattr(prepared,'layouts',()) if layout.cell_count]

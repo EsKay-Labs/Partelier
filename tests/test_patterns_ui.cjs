@@ -76,6 +76,15 @@ function fixture(options = {}) {
 (async()=>{
     const guide=fixture();await guide.flush();await guide.select("honeycomb");
     const beforeHelp=guide.requests.length;
+    const polygonFamilies=["triangle","rounded_triangle","pentagon","octagon","trihex","octagon_square","cairo","rhombille","rounded_hexagon","elongated_hexagon"];
+    assert.equal(guide.$("pattern-pattern").children.length,15,"fifteen real pattern choices");
+    for(const family of polygonFamilies) {
+        assert(fs.existsSync(path.join(ui,"pattern-previews",family+".svg")),family+" has a local visual sample");
+        await guide.input("pattern",family);
+        assert(guide.$("pattern-illustration").innerHTML.includes(`pattern-previews/${family}.svg`));
+        assert(guide.$("pattern-illustration").innerHTML.includes(`data-pattern-cell="${family}"`));
+    }
+    await guide.input("pattern","hexagon");
     for(const name of [...Object.keys(defaults),"cell_size_mm"]) {
         await guide.click("pattern-help-"+name);
         assert.equal(guide.$("pattern-parameter-help").open,true);
@@ -265,9 +274,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.11.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.12.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.11.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.12.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.click("begin-pattern-button");await logged.click("pattern-select-surface");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.click("begin-pattern-button");const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));

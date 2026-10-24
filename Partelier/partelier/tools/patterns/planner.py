@@ -3,6 +3,7 @@
 from dataclasses import dataclass, replace
 import math
 from . import clipping
+from .tiles import TILED_PATTERNS
 
 
 MAX_CANDIDATES = 4000
@@ -68,6 +69,11 @@ class Cell:
 
 
 def _polygon(settings):
+    if settings.pattern in TILED_PATTERNS:
+        from .tiles import profiles, motif
+        value=profiles(settings.pattern,settings.pitch_mm-settings.web_mm,settings.web_mm)
+        if not value:raise ValueError('Increase Cell size or reduce Minimum gap for this polygon pattern.')
+        return value[2][motif(settings.pattern).reference][1]
     width = settings.pitch_mm-settings.web_mm
     if settings.pattern == "hexagon":
         radius, count, phase = width/math.sqrt(3), 6, math.pi/6
@@ -157,6 +163,7 @@ class Layout:
     cell_size_mm: float = None
     proposals_evaluated: int = 0
     acceptance_checks: int = 0
+    repeat_u_mm: float = None
 
     @property
     def cell_count(self):
@@ -394,6 +401,9 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
     The caller still verifies physical web thickness after surface mapping.
     """
     settings.validate()
+    if settings.pattern in TILED_PATTERNS:
+        from .tiled_layout import build_tiled_layout
+        return build_tiled_layout(settings,bounds,period_u_mm,max_cells,accept)
     mode = getattr(settings, "layout_mode", "fixed")
     if mode == "fixed" and settings.edge_mode=='whole':
         cells = _build_legacy(settings, bounds, period_u_mm)
@@ -488,7 +498,7 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
 
 def build_cells(settings, bounds, period_u_mm=None):
     """Compatibility tuple API; new adapters should report build_layout pitch."""
-    if getattr(settings, "layout_mode", "fixed") == "fixed" and settings.edge_mode=='whole':
+    if getattr(settings, "layout_mode", "fixed") == "fixed" and settings.edge_mode=='whole' and settings.pattern not in TILED_PATTERNS:
         return _build_legacy(settings, bounds, period_u_mm)
     return build_layout(settings, bounds, period_u_mm).cells
 

@@ -290,6 +290,11 @@ window.PartelierIllustrations = (() => {
         return `<svg viewBox="0 0 440 270" ${filletEdges ? 'data-fillet-finish="true"' : ''} ${snapAttributes} role="img" aria-label="${id} concept illustration${exploded ? ", separated view" : ""}"><g fill="none" stroke="#a4c5ce" opacity=".055" stroke-width=".8">${grid}</g><ellipse cx="220" cy="203" rx="124" ry="23" fill="#0b171f" opacity=".2"/>${geometry}${overlays.join("")}<g fill="none" stroke="#9bbac1" stroke-width="1" opacity=".5"><path d="M36 233h20m-20 0v-17m0 17-9 6"/></g><g fill="#9bbac1" font-family="Consolas,monospace" font-size="7" opacity=".65"><text x="60" y="236">X</text><text x="33" y="212">Z</text></g></svg>`;
     }
     function renderPattern(settings = {}) {
+        const mosaics = ["triangle","rounded_triangle","pentagon","octagon","trihex","octagon_square","cairo","rhombille","rounded_hexagon","elongated_hexagon"];
+        if (mosaics.includes(settings.pattern)) {
+            const mode = ["through","engrave","emboss"].includes(settings.mode) ? settings.mode : "through";
+            return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} polygon pattern sample" data-pattern-surface="panel" data-pattern-mode="${mode}"><image href="pattern-previews/${settings.pattern}.svg?v=0.12.0" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#536b8c" font-family="Segoe UI,sans-serif" font-size="9">Pattern sample · exact live preview follows your selected surface</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
+        }
         const pattern = ["hexagon", "circle", "diamond", "square", "slot"].includes(settings.pattern) ? settings.pattern : "hexagon";
         const mode = ["through", "engrave", "emboss"].includes(settings.mode) ? settings.mode : "through";
         const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;

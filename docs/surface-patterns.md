@@ -13,7 +13,7 @@ and existing holes remain protected.
 
 ## Use
 
-Choose a shape (hexagons, circles, diamonds, squares or slots), then **Through
+Choose one of 15 shapes or mosaics, then **Through
 holes**, **Engrave** or **Emboss**. In 0.10.4, selecting one face immediately
 starts preview. Use **Add face** for another face on the same solid, or **Faces**
 to replace the selection. Esc cancels the current pick and keeps the previous
@@ -23,11 +23,60 @@ Adjust **Cell size**, **Minimum gap** and **Border**. These names stay the same 
 layout and action modes. Through holes hide the unused **Depth / height** field.
 Rotation, offsets and **Edge cells** live under Advanced.
 
-Version **0.11.0** retains the new-pattern defaults of **12.5 mm Cell size**, **5 mm Minimum
+Version **0.12.0** retains the new-pattern defaults of **12.5 mm Cell size**, **5 mm Minimum
 gap**, **2 mm Border** and **Clip at border**. The local **?** dialogs explain
 every field in Greek with an original SVG comparison; they do not request CAD
 geometry or change settings. Close with Esc, the close button or a backdrop
 click; focus returns to the help trigger.
+
+### Polygon varieties
+
+Version 0.12.0 adds ten real geometry families to the original five:
+
+| Choice | Geometry and Cell size reference |
+| --- | --- |
+| Triangles | Alternating equilateral triangles; nominal side length |
+| Rounded triangles | The same lattice, with inscribed rounded corners |
+| Pentagons | Repeated regular pentagonal openings; reference profile width |
+| Cairo pentagons | Eight congruent convex pentagons in a square repeat; reference pentagon width |
+| Octagons | Regular octagonal openings; opposite-flat width |
+| Hexagons + triangles | Trihexagonal mosaic; small triangle's nominal side length |
+| Octagons + squares | Octagonal/square mosaic; small square's diagonal |
+| Rhombille · cube grid | Three rhombus orientations; reference rhombus's long diagonal |
+| Rounded hexagons | Honeycomb with inscribed rounded corners; nominal opposite-flat width |
+| Elongated hexagons | A 1.6:1 stretched hexagon lattice; horizontal reference width |
+
+![Ten new polygon families generated from actual planner coordinates](images/pattern-varieties-0.12.0.png)
+
+Mixed patterns have several tile sizes; Cell size refers to the smaller shape
+named above, with the other proportions fixed. Rounded profiles use an inscribed
+corner radius up to 12% of the reference size, reduced only to keep tangent arcs
+within the adjacent sides, and six straight segments per arc. This changes the
+2D footprint; it does not apply a 3D fillet/chamfer to the hole rim. The corner
+trim can reduce the actual bounding width below the nominal sharp profile.
+
+Every tile is inset by half Minimum gap along each supporting edge before
+repetition. Increasing fixed-size spacing moves all tile centers uniformly,
+preserving separation across motif boundaries. All polygons count individually
+towards the existing work limits. The planner uses up to 16 proposals and only
+two real surface acceptance passes. Tile profiles are reused across the four
+phase proposals; interior polygons use bounding-box checks, while boundary
+polygons retain exact rectangle/real-trim clipping. No CAD object is built for
+discarded proposals. Existing five-family planners and saved recipes retain
+their original paths.
+
+Auto fit, exact-size locks, Border, Whole/Clip edge modes and
+Through/Engrave/Emboss are shared. Full cylinder wraps close complete repeat
+units; new polygon mosaics currently require rotation in multiples of 180°.
+Their `repeat_u_mm` is separate from nominal Cell size + Minimum gap. General
+surface distortion and final physical gap/solid guards still apply.
+
+Local SVG samples are generated from these same planned polygons by
+`tools/generate_pattern_samples.py`; Help & example shows the selected family.
+The Cairo unit is an independently derived integer-coordinate deformation on
+a square lattice; its area and non-overlap are checked across neighboring units.
+Background on the square-lattice Cairo construction and its deformations:
+[Zucker, Bridges 2023, pp. 215–216](https://archive.bridgesmathart.org/2023/bridges2023-211.pdf).
 
 ### Auto fit
 
@@ -53,8 +102,8 @@ count, cap the opening's angular footprint, and can increase vertical spacing
 on tall cylinders. All existing physical gap, trim, normal and solid guards
 still run. General curved or heavily trimmed regions can still be refused.
 The layout is a bounded visual heuristic, not optimal packing, a guarantee of
-beauty, strength analysis or a printability check. New polygon/tessellation
-families are separate future work; this feature supports the existing five shapes.
+beauty, strength analysis or a printability check. All 15 current families
+support Auto fit; new polygon families use their actual motif area and tile count.
 
 Efficiency is explicit: at most **16 chart-space grids**, only the best **two**
 sent to cached surface acceptance, at most **2 × the face budget** acceptance

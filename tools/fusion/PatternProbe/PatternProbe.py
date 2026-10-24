@@ -798,12 +798,57 @@ def _auto_cases(design):
         _case('auto_wrap_'+mode,wrapped)
 
 
+def _variety_cases(design):
+    Settings=STATE['settings_module'].PatternSettings
+    adapter=STATE['adapter'];recipe=STATE['recipe']
+    names=importlib.import_module(adapter.__package__+'.tiles').TILED_PATTERNS
+    for name in names:
+        for mode in ('through','engrave','emboss'):
+            def planar(name=name,mode=mode):
+                _,body,faces=fixture(design,'plane')
+                settings=Settings(pattern=name,layout_mode='fill',pitch_mm=6.5,web_mm=1.5,border_mm=2,depth_mm=.5,mode=mode)
+                prepared=prepare_checked(design,faces,settings)
+                detail=inspect(prepared,'plane');detail['reference_size_mm']=prepared.layouts[0].cell_size_mm
+                if mode=='through':capture_pattern(prepared,'variety-'+name)
+                return detail
+            _case('variety_'+name+'_'+mode,planar)
+        def wrapped(name=name):
+            _,body,faces=fixture(design,'cylinder_wrap')
+            settings=Settings(pattern=name,layout_mode='auto',web_mm=1.2,border_mm=2,depth_mm=.5,mode='engrave')
+            prepared=prepare_checked(design,faces,settings)
+            layout=prepared.layouts[0];period=adapter.SurfaceMap(faces[0]).period_u_mm
+            if abs(round(period/layout.repeat_u_mm)*layout.repeat_u_mm-period)>1e-7:raise RuntimeError('Polygon unit did not close around the wrap.')
+            if layout.proposals_evaluated>16 or layout.acceptance_checks>128:raise RuntimeError('Polygon planning exceeded its work bounds.')
+            detail=inspect(prepared,'cylinder_wrap');detail['reference_size_mm']=layout.cell_size_mm
+            detail['repeat_u_mm']=layout.repeat_u_mm
+            return detail
+        _case('variety_'+name+'_wrap',wrapped)
+    def editing():
+        _,body,faces=fixture(design,'plane')
+        before=(design.rootComponent.bRepBodies.count,design.timeline.count)
+        settings=Settings(pattern='cairo',layout_mode='fill',pitch_mm=6.5,web_mm=1.5,mode='engrave',depth_mm=.5)
+        prepared=prepare_checked(design,faces,settings)
+        anchor=recipe.create_pattern(design,prepared)
+        for name in ('rounded_triangle','trihex','octagon_square','rhombille'):
+            target=recipe.read_edit_target(design,body)
+            changed=replace(settings,pattern=name)
+            updated=recipe.prepare_edit_pattern(design,target,changed)
+            if recipe.rebuild_pattern(design,target,updated)!=anchor:raise RuntimeError('Changing polygon family replaced the owned anchor.')
+            current=recipe.read_edit_target(design,body)
+            if (current.settings.pattern!=name or current.record.target!=body
+                    or design.rootComponent.bRepBodies.count!=before[0] or design.timeline.count!=before[1]+3):
+                raise RuntimeError('Polygon Edit/Rebuild lost settings, target identity or owned history.')
+        return {'family_rebuilds':4,'same_body':True,'owned_features':3}
+    _case('variety_cross_family_edit_rebuild',editing)
+
+
 def cases():
     design = STATE["design"]
     Settings = _fixed_settings
     recipe = STATE["recipe"]
     _clip_cases(design)
     _auto_cases(design)
+    _variety_cases(design)
     fixtures = {}
     for kind in ("plane", "cylinder", "hex"):
         fixtures[kind] = fixture(design, kind)

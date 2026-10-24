@@ -2,6 +2,7 @@
 
 from dataclasses import asdict, dataclass, fields
 import math
+from .tiles import TILED_PATTERNS
 
 
 @dataclass(frozen=True)
@@ -34,8 +35,8 @@ class PatternSettings:
         self.validate()
 
     def validate(self):
-        if self.pattern not in ("hexagon", "circle", "diamond", "square", "slot"):
-            raise ValueError("Choose hexagon, circle, diamond, square or slot.")
+        if self.pattern not in ("hexagon", "circle", "diamond", "square", "slot")+TILED_PATTERNS:
+            raise ValueError("Choose a supported pattern shape or polygon mosaic.")
         if self.mode not in ("through", "engrave", "emboss"):
             raise ValueError("Choose through, engrave or emboss.")
         if self.selection_scope not in ("faces", "body"):

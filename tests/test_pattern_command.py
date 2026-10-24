@@ -486,6 +486,19 @@ class PatternCommandTests(unittest.TestCase):
         self.assertIn('minimum gap 1.5 mm',session.message)
         self.assertIn('border ≥ 2 mm',session.message)
 
+    def test_polygon_mosaics_report_the_reference_dimension_and_minimum_gap(self):
+        original=self.fusion.prepare_pattern.side_effect
+        def prepare(*args):
+            result=original(*args)
+            result.layouts=(NS(cell_count=7,cell_size_mm=12.5,repeat_u_mm=40),)
+            return result
+        self.fusion.prepare_pattern.side_effect=prepare
+        session=self.begin(PatternSettings(pattern='trihex'))
+        self.preview(session)
+        self.assertIn('cell size 12.50 mm',session.message)
+        self.assertIn('minimum gap 5 mm',session.message)
+        self.assertNotIn('grid gap',session.message)
+
     def test_create_reuses_exact_reviewed_detached_result_without_recomputing(self):
         session = self.begin()
         self.preview(session)

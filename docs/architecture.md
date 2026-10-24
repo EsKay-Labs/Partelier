@@ -42,6 +42,8 @@ must be recorded during native validation; developer checks use local Python.
 | `tools/fusion/HingeFixture/` / `SnapFitFixture/` | Standalone new-document reference fixtures |
 | `tools/fusion/SnapFitProbe/` | Fixed rollback-only snap-fit native checks |
 | `Partelier/partelier/tools/patterns/auto_fit.py` | Bounded numeric visual-layout scoring, density and exact-size locks; at most two surface-checked proposals |
+| `Partelier/partelier/tools/patterns/tiles.py` / `tiled_layout.py` | Convex polygon motifs, inward gap offsets, rounded profiles and bounded multi-tile layouts |
+| `tools/generate_pattern_samples.py` | Reproduce local SVG family samples from the real numeric planner |
 
 Fusion requires a matching Python entry point and manifest in the add-in folder.
 The bundle uses package-relative imports, following Autodesk's
