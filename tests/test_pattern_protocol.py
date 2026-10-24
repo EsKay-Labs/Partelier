@@ -25,6 +25,14 @@ def request(**values):
 
 
 class PatternProtocolTests(unittest.TestCase):
+    def test_finish_faces_is_a_session_action_without_paths_or_settings(self):
+        value=read_request('pattern_finish_faces',request(sessionId=IDENTITY))
+        self.assertEqual(value.session_id,IDENTITY)
+        self.assertIsNone(value.settings)
+        for extra in ({'path':'script.py'},{'settings':{}},{'target':'faces'}):
+            with self.subTest(extra=extra),self.assertRaises(ValueError):
+                read_request('pattern_finish_faces',request(sessionId=IDENTITY,**extra))
+
     def test_colour_export_accepts_only_a_user_selected_owned_result_without_paths(self):
         value=read_request('pattern_export',request())
         self.assertIsNone(value.settings)

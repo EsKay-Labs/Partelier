@@ -67,6 +67,7 @@ h2 { margin: 0; font-size: 12px; font-weight: 650; }
 #pattern-select-surface span { white-space: normal; overflow-wrap: anywhere; }
 #pattern-add-face { justify-content: center; align-items: center; min-height: 34px; font-size: 12px; font-weight: 600; color: #20509b; background: #e8f0ff; border-color: #95b1df; }
 #pattern-add-face:disabled { color: var(--disabled-text); background: var(--disabled-bg); border-color: #c9d3e0; }
+#pattern-finish-faces { width: 100%; min-height: 38px; }
 .design-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px; }
 .parameter-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
 #hinge-design-fields, #hinge-output-fields { grid-template-columns: 1fr; }

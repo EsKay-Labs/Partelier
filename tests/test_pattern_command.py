@@ -44,6 +44,18 @@ class Collection:
     def item(self, index):
         return self.values[index]
 
+    def add(self, value):
+        self.values.append(value)
+        return True
+
+    @property
+    def all(self):
+        return Collection([value.entity for value in self.values])
+
+    @all.setter
+    def all(self, entities):
+        self.values = [NS(entity=entity) for entity in entities.values]
+
 
 class Group:
     def __init__(self):
@@ -142,14 +154,15 @@ class PatternCommandTests(unittest.TestCase):
             return value
         self.picks = []
         self.ui = NS(commandDefinitions=NS(itemById=self.definitions.get, addButtonDefinition=add),
-                     activeCommand="SelectCommand", commandTerminated=Event(), terminateActiveCommand=Mock(),
+                     activeCommand="SelectCommand", activeSelectionChanged=Event(), commandTerminated=Event(), terminateActiveCommand=Mock(),
                      activeSelections=Collection(), selectEntity=Mock(side_effect=lambda *args: self.picks.pop(0)))
         self.design = NS(isValid=True)
         self.app = NS(userInterface=self.ui, activeProduct=self.design, documentDeactivating=Event(), log=Mock())
         core, native, adsk = ModuleType("adsk.core"), ModuleType("adsk.fusion"), ModuleType("adsk")
         core.Application = NS(get=lambda: self.app)
-        for name in ("CommandCreatedEventHandler", "CommandEventHandler", "DocumentEventHandler", "ApplicationCommandEventHandler"):
+        for name in ("CommandCreatedEventHandler", "CommandEventHandler", "DocumentEventHandler", "ApplicationCommandEventHandler", "ActiveSelectionEventHandler"):
             setattr(core, name, object)
+        core.ObjectCollection = NS(create=Collection)
         native.Design = NS(cast=lambda value: value)
         native.BRepFace = NS(cast=lambda value: value if getattr(value, "kind", None) == "face" else None)
         native.BRepBody = NS(cast=lambda value: value if getattr(value, "kind", None) == "body" else None)
@@ -169,6 +182,10 @@ class PatternCommandTests(unittest.TestCase):
                         self.fusion.__name__: self.fusion, self.recipe.__name__: self.recipe,
                         preview.__name__: preview}), patch.object(package, "fusion", self.fusion, create=True), patch.object(package, "recipe", self.recipe, create=True):
             spec.loader.exec_module(self.module)
+            selection_spec=importlib.util.spec_from_file_location(package.__name__+'._face_selection_test',path.with_name('face_selection.py'))
+            selection_module=importlib.util.module_from_spec(selection_spec)
+            selection_spec.loader.exec_module(selection_module)
+            self.module.FaceSelection=selection_module.FaceSelection
         self.module.BodyVisibilityLease = Lease
         self.module.display_export = NS(prepare=Mock(side_effect=lambda prepared:prepared))
         self.manager = self.module.PatternCommands()
@@ -251,56 +268,61 @@ class PatternCommandTests(unittest.TestCase):
         self.assertTrue(session.preview_current)
         self.assertEqual(session.prepared.faces, self.faces[:1])
 
-    def test_add_faces_accumulates_sides_until_escape_then_computes_once(self):
-        self.ui.activeSelections = Collection([NS(entity=self.faces[0])])
-        self.manager.begin_palette(PatternSettings().to_dict())
-        session = self.manager._session
-        self.preview(session)
-        states=[]
-        self.manager.set_state_callback(lambda state:states.append(state))
-        self.picks[:] = [NS(entity=self.faces[1]),NS(entity=self.faces[2]), None]
-        result = self.action(session, "pattern_focus", target="add_face")
-        self.assertEqual(session.faces, self.faces)
-        self.assertEqual(result["phase"], "ready")
-        self.assertEqual(self.ui.selectEntity.call_count, 3)
-        self.assertTrue(any(state['phase']=='selecting' and '3 face(s)' in state['selections']['surface']['label'] for state in states))
-        self.assertEqual(len(self.prepared),1,'adding faces does not compute between picks')
-        self.assertFalse(self.manager.busy)
-        self.assertFalse(session.preview_current)
-        self.assertTrue(self.body.isLightBulbOn)
-        self.preview(session)
-        self.assertEqual(session.prepared.faces, self.faces)
+    def select_native(self, entities):
+        self.ui.activeSelections.all=Collection(entities)
+        for handler in tuple(self.ui.activeSelectionChanged.handlers):
+            handler.notify(NS(currentSelection=self.ui.activeSelections.values))
 
-    def test_add_duplicate_and_escape_keep_selection_and_do_not_duplicate_faces(self):
-        session = self.begin()
-        for selected in (NS(entity=self.faces[0]), None):
-            with self.subTest(selected=selected):
-                self.picks[:] = [selected,None] if selected is not None else [None]
-                self.action(session, "pattern_focus", target="add_face")
-                self.assertEqual(session.faces, self.faces)
-                self.assertEqual(session.phase, "ready")
-                self.assertFalse(self.manager.busy)
-        self.assertEqual(self.ui.selectEntity.call_count, 3)
-
-    def test_escape_exception_finishes_batch_with_the_new_faces_retained(self):
+    def test_add_faces_is_non_modal_highlights_seeds_and_finishes_once(self):
         self.ui.activeSelections=Collection([NS(entity=self.faces[0])])
         self.manager.begin_palette(PatternSettings().to_dict())
         session=self.manager._session
-        self.ui.selectEntity.side_effect=[NS(entity=self.faces[1]),RuntimeError('Selection cancelled')]
+        self.preview(session)
         result=self.action(session,'pattern_focus',target='add_face')
-        self.assertEqual(session.faces,self.faces[:2])
+        self.assertTrue(result['pickingFaces'])
+        self.assertTrue(result['canFinishFaces'])
+        self.assertFalse(self.manager.busy)
+        self.assertTrue(self.body.isLightBulbOn)
+        self.ui.selectEntity.assert_not_called()
+        self.assertEqual([value.entity for value in self.ui.activeSelections.values],list(self.faces[:1]))
+        self.select_native(self.faces)
+        self.assertEqual(session.faces,self.faces)
+        self.assertEqual(len(self.prepared),1,'native picks do not trigger geometry computation')
+        result=self.action(session,'pattern_finish_faces')
+        self.assertFalse(result['pickingFaces'])
         self.assertEqual(result['phase'],'ready')
+        self.assertFalse(self.ui.activeSelectionChanged.handlers)
+        self.preview(session)
+        self.assertEqual(session.prepared.faces,self.faces)
+
+    def test_native_ctrl_removal_and_clear_are_reflected_without_locking_cancel(self):
+        session=self.begin()
+        self.action(session,'pattern_focus',target='add_face')
+        self.select_native(self.faces[:2])
+        self.assertEqual(session.faces,self.faces[:2])
+        self.select_native([])
+        self.assertFalse(session.snapshot()['canFinishFaces'])
+        with self.assertRaisesRegex(ValueError,'at least one face'):
+            self.action(session,'pattern_finish_faces')
+        self.assertFalse(self.manager.busy)
+        self.action(session,'pattern_cancel')
+        self.assertFalse(self.ui.activeSelectionChanged.handlers)
+        self.assertIsNone(self.manager._session)
+
+    def test_duplicate_native_picks_do_not_duplicate_sources(self):
+        session=self.begin()
+        self.action(session,'pattern_focus',target='add_face')
+        self.select_native([self.faces[0],self.faces[0],self.faces[1]])
+        self.assertEqual(session.faces,self.faces[:2])
         self.assertFalse(self.manager.busy)
 
-    def test_invalid_body_mid_batch_keeps_previously_added_sides(self):
-        self.ui.activeSelections=Collection([NS(entity=self.faces[0])])
-        self.manager.begin_palette(PatternSettings().to_dict())
-        session=self.manager._session
-        other=NS(kind='face',isValid=True,body=NS(name='Other'))
-        self.picks[:]=[NS(entity=self.faces[1]),NS(entity=other)]
-        with self.assertRaisesRegex(ValueError,'same solid body'):
-            self.action(session,'pattern_focus',target='add_face')
-        self.assertEqual(session.faces,self.faces[:2])
+    def test_picker_rejects_preview_updates_until_done_without_losing_picker(self):
+        session=self.begin()
+        self.action(session,'pattern_focus',target='add_face')
+        for action in ('pattern_preview','pattern_update','pattern_commit','pattern_focus'):
+            with self.subTest(action=action),self.assertRaisesRegex(ValueError,'Done'):
+                self.action(session,action,target='faces')
+            self.assertIsNotNone(session.face_picker)
         self.assertFalse(self.manager.busy)
 
     def test_replacing_faces_uses_only_new_face_and_escape_retains_previous_selection(self):
@@ -312,37 +334,48 @@ class PatternCommandTests(unittest.TestCase):
         self.action(session, "pattern_focus", target="faces")
         self.assertEqual(session.faces, self.faces[2:])
 
-    def test_add_face_from_another_body_is_rejected_without_losing_selection(self):
-        session = self.begin()
-        other = NS(kind="face", isValid=True, body=NS(name="Other"))
-        self.picks[:] = [NS(entity=other)]
-        with self.assertRaisesRegex(ValueError, "same solid body"):
-            self.action(session, "pattern_focus", target="add_face")
-        self.assertEqual(session.faces, self.faces)
+    def test_other_body_selection_stays_recoverable_and_cannot_finish(self):
+        session=self.begin()
+        self.action(session,'pattern_focus',target='add_face')
+        other=NS(kind='face',isValid=True,body=NS(name='Other'))
+        self.select_native([self.faces[0],other])
+        self.assertFalse(session.snapshot()['canFinishFaces'])
+        with self.assertRaisesRegex(ValueError,'original body'):
+            self.action(session,'pattern_finish_faces')
+        self.select_native(self.faces)
+        self.assertTrue(session.snapshot()['canFinishFaces'])
+        self.action(session,'pattern_finish_faces')
         self.assertFalse(self.manager.busy)
 
-    def test_add_face_limit_rejection_preserves_all_existing_faces(self):
-        faces = tuple(NS(kind="face", isValid=True, index=index, body=self.body) for index in range(101))
-        self.ui.activeSelections = Collection([NS(entity=face) for face in faces[:100]])
-        self.manager.begin_palette(PatternSettings().to_dict())
-        session = self.manager._session
-        self.picks[:] = [NS(entity=faces[100])]
-        with self.assertRaisesRegex(ValueError, "at most 100 faces"):
-            self.action(session, "pattern_focus", target="add_face")
-        self.assertEqual(session.faces, faces[:100])
-        self.assertFalse(self.manager.busy)
+    def test_picker_face_cap_and_return_to_valid_selection(self):
+        session=self.begin()
+        self.action(session,'pattern_focus',target='add_face')
+        faces=tuple(NS(kind='face',isValid=True,index=index,body=self.body) for index in range(101))
+        self.select_native(faces)
+        self.assertFalse(session.snapshot()['canFinishFaces'])
+        self.assertLessEqual(len(session.faces),100)
+        self.select_native(faces[:100])
+        self.assertTrue(session.snapshot()['canFinishFaces'])
+        self.assertTrue(session.snapshot()['pickingFaces'],'a full selection still has an explicit Done')
+        self.action(session,'pattern_finish_faces')
+        self.assertEqual(session.faces,faces[:100])
 
-    def test_batch_stops_at_face_limit_without_waiting_for_escape(self):
-        faces=tuple(NS(kind='face',isValid=True,index=index,body=self.body) for index in range(100))
-        self.ui.activeSelections=Collection([NS(entity=face) for face in faces[:99]])
-        self.manager.begin_palette(PatternSettings().to_dict())
-        session=self.manager._session
-        self.picks[:]=[NS(entity=faces[99])]
-        result=self.action(session,'pattern_focus',target='add_face')
-        self.assertEqual(session.faces,faces)
-        self.assertEqual(result['phase'],'ready')
-        self.assertEqual(self.ui.selectEntity.call_count,1)
-        self.assertFalse(self.manager.busy)
+    def test_cancel_restores_prior_native_selection_and_detaches_handler(self):
+        session=self.begin()
+        original=list(self.ui.activeSelections.values)
+        self.action(session,'pattern_focus',target='add_face')
+        self.select_native(self.faces[:1])
+        self.action(session,'pattern_cancel')
+        self.assertEqual([value.entity for value in self.ui.activeSelections.values],[value.entity for value in original])
+        self.assertFalse(self.ui.activeSelectionChanged.handlers)
+
+    def test_stop_during_picker_restores_selection_and_releases_handler(self):
+        session=self.begin()
+        self.action(session,'pattern_focus',target='add_face')
+        self.select_native(self.faces[:1])
+        self.manager.stop()
+        self.assertFalse(self.ui.activeSelectionChanged.handlers)
+        self.assertIsNone(self.manager._session)
 
     def test_initial_escape_returns_without_geometry_or_waiting_for_another_face(self):
         self.picks[:] = [None]
@@ -357,11 +390,11 @@ class PatternCommandTests(unittest.TestCase):
         self.picks[:] = [NS(entity=self.body)]
         self.manager.begin_palette(PatternSettings(selection_scope="body").to_dict())
         session = self.manager._session
-        with self.assertRaisesRegex(ValueError, "selection scope"):
+        with self.assertRaisesRegex(ValueError, "first face"):
             self.action(session, "pattern_focus", target="add_face")
         session.close()
         session = self.begin(editing=True)
-        with self.assertRaisesRegex(ValueError, "existing Partelier pattern"):
+        with self.assertRaisesRegex(ValueError, "first face"):
             self.action(session, "pattern_focus", target="add_face")
         self.assertEqual(self.ui.selectEntity.call_count, 1)
 

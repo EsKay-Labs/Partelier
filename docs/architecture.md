@@ -562,3 +562,24 @@ family defaults. Legacy parsing is read-only: dimensions can be loaded without
 rewriting the recipe or changing existing geometry. Deliberate Rebuild writes
 the current version, updates the same BaseFeature tool sources and retains both
 selected bodies and the four native Combine references.
+
+
+## Non-modal pattern face selection (0.13.2)
+
+`patterns/face_selection.py` subscribes to the native
+[UserInterface.activeSelectionChanged event](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/core_UserInterface_activeSelectionChanged.htm).
+It reads the normal Select command's face list and seeds/restores native
+`activeSelections.all` only when entering/exiting the mode. No selection
+collection is mutated inside the selection-change callback. Fusion owns the
+blue highlight and Ctrl add/remove interaction. The previous repeated
+`selectEntity` loop blocked the HTML request and is no longer used for Add faces.
+The initial face, body and Edit target keep their single native pick.
+
+The session retains the listener and prior native selection until explicit
+`pattern_finish_faces`, Cancel, Stop or document deactivation. Snapshots expose
+`pickingFaces` and `canFinishFaces`; the HTML leaves Done/Cancel usable, disables
+settings/Create, and skips automatic preview until Done returns ready. Invalid,
+empty and oversized selections keep Cancel available. Finish rejects incomplete
+selection on the host as well as in the UI. Cleanup unsubscribes before restoring
+native selection and retains its owner if cleanup needs a retry. Geometry,
+face-source persistence and recipe version 5 are unchanged.

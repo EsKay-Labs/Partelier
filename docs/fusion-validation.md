@@ -6,6 +6,47 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.13.2 non-modal blue face selection
+
+The 0.13.1 repeated `selectEntity` loop accepted sides but kept its HTML request
+pending until Esc, disabled the palette and did not retain a useful native
+highlight. Those interactive problems were missed by the programmatic selector
+fixture. **Add faces** now returns immediately, seeds the native Select command's
+blue selection, and reads `activeSelectionChanged` without modifying selection
+inside the callback. Hold Ctrl to add/remove sides. The blue **Done · update
+preview** button finishes and requests one preview; Cancel remains usable even
+after native selection is cleared. Settings/Create wait until Done.
+
+Passed **919 Python tests**, including 35 controller cases and strict protocol
+coverage for the new session-only finish action, all three Node DOM suites,
+compilation and whitespace checks. Headless Edge at 300/380/520 px verifies
+visible/clickable Done and Cancel, blue Done styling, face count, Ctrl guidance
+and no horizontal overflow. This is browser validation, not actual Fusion CEF.
+
+Native Fusion 2705.1.30 request **628cca80-1095-402a-b95e-caa9b205abeb** passes
+the focused **7-case** scope plus the selection lifecycle: three six-side box
+geometry cases, detached flat-colour rollback lifetime, async supersession,
+cached Create and disposable document cleanup. The real native selection event
+updates two selected faces; Done returns ready and releases its listener. Clearing
+the native selection leaves Cancel usable and Cancel releases the listener.
+Geometry, history and visibility restore, as do the original document references
+and snapshot. Physical mouse/CEF picking remains separate from this scripted
+native evidence. Fingerprints are in
+`docs/validation/nonmodal-face-selection-0.13.2.json`.
+
+Preflight **d0e31547-ac94-4adb-86a1-584800a90bbf** is **not** an overall success:
+its 89 cases and native selector checks passed, but a live product preview was
+present before the run. Switching to the disposable document closed that preview,
+revealing its base and removing its graphics. Geometric properties and source
+references remained identical; the overall visibility/graphics snapshot differed.
+A read-only status confirmed no active preview before the focused clean rerun.
+
+The default `patterns` probe now targets this selection-only maintenance scope.
+The unchanged shared matrix remains available through
+`cases(include_shared_regressions=True)`; the full polygon mode through
+`cases(include_polygon_regressions=True)` includes the shared matrix as well.
+No motif, surface mapper or persistence schema changed in this patch.
+
 ## 0.13.1 batch face selection
 
 **Add faces** accepts successive picks on the same solid until Esc, updates the

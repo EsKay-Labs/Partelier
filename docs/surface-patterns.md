@@ -15,12 +15,15 @@ and existing holes remain protected.
 
 Choose one of 15 shapes or mosaics, then **Through
 holes**, **Engrave** or **Emboss**. In 0.10.4, selecting one face immediately
-starts preview. In **0.13.1**, **Add faces** keeps the solid visible and accepts
-successive picks on different sides of the same body. Click each required side,
-then **Esc** to finish and update preview once. The live face count updates after
-each pick; duplicate picks do not add duplicate faces. **Replace faces** starts
-over with one face. Esc before a replacement keeps the previous selection;
-Esc during Add faces retains every accepted side. Faces need not be coplanar.
+starts preview. In **0.13.2**, **Add faces** returns immediately and opens normal
+Fusion selection with the chosen faces highlighted blue. **Hold Ctrl to add or
+remove faces**, then click the blue **Done · update preview** button in Partelier.
+The preview computes once after Done; Cancel remains available throughout.
+The count tracks the native selection. Esc/empty canvas clears native selection;
+choose faces again or Cancel, rather than waiting for Esc to finish a picker.
+At most 100 faces on the same solid may be selected. **Replace faces** starts
+over with one face; Esc before a replacement keeps the previous selection.
+Faces need not be coplanar.
 Multiple preselected faces are also reused. The default **Layout > Auto fit** uses
 surface-dependent size and count; choose **Balanced** for an exact size and a sparse grid.
 Adjust **Cell size**, **Minimum gap** and **Border**. These names stay the same in all

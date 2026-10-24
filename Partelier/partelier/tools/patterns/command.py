@@ -10,6 +10,7 @@ import adsk.fusion as native
 from .settings import PatternSettings
 from . import fusion, recipe, display_export
 from .preview import PatternPreviewRunner
+from .face_selection import FaceSelection
 from ..hinge.visibility import BodyVisibilityLease
 from ...diagnostics import emit
 
@@ -151,6 +152,18 @@ class PatternCommands:
         emit('pattern.pick.begin',session_id=session.session_id,target=target,revision=session.revision)
         session.ensure_design()
         session.clear_preview()
+        if target=='add_face':
+            if session.editing or session.settings.selection_scope!='faces' or not session.faces:
+                raise ValueError('Select the first face before adding faces on the same body.')
+            if session.face_picker is not None:raise ValueError('Finish the current face selection with Done.')
+            session.face_picker=FaceSelection(session)
+            try:session.face_picker.start()
+            except Exception as error:
+                # Retain the cleanup owner even if registration/restoration
+                # fails, so Cancel/Stop can retry instead of leaking a handler.
+                session.face_picker.error=str(error)
+                raise
+            return
         ui=core.Application.get().userInterface
         if session.editing:
             if target!='edit_target':raise ValueError("Select an existing Partelier pattern result.")
@@ -162,7 +175,7 @@ class PatternCommands:
                             else 'Select the first face. Use Add faces for more sides. Esc cancels picking.'),'Faces'
         else:raise ValueError("Use the current pattern selection scope.")
         session.phase='selecting';session.message=prompt;self.publish(session)
-        faces=list(session.faces) if target=='add_face' else []
+        faces=[]
         emit('pattern.pick.wait',session_id=session.session_id,target=target,filters=filters,count=len(faces),
              active_command=_active_command())
         while True:
@@ -188,13 +201,6 @@ class PatternCommands:
                     faces.append(face)
                 emit('pattern.pick.accepted',session_id=session.session_id,count=len(faces))
                 session.set_faces(faces)
-            if target=='add_face' and len(faces)<100:
-                # Keep the real solid visible while accumulating sides. Compute
-                # once after Esc, rather than rebuilding between every pick.
-                session.phase='selecting'
-                session.message=f'{len(faces)} faces selected. Click another side; Esc finishes and updates preview.'
-                self.publish(session)
-                continue
             self.publish(session)
             break
         session.validate()
@@ -209,6 +215,8 @@ class PatternCommands:
         if session is None or session.closed or session.session_id!=session_id:
             raise ValueError("This pattern session has ended. Start a new pattern.")
         session.ensure_design()
+        if session.face_picker is not None and action not in {'pattern_finish_faces','pattern_cancel'}:
+            raise ValueError('Finish face selection with Done, or Cancel the pattern.')
         try:
             if action in {'pattern_update','pattern_preview','pattern_commit'}:
                 session.update(settings_dict,revision)
@@ -228,6 +236,7 @@ class PatternCommands:
                 try:self.pick(session,target)
                 finally:self._busy=False
             elif action=='pattern_cancel':session.close()
+            elif action=='pattern_finish_faces':session.finish_faces()
             else:raise ValueError("This pattern action is unavailable.")
             return self.publish(session)
         except Exception as error:
@@ -244,6 +253,7 @@ class _Session:
         self.faces=();self.edit_target=None;self.closed=False
         self.preview=None;self.prepared=None;self.preview_revision=None
         self.visibility=BodyVisibilityLease();self.command=None;self.handlers=[]
+        self.face_picker=None
 
     @property
     def preview_current(self):
@@ -257,6 +267,8 @@ class _Session:
         return {'sessionId':self.session_id,'revision':self.revision,'phase':self.phase,'editing':self.editing,
                 'settings':self.settings.to_dict(),'selections':{'surface':{'selected':bool(valid),'label':label}},
                 'previewCurrent':self.preview_current,'message':self.message,
+                'pickingFaces':self.face_picker is not None,
+                'canFinishFaces':bool(self.face_picker is not None and valid and not self.face_picker.error),
                 'suggestedSizeMm':min(sizes) if sizes else None}
 
     def ensure_design(self):
@@ -264,6 +276,13 @@ class _Session:
 
     def set_faces(self,faces):
         self.clear_preview();self.faces=tuple(faces);self.validate()
+
+    def finish_faces(self):
+        if self.face_picker is None:raise ValueError('There is no active face selection.')
+        if self.face_picker.error:raise ValueError(self.face_picker.error)
+        if not self.faces:raise ValueError('Select at least one face before clicking Done.')
+        self.face_picker.stop();self.face_picker=None
+        self.validate()
 
     def select_target(self,entity):
         self.clear_preview();self.edit_target=recipe.read_edit_target(self.design,entity)
@@ -290,6 +309,7 @@ class _Session:
         self.settings,self.revision=settings,revision
 
     def prepare(self,settings):
+        if self.face_picker is not None:raise ValueError('Finish face selection with Done before previewing.')
         self.require_selections()
         if self.editing:
             target=recipe.read_edit_target(self.design,self.edit_target.anchor)
@@ -397,6 +417,8 @@ class _Session:
     def close(self):
         emit('pattern.session.close',session_id=self.session_id,phase=self.phase,closed=self.closed)
         if self.closed:return
+        if self.face_picker is not None:
+            self.face_picker.stop();self.face_picker=None
         self.owner.runner.cancel(self);self.clear_preview()
         if self.phase!='created':self.phase='cancelled';self.message='Pattern cancelled.'
         self.closed=True

@@ -41,13 +41,18 @@ function fixture(options = {}) {
             if(tool==="hinge")hinge=other;else snap=other;
             window.fusionJavaScriptHandler.handle(tool+"_state",JSON.stringify(other));return Promise.resolve(respond());
         }
-        if(["pattern_update","pattern_preview","pattern_commit","pattern_cancel","pattern_focus"].includes(action)&&request.sessionId!==host.sessionId) return Promise.resolve(respond(false,"This pattern session has ended."));
+        if(["pattern_update","pattern_preview","pattern_commit","pattern_cancel","pattern_focus","pattern_finish_faces"].includes(action)&&request.sessionId!==host.sessionId) return Promise.resolve(respond(false,"This pattern session has ended."));
         if(action==="pattern_begin") {
             host={...idle(),sessionId:"d28c515a-66dc-4c66-a57b-"+String(++sequence).padStart(12,"0"),phase:"selecting",editing:request.editing,settings:request.editing&&config.saved?{...config.saved}:request.settings};
             if(config.completePick){host.selections={surface:{selected:true,label:"3 supported faces"}};host.phase="ready";}
             if(config.delayedPush){push(config.delayedPush);config.delayedPush=null;}push(host);
         }
-        if(action==="pattern_focus"){host.selections={surface:{selected:true,label:request.target==="body"?"Hexagonal body":request.target==="add_face"?"4 supported faces":"3 supported faces"}};host.phase="ready";push(host);}
+        if(action==="pattern_focus"){
+            if(request.target==="add_face"){host.pickingFaces=true;host.canFinishFaces=true;host.phase="picking_faces";}
+            else {host.selections={surface:{selected:true,label:request.target==="body"?"Hexagonal body":"3 supported faces"}};host.phase="ready";}
+            push(host);
+        }
+        if(action==="pattern_finish_faces"){host.pickingFaces=false;host.canFinishFaces=false;host.phase="ready";push(host);}
         if(["pattern_update","pattern_preview","pattern_commit"].includes(action)) {
             if(host.settings.selection_scope!==request.settings.selection_scope)host.selections={};
             host.settings=request.settings;host.revision=request.revision;
@@ -209,12 +214,25 @@ function fixture(options = {}) {
     f.config.holdPick=true;const timeouts=f.timeouts();f.$("begin-pattern-button").emit("click");await f.flush();assert.equal(f.timeouts(),timeouts);assert.equal(f.$("tool-select").disabled,true);
     f.config.release();f.config.holdPick=false;await f.flush();await f.click("pattern-select-surface");assert.equal(f.snapshot().phase,"preview");assert.equal(f.$("create-pattern-button").disabled,false);
     assert.equal(f.requests.filter(([a])=>a==="pattern_focus").at(-1)[1].target,"faces");
-    assert.equal(f.$("pattern-add-face").disabled,false);assert(f.$("pattern-selection-help").textContent.includes("Esc"));assert.equal(f.$("pattern-add-face").textContent,"Add faces");assert.equal(f.$("pattern-selection-help").hidden,false);
-    const beforeAdd=f.requests.length;f.config.holdPick=true;f.$("pattern-add-face").emit("click");await f.flush();
-    assert.equal(f.requests.at(-1)[1].target,"add_face");assert.equal(f.snapshot().selections.surface.selected,true,"adding a face keeps the existing selection while picking");
-    f.push({...f.snapshot(),phase:"selecting"});assert.equal(f.$("pattern-live-preview-status").textContent,"Live preview · selecting surfaces");assert.equal(f.$("pattern-selection-help").hidden,false);
-    assert.equal(f.$("pattern-add-face").disabled,true);f.config.holdPick=false;f.config.release();await f.flush();
-    assert.deepEqual(f.requests.slice(beforeAdd).map(([action])=>action),["pattern_focus","pattern_preview"],"one Add face pick requests exactly one automatic preview");assert.equal(f.$("create-pattern-button").disabled,false);
+    assert.equal(f.$("pattern-add-face").disabled,false);assert(f.$("pattern-selection-help").textContent.includes("Done"));assert.equal(f.$("pattern-add-face").textContent,"Add faces");
+    const beforeAdd=f.requests.length;
+    await f.click("pattern-add-face");
+    assert.equal(f.requests.at(-1)[1].target,"add_face");
+    assert.deepEqual(f.requests.slice(beforeAdd).map(([action])=>action),["pattern_focus"],"opening face selection returns immediately and does not compute preview");
+    assert.equal(f.$("pattern-finish-faces").disabled,false,"Done remains usable while selecting");
+    assert.equal(f.$("cancel-pattern-button").disabled,false,"Cancel remains usable while selecting");
+    assert.equal(f.$("pattern-cell_size_mm").disabled,true);
+    assert.equal(f.$("preview-pattern-button").disabled,true);
+    assert.equal(f.$("create-pattern-button").disabled,true);
+    assert(f.$("pattern-selection-help").textContent.includes("blue"));
+    f.push({...f.snapshot(),phase:"picking_faces",pickingFaces:true,canFinishFaces:false,selections:{surface:{selected:false,label:"Not selected"}}});
+    assert.equal(f.$("pattern-finish-faces").disabled,true);
+    assert.equal(f.$("cancel-pattern-button").disabled,false,"empty native selection never traps Cancel");
+    f.push({...f.snapshot(),phase:"picking_faces",pickingFaces:true,canFinishFaces:true,selections:{surface:{selected:true,label:"6 faces on Box"}}});
+    assert.equal(f.$("pattern-finish-faces").disabled,false);
+    await f.click("pattern-finish-faces");
+    assert.deepEqual(f.requests.slice(beforeAdd).map(([action])=>action),["pattern_focus","pattern_finish_faces","pattern_preview"],"Done computes one preview for all selected sides");
+    assert.equal(f.$("create-pattern-button").disabled,false);
     const activeSettings=f.snapshot().settings;f.window.PartelierPatterns.select("honeycomb");assert.equal(f.$("pattern-pattern").value,activeSettings.pattern,"an active session ignores alias presets");
     f.window.PartelierSnap.setHingeActive(false);assert.equal(f.$("tool-select").disabled,true,"Snap rendering cannot unlock an active pattern session");
     f.window.fusionJavaScriptHandler.handle("hinge_state",JSON.stringify(idle()));assert.equal(f.$("tool-select").disabled,true);
@@ -301,9 +319,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.13.1"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.13.2"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.13.1"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.13.2"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.click("begin-pattern-button");await logged.click("pattern-select-surface");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.click("begin-pattern-button");const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));

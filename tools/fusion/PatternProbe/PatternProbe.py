@@ -958,11 +958,9 @@ def _flat_grille_cases(design):
 def _box_faces_cases(design):
     """Six non-coplanar outer sides, retaining every independent face border.
 
-    Picks are supplied programmatically using real native faces; this does not
-    claim manual pointer/CEF acceptance of the repeated Fusion selector.
+    Real native face lists exercise geometry. The non-modal native selection
+    event and Done/Cancel lifecycle are checked separately in the async stage.
     """
-    from types import SimpleNamespace as NS
-    commands=importlib.import_module(STATE['package_name']+'.tools.patterns.command')
     for shape,mode in (('hexagon','through'),('triangle','engrave'),('cairo','emboss')):
         def box(shape=shape,mode=mode):
             manager=adsk.fusion.TemporaryBRepManager.get()
@@ -973,19 +971,7 @@ def _box_faces_cases(design):
             if len(faces)!=6:raise RuntimeError('Expected six outer box faces.')
             settings=STATE['settings_module'].PatternSettings(pattern=shape,mode=mode,layout_mode='fill',
                 pitch_mm=17,web_mm=7,border_mm=5,depth_mm=.5)
-            snapshots=[]
-            owner=NS(publish=lambda session:snapshots.append(session.snapshot()))
-            session=commands._Session(owner,design,settings,False)
-            session.set_faces(faces[:1])
-            picks=iter([NS(entity=face) for face in faces[1:]]+[None])
-            ui=NS(activeCommand='SelectCommand',selectEntity=lambda *args:next(picks))
-            original_core=commands.core
-            commands.core=NS(Application=NS(get=lambda:NS(activeProduct=design,userInterface=ui)))
-            try:commands.PatternCommands.pick(owner,session,'add_face')
-            finally:commands.core=original_core
-            if session.faces!=faces or session.phase!='ready':
-                raise RuntimeError('Batch selection lost a box side after Escape.')
-            prepared=prepare_checked(design,session.faces,settings)
+            prepared=prepare_checked(design,faces,settings)
             if len(prepared.layouts)!=6 or not all(layout.cell_count for layout in prepared.layouts):
                 raise RuntimeError('A selected box side received no pattern cells.')
             if mode=='through':
@@ -1002,15 +988,30 @@ def _box_faces_cases(design):
                         or design.rootComponent.bRepBodies.count!=count or design.timeline.count!=history+3):
                     raise RuntimeError('Multi-face Create/Edit/Rebuild lost sources or duplicated the body.')
             return {'shape':shape,'mode':mode,'selected_faces':6,'cells_per_face':[layout.cell_count for layout in prepared.layouts],
-                'programmatic_native_face_picks':True,'first_wall_only':mode=='through','source_identity_retained':True}
+                'programmatic_native_face_list':True,'first_wall_only':mode=='through','source_identity_retained':True}
         _case('box_six_outer_faces_'+shape+'_'+mode,box)
 
 
-def cases(*, include_polygon_regressions=False):
+def cases(*, include_polygon_regressions=False, include_shared_regressions=False):
     design = STATE["design"]
     Settings = _fixed_settings
     recipe = STATE["recipe"]
     _box_faces_cases(design)
+    if not include_shared_regressions and not include_polygon_regressions:
+        # Selection-only maintenance does not need the unchanged, expensive
+        # surface matrix. Keep a detached colour result for rollback lifetime
+        # proof, then exercise real selection events in the disposable document.
+        def colour_lifetime():
+            _,body,faces=fixture(design,'plane')
+            prepared=prepare_checked(design,faces,_fixed_settings(pattern='circle',mode='inlay',
+                pitch_mm=10,web_mm=4,depth_mm=.5,border_mm=2))
+            return {'cells':prepared.cell_count,'colour_lumps':prepared.colour_body.lumps.count}
+        _case('flat_colour_rollback_lifetime',colour_lifetime)
+        STATE['report']['scope']='six-side box geometry and non-modal native face selection'
+        STATE['report']['polygon_regressions_included']=False
+        STATE['report']['shared_regressions_included']=False
+        STATE['report']['geometry_checks_passed']=all(case['passed'] for case in STATE['report']['cases'])
+        return
     _flat_grille_cases(design)
     _clip_cases(design)
     _auto_cases(design)
@@ -1232,6 +1233,60 @@ def _runtime_start():
     _, body, faces = fixture(design, "plane")
     STATE.update(runtime_body=body, runtime_faces=faces, runtime_before=snapshot(design),
                  runtime_computed=[], runtime_completed=[])
+    commands=importlib.import_module(STATE['package_name']+'.tools.patterns.command')
+    owner=commands.PatternCommands()
+    session=commands._Session(owner,design,_fixed_settings(),False)
+    owner._session=session
+    native_faces=_items(body.faces)[:2]
+    session.set_faces(native_faces[:1])
+    STATE.update(face_selection_owner=owner,face_selection_session=session,face_selection_faces=native_faces,
+        face_selection_visibility=body.isLightBulbOn)
+    body.isLightBulbOn=True
+    result=owner.palette_action('pattern_focus',session.session_id,target='add_face')
+    if owner.busy or not result['pickingFaces'] or app.userInterface.activeSelections.count!=1:
+        raise RuntimeError('Non-modal face selection did not return with a native selected seed.')
+    values=adsk.core.ObjectCollection.create()
+    for face in native_faces:values.add(face)
+    app.userInterface.activeSelections.all=values
+    queue_probe_event('runtime:face_selection_done')
+
+
+def _runtime_face_selection_done():
+    owner=STATE['face_selection_owner'];session=STATE['face_selection_session']
+    ui=adsk.core.Application.get().userInterface
+    faces=STATE['face_selection_faces']
+    if session.faces!=faces or ui.activeSelections.count!=2 or not session.snapshot()['canFinishFaces']:
+        raise RuntimeError('The real native selection-change event did not update two selected faces.')
+    picker=session.face_picker
+    result=owner.palette_action('pattern_finish_faces',session.session_id)
+    if owner.busy or result['pickingFaces'] or picker.bound or session.phase!='ready':
+        raise RuntimeError('Done did not release the native selection listener and return ready.')
+    owner.palette_action('pattern_focus',session.session_id,target='add_face')
+    ui.activeSelections.all=adsk.core.ObjectCollection.create()
+    queue_probe_event('runtime:face_selection_cancel')
+
+
+def _runtime_face_selection_cancel():
+    owner=STATE['face_selection_owner'];session=STATE['face_selection_session']
+    if session.faces or session.snapshot()['canFinishFaces'] or owner.busy:
+        raise RuntimeError('An empty native selection did not leave the non-modal picker recoverable.')
+    picker=session.face_picker
+    owner.palette_action('pattern_cancel',session.session_id)
+    if owner._session is not None or picker.bound:
+        raise RuntimeError('Cancel leaked the non-modal face selection listener.')
+    owner.stop()
+    STATE['runtime_body'].isLightBulbOn=STATE['face_selection_visibility']
+    if snapshot(STATE['runtime_design'])!=STATE['runtime_before']:
+        raise RuntimeError('Native face picking changed model, history, visibility or appearance.')
+    STATE['report']['face_selection_passed']=True
+    STATE['report']['face_selection']={'native_event_delivery':True,'native_selected_faces':2,
+        'no_modal_wait':True,'done_released_handler':True,'empty_selection_cancel_passed':True,'model_unchanged':True,
+        'physical_pointer_or_cef_picking':False}
+    _runtime_compute_start()
+
+
+def _runtime_compute_start():
+    design=STATE['runtime_design'];faces=STATE['runtime_faces']
     module = importlib.import_module(STATE["package_name"] + ".tools.patterns.preview")
     runner = module.PatternPreviewRunner(lambda message: STATE["report"].setdefault("runtime_logs", []).append(message))
     # Use actual production implementation with identities owned by this probe,
@@ -1348,6 +1403,9 @@ def _runtime_cleanup():
         except Exception as error:
             errors.append(label+": "+str(error))
     try:
+        picker_owner=STATE.get('face_selection_owner')
+        if picker_owner is not None:
+            attempt('stop native face selection',picker_owner.stop)
         runner = STATE.get("runtime_runner")
         if runner is not None:
             attempt("stop owned preview runner", runner.stop)
@@ -1413,6 +1471,10 @@ def _drive_runtime(information):
             finish_report()
         elif information == "runtime:start":
             _runtime_start()
+        elif information == 'runtime:face_selection_done':
+            _runtime_face_selection_done()
+        elif information == 'runtime:face_selection_cancel':
+            _runtime_face_selection_cancel()
         elif information == "runtime:commit":
             _runtime_commit()
         elif information == "runtime:commit_drive":
@@ -1531,6 +1593,7 @@ def finish_report():
     report["success"] = bool(report.get("geometry_checks_passed") and report.get("noop_execute")
                              and STATE.get("destroyed") and report["unchanged"]
                              and report["detached_survived_rollback"] and report["colour_survived_rollback"] and not cancellation_requested()
+                             and report.get('face_selection_passed')
                              and report.get("production_async_passed")
                              and not report.get("error") and not report.get("drive_error")
                              and not report.get("runtime_error") and not report.get("runtime_cleanup_error"))

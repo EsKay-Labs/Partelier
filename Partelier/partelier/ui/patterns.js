@@ -170,46 +170,53 @@
         if(state.settings.mode==="inlay") $("pattern-layout-note").textContent += " Flat colour: επίπεδη επιφάνεια, ξεχωριστό μέρος για χρωματισμό. Το βάθος πρέπει να αφήνει υλικό από κάτω.";
     }
     function renderSelection() {
+        const picking = !!state.session?.pickingFaces;
         const body = state.settings.selection_scope === "body", target = editing() ? "edit_target" : body ? "body" : "faces";
         const picked = state.session?.selections?.surface;
         const caption = editing() ? "Pattern result" : body ? "Body" : picked?.selected ? "Replace faces" : "Faces";
         const button = document.createElement("button"); button.id = "pattern-select-surface"; button.type = "button"; button.className = "selection-button";
-        button.disabled = !supported() || !identity() || state.busy || state.session?.phase === "opening";
+        button.disabled = !supported() || !identity() || state.busy || picking || state.session?.phase === "opening";
         const label = document.createElement("strong"); label.textContent = caption;
         const value = document.createElement("span"); value.textContent = picked?.selected ? picked.label || "Selected" : "Pick";
         button.setAttribute("aria-label", `${caption}: ${picked?.selected ? picked.label || "Selected" : "not selected"}`);
         button.classList.toggle("is-selected", !!picked?.selected); button.append(label, value);
         button.addEventListener("click", () => { trace("click", { control:"surface",target }); cancelTimer(); run(async () => { await sessionAction("pattern_focus", { target }); await refresh(); },"pattern_focus"); });
         $("pattern-selections").replaceChildren(button);
-        if (!editing() && !body && picked?.selected && identity()) {
+        if (picking) {
+            const done = document.createElement("button"); done.id = "pattern-finish-faces"; done.type = "button"; done.className = "create-button"; done.textContent = "Done · update preview";
+            done.disabled = state.busy || !state.session.canFinishFaces;
+            done.addEventListener("click", () => { cancelTimer(); run(async () => { await sessionAction("pattern_finish_faces"); await refresh(); },"pattern_finish_faces"); });
+            $("pattern-selections").append(done);
+        } else if (!editing() && !body && picked?.selected && identity()) {
             const add = document.createElement("button"); add.id = "pattern-add-face"; add.type = "button"; add.className = "selection-button"; add.textContent = "Add faces"; add.disabled = button.disabled;
             add.addEventListener("click", () => { trace("click", { control:"add_face",target:"add_face" }); cancelTimer(); run(async () => { await sessionAction("pattern_focus", { target:"add_face" }); await refresh(); },"pattern_focus"); });
             $("pattern-selections").append(add);
         }
-        $("pattern-selection-help").textContent = editing() ? "Pick a saved Partelier pattern." : body ? "Pick one body. Preview updates automatically." : picked?.selected ? "Add faces: click each side of the same body, then Esc to finish and update preview." : "Pick one face to preview. Use Add faces for more sides.";
+        $("pattern-selection-help").textContent = picking ? "Selected faces are blue in Fusion. Hold Ctrl to add/remove faces, then click Done below. Cancel stays available." : editing() ? "Pick a saved Partelier pattern." : body ? "Pick one body. Preview updates automatically." : picked?.selected ? "Add faces opens blue face selection. Hold Ctrl to add/remove sides, then click Done." : "Pick one face to preview. Use Add faces for more sides.";
         $("pattern-selection-help").hidden = (editing() || body) && !!identity() && selected() && !(state.busy && state.session?.phase === "selecting");
         $("begin-pattern-button").textContent = body ? "Select body" : "Select faces";
     }
     function render() {
+        const picking = !!state.session?.pickingFaces;
         const committing = state.session?.phase === "opening", busy = state.busy || committing, hasSession = active(), ready = !!identity() && selected();
         if (state.connectionError) message("Fusion status is not responding. Computation may still be running. Waiting to reconnect…", true);
         $("pattern-tool").hidden = !state.selected; $("pattern-action-dock").hidden = !state.selected;
         $("tool-select").disabled = hasSession || busy || otherActive();
-        availability(committing);
+        availability(committing || picking);
         $("pattern-settings").setAttribute("aria-busy", String(committing));
         $("begin-pattern-button").hidden = hasSession;
         $("begin-pattern-button").disabled = !state.selected || !supported() || !valid() || busy || hasSession || otherActive();
         $("edit-pattern-button").disabled = !state.selected || !supported() || !state.capabilities.has("pattern-edit") || busy || hasSession || otherActive();
-        $("preview-pattern-button").hidden = !ready || (!state.liveError && current());
-        $("preview-pattern-button").disabled = !ready || !valid() || busy;
+        $("preview-pattern-button").hidden = picking || !ready || (!state.liveError && current());
+        $("preview-pattern-button").disabled = picking || !ready || !valid() || busy;
         $("cancel-pattern-button").disabled = !identity() || busy;
-        $("create-pattern-button").disabled = !state.selected || !supported() || !valid() || busy || !ready || !current();
+        $("create-pattern-button").disabled = picking || !state.selected || !supported() || !valid() || busy || !ready || !current();
         $("create-pattern-button").textContent = editing() ? grille() ? "Rebuild grille" : "Rebuild pattern" : grille() ? "Create grille" : "Create pattern";
         $("export-pattern-button").hidden=grille() || state.settings.mode!=="inlay";
         $("export-pattern-button").disabled=!supported() || !state.capabilities.has("pattern-colour-export") || hasSession || busy || otherActive();
         $("pattern-availability").hidden = supported();
         $("pattern-availability").textContent = state.connected ? "Restart Partelier to enable surface patterns." : "Open Partelier in Fusion to select geometry.";
-        const label = !supported() ? "Fusion required" : state.connectionError ? "connection needs attention" : busy && (state.expecting || state.session?.phase === "selecting") ? "selecting surfaces" : !ready ? "waiting for geometry" : !valid() ? "check inputs" : state.liveError || state.session?.phase === "error" ? "needs attention" : committing ? "creating" : current() ? "up to date" : busy || timer !== undefined || queued || state.session?.phase === "computing" ? "updating…" : "refresh needed";
+        const label = !supported() ? "Fusion required" : picking ? "select faces · click Done" : state.connectionError ? "connection needs attention" : busy && (state.expecting || state.session?.phase === "selecting") ? "selecting surfaces" : !ready ? "waiting for geometry" : !valid() ? "check inputs" : state.liveError || state.session?.phase === "error" ? "needs attention" : committing ? "creating" : current() ? "up to date" : busy || timer !== undefined || queued || state.session?.phase === "computing" ? "updating…" : "refresh needed";
         $("pattern-live-preview-status").textContent = `Live preview · ${label}`;
         $("pattern-live-preview-status").classList.toggle("is-current", ready && current());
         $("pattern-live-preview-status").classList.toggle("needs-attention", state.connectionError || ready && (!valid() || state.liveError || state.session?.phase === "error"));
@@ -289,13 +296,13 @@
         return send(action, payload);
     }
     async function refresh() {
-        if (supported() && identity() && selected() && valid() && state.session?.phase !== "opening") {
+        if (supported() && identity() && selected() && valid() && !state.session?.pickingFaces && state.session?.phase !== "opening") {
             state.liveError = false; state.session = { ...state.session, phase: "computing", previewCurrent: false };
             render(); await sessionAction("pattern_preview");
         }
     }
     function schedule() {
-        cancelTimer(); if (!supported() || !identity() || !valid() || state.session?.phase === "opening") return;
+        cancelTimer(); if (!supported() || !identity() || !valid() || state.session?.pickingFaces || state.session?.phase === "opening") return;
         timer = window.setTimeout(() => {
             timer = undefined; if (queued) return; queued = true;
             run(async () => {
@@ -427,5 +434,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.13.1" }); renderArt(); render();
+    trace("boot", { build:"0.13.2" }); renderArt(); render();
 })();
