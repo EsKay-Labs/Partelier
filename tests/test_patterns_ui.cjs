@@ -10,7 +10,7 @@ function fixture(options = {}) {
         constructor(tag="div") { this.tagName=tag; this.children=[]; this.listeners={}; this.disabled=false; this.hidden=false; this.checked=false; this.open=false; this._value=""; this.custom=""; const classes=new Set(); this.classList={add:x=>classes.add(x),remove:x=>classes.delete(x),toggle:(x,on)=>on?classes.add(x):classes.delete(x)}; }
         set id(value) { this._id=value; ids.set(value,this); } get id() { return this._id; }
         set value(value) { this._value=String(value); } get value() { return this._value; }
-        append(...items) { for(const item of items) { this.children.push(item); if(item instanceof Element) item.parentElement=this; } }
+        append(...items) { for(const item of items) { if(item instanceof Element && item.parentElement) item.parentElement.children=item.parentElement.children.filter(child=>child!==item);this.children.push(item); if(item instanceof Element) item.parentElement=this; } }
         replaceChildren(...items) { this.children=[]; this.append(...items); }
         setAttribute(name,value) { this[name]=value; }
         addEventListener(name,handler) { (this.listeners[name] ||= []).push(handler); }
@@ -91,12 +91,32 @@ function fixture(options = {}) {
     assert.equal(grilleUI.$("pattern-mode").parentElement.hidden,true);
     assert.equal(grilleUI.$("pattern-louver_angle_deg").parentElement.hidden,true);
     await grilleUI.click("pattern-help-pattern");assert(grilleUI.$("pattern-help-title").textContent.includes("Grille type"));await grilleUI.click("pattern-help-close");
-    await grilleUI.begin();await grilleUI.input("pattern","grille_louver");
+    assert.equal(grilleUI.$("pattern-rotation_deg").parentElement.parentElement.id,"pattern-design-fields");
+    assert.equal(grilleUI.$("pattern-rotation_deg").parentElement.children[0].textContent,"Direction (°)");
+    await grilleUI.click("pattern-help-rotation_deg");assert(grilleUI.$("pattern-help-title").textContent.includes("Direction"));assert(grilleUI.$("pattern-help-image").innerHTML.includes('data-help-image="grille_direction"'));await grilleUI.click("pattern-help-close");
+    await grilleUI.begin();
+    const directionPreviews=grilleUI.requests.filter(([a])=>a==="pattern_preview").length;
+    await grilleUI.click("grille-direction-45");await grilleUI.settle();
+    assert.equal(grilleUI.snapshot().settings.rotation_deg,45);
+    assert(grilleUI.$("pattern-illustration").innerHTML.includes('data-grille-direction="45"'));
+    assert.equal(grilleUI.$("grille-direction-45")["aria-pressed"],"true");
+    assert.equal(grilleUI.requests.filter(([a])=>a==="pattern_preview").length,directionPreviews+1);
+    await grilleUI.input("rotation_deg",27);
+    assert.equal(grilleUI.$("grille-direction-45")["aria-pressed"],"false");
+    await grilleUI.input("pattern","grille_louver");
     assert.equal(grilleUI.$("pattern-louver_angle_deg").parentElement.hidden,false);
     await grilleUI.input("louver_angle_deg",0);
     assert.equal(grilleUI.$("pattern-settings").checkValidity(),true,"zero tilt is a valid straight channel");
     assert.equal(grilleUI.snapshot().settings.louver_angle_deg,0);
+    assert(grilleUI.$("pattern-illustration").innerHTML.includes('data-grille-section="0"'));
+    const zeroTilt=grilleUI.$("pattern-illustration").innerHTML;
+    await grilleUI.input("louver_angle_deg",45);
+    assert.notEqual(grilleUI.$("pattern-illustration").innerHTML,zeroTilt);
+    await grilleUI.input("rotation_deg",225);
+    assert.equal(grilleUI.$("grille-direction-45")["aria-pressed"],"false","inclined channels at 225 degrees reverse their tilt compared with 45");
     await grilleUI.click("cancel-pattern-button");await grilleUI.select("honeycomb");
+    assert.equal(grilleUI.$("pattern-rotation_deg").parentElement.parentElement.id,"pattern-placement-fields");
+    assert.equal(grilleUI.$("grille-direction-presets").hidden,true);
     assert.equal(grilleUI.$("pattern-pattern").children.length,15);
     assert.equal(grilleUI.$("pattern-layout_mode").value,"auto");
     assert.equal(grilleUI.$("pattern-web_mm").value,"7");
@@ -200,6 +220,7 @@ function fixture(options = {}) {
     assert.equal(firstPick.snapshot().pickingFaces,true);
     assert.equal(firstPick.$("create-pattern-button").disabled,true);
     assert.equal(firstPick.$("pattern-finish-faces").disabled,false);
+    assert.equal(firstPick.$("grille-direction-45").disabled,true,"direction presets cannot change settings while picking faces");
     await firstPick.click("pattern-finish-faces");
     assert.equal(firstPick.snapshot().phase,"preview");assert.equal(firstPick.$("create-pattern-button").disabled,false);
     const f=fixture();await f.flush();await f.select("honeycomb");
@@ -328,9 +349,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.13.4"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.14.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.13.4"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.14.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.begin();await logged.click("pattern-select-surface");await logged.click("pattern-finish-faces");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.begin();const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));

@@ -930,11 +930,31 @@ def _flat_grille_cases(design):
         recipe.rebuild_pattern(design,target,changed)
         return {'same_target':True,'same_colour_on_rebuild':True,'owned_features':4,'extra_bodies':1,'rebuilds':3,'cached_two_colour_preview':True,'mode_conversions':2,'export':str(path),**details}
     _case('flat_colour_create_edit_rebuild_export',persistence)
+    _grille_cases(design)
+
+
+def _grille_cases(design):
+    Settings=STATE['settings_module'].PatternSettings
+    adapter=STATE['adapter'];recipe=STATE['recipe']
     for shape,rotation,tilt in (('grille_parallel',0,45),('grille_parallel',30,45),('grille_cross',0,45),('grille_louver',0,0),('grille_louver',0,30),('grille_louver',0,45),('grille_louver',0,60)):
         def grille(shape=shape,rotation=rotation,tilt=tilt):
             _,body,faces=fixture(design,'plane')
             settings=Settings(pattern=shape,mode='through',layout_mode='fill',pitch_mm=7,web_mm=2,border_mm=2,rotation_deg=rotation,louver_angle_deg=tilt)
-            prepared=prepare_checked(design,faces,settings)
+            from unittest.mock import patch
+            counts={'wall_queries':0,'wall_witnesses':0}
+            original_wall=adapter._wall;original_depth=adapter._cell_depth
+            def wall(*args):
+                counts['wall_queries']+=1
+                return original_wall(*args)
+            def depth(*args):
+                counts['wall_witnesses']+=len(args[2].samples)
+                return original_depth(*args)
+            with patch.object(adapter,'_wall',wall),patch.object(adapter,'_cell_depth',depth):
+                prepared=prepare_checked(design,faces,settings)
+            if counts['wall_queries']!=counts['wall_witnesses']:
+                raise RuntimeError('Grille construction repeated already measured wall rays.')
+            if shape=='grille_louver' and prepared.timings.get('louver_face_setups')!=1:
+                raise RuntimeError('Louver face setup was not shared by its openings.')
             if prepared.result_body.volume>=body.volume or prepared.result_body.lumps.count!=1:
                 raise RuntimeError('Grille did not leave a connected perforated body.')
             if not _inside(prepared.result_body,(15,0,-1.5)):
@@ -952,7 +972,7 @@ def _flat_grille_cases(design):
             recipe.rebuild_pattern(design,target,changed)
             if (design.rootComponent.bRepBodies.count,design.timeline.count)!=(before[0],before[1]+3):
                 raise RuntimeError('Grille Rebuild duplicated its body or history.')
-            return {'openings':prepared.cell_count,'tilt_deg':tilt,'rotation_deg':rotation,'same_body':True,'owned_features':3,'timings':prepared.timings}
+            return {'openings':prepared.cell_count,'tilt_deg':tilt,'rotation_deg':rotation,'same_body':True,'owned_features':3,**counts,'face_setups':prepared.timings.get('louver_face_setups',0),'timings':prepared.timings}
         _case('grille_'+shape+'_'+str(rotation)+'_'+str(tilt),grille)
 
 
@@ -962,7 +982,7 @@ def _box_faces_cases(design):
     Real native face lists exercise geometry. The non-modal native selection
     event and Done/Cancel lifecycle are checked separately in the async stage.
     """
-    for shape,mode in (('hexagon','through'),('triangle','engrave'),('cairo','emboss')):
+    for shape,mode in (('hexagon','through'),('triangle','engrave'),('cairo','emboss'),('grille_parallel','through')):
         def box(shape=shape,mode=mode):
             manager=adsk.fusion.TemporaryBRepManager.get()
             shell=_boolean(manager,_box(manager,-20,20,-20,20,-20,20),_box(manager,-17,17,-17,17,-17,17))
@@ -999,7 +1019,8 @@ def cases(*, include_polygon_regressions=False, include_shared_regressions=False
     recipe = STATE["recipe"]
     _box_faces_cases(design)
     if not include_shared_regressions and not include_polygon_regressions:
-        # Selection-only maintenance does not need the unchanged, expensive
+        _grille_cases(design)
+        # Focused grille maintenance does not need the unchanged, expensive
         # surface matrix. Keep a detached colour result for rollback lifetime
         # proof, then exercise real selection events in the disposable document.
         def colour_lifetime():
@@ -1008,7 +1029,7 @@ def cases(*, include_polygon_regressions=False, include_shared_regressions=False
                 pitch_mm=10,web_mm=4,depth_mm=.5,border_mm=2))
             return {'cells':prepared.cell_count,'colour_lumps':prepared.colour_body.lumps.count}
         _case('flat_colour_rollback_lifetime',colour_lifetime)
-        STATE['report']['scope']='six-side box geometry and non-modal native face selection'
+        STATE['report']['scope']='grilles, six-side box geometry and non-modal native face selection'
         STATE['report']['polygon_regressions_included']=False
         STATE['report']['shared_regressions_included']=False
         STATE['report']['geometry_checks_passed']=all(case['passed'] for case in STATE['report']['cases'])

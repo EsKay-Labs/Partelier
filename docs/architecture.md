@@ -595,3 +595,19 @@ Done stays unavailable during activation; Cancel releases pending hooks/event.
 Other active modeling commands are rejected rather than interrupted. The
 installable add-in adds no polling, timer or worker thread. PatternStatusProbe
 also reports active native selection types and available Select definitions.
+
+## Grille preparation (0.14.0)
+
+Grilles continues to use the shared pattern settings, owned source-body history
+and recipe version 5. The UI moves the existing `rotation_deg` input into the
+primary grille controls; its direction presets update the same complete settings
+snapshot and normal debounced preview. No second angle setting is serialized.
+Full-row fields use CSS classes because inline style attributes are blocked by
+the existing palette CSP. Illustrations remain bounded, local SVG diagrams.
+
+`prepare_louver_face` produces an immutable, preparation-local `LouverFace`
+containing the mapped inner border and across-rib vector once per used face.
+`_cell_depth` checks the original raw wall distances for the unchanged 0.02 mm
+spread refusal, as well as the existing first/next-wall bounds. `louver_cutter`
+uses that context and measured depth without repeating maps or wall queries.
+No cache survives the preparation and no Fusion API work moves off the main thread.

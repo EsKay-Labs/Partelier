@@ -74,6 +74,11 @@ h2 { margin: 0; font-size: 12px; font-weight: 650; }
 .basic-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
 #hinge-layout-fields { margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0e7f2; }
 .parameter-item { display: flex; flex-direction: column; min-width: 0; }
+.parameter-list > .full-width-parameter { grid-column: 1 / -1; }
+.grille-direction-presets { display: flex; gap: 6px; margin-top: 6px; }
+.grille-direction-presets button { flex: 1; min-height: 30px; border: 1px solid #b3c8e7; border-radius: 6px; background: #f5f8ff; color: #244b7d; cursor: pointer; }
+.grille-direction-presets button.selected { background: #dceaff; border-color: #2674db; color: #124a9a; font-weight: 700; }
+.grille-direction-presets button:disabled { opacity: .5; cursor: default; }
 .has-parameter-help { position: relative; }
 .has-parameter-help label { padding-right: 25px; min-height: 20px; display: flex; align-items: center; }
 .parameter-help { position: absolute; top: -2px; right: -2px; width: 24px; height: 24px; border: 1px solid #8aace0; border-radius: 50%; background: #e8f0ff; color: #174b99; font-size: 13px; font-weight: 700; padding: 0; cursor: pointer; }

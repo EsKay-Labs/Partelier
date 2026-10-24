@@ -356,9 +356,11 @@ def _wall(design, body, point_mm, outward):
 def _cell_depth(design, body, cell, settings):
     normal = cell.center.normal
     firsts, entries = [], []
+    wall_distances = [] if settings.pattern=='grille_louver' else None
     center_wall = None
     for sample in cell.samples:
         distance, entry = _wall(design, body, sample.point_mm, normal)
+        if wall_distances is not None:wall_distances.append(distance)
         sag = -_dot(_sub(sample.point_mm, cell.center.point_mm), normal)
         firsts.append(sag + distance)
         entries.append(sag + entry)
@@ -372,6 +374,8 @@ def _cell_depth(design, body, cell, settings):
                 local_distance, _ = _wall(design, body, sample.point_mm, sample.normal)
             if settings.depth_mm >= local_distance - EPSILON_MM * 4:
                 raise ValueError("Engrave depth reaches the first wall exit. Reduce depth or choose Through.")
+    if wall_distances is not None and max(wall_distances)-min(wall_distances)>.02:
+        raise ValueError('Louvers require a constant-thickness plate. Select another face.')
     margin = max(.01, EPSILON_MM * 10)
     depth = max(firsts) + margin
     if depth >= min(entries) - margin:
@@ -510,6 +514,11 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
     result = _copy(manager, body)
     _trace_geometry("source_copy.end")
     bands = {}
+    louver_faces={}
+    if settings.pattern=='grille_louver':
+        from .grilles import prepare_louver_face
+        for index in sorted({cell.face_index for cell in mapped}):
+            louver_faces[index]=prepare_louver_face(faces[index],settings)
     if settings.mode != "through":
         for index, face in enumerate(faces):
             first = next((cell for cell in mapped if cell.face_index == index), None)
@@ -525,6 +534,7 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
     colour_tools = []
     details = dict(wall_checks_ms=0.0, tool_construction_ms=0.0,
                    tool_clip_ms=0.0, result_application_ms=0.0, batch_used=False)
+    if louver_faces:details['louver_face_setups']=len(louver_faces)
     _trace_geometry("tools.begin",cell_count=len(mapped),mode=settings.mode)
     for cell_index,cell in enumerate(mapped,1):
         center_wall = None
@@ -538,7 +548,7 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
         if settings.mode == "through":
             if settings.pattern=="grille_louver":
                 from .grilles import louver_cutter
-                cutter=louver_cutter(design,faces[cell.face_index],cell,settings,through_depth)
+                cutter=louver_cutter(cell,settings,through_depth,louver_faces[cell.face_index])
             else:
                 cutter = _prism_for_cell(manager, cell, through_depth,
                                           max(.02, cell.sag_mm + .02))

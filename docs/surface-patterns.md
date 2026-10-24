@@ -85,6 +85,12 @@ Advanced. Parallel bars fill the planar region with long openings. Crossed grid
 uses square openings with connected ribs. Rotate either for diagonal layouts.
 Opening/rib sizes are explicit and their repeat is centered on each face.
 
+Version **0.14.0** puts Direction and 0° / 45° / 90° presets below the full-width
+grille type dropdown. The sample illustration follows dimensions/direction and
+shows a separate louver section. One louver face setup is shared by its openings;
+the existing depth pass supplies thickness checks without repeating wall rays.
+See [Grilles](grilles.md) for the current supported workflow and native evidence.
+
 **Louvers · inclined channels** adds a **Louver tilt** of 0–60 degrees from the
 surface normal, initially 45 degrees. This cuts inclined channels inside a
 constant-thickness rectangular planar plate, keeping the original front/back

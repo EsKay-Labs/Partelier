@@ -7,11 +7,13 @@ from pathlib import Path
 import tempfile
 from types import SimpleNamespace as NS
 import unittest
+from unittest.mock import patch
 import xml.etree.ElementTree as ET
 import zipfile
 
 from Partelier.partelier.tools.patterns import colour_export
 from Partelier.partelier.tools.patterns import inlay
+from Partelier.partelier.tools.patterns import fusion,grilles,prism,surfaces
 from Partelier.partelier.tools.patterns.display_mesh import DisplayMesh
 from Partelier.partelier.tools.patterns.planner import build_layout
 from Partelier.partelier.tools.patterns.prism import plan_prism
@@ -77,6 +79,16 @@ class GrilleTests(unittest.TestCase):
                 self.assertEqual(back[1]-front[1],-3)
         for shear in ((math.nan,0),(3,0),(0,)):
             with self.assertRaises(ValueError):plan_prism(frame,footprint,-3,0,shear_xz_per_y=shear)
+
+    def test_louver_cutters_reuse_the_face_context_without_remapping_or_wall_queries(self):
+        context=grilles.LouverFace(((-10,-5,0),(10,-5,0),(10,5,0),(-10,5,0)),(0,1,0))
+        native=NS(TemporaryBRepManager=NS(get=lambda:object()),BooleanTypes=NS(IntersectionBooleanType='intersection'))
+        cell=NS(center=NS(point_mm=(0,0,0),tangent_u=(1,0,0),normal=(0,0,1)),polygon=((-5,-1),(5,-1),(5,1),(-5,1)))
+        with patch.object(fusion,'_api',return_value=(None,native)),patch.object(prism,'prism',side_effect=lambda *a,**kw:object()) as make,patch.object(fusion,'_boolean'),patch.object(fusion,'_wall') as wall,patch.object(surfaces,'SurfaceMap') as chart:
+            for _ in range(5):grilles.louver_cutter(cell,self.settings(pattern='grille_louver'),3.01,context)
+        self.assertEqual(make.call_count,10)
+        wall.assert_not_called()
+        chart.assert_not_called()
 
 
 class ColourPackageTests(unittest.TestCase):

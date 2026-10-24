@@ -4,6 +4,7 @@
 window.PartelierPatternHelp = (() => {
     const entries = {
         grille_type: ["Grille type · Τύπος γρίλιας", "Parallel bars: μακριά παράλληλα ανοίγματα. Crossed grid: τετράγωνα ανοίγματα με διασταυρωμένα νεύρα. Louvers: λοξά κανάλια μέσα στο πάχος ορθογώνιας πλάκας.", "Το Rotation αλλάζει την κατεύθυνση πάνω στο face. Το Louver tilt αλλάζει μόνο την κλίση μέσα στο πάχος. Αρχικά οι γρίλιες λειτουργούν σε επίπεδες επιφάνειες."],
+        grille_direction: ["Direction · Κατεύθυνση γρίλιας", "Στρέφει τα ανοίγματα πάνω στην επιλεγμένη επιφάνεια. Τα κουμπιά 0° / 45° / 90° είναι γρήγορες επιλογές· μπορείς να γράψεις και δική σου γωνία.", "Οι μοίρες ακολουθούν τους τοπικούς άξονες του κάθε face, όχι απαραίτητα τους άξονες του Fusion. Στις περσίδες το Tilt ρυθμίζει χωριστά την κλίση μέσα στο πάχος. Το 180° αντιστρέφει αυτή την κλίση."],
         opening_width: ["Opening width · Καθαρό άνοιγμα", "Το πλάτος του ανοίγματος πάνω στην επιλεγμένη επιφάνεια. Στη διασταυρωτή γρίλια είναι η πλευρά του τετραγώνου. Δεν περιλαμβάνει το νεύρο.", "Η απόσταση επανάληψης είναι Opening width + Rib width. Το άνοιγμα και το νεύρο μένουν σταθερά όταν μεγαλώνει το face· επαναλαμβάνονται περισσότερες φορές. Στο border μπορεί να μείνει τμήμα ανοίγματος."],
         rib_width: ["Rib width · Πλάτος νεύρου", "Το συμπαγές υλικό ανάμεσα στα ανοίγματα, μετρημένο πάνω στο face. Μεγαλύτερη τιμή αφήνει περισσότερο υλικό και μειώνει το πλήθος των ανοιγμάτων.", "Η αλλαγή κρατά σταθερό το Opening width. Σε λοξό κανάλι το κάθετο πάχος του νεύρου είναι μικρότερο από το πλάτος του στην επιφάνεια. Δεν αποτελεί προδιαγραφή αντοχής."],
         colour_depth: ["Colour depth · Βάθος χρώματος", "Το πάχος του χρωματισμένου υλικού προς το εσωτερικό. Το επάνω όριό του μένει ακριβώς στην αρχική επιφάνεια και γεμίζει την αντίστοιχη εσοχή χωρίς κενό.", "Πρέπει να μείνει συνεχές υλικό του βασικού σώματος από κάτω. Στο Bambu Studio διαλέγεις filament για καθένα από τα δύο parts. Το πλήθος χρωματισμένων layers εξαρτάται από τον προσανατολισμό και το layer height."],
@@ -48,6 +49,7 @@ window.PartelierPatternHelp = (() => {
             return `<rect x="4" y="4" width="132" height="112" rx="3" fill="#8fb5f4" stroke="#55759e"/>${slots}`;
         };
         if(name==="grille_type") {left=grille(12,8);right=grille(12,8,true);a="Parallel bars";b="Crossed grid";}
+        else if(name==="grille_direction") {left=grille(12,8);right=`<rect x="4" y="4" width="132" height="112" rx="3" fill="#8fb5f4" stroke="#55759e"/><svg x="12" y="12" width="116" height="96" overflow="hidden"><g transform="rotate(-45 58 48)" fill="#fff">${Array.from({length:14},(_,i)=>`<rect x="-90" y="${-100+i*20}" width="300" height="12"/>`).join("")}</g></svg>`;a="0°";b="45°";}
         else if(name==="opening_width") {left=grille(8,8);right=grille(22,8);a="Μικρότερο άνοιγμα";b="Μεγαλύτερο άνοιγμα";}
         else if(name==="rib_width") {left=grille(14,4);right=grille(14,18);a="Στενότερα νεύρα";b="Φαρδύτερα νεύρα";}
         else if(name==="colour_depth") {
@@ -79,7 +81,7 @@ window.PartelierPatternHelp = (() => {
         return `<svg viewBox="0 0 320 160" role="img" aria-label="${entries[name][0]}: ${a} / ${b}" data-help-image="${name}"><defs><marker id="help-arrow" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L6 3L0 6" fill="#bd501c"/></marker></defs><g transform="translate(8 24)" fill="#fff" stroke="#245fc2">${left}</g><g transform="translate(172 24)" fill="#fff" stroke="#245fc2">${right}</g><g fill="#243e64" font-family="Segoe UI,sans-serif" font-size="10" font-weight="600" text-anchor="middle"><text x="78" y="16">${a}</text><text x="242" y="16">${b}</text></g></svg>`;
     }
     return Object.freeze({ get: (name,settings={}) => {
-        if(String(settings.pattern).startsWith("grille_")) name=({pattern:"grille_type",cell_size_mm:"opening_width",web_mm:"rib_width"})[name]||name;
+        if(String(settings.pattern).startsWith("grille_")) name=({pattern:"grille_type",cell_size_mm:"opening_width",web_mm:"rib_width",rotation_deg:"grille_direction"})[name]||name;
         else if(settings.mode==="inlay"&&name==="depth_mm") name="colour_depth";
         return entries[name]?{title:entries[name][0],description:entries[name][1],detail:entries[name][2],image:image(name)}:null;
     } });

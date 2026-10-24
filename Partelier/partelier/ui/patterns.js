@@ -136,7 +136,16 @@
             input.value=state.settings.pattern; showingGrilles=isGrille;
         }
         $("pattern-pattern").parentElement.children[0].textContent=isGrille?"Grille type":"Pattern";
-        $("pattern-pattern").parentElement.setAttribute("style",isGrille?"grid-column:1 / -1":"");
+        $("pattern-pattern").parentElement.classList.toggle("full-width-parameter",isGrille);
+        const direction=$("pattern-rotation_deg").parentElement, directionHome=$(isGrille?"pattern-design-fields":"pattern-placement-fields");
+        if(direction.parentElement!==directionHome)directionHome.append(direction);
+        direction.children[0].textContent=isGrille?"Direction (°)":"Rotation (°)";
+        direction.classList.toggle("full-width-parameter",isGrille);
+        $("grille-direction-presets").hidden=!isGrille;
+        for(const angle of [0,45,90]) {
+            const button=$("grille-direction-"+angle), selected=Number.isFinite(state.settings.rotation_deg)&&Math.abs(((state.settings.rotation_deg%360)+360)%360-angle)<1e-8;
+            button.disabled=committing;button.classList.toggle("selected",selected);button.setAttribute("aria-pressed",String(selected));
+        }
         for (const name of ["mode","layout_mode","edge_mode"]) { const input=$("pattern-"+name); input.parentElement.hidden=isGrille; }
         $("pattern-louver_angle_deg").parentElement.hidden=state.settings.pattern!=="grille_louver";
         $("pattern-offset_u_mm").parentElement.hidden=isGrille;
@@ -362,11 +371,20 @@
             if (!signed.has(name)) input.min = "0";
             if (name === "louver_angle_deg") input.max="60";
             input.value = name === "cell_size_mm" ? defaults.pitch_mm-defaults.web_mm : defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
+            if(name==="rotation_deg") {
+                const presets=document.createElement("div");presets.id="grille-direction-presets";presets.className="grille-direction-presets";presets.setAttribute("role","group");presets.setAttribute("aria-label","Grille direction presets");
+                for(const angle of [0,45,90]) {
+                    const button=document.createElement("button");button.id="grille-direction-"+angle;button.type="button";button.textContent=angle+"°";
+                    button.addEventListener("click",()=>{if(button.disabled)return;input.value=String(angle);updateInput(input);});presets.append(button);
+                }
+                item.append(presets);
+            }
         }
     }
     $("pattern-settings").addEventListener("submit", event => event.preventDefault());
-    $("pattern-settings").addEventListener("input", event => {
-        const input = event.target, sized = true;
+    $("pattern-settings").addEventListener("input", event => updateInput(event.target));
+    function updateInput(input) {
+        const sized = true;
         if (input.id === "pattern-cell_size_mm") {
             const size = Number(input.value), okay = input.value.trim() !== "" && Number.isFinite(size) && size > 0;
             input.setCustomValidity(okay ? "" : "Enter a cell size greater than zero.");
@@ -409,7 +427,7 @@
         state.revision++; state.dirty = true; state.liveError = false; availability(false); renderArt();
         if (active()) message(valid() ? "Updating live preview…" : "Check the highlighted input. Showing the previous valid preview.", !valid());
         render(); schedule();
-    });
+    }
     $("export-pattern-button").addEventListener("click", () => run(async () => { const result=await send("pattern_export"); message(result.message || "Export finished."); },"pattern_export"));
     $("begin-pattern-button").addEventListener("click", () => { trace("click", { control:"begin" }); run(() => begin(false),"pattern_begin"); });
     $("edit-pattern-button").addEventListener("click", () => { trace("click", { control:"edit" }); run(() => begin(true),"pattern_edit"); });
@@ -438,5 +456,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.13.4" }); renderArt(); render();
+    trace("boot", { build:"0.14.0" }); renderArt(); render();
 })();

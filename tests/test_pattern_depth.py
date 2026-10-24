@@ -40,5 +40,23 @@ class PatternDepthTests(unittest.TestCase):
             fusion._cell_depth(None,None,cell,PatternSettings())
         self.assertEqual(wall.call_count,3)
 
+    def test_louver_thickness_checks_reuse_the_original_wall_witnesses(self):
+        cell=self.cell(((0,0,1),)*3)
+        settings=PatternSettings(pattern='grille_louver',layout_mode='fill')
+        with patch.object(fusion,'_wall',side_effect=((3,float('inf')),(3.01,float('inf')),(3,float('inf')))) as wall:
+            depth,_=fusion._cell_depth(None,None,cell,settings)
+        self.assertEqual(wall.call_count,len(cell.samples))
+        self.assertGreater(depth,3.01)
+
+    def test_louver_variable_thickness_and_second_wall_are_still_refused(self):
+        cell=self.cell(((0,0,1),)*3)
+        settings=PatternSettings(pattern='grille_louver',layout_mode='fill')
+        with patch.object(fusion,'_wall',side_effect=((3,float('inf')),(3.021,float('inf')),(3,float('inf')))):
+            with self.assertRaisesRegex(ValueError,'constant-thickness'):
+                fusion._cell_depth(None,None,cell,settings)
+        with patch.object(fusion,'_wall',return_value=(3,3.005)):
+            with self.assertRaisesRegex(ValueError,'another wall'):
+                fusion._cell_depth(None,None,cell,settings)
+
 
 if __name__=='__main__':unittest.main()

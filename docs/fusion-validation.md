@@ -6,6 +6,26 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.14.0 integrated grilles
+
+User acceptance confirmed the 0.13.4 multi-face selection, preview and Edit flow.
+The next increment keeps grilles integrated in the selected body. Native request
+**c6830fbb-9e71-428c-8b0e-917e3001b662** on Fusion 2705.1.30 passes **16 focused
+cases**, including all three grille families, four louver tilt angles,
+Create/Edit/Rebuild, and six outer box sides. The original document snapshot and
+source references are preserved. In each louver fixture, the 3 openings use one
+face setup and 27 wall queries for 27 wall witnesses; the old second ray pass is
+removed. No universal timing improvement is claimed.
+
+Local checks pass **929 Python tests**, three Node DOM suites, compilation and
+whitespace validation. Headless Edge at 300/380/520 px verifies the full-width
+type dropdown (using CSP-compatible CSS classes), primary Direction controls,
+presets, all three illustrations, tilt visibility and no horizontal overflow.
+The new drawings are schematic; real native geometry is tested independently.
+Evidence: `docs/validation/grilles-0.14.0.json`. See [Grilles](grilles.md) for exact
+geometry limits and workflow. Physical pointer/CEF acceptance of new controls
+and printing remain pending; the full unchanged surface/mosaic matrix was not run.
+
 ## 0.13.4 additive selection, preview only after Done
 
 User acceptance of 0.13.3 clarified the required workflow: normal clicks must

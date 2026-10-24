@@ -1,6 +1,6 @@
 """Planar grille openings: numeric bands and sheared first-wall cutters."""
 
-from dataclasses import replace
+from dataclasses import dataclass, replace
 import math
 
 
@@ -52,15 +52,20 @@ def build_layout(settings,bounds,period_u_mm,max_cells,accept):
     return Layout(tuple(cells),pitch,pitch,'fill',opening,1,checks)
 
 
-def louver_cutter(design,face,cell,settings,through_depth):
-    """Inclined channel, confined to one rectangular plate and border prism.
+@dataclass(frozen=True)
+class LouverFace:
+    inner_points_mm: tuple
+    across: tuple
+
+
+def prepare_louver_face(face,settings):
+    """Validate and map one rectangular face once per preparation.
 
     Tilt is from the inward normal; no protruding fins or unproven curved lofts.
-    Ray depth and a planar rectangular constant-thickness wall are required.
+    Cell wall witnesses are checked once in the adapter's existing depth pass.
     """
     from . import fusion as adapter
     from .surfaces import SurfaceMap
-    from .prism import prism
     core,native=adapter._api()
     if core.Plane.cast(face.geometry) is None or face.loops.count!=1 or face.edges.count!=4:
         raise ValueError('Louvers currently require one rectangular planar face without holes.')
@@ -75,22 +80,27 @@ def louver_cutter(design,face,cell,settings,through_depth):
     actual=tuple(vertex.geometry for vertex in adapter.hinge._items(face.vertices))
     if len(actual)!=4 or any(min(math.dist(point,(v.x*10,v.y*10,v.z*10)) for v in actual)>1e-4 for point in rectangle):
         raise ValueError('Align a rectangular planar face with its surface axes before adding louvers.')
-    depth=through_depth
-    firsts=[adapter._wall(design,face.body,sample.point_mm,cell.center.normal)[0] for sample in cell.samples]
-    if max(firsts)-min(firsts)>.02:
-        raise ValueError('Louvers require a constant-thickness plate. Select another face.')
     # Tangent across bars in chart UV; project into the right-handed prism frame.
     angle=math.radians(settings.rotation_deg)
     chart_center=chart.sample((lo+hi)/2,(bottom+top)/2)
     across=tuple(-math.sin(angle)*a+math.cos(angle)*v for a,v in zip(chart_center.tangent_u,chart_center.tangent_v))
+    inner=tuple(chart.sample(u,v).point_mm for u,v in ((lo+b,bottom+b),(hi-b,bottom+b),(hi-b,top-b),(lo+b,top-b)))
+    return LouverFace(inner,across)
+
+
+def louver_cutter(cell,settings,through_depth,context):
+    """Construct one inclined first-wall cutter using a preparation-local face map."""
+    from . import fusion as adapter
+    from .prism import prism
+    _,native=adapter._api()
+    depth=through_depth
     frame=adapter.hinge.HingeFrame(cell.center.point_mm,cell.center.tangent_u,
         cell.center.normal,adapter.hinge._cross(cell.center.tangent_u,cell.center.normal))
     slope=math.tan(math.radians(settings.louver_angle_deg))
-    shear=(-slope*adapter._dot(across,frame.x_axis),-slope*adapter._dot(across,frame.z_axis))
+    shear=(-slope*adapter._dot(context.across,frame.x_axis),-slope*adapter._dot(context.across,frame.z_axis))
     cutter=prism(frame,cell.polygon,-depth,.02,shear_xz_per_y=shear)
-    inner=tuple(chart.sample(u,v).point_mm for u,v in ((lo+b,bottom+b),(hi-b,bottom+b),(hi-b,top-b),(lo+b,top-b)))
     footprint=tuple((adapter._dot(adapter._sub(p,frame.origin_mm),frame.x_axis),
-                     adapter._dot(adapter._sub(p,frame.origin_mm),frame.z_axis)) for p in inner)
+                     adapter._dot(adapter._sub(p,frame.origin_mm),frame.z_axis)) for p in context.inner_points_mm)
     if sum(a[0]*z[1]-z[0]*a[1] for a,z in zip(footprint,footprint[1:]+footprint[:1]))<0:footprint=tuple(reversed(footprint))
     mask=prism(frame,footprint,-depth,.02)
     manager=native.TemporaryBRepManager.get()
