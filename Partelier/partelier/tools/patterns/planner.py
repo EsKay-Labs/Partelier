@@ -401,6 +401,9 @@ def build_layout(settings, bounds, period_u_mm=None, *, max_cells=MAX_FACE_CELLS
     The caller still verifies physical web thickness after surface mapping.
     """
     settings.validate()
+    if settings.pattern.startswith("grille_"):
+        from .grilles import build_layout as grille_layout
+        return grille_layout(settings,bounds,period_u_mm,max_cells,accept)
     if settings.pattern in TILED_PATTERNS:
         from .tiled_layout import build_tiled_layout
         return build_tiled_layout(settings,bounds,period_u_mm,max_cells,accept)

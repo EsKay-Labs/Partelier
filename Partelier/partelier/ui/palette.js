@@ -348,7 +348,7 @@
             const result = await send("ready"); state.connected = true; state.capabilities = new Set(Array.isArray(result.capabilities) ? result.capabilities : []);
             if (!state.dirty && result.hingeDefaults && !result.hingeState?.settings) { state.hingeSettings = { ...hingeDefaults, ...result.hingeDefaults }; syncHingeFields(); }
             $("connection-status").classList.add("connected"); $("connection-status").replaceChildren(); $("connection-status").append(document.createElement("i"), "Fusion connected");
-            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.12.1";
+            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.13.0";
             if (window.PartelierSnap?.connect(result)) { state.selected = "snap"; renderToolMenu(); renderDetail(); }
             const patternAlias = window.PartelierPatterns?.connect(result);
             if (patternAlias) { state.selected = patternAlias; renderToolMenu(); renderDetail(); }

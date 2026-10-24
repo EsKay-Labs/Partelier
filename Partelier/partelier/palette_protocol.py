@@ -19,7 +19,7 @@ PATTERN_SETTINGS_ACTIONS=frozenset({"pattern_update","pattern_preview","pattern_
 PATTERN_SESSION_ACTIONS=PATTERN_SETTINGS_ACTIONS|{"pattern_cancel","pattern_focus"}
 ALLOWED_ACTIONS = frozenset({
     "ready", "open_input_check", "hinge_create", "hinge_edit", "hinge_begin", "hinge_status",
-    "snap_begin", "snap_status", "pattern_begin", "pattern_status", "diagnostic_log",
+    "snap_begin", "snap_status", "pattern_begin", "pattern_status", "pattern_export", "diagnostic_log",
 }) | SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS
 
 

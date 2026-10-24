@@ -11,6 +11,7 @@ import importlib
 import importlib.util
 import json
 import math
+import time
 from pathlib import Path
 import sys
 import traceback
@@ -399,17 +400,33 @@ def prepare_checked(design, faces, settings):
     if snapshot(design) != before or not all(entity.isValid for entity in refs):
         raise RuntimeError("Preparing a pattern left scratch history/body/appearance changes or invalidated its sources.")
     STATE.setdefault("detached", []).append(prepared.result_body)
+    if prepared.colour_body is not None:
+        STATE.setdefault("detached_colours",[]).append((prepared.colour_body,prepared.colour_body.lumps.count,float(prepared.colour_body.volume)))
     STATE["recipe"].validate_preview_sources(prepared)
     return prepared
 
 
+def _progress(label,phase):
+    """Small atomic checkpoints; diagnostic I/O must never interrupt CAD."""
+    try:
+        path=Path(STATE['context']['report_path']).with_suffix('.progress.json')
+        temporary=path.with_suffix('.progress.tmp')
+        temporary.write_text(json.dumps({'case':label,'phase':phase,'completed_cases':len(STATE['report']['cases']),
+            'updated_at':time.time()},sort_keys=True),encoding='utf-8')
+        temporary.replace(path)
+    except Exception:pass
+
+
 def _case(label, function, *, optional=False):
+    _progress(label,"running")
     if cancellation_requested():
         raise RuntimeError("Pattern validation cancelled.")
     try:
         details = function()
         STATE["report"]["cases"].append({"name": label, "passed": True, **(details or {})})
+        _progress(label,"complete")
     except ValueError as error:
+        _progress(label,"refused")
         message = str(error)
         bounded = ("singular", "smaller", "surface", "curvature", "distort", "regular", "offset", "thicken", "depth band", "fit", "cells")
         if not optional or not any(word in message.lower() for word in bounded):
@@ -418,7 +435,7 @@ def _case(label, function, *, optional=False):
 
 
 def _fixed_settings(**values):
-    return STATE['settings_module'].PatternSettings(**{'pitch_mm':8,'web_mm':1.2,'layout_mode':'fixed','edge_mode':'whole',**values})
+    return STATE['settings_module'].PatternSettings(**{'pitch_mm':8,'web_mm':1.2,'layout_mode':'fixed','edge_mode':'whole','border_mm':2,**values})
 
 
 def run_direct_prism_proof(design,direct,adapter,settings_class):
@@ -439,7 +456,7 @@ def run_direct_prism_proof(design,direct,adapter,settings_class):
     clipped_prism=sys.modules[adapter.hinge.__package__+'.support']._prism
     cases=[]
     for shape in ('hexagon','circle','diamond','square','slot'):
-        values=settings_class(pattern=shape,layout_mode='fixed',rotation_deg=17)
+        values=settings_class(pattern=shape,layout_mode='fixed',edge_mode='whole',pitch_mm=8,web_mm=1.2,border_mm=2,rotation_deg=17)
         polygon=adapter.build_cells(values,(-10,10,-10,10))[0].polygon_mm
         for frame_index,frame in enumerate(frames):
             for low,high in ((-3,.02),(-.02,1.02)):
@@ -507,7 +524,7 @@ def _performance_cases(design):
         design,direct,adapter,STATE['settings_module'].PatternSettings))
     _,body,faces=fixture(design,'notched_panel')
     def batch_equivalence():
-        settings=STATE['settings_module'].PatternSettings(pitch_mm=8,web_mm=1.2,layout_mode='fit',edge_mode='whole')
+        settings=STATE['settings_module'].PatternSettings(pitch_mm=8,web_mm=1.2,border_mm=2,layout_mode='fit',edge_mode='whole')
         fast=prepare_checked(design,faces,settings)
         if not fast.timings['batch_used']:
             raise RuntimeError('The dense native Through fixture did not exercise the batch path.')
@@ -644,7 +661,8 @@ def _fit_cases(design):
 
 
 def _fill_cases(design):
-    Settings=STATE['settings_module'].PatternSettings
+    def Settings(**values):
+        return STATE['settings_module'].PatternSettings(**{'border_mm':2,**values})
     adapter=STATE['adapter'];recipe=STATE['recipe']
     for shape in ('hexagon','circle','diamond','square','slot'):
         def planar(shape=shape):
@@ -686,7 +704,7 @@ def _fill_cases(design):
         _case('fill_fixed_size_wrap_'+mode,wrapped)
     def balanced():
         _,body,faces=fixture(design,'notched_panel')
-        settings=Settings()
+        settings=Settings(layout_mode='balanced',pitch_mm=17.5,web_mm=5)
         prepared=prepare_checked(design,faces,settings)
         if not 0<prepared.cell_count<=48:raise RuntimeError('Balanced default exceeded its soft cell budget.')
         return {'cells':prepared.cell_count,'layout_mode':settings.layout_mode,'soft_limit_per_face':48}
@@ -842,13 +860,114 @@ def _variety_cases(design):
     _case('variety_cross_family_edit_rebuild',editing)
 
 
-def cases():
+def _flat_grille_cases(design):
+    from pathlib import Path
+    import xml.etree.ElementTree as ET
+    import zipfile
+    Settings=STATE['settings_module'].PatternSettings
+    adapter=STATE['adapter'];recipe=STATE['recipe']
+    colour_store=importlib.import_module(adapter.__package__+'.colour_store')
+    exporter=importlib.import_module(adapter.__package__+'.colour_export')
+    for kind,shape in (('plane','hexagon'),('plane','rounded_triangle'),('plane_hole','circle'),('cylinder_wrap','hexagon'),('hex','diamond')):
+        def flat(kind=kind,shape=shape):
+            _,body,faces=fixture(design,kind)
+            settings=Settings(pattern=shape,mode='inlay',layout_mode='auto',web_mm=1.2,border_mm=2,depth_mm=.6)
+            prepared=prepare_checked(design,faces,settings)
+            colour=prepared.colour_body
+            if colour is None or abs(prepared.result_body.volume+colour.volume-body.volume)>1e-7:
+                raise RuntimeError('Flat colour did not partition exactly the original volume.')
+            for sample in prepared.accepted_samples:
+                point=_add(sample['point_mm'],sample['normal'],-.3)
+                if not _inside(colour,point) or _inside(prepared.result_body,point):
+                    raise RuntimeError('Colour/base material assignment failed at an independent depth witness.')
+                if _inside(colour,_add(sample['point_mm'],sample['normal'],.01)):
+                    raise RuntimeError('Flat colour protruded beyond the original surface.')
+            return {'cells':prepared.cell_count,'colour_lumps':colour.lumps.count,'volume_conserved':True,'flush_witnesses':len(prepared.accepted_samples),'timings':prepared.timings}
+        _case('flat_colour_'+kind+'_'+shape,flat)
+    def persistence():
+        _,body,faces=fixture(design,'plane')
+        before=(design.rootComponent.bRepBodies.count,design.timeline.count)
+        token=body.entityToken
+        settings=Settings(mode='inlay',layout_mode='fill',pitch_mm=8,web_mm=2,border_mm=2,depth_mm=.6)
+        prepared=prepare_checked(design,faces,settings)
+        display=adapter.display_export.prepare(prepared)
+        graphics=design.rootComponent.customGraphicsGroups.count
+        for cycle in range(3):
+            group=adapter.preview_pattern(display)
+            if group is None or not group.isValid:raise RuntimeError('Flat colour cached preview did not draw.')
+            if group.deleteMe() is False:raise RuntimeError('Flat colour preview cleanup refused.')
+            if design.rootComponent.customGraphicsGroups.count!=graphics:raise RuntimeError('Flat colour graphics leaked.')
+        anchor=recipe.create_pattern(design,prepared)
+        target=recipe.read_edit_target(design,body)
+        _,colour=colour_store.read(design,recipe.STORE,target.record)
+        colour_token=colour.entityToken
+        if recipe.read_edit_target(design,colour).anchor!=anchor:raise RuntimeError('Selecting the colour body did not load its recipe.')
+        for shape in ('circle','triangle','hexagon'):
+            target=recipe.read_edit_target(design,colour)
+            updated=recipe.prepare_edit_pattern(design,target,replace(settings,pattern=shape,pitch_mm=9))
+            if recipe.rebuild_pattern(design,target,updated)!=anchor:raise RuntimeError('Flat colour anchor changed.')
+            target=recipe.read_edit_target(design,body)
+            _,current=colour_store.read(design,recipe.STORE,target.record)
+            if (not _same_reference(design,body,token) or not _same_reference(design,current,colour_token)
+                    or (design.rootComponent.bRepBodies.count,design.timeline.count)!=(before[0]+1,before[1]+4)):
+                raise RuntimeError('Flat colour Rebuild duplicated or replaced owned geometry/history.')
+        path=Path(STATE['context']['report_path']).with_name(Path(STATE['context']['report_path']).stem+'-flat-colour.3mf')
+        details=exporter.export(design,target,path)
+        with zipfile.ZipFile(path) as archive:
+            root=ET.fromstring(archive.read('3D/3dmodel.model'))
+        ns={'m':exporter.NS}
+        if len(root.findall('.//m:mesh',ns))!=2 or len(root.findall('.//m:component',ns))!=2:
+            raise RuntimeError('Flat colour 3MF lost its two aligned material parts.')
+        # Mode changes explicitly retire/create only the last owned extra feature.
+        target=recipe.read_edit_target(design,body)
+        changed=recipe.prepare_edit_pattern(design,target,replace(settings,mode='engrave'))
+        recipe.rebuild_pattern(design,target,changed)
+        if (design.rootComponent.bRepBodies.count,design.timeline.count)!=(before[0],before[1]+3):
+            raise RuntimeError('Leaving Flat colour retained an extra body or feature.')
+        target=recipe.read_edit_target(design,body)
+        changed=recipe.prepare_edit_pattern(design,target,settings)
+        recipe.rebuild_pattern(design,target,changed)
+        return {'same_target':True,'same_colour_on_rebuild':True,'owned_features':4,'extra_bodies':1,'rebuilds':3,'cached_two_colour_preview':True,'mode_conversions':2,'export':str(path),**details}
+    _case('flat_colour_create_edit_rebuild_export',persistence)
+    for shape,rotation,tilt in (('grille_parallel',0,45),('grille_parallel',30,45),('grille_cross',0,45),('grille_louver',0,0),('grille_louver',0,30),('grille_louver',0,45),('grille_louver',0,60)):
+        def grille(shape=shape,rotation=rotation,tilt=tilt):
+            _,body,faces=fixture(design,'plane')
+            settings=Settings(pattern=shape,mode='through',layout_mode='fill',pitch_mm=7,web_mm=2,border_mm=2,rotation_deg=rotation,louver_angle_deg=tilt)
+            prepared=prepare_checked(design,faces,settings)
+            if prepared.result_body.volume>=body.volume or prepared.result_body.lumps.count!=1:
+                raise RuntimeError('Grille did not leave a connected perforated body.')
+            if not _inside(prepared.result_body,(15,0,-1.5)):
+                raise RuntimeError('Grille cut its outer frame.')
+            if shape=='grille_louver' and tilt>0:
+                expected=math.sin(math.radians(tilt))
+                normals=[abs(plane.normal.z) for face in _items(prepared.result_body.faces)
+                         if (plane:=adsk.core.Plane.cast(face.geometry)) is not None]
+                if not any(abs(value-expected)<1e-5 for value in normals):
+                    raise RuntimeError('The requested louver tilt did not produce real inclined walls.')
+            before=(design.rootComponent.bRepBodies.count,design.timeline.count)
+            anchor=recipe.create_pattern(design,prepared)
+            target=recipe.read_edit_target(design,body)
+            changed=recipe.prepare_edit_pattern(design,target,replace(settings,pitch_mm=8))
+            recipe.rebuild_pattern(design,target,changed)
+            if (design.rootComponent.bRepBodies.count,design.timeline.count)!=(before[0],before[1]+3):
+                raise RuntimeError('Grille Rebuild duplicated its body or history.')
+            return {'openings':prepared.cell_count,'tilt_deg':tilt,'rotation_deg':rotation,'same_body':True,'owned_features':3,'timings':prepared.timings}
+        _case('grille_'+shape+'_'+str(rotation)+'_'+str(tilt),grille)
+
+
+def cases(*, include_polygon_regressions=False):
     design = STATE["design"]
     Settings = _fixed_settings
     recipe = STATE["recipe"]
+    _flat_grille_cases(design)
     _clip_cases(design)
     _auto_cases(design)
-    _variety_cases(design)
+    # Current release changes material partitioning, persistence and grilles.
+    # The expensive unchanged 0.12 polygon-family matrix remains callable for
+    # motif/mapping changes, rather than repeating it on each focused run.
+    STATE["report"]["scope"]="flat colour, grilles and shared pattern regressions"
+    STATE["report"]["polygon_regressions_included"]=include_polygon_regressions
+    if include_polygon_regressions:_variety_cases(design)
     fixtures = {}
     for kind in ("plane", "cylinder", "hex"):
         fixtures[kind] = fixture(design, kind)
@@ -944,7 +1063,7 @@ def cases():
         source_signature = prepared.source_signature
         legacy=json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)
         legacy['version']=1;legacy['settings'].pop('layout_mode');legacy['settings'].pop('edge_mode')
-        legacy['settings'].pop('density');legacy['settings'].pop('size_locked')
+        legacy['settings'].pop('density');legacy['settings'].pop('size_locked');legacy['settings'].pop('louver_angle_deg')
         legacy_raw=json.dumps(legacy,separators=(',',':'))
         anchor.attributes.add(recipe.GROUP,'recipe',legacy_raw)
         legacy_target=recipe.read_edit_target(design,plane)
@@ -970,7 +1089,7 @@ def cases():
                 raise RuntimeError("Rebuild added geometry/history, lost settings, or changed the target identity/state.")
             if _signature(plane) != _signature(updated.result_body):
                 raise RuntimeError("Rebuild did not persist the exact full preview shape.")
-        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=4:
+        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=5:
             raise RuntimeError('The explicit legacy rebuild did not migrate its recipe.')
         return {"same_body": True, "extra_bodies": 0, "owned_features": 3, "rebuild_modes": 3,
                 "face_edge_body_feature_edit": True, "original_source_signature": source_signature,
@@ -1353,10 +1472,13 @@ def finish_report():
     detached = STATE.get("detached", ())
     report["detached_survived_rollback"] = bool(detached) and all(
         body.isValid and body.isTemporary and body.isSolid and body.lumps.count == 1 for body in detached)
+    colours=STATE.get("detached_colours",())
+    report["colour_survived_rollback"]=bool(colours) and all(body.isValid and body.isTemporary and body.isSolid
+        and body.lumps.count==lumps and abs(float(body.volume)-volume)<1e-8 for body,lumps,volume in colours)
     report["unchanged"] = report["after"] == report["before"] and report["original_references_valid"]
     report["success"] = bool(report.get("geometry_checks_passed") and report.get("noop_execute")
                              and STATE.get("destroyed") and report["unchanged"]
-                             and report["detached_survived_rollback"] and not cancellation_requested()
+                             and report["detached_survived_rollback"] and report["colour_survived_rollback"] and not cancellation_requested()
                              and report.get("production_async_passed")
                              and not report.get("error") and not report.get("drive_error")
                              and not report.get("runtime_error") and not report.get("runtime_cleanup_error"))

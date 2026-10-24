@@ -207,6 +207,12 @@ class ToolLibrary:
             else:
                 pattern_snapshot=self._pattern_commands.palette_action(action,request.session_id,revision=request.revision,
                     settings_dict=request.settings.to_dict() if request.settings else None,target=request.target)
+        elif action=="pattern_export":
+            if not self._has_palette_pattern():raise RuntimeError("Run Partelier to export flat colour.")
+            self._require_idle_other_tool(self._hinge_commands,"hinge")
+            self._require_idle_other_tool(self._snap_commands,"snap-fit")
+            export_message=self._pattern_commands.export_colour()
+            return json.dumps({"protocol":PROTOCOL_VERSION,"requestId":request.request_id,"ok":True,"message":export_message})
         elif action=="pattern_status":
             if not self._has_palette_pattern():raise RuntimeError("Run Partelier to enable patterns.")
             pattern_snapshot=self._pattern_commands.palette_state()
@@ -240,6 +246,7 @@ class ToolLibrary:
                 snap_snapshot = self._snap_commands.palette_state()
         if self._has_palette_pattern():
             capabilities.extend(["pattern-palette","pattern-edit"])
+            if callable(getattr(self._pattern_commands,"export_colour",None)):capabilities.append("pattern-colour-export")
             if pattern_snapshot is None:pattern_snapshot=self._pattern_commands.palette_state()
         return json.dumps({
             "protocol": PROTOCOL_VERSION,

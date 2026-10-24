@@ -44,6 +44,8 @@ class PreparedPattern:
     accepted_samples: tuple = ()
     layouts: tuple = ()
     display_mesh: object = None
+    colour_body: object = None
+    colour_mesh: object = None
 
 
 @dataclass(frozen=True)
@@ -218,6 +220,10 @@ def _mapped_cells(faces, settings, *, _return_layouts=False):
     layouts=[]
     budgets=_face_budgets([face.area for face in faces]) if settings.layout_mode!='fixed' else (MAX_FACE_CELLS,)*len(faces)
     for index, face in enumerate(faces):
+        if settings.pattern.startswith("grille_"):
+            core,_=_api()
+            if core.Plane.cast(face.geometry) is None:
+                raise ValueError("Grilles currently require planar faces. Use Patterns for curved surfaces.")
         chart = SurfaceMap(face)
         accepted = 0
         fragments={}
@@ -358,7 +364,7 @@ def _cell_depth(design, body, cell, settings):
         entries.append(sag + entry)
         if center_wall is None:
             center_wall = (distance, entry)
-        if settings.mode == "engrave":
+        if settings.mode in {"engrave", "inlay"}:
             # Plane samples have exactly the same normal: the first query
             # already measured this identical ray and its first material exit.
             local_distance = distance
@@ -516,12 +522,13 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
     diagnostics = []
     recorded = {}
     through_tools = []
+    colour_tools = []
     details = dict(wall_checks_ms=0.0, tool_construction_ms=0.0,
                    tool_clip_ms=0.0, result_application_ms=0.0, batch_used=False)
     _trace_geometry("tools.begin",cell_count=len(mapped),mode=settings.mode)
     for cell_index,cell in enumerate(mapped,1):
         center_wall = None
-        if settings.mode in {"through", "engrave"}:
+        if settings.mode in {"through", "engrave", "inlay"}:
             stage = time.perf_counter()
             _trace_geometry("tool.wall.begin",cell=cell_index,total=len(mapped),face_index=cell.face_index)
             through_depth, center_wall = _cell_depth(design, body, cell, settings)
@@ -529,8 +536,12 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
         stage = time.perf_counter()
         _trace_geometry("tool.prism.begin",cell=cell_index,total=len(mapped),face_index=cell.face_index)
         if settings.mode == "through":
-            cutter = _prism_for_cell(manager, cell, through_depth,
-                                      max(.02, cell.sag_mm + .02))
+            if settings.pattern=="grille_louver":
+                from .grilles import louver_cutter
+                cutter=louver_cutter(design,faces[cell.face_index],cell,settings,through_depth)
+            else:
+                cutter = _prism_for_cell(manager, cell, through_depth,
+                                          max(.02, cell.sag_mm + .02))
             details['tool_construction_ms'] += (time.perf_counter()-stage)*1000
             stage = time.perf_counter()
             _trace_geometry("tool.clip.begin",cell=cell_index,total=len(mapped),mode=settings.mode)
@@ -540,7 +551,7 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
             operation = native.BooleanTypes.DifferenceBooleanType
             through_tools.append(cutter)
         else:
-            inward = settings.depth_mm + cell.sag_mm + cell.radius_mm + .02 if settings.mode == "engrave" else EMBED_MM + cell.sag_mm + cell.radius_mm
+            inward = settings.depth_mm + cell.sag_mm + cell.radius_mm + .02 if settings.mode in {"engrave", "inlay"} else EMBED_MM + cell.sag_mm + cell.radius_mm
             outward = cell.sag_mm + cell.radius_mm + settings.depth_mm + .02
             cutter = _prism_for_cell(manager, cell, inward, outward)
             details['tool_construction_ms'] += (time.perf_counter()-stage)*1000
@@ -551,7 +562,13 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
             details['tool_clip_ms'] += (time.perf_counter()-stage)*1000
             operation = (native.BooleanTypes.UnionBooleanType if settings.mode == "emboss"
                          else native.BooleanTypes.DifferenceBooleanType)
-        if settings.mode != 'through':
+        if settings.mode == 'inlay':
+            # The band ends exactly on the source face; intersect with the
+            # original solid so separate selected faces cannot add exterior material.
+            _boolean(manager,cutter,body,native.BooleanTypes.IntersectionBooleanType,
+                     'A flat colour region did not intersect the original wall.')
+            colour_tools.append(cutter)
+        if settings.mode not in {'through','inlay'}:
             stage = time.perf_counter()
             _trace_geometry("tool.apply.begin",cell=cell_index,total=len(mapped),mode=settings.mode)
             before_volume = float(result.volume)
@@ -595,11 +612,15 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
                     _trace_geometry("fallback.progress",completed=tool_index,total=len(through_tools))
             _trace_geometry("fallback.end",tool_count=len(through_tools))
         details['result_application_ms'] = (time.perf_counter()-stage)*1000
+    colour = None
+    if colour_tools:
+        from .inlay import partition
+        result,colour = partition(manager,body,colour_tools,native.BooleanTypes)
     prepared = PreparedPattern(design, faces, body, settings, result, signature,
         {"source_and_plan_ms": (planned - started) * 1000,
          "temporary_geometry_ms": (time.perf_counter() - planned) * 1000,
          "total_ms": (time.perf_counter() - started) * 1000, **details}, sum(layout.cell_count for layout in layouts), tokens,
-         accepted_samples=tuple(diagnostics), layouts=layouts)
+         accepted_samples=tuple(diagnostics), layouts=layouts, colour_body=colour)
     _trace_geometry("final_validate.begin",cell_count=len(mapped))
     validate_sources(prepared, _historical=_historical)
     _trace_geometry("final_validate.end",cell_count=len(mapped))
@@ -620,7 +641,10 @@ def prepare_pattern(design, faces, settings, *, _historical=False):
 
 
 def preview_hide_bodies(prepared):
-    return (prepared.body,)
+    from . import colour_store
+    from .recipe import STORE
+    previous=colour_store.read(prepared.design,STORE,prepared.record) if prepared.record is not None else None
+    return (prepared.body,previous[1]) if previous is not None else (prepared.body,)
 
 
 def preview_pattern(prepared):
@@ -640,5 +664,12 @@ def preview_pattern(prepared):
     except Exception as error:
         _trace_geometry("draw.error",error_type=type(error).__name__,error=_trace_error(error))
         raise
+    if prepared.colour_body is not None:
+        try:
+            if prepared.colour_mesh is None:raise ValueError("Flat colour preview mesh is missing. Refresh the preview.")
+            display_export.draw(prepared.design,prepared.colour_body,appearance,prepared.colour_mesh,colour=(38,125,225),group=group)
+        except Exception:
+            if group.isValid:group.deleteMe()
+            raise
     _trace_geometry("draw.end",cell_count=prepared.cell_count)
     return group

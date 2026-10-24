@@ -50,7 +50,7 @@ class PrismPlan:
     center_mm: tuple
 
 
-def plan_prism(frame,polygon_xz_mm,y_min_mm,y_max_mm):
+def plan_prism(frame,polygon_xz_mm,y_min_mm,y_max_mm,*,shear_xz_per_y=(0.,0.)):
     """Validate an exact strictly convex CCW XZ footprint and closed topology."""
     try:
         origin=tuple(frame.origin_mm)
@@ -90,7 +90,13 @@ def plan_prism(frame,polygon_xz_mm,y_min_mm,y_max_mm):
                 continue
             if dx*(point[1]-one[1])-dz*(point[0]-one[0])<=tolerance:
                 raise ValueError("Pattern prism footprint must be strictly convex without crossing edges.")
+    shear=tuple(shear_xz_per_y)
+    if len(shear)!=2:raise ValueError("Prism shear needs two finite tangent slopes.")
+    _finite(shear)
+    if max(abs(value) for value in shear)>2:
+        raise ValueError("Prism shear exceeds the supported tilt.")
     def world(x,y,z):
+        x+=y*shear[0];z+=y*shear[1]
         return tuple(origin[i]+x*axes[0][i]+y*axes[1][i]+z*axes[2][i] for i in range(3))
     count=len(polygon)
     points=tuple(world(x,y,z) for y in (y_min_mm,y_max_mm) for x,z in polygon)
@@ -123,10 +129,10 @@ def _required(value,message):
     return value
 
 
-def prism(frame,polygon_xz_mm,y_min_mm,y_max_mm,*,diagnostics=None):
+def prism(frame,polygon_xz_mm,y_min_mm,y_max_mm,*,diagnostics=None,shear_xz_per_y=(0.,0.)):
     """Create one temporary prism with full healing; never invoke booleans."""
     started=time.perf_counter()
-    plan=plan_prism(frame,polygon_xz_mm,y_min_mm,y_max_mm)
+    plan=plan_prism(frame,polygon_xz_mm,y_min_mm,y_max_mm,shear_xz_per_y=shear_xz_per_y)
     planned=time.perf_counter()
     core,native=_api()
     definition=_required(native.BRepBodyDefinition.create(),"Fusion could not define the direct pattern prism.")

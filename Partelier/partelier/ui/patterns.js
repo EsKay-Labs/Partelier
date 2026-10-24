@@ -3,21 +3,25 @@
 // One pattern session serves the honeycomb, perforation and texture presets.
 (() => {
     const $ = id => document.getElementById(id);
-    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false });
-    const presets = { honeycomb: { pattern: "hexagon", mode: "through" }, perforation: { pattern: "circle", mode: "through" }, knurl: { pattern: "diamond", mode: "emboss" } };
+    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45 });
+    const presets = { honeycomb: { pattern: "hexagon", mode: "through" }, perforation: { pattern: "circle", mode: "through" }, knurl: { pattern: "diamond", mode: "emboss" }, grilles: { pattern: "grille_parallel", mode: "through", layout_mode: "fill", pitch_mm: 7, web_mm: 2, border_mm: 7, edge_mode: "clip", rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0 } };
     const choices = {
         pattern: [["hexagon", "Hexagons"], ["rounded_hexagon", "Rounded hexagons"], ["elongated_hexagon", "Elongated hexagons"],
             ["triangle", "Triangles · alternating"], ["rounded_triangle", "Rounded triangles"], ["pentagon", "Pentagons"],
             ["cairo", "Cairo pentagons"], ["octagon", "Octagons"], ["trihex", "Hexagons + triangles"],
             ["octagon_square", "Octagons + squares"], ["rhombille", "Rhombille · cube grid"],
             ["circle", "Circles"], ["diamond", "Diamonds"], ["square", "Squares"], ["slot", "Slots"]],
-        mode: [["through", "Through holes"], ["engrave", "Engrave"], ["emboss", "Emboss"]],
+        mode: [["through", "Through holes"], ["engrave", "Engrave"], ["emboss", "Emboss"], ["inlay", "Flat colour"]],
         layout_mode: [["auto", "Auto fit · visual balance"], ["balanced", "Balanced · fewer cells"], ["fill", "Fill face · fixed size"], ["fit", "Automatic size"], ["fixed", "Exact pitch"]],
         density: [["sparse", "Sparse"], ["balanced", "Balanced"], ["dense", "Dense"]],
         size_locked: [["false", "Automatic"], ["true", "Custom size"]],
         selection_scope: [["faces", "Selected faces"], ["body", "Whole body"]],
         edge_mode: [["clip", "Clip at border"], ["whole", "Whole cells only"]]
     };
+    const grilleChoices = [["grille_parallel","Parallel bars"],["grille_cross","Crossed grid"],["grille_louver","Louvers · inclined channels"]];
+    const grille = () => state.settings.pattern.startsWith("grille_");
+    const optionsFor = name => name === "pattern" && grille() ? grilleChoices : choices[name];
+    let showingGrilles = false;
     const terminal = new Set(["idle", "created", "cancelled"]), retired = new Set();
     const signed = new Set(["rotation_deg", "offset_u_mm", "offset_v_mm"]);
     const state = { alias: null, selected: false, connected: false, capabilities: new Set(), others: { hinge: false, snap: false }, settings: { ...defaults }, revision: 0, session: null, busy: false, dirty: false, expecting: false, liveError: false, connectionError: false };
@@ -83,7 +87,7 @@
     function message(text, error = false) {
         $("pattern-operation-status").textContent = text;
         $("pattern-operation-status").classList.toggle("error", error);
-        $("pattern-operation-status").hidden = !text || (!error && !/created|rebuilt|cancelled|Starting|Creating|Rebuilding|^\d+ cells\b/i.test(text));
+        $("pattern-operation-status").hidden = !text || (!error && !/created|rebuilt|cancelled|Starting|Creating|Rebuilding|Export|^\d+ cells\b/i.test(text));
     }
     function cancelTimer() { if (timer !== undefined) window.clearTimeout(timer); timer = undefined; }
     function recoverySession() {
@@ -125,6 +129,17 @@
     }
     function renderArt() { $("pattern-illustration").innerHTML = window.PartelierIllustrations.renderPattern(state.settings); }
     function availability(committing) {
+        const isGrille=grille();
+        if (showingGrilles !== isGrille) {
+            const input=$("pattern-pattern"); input.replaceChildren();
+            for (const [value,text] of optionsFor("pattern")) { const option=document.createElement("option"); option.value=value; option.textContent=text; input.append(option); }
+            input.value=state.settings.pattern; showingGrilles=isGrille;
+        }
+        $("pattern-pattern").parentElement.children[0].textContent=isGrille?"Grille type":"Pattern";
+        $("pattern-pattern").parentElement.setAttribute("style",isGrille?"grid-column:1 / -1":"");
+        for (const name of ["mode","layout_mode","edge_mode"]) { const input=$("pattern-"+name); input.parentElement.hidden=isGrille; }
+        $("pattern-louver_angle_deg").parentElement.hidden=state.settings.pattern!=="grille_louver";
+        $("pattern-offset_u_mm").parentElement.hidden=isGrille;
         for (const input of $("pattern-settings").querySelectorAll("[name]")) input.disabled = committing;
         const depth = $("pattern-depth_mm"), through = state.settings.mode === "through";
         depth.disabled = committing || through; depth.parentElement.hidden = through;
@@ -142,15 +157,17 @@
         const sized = true, size = $("pattern-cell_size_mm");
         $("pattern-pitch_mm").parentElement.hidden = sized;
         size.parentElement.hidden = !sized; size.disabled = committing || !sized;
-        size.parentElement.children[0].textContent = "Cell size";
-        $("pattern-web_mm").parentElement.children[0].textContent = "Minimum gap";
+        size.parentElement.children[0].textContent = isGrille ? "Opening width" : "Cell size";
+        $("pattern-web_mm").parentElement.children[0].textContent = isGrille ? "Rib width · on face" : "Minimum gap";
         $("pattern-layout-note").textContent = state.settings.layout_mode === "auto"
             ? state.settings.size_locked ? "Το μέγεθος κλειδώθηκε · προσαρμόζονται οι αποστάσεις." : "Αυτόματη πρόταση μεγέθους και πλήθους. Άλλαξε το Cell size για να το κλειδώσεις."
             : state.settings.layout_mode === "fill"
             ? "Σταθερό μέγεθος · γέμισμα μέχρι το border. Έως 200/face."
             : state.settings.layout_mode === "balanced" ? "Σταθερό μέγεθος · έως 48/face, με μεγαλύτερα κενά όπου χρειάζεται."
             : "Το Automatic size προσαρμόζει το μέγεθος· το Exact pitch το διατηρεί.";
-        $("pattern-depth_mm").parentElement.children[0].textContent = "Depth / height";
+        $("pattern-depth_mm").parentElement.children[0].textContent = state.settings.mode === "inlay" ? "Colour depth" : "Depth / height";
+        if(isGrille) $("pattern-layout-note").textContent="Επίπεδες επιφάνειες · σταθερό άνοιγμα και πλάτος νεύρου. Rotation αλλάζει την κατεύθυνση. Οι περσίδες χρειάζονται ορθογώνια πλάκα σταθερού πάχους.";
+        if(state.settings.mode==="inlay") $("pattern-layout-note").textContent += " Flat colour: επίπεδη επιφάνεια, ξεχωριστό μέρος για χρωματισμό. Το βάθος πρέπει να αφήνει υλικό από κάτω.";
     }
     function renderSelection() {
         const body = state.settings.selection_scope === "body", target = editing() ? "edit_target" : body ? "body" : "faces";
@@ -188,7 +205,9 @@
         $("preview-pattern-button").disabled = !ready || !valid() || busy;
         $("cancel-pattern-button").disabled = !identity() || busy;
         $("create-pattern-button").disabled = !state.selected || !supported() || !valid() || busy || !ready || !current();
-        $("create-pattern-button").textContent = editing() ? "Rebuild pattern" : "Create pattern";
+        $("create-pattern-button").textContent = editing() ? grille() ? "Rebuild grille" : "Rebuild pattern" : grille() ? "Create grille" : "Create pattern";
+        $("export-pattern-button").hidden=grille() || state.settings.mode!=="inlay";
+        $("export-pattern-button").disabled=!supported() || !state.capabilities.has("pattern-colour-export") || hasSession || busy || otherActive();
         $("pattern-availability").hidden = supported();
         $("pattern-availability").textContent = state.connected ? "Restart Partelier to enable surface patterns." : "Open Partelier in Fusion to select geometry.";
         const label = !supported() ? "Fusion required" : state.connectionError ? "connection needs attention" : busy && (state.expecting || state.session?.phase === "selecting") ? "selecting surfaces" : !ready ? "waiting for geometry" : !valid() ? "check inputs" : state.liveError || state.session?.phase === "error" ? "needs attention" : committing ? "creating" : current() ? "up to date" : busy || timer !== undefined || queued || state.session?.phase === "computing" ? "updating…" : "refresh needed";
@@ -237,7 +256,7 @@
         }
         try {
             if (completion) raw = await Promise.race([response, completion]);
-            else if (["pattern_begin", "pattern_focus", "pattern_commit"].includes(action)) raw = await response;
+            else if (["pattern_begin", "pattern_focus", "pattern_commit", "pattern_export"].includes(action)) raw = await response;
             else raw = await Promise.race([response, new Promise((_, reject) => { timeout = window.setTimeout(() => { trace("send_timeout", { action,requestId },action==="pattern_status"); reject(new Error("Fusion did not respond. Stop and Run Partelier, then try again.")); }, recoveryId ? 5000 : 30000); })]);
         } catch (error) { trace("send_error", { action,requestId,name:error?.name || "Error" },action==="pattern_status"); throw error;
         } finally {
@@ -300,7 +319,7 @@
         button.className = "parameter-help"; button.textContent = "?";
         button.setAttribute("aria-label", `Βοήθεια: ${caption}`); button.setAttribute("aria-haspopup", "dialog");
         button.addEventListener("click", () => {
-            const help = window.PartelierPatternHelp.get(name); if (!help) return;
+            const help = window.PartelierPatternHelp.get(name,state.settings); if (!help) return;
             helpTrigger = button;
             $("pattern-help-title").textContent = help.title;
             $("pattern-help-description").textContent = help.description;
@@ -325,12 +344,13 @@
         for (const [value, text] of choices[name]) { const option = document.createElement("option"); option.value = value; option.textContent = text; input.append(option); }
         input.value = defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
     }
-    for (const [container, fields] of [["pattern-size-fields", [["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Border"], ["depth_mm", "Relief height"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
+    for (const [container, fields] of [["pattern-size-fields", [["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Border"], ["depth_mm", "Relief height"], ["louver_angle_deg", "Louver tilt (°)"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
         for (const [name, caption] of fields) {
             const item = document.createElement("div"); item.className = "parameter-item";
             const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
             const input = document.createElement("input"); input.id = `pattern-${name}`; if (name !== "cell_size_mm") input.name = name; input.type = "number"; input.required = true; input.step = "any";
             if (!signed.has(name)) input.min = "0";
+            if (name === "louver_angle_deg") input.max="60";
             input.value = name === "cell_size_mm" ? defaults.pitch_mm-defaults.web_mm : defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
         }
     }
@@ -345,11 +365,11 @@
             state.settings.pitch_mm = okay ? size+state.settings.web_mm : NaN;
             if (state.settings.layout_mode === "auto") { state.settings.size_locked = true; $("pattern-size_locked").value = "true"; }
         } else if (!Object.prototype.hasOwnProperty.call(defaults, input.name)) return;
-        const numeric = Number(input.value); trace("input", { name:input.name,value:input.type === "number" ? input.value.trim() && Number.isFinite(numeric) && Math.abs(numeric)<1e12 ? numeric : null : choices[input.name]?.some(([value])=>value===input.value) ? input.value : "unsupported" });
+        const numeric = Number(input.value); trace("input", { name:input.name,value:input.type === "number" ? input.value.trim() && Number.isFinite(numeric) && Math.abs(numeric)<1e12 ? numeric : null : optionsFor(input.name)?.some(([value])=>value===input.value) ? input.value : "unsupported" });
         if (input.name === "selection_scope" && editing()) { input.value = state.settings.selection_scope; message("Create a new pattern to change between selected faces and a whole body.", true); return; }
         if (input.id === "pattern-cell_size_mm") { /* Derived locally; the host retains its strict snapshot contract. */ }
         else if (input.type === "number") {
-            const value = Number(input.value), zeroAllowed = input.name === "border_mm";
+            const value = Number(input.value), zeroAllowed = ["border_mm","louver_angle_deg"].includes(input.name);
             const okay = input.value.trim() !== "" && Number.isFinite(value) && (signed.has(input.name) || (zeroAllowed ? value >= 0 : value > 0));
             if (input.name === "web_mm" && sized && okay && $("pattern-cell_size_mm").checkValidity()) {
                 state.settings.pitch_mm = Number((Number($("pattern-cell_size_mm").value)+value).toFixed(6));
@@ -358,7 +378,7 @@
             }
             input.setCustomValidity(okay ? "" : signed.has(input.name) ? "Enter a finite number." : zeroAllowed ? "Enter zero or a positive number." : "Enter a number greater than zero."); state.settings[input.name] = value;
         } else {
-            input.setCustomValidity(choices[input.name].some(([value]) => value === input.value) ? "" : "Choose a supported option.");
+            input.setCustomValidity(optionsFor(input.name).some(([value]) => value === input.value) ? "" : "Choose a supported option.");
             if (input.name === "selection_scope" && input.value !== state.settings.selection_scope && active()) state.session = { ...state.session, selections: {} };
             if (input.name === "size_locked" && input.value === "true" && $("pattern-cell_size_mm").checkValidity()) {
                 state.settings.pitch_mm = Number($("pattern-cell_size_mm").value)+state.settings.web_mm;
@@ -380,6 +400,7 @@
         if (active()) message(valid() ? "Updating live preview…" : "Check the highlighted input. Showing the previous valid preview.", !valid());
         render(); schedule();
     });
+    $("export-pattern-button").addEventListener("click", () => run(async () => { const result=await send("pattern_export"); message(result.message || "Export finished."); },"pattern_export"));
     $("begin-pattern-button").addEventListener("click", () => { trace("click", { control:"begin" }); run(() => begin(false),"pattern_begin"); });
     $("edit-pattern-button").addEventListener("click", () => { trace("click", { control:"edit" }); run(() => begin(true),"pattern_edit"); });
     $("preview-pattern-button").addEventListener("click", () => { trace("click", { control:"refresh" }); if ($("pattern-settings").reportValidity()) { cancelTimer(); run(refresh,"pattern_preview"); } });
@@ -392,7 +413,7 @@
         select(id) {
             state.selected = this.matches(id);
             trace("tool_selected", { alias:state.selected ? id : "other" },true);
-            if (state.selected && state.alias !== id && !active() && !otherActive()) { Object.assign(state.settings, presets[id]); state.revision = 0; state.liveError = false; sync(); }
+            if (state.selected && state.alias !== id && !active() && !otherActive()) { Object.assign(state.settings, grille() !== (id === "grilles") ? defaults : {}, presets[id]); state.revision = 0; state.liveError = false; sync(); }
             state.alias = state.selected ? id : null; render();
         },
         setOtherActive(values) { Object.assign(state.others, values); render(); },
@@ -403,9 +424,9 @@
             for (const [key, snapshot] of [["hinge", result.hingeState], ["snap", result.snapState]]) if (snapshot) state.others[key] = !!snapshot.sessionId && !terminal.has(snapshot.phase);
             if (result.patternState) apply(result.patternState);
             renderArt(); render(); if (identity() && selected() && !current()) schedule();
-            return active() ? state.settings.pattern === "hexagon" ? "honeycomb" : state.settings.mode === "emboss" ? "knurl" : "perforation" : null;
+            return active() ? grille() ? "grilles" : state.settings.pattern === "hexagon" ? "honeycomb" : state.settings.mode === "emboss" ? "knurl" : "perforation" : null;
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.12.1" }); renderArt(); render();
+    trace("boot", { build:"0.13.0" }); renderArt(); render();
 })();

@@ -5,7 +5,7 @@ import json
 
 from .settings import PatternSettings
 from .store import PatternStore
-from . import fusion
+from . import fusion, colour_store
 
 
 GROUP="sktech_partelier_surface_pattern_23bc07a1"
@@ -35,7 +35,7 @@ def _parse(raw,record):
     except (ValueError,TypeError) as error:
         raise ValueError("The saved pattern recipe is damaged.") from error
     if (not isinstance(value,dict) or set(value)!={"version","tool","feature_id","settings","sources"}
-            or type(value['version']) is not int or value['version'] not in (1,2,3,4)
+            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5)
             or value['tool']!='surface_pattern' or value['feature_id']!=record.feature_id):
         raise ValueError("The saved pattern recipe has an unsupported structure.")
     sources=value['sources']
@@ -47,7 +47,7 @@ def _parse(raw,record):
         raise ValueError("The saved pattern face references are damaged.")
     supplied=value['settings']
     if value['version'] in (1,2,3):
-        legacy_fields=set(PatternSettings().to_dict())-{'density','size_locked'}
+        legacy_fields=set(PatternSettings().to_dict())-{'density','size_locked','louver_angle_deg'}
         if value['version']<3:legacy_fields-={'edge_mode'}
         if value['version']==1:legacy_fields-={'layout_mode'}
         if not isinstance(supplied,dict) or set(supplied)!=legacy_fields:
@@ -55,9 +55,16 @@ def _parse(raw,record):
         if supplied.get('layout_mode') not in (None,'fixed','fit','fill','balanced'):
             raise ValueError('The saved legacy layout is unsupported.')
         settings=PatternSettings.from_dict({**supplied,**({'layout_mode':'fixed'} if value['version']==1 else {}),
-            **({'edge_mode':'whole'} if value['version']<3 else {}),'density':'balanced','size_locked':False})
+            **({'edge_mode':'whole'} if value['version']<3 else {}),'density':'balanced','size_locked':False,'louver_angle_deg':45})
+    elif value['version']==4:
+        expected=set(PatternSettings().to_dict())-{'louver_angle_deg'}
+        if not isinstance(supplied,dict) or set(supplied)!=expected:
+            raise ValueError('The saved pattern settings are damaged.')
+        settings=PatternSettings.from_dict({**supplied,'louver_angle_deg':45})
     else:
         settings=PatternSettings.from_dict(supplied)
+    if value['version']<5 and (settings.mode=='inlay' or settings.pattern.startswith('grille_')):
+        raise ValueError('The saved legacy pattern mode is unsupported.')
     return value,settings
 
 
@@ -79,7 +86,8 @@ def _faces(design,sources,body):
 
 
 def read_edit_target(design,selected):
-    record=STORE.read(design,selected)
+    record=STORE.read(design,colour_store.selection_anchor(selected,GROUP))
+    colour_store.read(design,STORE,record)
     recipe,settings=_read(record.anchor,record)
     with STORE.input_scope(design,record) as body:
         _faces(design,recipe['sources'],body)
@@ -91,6 +99,7 @@ def prepare_edit_pattern(design,target,settings):
         raise ValueError("The saved pattern changed. Reopen Edit.")
     if settings.selection_scope!=target.settings.selection_scope:
         raise ValueError("Start a new pattern to change the selection scope.")
+    colour_store.read(design,STORE,target.record)
     with STORE.input_scope(design,target.record) as body:
         prepared=fusion.prepare_pattern(design,_faces(design,target.recipe['sources'],body),settings,_historical=True)
     return replace(prepared,record=target.record,saved_recipe=target.recipe)
@@ -100,6 +109,7 @@ def validate_preview_sources(prepared):
     if prepared.record is None:
         fusion.validate_sources(prepared)
     else:
+        colour_store.read(prepared.design,STORE,prepared.record)
         if _read(prepared.record.anchor,prepared.record)[0]!=prepared.saved_recipe:
             raise ValueError("The saved pattern changed. Reopen Edit.")
         with STORE.input_scope(prepared.design,prepared.record):
@@ -107,7 +117,7 @@ def validate_preview_sources(prepared):
 
 
 def _save(anchor,record,prepared):
-    value={'version':4,'tool':'surface_pattern','feature_id':record.feature_id,
+    value={'version':5,'tool':'surface_pattern','feature_id':record.feature_id,
            'settings':prepared.settings.to_dict(),'sources':prepared.source_tokens}
     raw=json.dumps(value,separators=(',',':'))
     _parse(raw,record)
@@ -120,7 +130,9 @@ def create_pattern(design,prepared):
     if design!=prepared.design or prepared.record is not None:
         raise ValueError("Use Create on the current new-pattern preview.")
     anchor=STORE.create(design,prepared.body,prepared.result_body)
-    _save(anchor,STORE.read(design,anchor),prepared)
+    record=STORE.read(design,anchor)
+    colour_store.apply(design,STORE,record,getattr(prepared,"colour_body",None))
+    _save(anchor,record,prepared)
     return anchor
 
 
@@ -129,6 +141,15 @@ def rebuild_pattern(design,target,prepared):
     if (design!=prepared.design or not isinstance(target,EditTarget)
             or prepared.record!=target.record or prepared.saved_recipe!=target.recipe):
         raise ValueError("Reopen Edit to rebuild the current pattern.")
+    previous=colour_store.read(design,STORE,target.record)
+    if previous is None and getattr(prepared,"colour_body",None) is not None:
+        if target.anchor.timelineObject.index+3!=design.timeline.count:
+            raise ValueError("Flat colour conversion requires the pattern at the end of the timeline.")
+    if previous is not None and getattr(prepared,"colour_body",None) is None:
+        if previous[0].timelineObject.index!=design.timeline.count-1:
+            raise ValueError("Move/remove later features before changing Flat colour to another mode.")
     anchor=STORE.update(design,target.record,prepared.result_body)
-    _save(anchor,STORE.read(design,anchor),prepared)
+    record=STORE.read(design,anchor)
+    colour_store.apply(design,STORE,record,getattr(prepared,"colour_body",None),previous)
+    _save(anchor,record,prepared)
     return anchor

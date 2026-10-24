@@ -123,6 +123,30 @@ class PatternCommands:
             return self.publish(session)
         finally:self._busy=False
 
+    def export_colour(self):
+        if self._session or self.busy:
+            raise ValueError('Create or Cancel the current preview before exporting.')
+        design=_design()
+        ui=core.Application.get().userInterface
+        self._busy=True
+        try:
+            selected=ui.activeSelections
+            entity=(selected.item(0).entity if selected.count==1 else
+                    ui.selectEntity('Select the base or colour body of a Flat colour pattern.','SolidBodies,Faces,Edges').entity)
+            target=recipe.read_edit_target(design,entity)
+            if target.settings.mode!='inlay':raise ValueError('Select a created Flat colour pattern to export.')
+            dialog=ui.createFileDialog()
+            dialog.title='Export Partelier flat colour'
+            dialog.filter='3MF files (*.3mf)'
+            dialog.initialFilename='Partelier-flat-colour.3mf'
+            if dialog.showSave()!=core.DialogResults.DialogOK:return 'Export cancelled.'
+            if core.Application.get().activeProduct!=design:
+                raise ValueError('Return to the original design before exporting.')
+            from .colour_export import export
+            export(design,target,dialog.filename)
+            return 'Exported two aligned parts. Assign filaments to Base and Pattern colour in Bambu Studio.'
+        finally:self._busy=False
+
     def pick(self,session,target):
         emit('pattern.pick.begin',session_id=session.session_id,target=target,revision=session.revision)
         session.ensure_design()

@@ -14,7 +14,9 @@ from .display_mesh import MAX_TRIANGLES, read_binary_stl
 def prepare(prepared):
     started=time.perf_counter()
     mesh=capture(prepared.design,prepared.result_body)
-    return replace(prepared,display_mesh=mesh,
+    colour=getattr(prepared,"colour_body",None)
+    colour_mesh=capture(prepared.design,colour) if colour is not None else None
+    return replace(prepared,display_mesh=mesh,colour_mesh=colour_mesh,
         timings={**prepared.timings,'display_capture_ms':(time.perf_counter()-started)*1000})
 
 
@@ -89,17 +91,18 @@ def capture(design,body,checkpoint=None):
             raise RuntimeError('Display export needs rollback cleanup. '+', '.join(errors))
 
 
-def draw(design,body,appearance,mesh):
+def draw(design,body,appearance,mesh,*,colour=None,group=None):
     """Upload a cached opaque mesh and the existing bounded outline batch."""
     hinge._require_main_thread()
     core,native=hinge._api()
-    group=design.rootComponent.customGraphicsGroups.add()
+    if group is None:group=design.rootComponent.customGraphicsGroups.add()
     if group is None:raise ValueError('Fusion could not allocate preview graphics.')
     try:
         group.isChildrenSelectable=False;group.isSelectable=False
         graphic=group.addMesh(native.CustomGraphicsCoordinates.create(list(mesh.coordinates)),[],list(mesh.normals),[])
         if graphic is None:raise ValueError('Fusion could not upload the preview triangles.')
-        material=native.CustomGraphicsAppearanceColorEffect.create(appearance)
+        material=(native.CustomGraphicsAppearanceColorEffect.create(appearance) if colour is None
+                  else native.CustomGraphicsSolidColorEffect.create(core.Color.create(*colour,255)))
         if material is None:raise ValueError('Fusion could not read the preview appearance.')
         graphic.color=material;graphic.isSelectable=False
         if graphic.setOpacity(1.,True) is False:raise ValueError('Fusion could not make the preview opaque.')

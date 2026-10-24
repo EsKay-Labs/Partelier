@@ -6,6 +6,70 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.13.0 flat colour and planar grilles
+
+Passed **914 Python tests**, all three Node DOM suites, compilation and whitespace
+checks. Headless Edge checks at 300/380/520 px found no JavaScript errors or
+horizontal overflow. The Grilles entry is third in Patterns, after Honeycomb and
+Planar truss; its type/size/tilt controls and context-specific illustrated help
+are exercised. Existing recipe versions 1–4 retain their dimensions on read and
+migrate only on explicit Rebuild.
+
+Native Fusion 2705.1.30 request **4533dbca-a9fc-4c4c-b4d8-6de2bcdec369** passes
+**87 cases**, including 13 new detail cases: flush material partitions on planar,
+holed planar, full-cylinder and faceted fixtures; a two-colour cached preview;
+Create/Edit/Rebuild with changed island counts; flat/engraved output conversions;
+recorded two-part export; and parallel, diagonal, crossed and 0/30/45/60-degree
+louver cuts. Inclined native faces are checked against the requested tilt. Base
+and colour volumes complement the original; colour bodies and their lump counts
+survive rollback. Rebuild retains the target/colour identities, exactly one extra
+colour body and four owned features. Grilles retain the existing body and three
+owned features. Normal source snapshots restore exactly; async supersession and
+cached-result Create also pass.
+
+The current fixed `patterns` scope includes shared planar/wrap/general-surface,
+clipping, Auto fit, Fill, density, persistence, direct-prism equivalence and
+batch-versus-exact-fallback checks. The unchanged 41-case polygon-family matrix
+remains available through `cases(include_polygon_regressions=True)` for motif or
+mapping changes; it is excluded from the 87-case release count. Fixed cases now
+state historical dimensions explicitly instead of depending on changing product
+defaults. Atomic per-case progress files identify any long native operation.
+
+Native display request **3ff78f76-bb07-4b96-af74-65e57da7df99** passes 12 cached
+mesh cycles plus Balanced and Auto fit production Create/Edit/Rebuild workflows.
+The original model/component/camera restore exactly and cleanup errors are empty.
+Both successful requests have the same complete source manifest. Native working
+bytes are hashed; staged Git bytes are also checked after CRLF/LF normalization.
+
+The generated [demonstration plate](examples/flat-colour-demo.3mf) was imported
+and re-exported by the installed Bambu Studio CLI with exit code 0. It remains
+one assembly with named **Base** and **Pattern colour** parts, closed meshes,
+unchanged relative alignment, a shared flat top and combined volume 2304 mm³.
+Bambu reports zero mesh repairs. The package contains geometry and optional part
+naming metadata, without printer settings or filament assignments. Optional CLI
+slicing attempts exited -6; a separate arrange attempt produced no result. These
+are not counted as successful slicing or physical-print evidence. No underlying
+cause for those CLI failures is claimed.
+
+Earlier requests 73993b33…, ccf8f3e5…, 8cba62b2…, c5e048c5… and f094c33f… are
+preflights, not successful validation. They exposed a curved same-colour fragment
+union refusal, an export refusal and old default-dependent calibration fixtures;
+one also detected harness-source changes during its run. Their original-model
+snapshots restore. The final successful requests above use the corrected fixed
+scope and exact final source cohort.
+
+Evidence, complete case names, source hashes and Bambu mesh/alignment measurements
+are saved in [flat-colour-grilles-0.13.0.json](validation/flat-colour-grilles-0.13.0.json).
+Native script checks do not establish actual CEF mouse picking, save/reopen,
+Undo/Redo, physical print quality or a successful Bambu sliced toolpath. Louvers
+currently require an aligned rectangular untrimmed planar constant-thickness
+plate. Rib width is measured on its face; pattern and grille ownership remains
+one layout per body.
+
+API references: [Fusion STL export](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/fusion_ExportManager_createSTLExportOptions.htm),
+[Fusion BaseFeature](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/fusion_BaseFeature.htm),
+and [official Bambu CLI usage](https://github.com/bambulab/BambuStudio/wiki/Command-Line-Usage).
+
 ## 0.12.1 pattern defaults
 
 New patterns start in Auto fit with 7 mm gap and 7 mm border. The manual size

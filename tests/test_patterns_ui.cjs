@@ -2,7 +2,7 @@
 // Exercise all three actual controllers through one native-message fixture.
 const assert = require("node:assert/strict"), fs = require("node:fs"), vm = require("node:vm"), path = require("node:path");
 const ui = path.join(__dirname, "..", "Partelier", "partelier", "ui"), html = fs.readFileSync(path.join(ui, "palette.html"), "utf8");
-const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false };
+const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45 };
 const idle = () => ({ sessionId: null, revision: 0, phase: "idle", editing: false, settings: null, selections: {}, message: "" });
 function fixture(options = {}) {
     const ids = new Map();
@@ -74,6 +74,30 @@ function fixture(options = {}) {
     };
 }
 (async()=>{
+    const grilleUI=fixture({completePick:true});await grilleUI.flush();await grilleUI.select("grilles");
+    const patternGroup=grilleUI.$("tool-select").children.find(group=>group.label==="Patterns");
+    assert.deepEqual(patternGroup.children.map(option=>option.value),["honeycomb","truss","grilles"],"Grilles is the third Patterns entry, separate from Truss");
+    assert.deepEqual(grilleUI.$("pattern-pattern").children.map(option=>option.value),["grille_parallel","grille_cross","grille_louver"]);
+    assert.equal(grilleUI.$("pattern-cell_size_mm").parentElement.children[0].textContent,"Opening width");
+    assert.equal(grilleUI.$("pattern-web_mm").parentElement.children[0].textContent,"Rib width · on face");
+    assert.equal(grilleUI.$("pattern-mode").parentElement.hidden,true);
+    assert.equal(grilleUI.$("pattern-louver_angle_deg").parentElement.hidden,true);
+    await grilleUI.click("pattern-help-pattern");assert(grilleUI.$("pattern-help-title").textContent.includes("Grille type"));await grilleUI.click("pattern-help-close");
+    await grilleUI.click("begin-pattern-button");await grilleUI.input("pattern","grille_louver");
+    assert.equal(grilleUI.$("pattern-louver_angle_deg").parentElement.hidden,false);
+    await grilleUI.input("louver_angle_deg",0);
+    assert.equal(grilleUI.$("pattern-settings").checkValidity(),true,"zero tilt is a valid straight channel");
+    assert.equal(grilleUI.snapshot().settings.louver_angle_deg,0);
+    await grilleUI.click("cancel-pattern-button");await grilleUI.select("honeycomb");
+    assert.equal(grilleUI.$("pattern-pattern").children.length,15);
+    assert.equal(grilleUI.$("pattern-layout_mode").value,"auto");
+    assert.equal(grilleUI.$("pattern-web_mm").value,"7");
+    await grilleUI.input("mode","inlay");
+    assert.equal(grilleUI.$("pattern-depth_mm").parentElement.children[0].textContent,"Colour depth");
+    assert.equal(grilleUI.$("pattern-depth_mm").parentElement.hidden,false);
+    await grilleUI.click("pattern-help-depth_mm");assert(grilleUI.$("pattern-help-title").textContent.includes("Colour depth"));await grilleUI.click("pattern-help-close");
+    assert(grilleUI.$("pattern-illustration").innerHTML.includes('data-pattern-mode="inlay"'));
+    assert.equal(grilleUI.$("export-pattern-button").disabled,true,"older hosts do not advertise flat-colour export");
     const guide=fixture();await guide.flush();await guide.select("honeycomb");
     const beforeHelp=guide.requests.length;
     const polygonFamilies=["triangle","rounded_triangle","pentagon","octagon","trihex","octagon_square","cairo","rhombille","rounded_hexagon","elongated_hexagon"];
@@ -277,9 +301,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.12.1"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.13.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.12.1"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.13.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.click("begin-pattern-button");await logged.click("pattern-select-surface");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.click("begin-pattern-button");const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));

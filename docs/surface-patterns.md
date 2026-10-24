@@ -32,6 +32,66 @@ every field in Greek with an original SVG comparison; they do not request CAD
 geometry or change settings. Close with Esc, the close button or a backdrop
 click; focus returns to the help trigger.
 
+### Flat colour and Grilles (0.13.0)
+
+**Action > Flat colour** partitions material below the selected surface into a
+separate colour body. Its outside remains exactly on the original surface:
+planar faces stay flat; supported curved faces keep their original curvature.
+Set **Colour depth** to leave some of the original wall underneath. The base
+must remain one connected solid. Same-colour pieces are grouped in one body,
+including disconnected islands; they are not loose assembly parts to print and
+fit afterwards. Choose the filaments in the slicer.
+
+1. Choose a pattern and **Flat colour**, then select the surface.
+2. Adjust Auto fit, Minimum gap, Border and Colour depth; review the blue colour
+   regions in the opaque preview.
+3. Create. The existing base keeps its identity; one additional body named
+   **Partelier Pattern colour** holds the colour material.
+4. Select either resulting body and use **Export flat colour · 3MF** after the
+   preview is finished. Choose a destination. The export includes only the two
+   recorded parts, in common millimetre coordinates, without printer settings.
+5. In Bambu Studio assign filaments to the two parts of the imported object.
+   Check the sliced layers: colour depth is a physical depth and may span
+   several layers depending on the print orientation and layer heights.
+
+A [32 × 24 × 3 mm demonstration plate](examples/flat-colour-demo.3mf) generated
+from the disposable native fixture is included. It has the two named material
+parts and no printer/filament assignments.
+
+No clearance is added between colour and base. Their volumes complement each
+other. Pattern colour is an independent material region; this does not configure
+Bambu's colour-mixing, AMS slots or filament profiles. Preview colour is only a
+visual aid. CAD appearances are not used as filament assignments.
+
+Edit can be opened from either material body. Rebuild updates the same owned
+colour feature/body even when the number of islands changes. External geometry
+edits are refused by the saved fingerprints. Converting an existing pattern to
+Flat colour or removing its colour output requires the pattern at the end of
+history, so later dependent features are never deleted by a mode change.
+
+**Patterns > Grilles** is the third menu entry after Honeycomb and Planar truss.
+Patterns and Grilles currently share the existing one-owned-layout-per-body
+contract; they cannot be stacked as separate layouts on the same body.
+Grilles shares selection, preview and in-place Create/Edit/Rebuild, but shows its own
+controls: **Opening width**, **Rib width · on face**, **Border**, and Rotation in
+Advanced. Parallel bars fill the planar region with long openings. Crossed grid
+uses square openings with connected ribs. Rotate either for diagonal layouts.
+Opening/rib sizes are explicit and their repeat is centered on each face.
+
+**Louvers · inclined channels** adds a **Louver tilt** of 0–60 degrees from the
+surface normal, initially 45 degrees. This cuts inclined channels inside a
+constant-thickness rectangular planar plate, keeping the original front/back
+border. It does not add protruding fins. Initial support requires one straight
+rectangular outer loop, aligned to its surface chart, without holes. Other
+selections are refused; curved surfaces remain available through surface Patterns.
+Rib width is measured on the selected face; its normal thickness decreases when
+tilted. Inclined channels do not guarantee blocked line of sight, airflow,
+strength or printing without supports.
+
+Recipe version 5 adds `louver_angle_deg`; versions 1–4 restore their historical
+layout, dimensions and scopes, injecting an inactive 45-degree tilt in memory.
+Only an explicit successful Rebuild writes the current recipe.
+
 ### Polygon varieties
 
 Version 0.12.0 adds ten real geometry families to the original five:
@@ -117,8 +177,9 @@ Interior cells share their cleaned shape template and pass a bounding-box test;
 only cells crossing the inset rectangle run polygon clipping. A differential
 check retains boundary vertices and the degenerate-fragment threshold.
 
-Settings snapshots now have 14 fields (`density`, `size_locked` added). Recipe
-v4 saves the choices; v1/v2/v3 retain their original settings and geometry mode
+Version 0.11 introduced 14-field snapshots (`density`, `size_locked` added) and
+recipe v4. Version 0.13 uses 15 fields and recipe v5, adding an inactive louver
+angle to older snapshots. Versions v1/v2/v3 retain their original settings and geometry mode
 on Edit, injecting inactive Balanced density/unlocked defaults in memory. The
 stored recipe changes only after explicit Rebuild.
 

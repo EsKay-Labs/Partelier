@@ -1,0 +1,5046 @@
+{
+  "version": "0.13.0",
+  "local": {
+    "python_tests": 914,
+    "node_ui_suites": 3,
+    "headless_edge": {
+      "checks": [
+        {
+          "width": 300,
+          "grilles": true,
+          "flat": true
+        },
+        {
+          "width": 380,
+          "grilles": true,
+          "flat": true
+        },
+        {
+          "width": 520,
+          "grilles": true,
+          "flat": true
+        }
+      ],
+      "errors": []
+    },
+    "compilation_passed": true,
+    "whitespace_passed": true
+  },
+  "native_matrix": {
+    "request_id": "4533dbca-a9fc-4c4c-b4d8-6de2bcdec369",
+    "scope": "flat colour, grilles and shared pattern regressions",
+    "polygon_regressions_included": false,
+    "fusion_version": "2705.1.30",
+    "case_count": 87,
+    "cases": [
+      {
+        "cells": 45,
+        "colour_lumps": 45,
+        "flush_witnesses": 3,
+        "name": "flat_colour_plane_hexagon",
+        "passed": true,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 0.0,
+          "source_and_plan_ms": 252.25690001389012,
+          "temporary_geometry_ms": 1170.9533000248484,
+          "tool_clip_ms": 97.44820010382682,
+          "tool_construction_ms": 192.8393000853248,
+          "total_ms": 1423.2113000471145,
+          "wall_checks_ms": 222.45469997869805
+        },
+        "volume_conserved": true
+      },
+      {
+        "cells": 36,
+        "colour_lumps": 36,
+        "flush_witnesses": 3,
+        "name": "flat_colour_plane_rounded_triangle",
+        "passed": true,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 0.0,
+          "source_and_plan_ms": 454.2007999843918,
+          "temporary_geometry_ms": 1632.959300011862,
+          "tool_clip_ms": 128.78419982735068,
+          "tool_construction_ms": 291.50159982964396,
+          "total_ms": 2087.161000003107,
+          "wall_checks_ms": 439.2647997592576
+        },
+        "volume_conserved": true
+      },
+      {
+        "cells": 42,
+        "colour_lumps": 42,
+        "flush_witnesses": 3,
+        "name": "flat_colour_plane_hole_circle",
+        "passed": true,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 0.0,
+          "source_and_plan_ms": 1811.3726999727078,
+          "temporary_geometry_ms": 4028.6859999760054,
+          "tool_clip_ms": 335.1499998825602,
+          "tool_construction_ms": 704.8949000309221,
+          "total_ms": 5840.058899950236,
+          "wall_checks_ms": 1161.9724001502618
+        },
+        "volume_conserved": true
+      },
+      {
+        "cells": 45,
+        "colour_lumps": 45,
+        "flush_witnesses": 3,
+        "name": "flat_colour_cylinder_wrap_hexagon",
+        "passed": true,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 0.0,
+          "source_and_plan_ms": 421.88829998485744,
+          "temporary_geometry_ms": 2602.6175000006333,
+          "tool_clip_ms": 152.43840002221987,
+          "tool_construction_ms": 271.09109971206635,
+          "total_ms": 3024.5061999885365,
+          "wall_checks_ms": 1219.4059001631103
+        },
+        "volume_conserved": true
+      },
+      {
+        "cells": 110,
+        "colour_lumps": 110,
+        "flush_witnesses": 6,
+        "name": "flat_colour_hex_diamond",
+        "passed": true,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 0.0,
+          "source_and_plan_ms": 410.55189998587593,
+          "temporary_geometry_ms": 3029.548300022725,
+          "tool_clip_ms": 236.25740024726838,
+          "tool_construction_ms": 428.65499993786216,
+          "total_ms": 3440.1005000108853,
+          "wall_checks_ms": 1206.1250000842847
+        },
+        "volume_conserved": true
+      },
+      {
+        "cached_two_colour_preview": true,
+        "export": "C:\\Users\\SKTech\\AppData\\Local\\Temp\\PartelierValidationBridge\\probe\\4533dbca-a9fc-4c4c-b4d8-6de2bcdec369-flat-colour.3mf",
+        "extra_bodies": 1,
+        "mode_conversions": 2,
+        "name": "flat_colour_create_edit_rebuild_export",
+        "owned_features": 4,
+        "parts": 2,
+        "passed": true,
+        "rebuilds": 3,
+        "same_colour_on_rebuild": true,
+        "same_target": true,
+        "triangles": 572
+      },
+      {
+        "name": "grille_grille_parallel_0_45",
+        "openings": 3,
+        "owned_features": 3,
+        "passed": true,
+        "rotation_deg": 0,
+        "same_body": true,
+        "tilt_deg": 45,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 5.255599971860647,
+          "source_and_plan_ms": 13.105800026096404,
+          "temporary_geometry_ms": 32.22180000739172,
+          "tool_clip_ms": 3.640000009909272,
+          "tool_construction_ms": 7.769100018776953,
+          "total_ms": 45.32800003653392,
+          "wall_checks_ms": 15.078299911692739
+        }
+      },
+      {
+        "name": "grille_grille_parallel_30_45",
+        "openings": 5,
+        "owned_features": 3,
+        "passed": true,
+        "rotation_deg": 30,
+        "same_body": true,
+        "tilt_deg": 45,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 20.04630002193153,
+          "source_and_plan_ms": 25.034400052390993,
+          "temporary_geometry_ms": 84.39539995742962,
+          "tool_clip_ms": 9.311100060585886,
+          "tool_construction_ms": 18.572700035292655,
+          "total_ms": 109.43000001134351,
+          "wall_checks_ms": 35.91699997195974
+        }
+      },
+      {
+        "name": "grille_grille_cross_0_45",
+        "openings": 20,
+        "owned_features": 3,
+        "passed": true,
+        "rotation_deg": 0,
+        "same_body": true,
+        "tilt_deg": 45,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 98.08189998148009,
+          "source_and_plan_ms": 69.43769997451454,
+          "temporary_geometry_ms": 384.6754999831319,
+          "tool_clip_ms": 40.31129990471527,
+          "tool_construction_ms": 77.77980016544461,
+          "total_ms": 454.1133999591693,
+          "wall_checks_ms": 167.6715996582061
+        }
+      },
+      {
+        "name": "grille_grille_louver_0_0",
+        "openings": 3,
+        "owned_features": 3,
+        "passed": true,
+        "rotation_deg": 0,
+        "same_body": true,
+        "tilt_deg": 0,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 8.353200042620301,
+          "source_and_plan_ms": 16.015599947422743,
+          "temporary_geometry_ms": 91.7961000232026,
+          "tool_clip_ms": 4.873399971984327,
+          "tool_construction_ms": 49.830199975986034,
+          "total_ms": 107.81199997290969,
+          "wall_checks_ms": 28.205900045577437
+        }
+      },
+      {
+        "name": "grille_grille_louver_0_30",
+        "openings": 3,
+        "owned_features": 3,
+        "passed": true,
+        "rotation_deg": 0,
+        "same_body": true,
+        "tilt_deg": 30,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 5.583600024692714,
+          "source_and_plan_ms": 13.660199998412281,
+          "temporary_geometry_ms": 76.37249998515472,
+          "tool_clip_ms": 3.5299999872222543,
+          "tool_construction_ms": 43.76540001248941,
+          "total_ms": 90.03279998432845,
+          "wall_checks_ms": 22.924199933186173
+        }
+      },
+      {
+        "name": "grille_grille_louver_0_45",
+        "openings": 3,
+        "owned_features": 3,
+        "passed": true,
+        "rotation_deg": 0,
+        "same_body": true,
+        "tilt_deg": 45,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 7.860499958042055,
+          "source_and_plan_ms": 12.873200001195073,
+          "temporary_geometry_ms": 74.80980001855642,
+          "tool_clip_ms": 3.178899933118373,
+          "tool_construction_ms": 43.18389995023608,
+          "total_ms": 87.68330002203584,
+          "wall_checks_ms": 20.060700073372573
+        }
+      },
+      {
+        "name": "grille_grille_louver_0_60",
+        "openings": 3,
+        "owned_features": 3,
+        "passed": true,
+        "rotation_deg": 0,
+        "same_body": true,
+        "tilt_deg": 60,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 7.026700011920184,
+          "source_and_plan_ms": 12.246600002981722,
+          "temporary_geometry_ms": 78.4101999597624,
+          "tool_clip_ms": 3.948700032196939,
+          "tool_construction_ms": 44.15480000898242,
+          "total_ms": 90.65709996502846,
+          "wall_checks_ms": 22.74559997022152
+        }
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 4,
+        "clipped_create_edit_rebuild_same_body": true,
+        "edge_mode": "clip",
+        "name": "clipped_plane_hexagon_through",
+        "partial_cells": 4,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 18.393000005744398,
+          "source_and_plan_ms": 36.28609998850152,
+          "temporary_geometry_ms": 105.61940004117787,
+          "tool_clip_ms": 9.059800009708852,
+          "tool_construction_ms": 19.534400082193315,
+          "total_ms": 141.9057000312023,
+          "wall_checks_ms": 58.14710003323853
+        },
+        "volume_delta_mm3": -155.21207046296493,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -3.75,
+              -4.71158534207687,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              7.025323753764255,
+              -4.789550495442285,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.063284422290485,
+              -4.696530993060526,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 4,
+        "edge_mode": "clip",
+        "name": "clipped_plane_hexagon_engrave",
+        "partial_cells": 4,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 14.62199998786673,
+          "source_and_plan_ms": 34.502100024838,
+          "temporary_geometry_ms": 211.30229998379946,
+          "tool_clip_ms": 10.207600018475205,
+          "tool_construction_ms": 21.43409999553114,
+          "total_ms": 245.80460001016036,
+          "wall_checks_ms": 68.69880011072382
+        },
+        "volume_delta_mm3": -25.86867841049445,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -3.75,
+              -4.71158534207687,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              7.025323753764255,
+              -4.789550495442285,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.063284422290485,
+              -4.696530993060526,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 4,
+        "edge_mode": "clip",
+        "name": "clipped_plane_hexagon_emboss",
+        "partial_cells": 4,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 12.490399996750057,
+          "source_and_plan_ms": 36.425800004508346,
+          "temporary_geometry_ms": 122.77600000379607,
+          "tool_clip_ms": 9.160999965388328,
+          "tool_construction_ms": 21.629200025927275,
+          "total_ms": 159.20210001058877,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 25.868678410494006,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -3.75,
+              -4.71158534207687,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              7.025323753764255,
+              -4.789550495442285,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.063284422290485,
+              -4.696530993060526,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 4,
+        "edge_mode": "clip",
+        "name": "clipped_plane_circle_through",
+        "partial_cells": 4,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 23.6478999722749,
+          "source_and_plan_ms": 68.72309994651005,
+          "temporary_geometry_ms": 201.51020004414022,
+          "tool_clip_ms": 13.333799957763404,
+          "tool_construction_ms": 31.200900091789663,
+          "total_ms": 270.23349999217317,
+          "wall_checks_ms": 132.68429989693686
+        },
+        "volume_delta_mm3": -138.6659735109803,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -3.75,
+              -4.870625723728999,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              6.9444144683669755,
+              -4.881776368161563,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.111625896269794,
+              -4.851532444666115,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 4,
+        "edge_mode": "clip",
+        "name": "clipped_plane_circle_engrave",
+        "partial_cells": 4,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 21.37970004696399,
+          "source_and_plan_ms": 76.89699996262789,
+          "temporary_geometry_ms": 298.41960000339895,
+          "tool_clip_ms": 13.951999950222671,
+          "tool_construction_ms": 33.51669997209683,
+          "total_ms": 375.3168999683112,
+          "wall_checks_ms": 144.32730001863092
+        },
+        "volume_delta_mm3": -23.11099558516405,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -3.75,
+              -4.870625723728999,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              6.9444144683669755,
+              -4.881776368161563,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.111625896269794,
+              -4.851532444666115,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 4,
+        "edge_mode": "clip",
+        "name": "clipped_plane_circle_emboss",
+        "partial_cells": 4,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 18.27140006935224,
+          "source_and_plan_ms": 69.49059996986762,
+          "temporary_geometry_ms": 149.47360003134236,
+          "tool_clip_ms": 14.599399932194501,
+          "tool_construction_ms": 36.47129994351417,
+          "total_ms": 218.96440000273287,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 23.110995585162275,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -3.75,
+              -4.870625723728999,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              6.9444144683669755,
+              -4.881776368161563,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.111625896269794,
+              -4.851532444666115,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 3,
+        "edge_mode": "clip",
+        "name": "clipped_plane_diamond_through",
+        "partial_cells": 3,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 17.559500003699213,
+          "source_and_plan_ms": 17.58819998940453,
+          "temporary_geometry_ms": 111.18490004446357,
+          "tool_clip_ms": 9.380000119563192,
+          "tool_construction_ms": 17.80290005262941,
+          "total_ms": 128.77340003615245,
+          "wall_checks_ms": 65.92270010150969
+        },
+        "volume_delta_mm3": -70.3111520160875,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.784374098259354,
+              -2.4271433756993797,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.471463720678798,
+              -3.7881482838917875,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.486819076516547,
+              -2.0391913761826133,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 3,
+        "edge_mode": "clip",
+        "name": "clipped_plane_diamond_engrave",
+        "partial_cells": 3,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 14.014400017913431,
+          "source_and_plan_ms": 17.500100017059594,
+          "temporary_geometry_ms": 195.57619997067377,
+          "tool_clip_ms": 8.307900105137378,
+          "tool_construction_ms": 18.199600046500564,
+          "total_ms": 213.0763999884948,
+          "wall_checks_ms": 69.61880001472309
+        },
+        "volume_delta_mm3": -11.718525336014807,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.784374098259354,
+              -2.4271433756993797,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.471463720678798,
+              -3.7881482838917875,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.486819076516547,
+              -2.0391913761826133,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 3,
+        "edge_mode": "clip",
+        "name": "clipped_plane_diamond_emboss",
+        "partial_cells": 3,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 13.498699991032481,
+          "source_and_plan_ms": 17.241800029296428,
+          "temporary_geometry_ms": 123.3813000144437,
+          "tool_clip_ms": 8.454800059553236,
+          "tool_construction_ms": 18.35999998729676,
+          "total_ms": 140.62340004602447,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 11.718525336014807,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.784374098259354,
+              -2.4271433756993797,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.471463720678798,
+              -3.7881482838917875,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.486819076516547,
+              -2.0391913761826133,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 4,
+        "edge_mode": "clip",
+        "name": "clipped_plane_square_through",
+        "partial_cells": 4,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 18.472100025974214,
+          "source_and_plan_ms": 21.502799994777888,
+          "temporary_geometry_ms": 114.64480002177879,
+          "tool_clip_ms": 8.860600006300956,
+          "tool_construction_ms": 16.929000033997,
+          "total_ms": 136.14780001807958,
+          "wall_checks_ms": 69.73800004925579
+        },
+        "volume_delta_mm3": -136.22820640383404,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.607060158110535,
+              -2.732060158110534,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              4.236909920312985,
+              -0.8073175158685547,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              2.0421459521877905,
+              -1.9184867772094423,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 4,
+        "edge_mode": "clip",
+        "name": "clipped_plane_square_engrave",
+        "partial_cells": 4,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 14.466399850789458,
+          "source_and_plan_ms": 21.390300011262298,
+          "temporary_geometry_ms": 227.20980003941804,
+          "tool_clip_ms": 9.315599978435785,
+          "tool_construction_ms": 22.189100040122867,
+          "total_ms": 248.60030005220324,
+          "wall_checks_ms": 84.05030000722036
+        },
+        "volume_delta_mm3": -22.704701067306043,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.607060158110535,
+              -2.732060158110534,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              4.236909920312985,
+              -0.8073175158685547,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              2.0421459521877905,
+              -1.9184867772094423,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 4,
+        "edge_mode": "clip",
+        "name": "clipped_plane_square_emboss",
+        "partial_cells": 4,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 11.409399972762913,
+          "source_and_plan_ms": 20.52489999914542,
+          "temporary_geometry_ms": 125.7457000319846,
+          "tool_clip_ms": 8.719000034034252,
+          "tool_construction_ms": 17.370499903336167,
+          "total_ms": 146.27079997444525,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 22.704701067305155,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.607060158110535,
+              -2.732060158110534,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              4.236909920312985,
+              -0.8073175158685547,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              2.0421459521877905,
+              -1.9184867772094423,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 2,
+        "edge_mode": "clip",
+        "name": "clipped_plane_slot_through",
+        "partial_cells": 2,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 22.937200032174587,
+          "source_and_plan_ms": 35.67349998047575,
+          "temporary_geometry_ms": 202.7030999888666,
+          "tool_clip_ms": 10.320500005036592,
+          "tool_construction_ms": 23.9529000245966,
+          "total_ms": 238.37679997086525,
+          "wall_checks_ms": 144.84490000177175
+        },
+        "volume_delta_mm3": -63.48906345333649,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.4164480653549,
+              -2.5560268868530436,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -6.83703049464039,
+              -3.8643142981313106,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.497433265076918,
+              -2.500489120217546,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 2,
+        "edge_mode": "clip",
+        "name": "clipped_plane_slot_engrave",
+        "partial_cells": 2,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 16.15109998965636,
+          "source_and_plan_ms": 30.315399984829128,
+          "temporary_geometry_ms": 288.8661000179127,
+          "tool_clip_ms": 10.47810004092753,
+          "tool_construction_ms": 25.355100049637258,
+          "total_ms": 319.1817000042647,
+          "wall_checks_ms": 144.1128999576904
+        },
+        "volume_delta_mm3": -10.58151057555623,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.4164480653549,
+              -2.5560268868530436,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -6.83703049464039,
+              -3.8643142981313106,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.497433265076918,
+              -2.500489120217546,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 2,
+        "edge_mode": "clip",
+        "name": "clipped_plane_slot_emboss",
+        "partial_cells": 2,
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 15.759900095872581,
+          "source_and_plan_ms": 30.23100004065782,
+          "temporary_geometry_ms": 147.60099997511134,
+          "tool_clip_ms": 11.370100022759289,
+          "tool_construction_ms": 27.619499946013093,
+          "total_ms": 177.83220001729205,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 10.58151057555623,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.4164480653549,
+              -2.5560268868530436,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -6.83703049464039,
+              -3.8643142981313106,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.497433265076918,
+              -2.500489120217546,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 27,
+        "edge_mode": "clip",
+        "name": "clipped_wrap_through",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 216.052400006447,
+          "source_and_plan_ms": 185.0239000050351,
+          "temporary_geometry_ms": 828.2226999872364,
+          "tool_clip_ms": 56.03010003687814,
+          "tool_construction_ms": 101.59750015009195,
+          "total_ms": 1013.2468999945559,
+          "wall_checks_ms": 453.7045998731628
+        },
+        "volume_delta_mm3": -1532.164354911858,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.999999999999999,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              15.035081932574537,
+              5.472322293210698,
+              9.50626643874116
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.999999999999999,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              15.035081932574537,
+              5.472322293210698,
+              7.3159437603995965
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.9999999999999996,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              8.000000000000005,
+              13.856406460551016,
+              9.946330252755192
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 27,
+        "edge_mode": "clip",
+        "name": "clipped_wrap_engrave",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 189.3843999132514,
+          "source_and_plan_ms": 184.19050000375137,
+          "temporary_geometry_ms": 1394.9167999671772,
+          "tool_clip_ms": 59.93099993793294,
+          "tool_construction_ms": 118.48300008568913,
+          "total_ms": 1579.10739997169,
+          "wall_checks_ms": 925.9872999973595
+        },
+        "volume_delta_mm3": -255.223645556363,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.999999999999999,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              15.035081932574537,
+              5.472322293210698,
+              9.50626643874116
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.999999999999999,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              15.035081932574537,
+              5.472322293210698,
+              7.3159437603995965
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.9999999999999996,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              8.000000000000005,
+              13.856406460551016,
+              9.946330252755192
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 27,
+        "edge_mode": "clip",
+        "name": "clipped_wrap_emboss",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 148.73270003590733,
+          "source_and_plan_ms": 185.08989998372272,
+          "temporary_geometry_ms": 400.9227000060491,
+          "tool_clip_ms": 51.17689986946061,
+          "tool_construction_ms": 104.94570032460615,
+          "total_ms": 586.0126999905333,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 255.15736381401234,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              15.035081932574537,
+              5.472322293210698,
+              9.50626643874116
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              15.035081932574537,
+              5.472322293210698,
+              7.3159437603995965
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.000000000000005,
+              13.856406460551016,
+              9.946330252755192
+            ]
+          }
+        ]
+      },
+      {
+        "cells": 12,
+        "edge_mode": "clip",
+        "minimum_gap_mm": 5,
+        "name": "clipped_faceted_hex_body",
+        "passed": true,
+        "selected_faces": 2
+      },
+      {
+        "cells": 9,
+        "edge_mode": "clip",
+        "finite_trim_border_retained": true,
+        "name": "clipped_real_trim_plane_hole",
+        "passed": true
+      },
+      {
+        "cells": 45,
+        "edge_mode": "clip",
+        "finite_trim_border_retained": true,
+        "name": "clipped_real_trim_notched_panel",
+        "passed": true
+      },
+      {
+        "acceptance_checks": 35,
+        "cells": 18,
+        "density": "sparse",
+        "name": "auto_notched_panel_sparse",
+        "passed": true,
+        "proposals": 16,
+        "size_mm": 69.7,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 303.15569997765124,
+          "source_and_plan_ms": 4142.26570003666,
+          "temporary_geometry_ms": 1228.855699999258,
+          "tool_clip_ms": 128.90620005782694,
+          "tool_construction_ms": 187.2145997476764,
+          "total_ms": 5371.121600037441,
+          "wall_checks_ms": 608.0158001277596
+        }
+      },
+      {
+        "acceptance_checks": 120,
+        "cells": 60,
+        "density": "balanced",
+        "name": "auto_notched_panel_balanced",
+        "passed": true,
+        "proposals": 16,
+        "size_mm": 28.721744454218566,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 617.2080999822356,
+          "source_and_plan_ms": 1053.9634000160731,
+          "temporary_geometry_ms": 2279.293100000359,
+          "tool_clip_ms": 214.58859962876886,
+          "tool_construction_ms": 318.493599887006,
+          "total_ms": 3333.2566999597475,
+          "wall_checks_ms": 1127.0258000586182
+        }
+      },
+      {
+        "acceptance_checks": 224,
+        "cells": 112,
+        "density": "dense",
+        "name": "auto_notched_panel_dense",
+        "passed": true,
+        "proposals": 16,
+        "size_mm": 18.714285714285715,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 1574.3993999785744,
+          "source_and_plan_ms": 1495.5323999747634,
+          "temporary_geometry_ms": 4273.471500026062,
+          "tool_clip_ms": 329.592099878937,
+          "tool_construction_ms": 503.9077996625565,
+          "total_ms": 5769.00420000311,
+          "wall_checks_ms": 1862.9160993150435
+        }
+      },
+      {
+        "density_counts": [
+          18,
+          60,
+          112
+        ],
+        "name": "auto_density_order",
+        "passed": true
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "name": "auto_plane_hexagon",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 2.8,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 271.8800000147894,
+          "source_and_plan_ms": 286.92749998299405,
+          "temporary_geometry_ms": 2056.0273000155576,
+          "tool_clip_ms": 100.6662001600489,
+          "tool_construction_ms": 232.3713997611776,
+          "total_ms": 2342.9550000000745,
+          "wall_checks_ms": 1324.6827997500077
+        },
+        "volume_delta_mm3": -141.46334676154336,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -11.962084325460458,
+              -7.171994718767142,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -11.985781622047671,
+              -8.636244172471349,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.882153760279033,
+              -7.442510934588761,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "name": "auto_plane_circle",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 2.8,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 893.0922001600266,
+          "source_and_plan_ms": 1404.8985000117682,
+          "temporary_geometry_ms": 6301.86780000804,
+          "tool_clip_ms": 226.1606998508796,
+          "tool_construction_ms": 588.3605999988504,
+          "total_ms": 7706.766500021331,
+          "wall_checks_ms": 4489.969099871814
+        },
+        "volume_delta_mm3": -128.1109207544606,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -12.0,
+              -8.612186924792368,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -7.880798872134581,
+              -7.449984676231637,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.031515508346725,
+              -8.9206331437563,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 35,
+        "name": "auto_plane_diamond",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 3.04,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 197.91219994658604,
+          "source_and_plan_ms": 167.2410999890417,
+          "temporary_geometry_ms": 1600.5267999717034,
+          "tool_clip_ms": 83.08739954372868,
+          "tool_construction_ms": 178.2685000798665,
+          "total_ms": 1767.768099962268,
+          "wall_checks_ms": 1031.5946999471635
+        },
+        "volume_delta_mm3": -80.54631264577327,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -11.805234814480986,
+              -8.8035047482052,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -12.54667554592675,
+              -9.11379862811722,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -13.123174563759928,
+              -8.115325333881465,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 35,
+        "name": "auto_plane_square",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 3.04,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 166.35109984781593,
+          "source_and_plan_ms": 168.2493999833241,
+          "temporary_geometry_ms": 1372.1896999632008,
+          "tool_clip_ms": 72.80189997982234,
+          "tool_construction_ms": 159.73699989262968,
+          "total_ms": 1540.4394999495707,
+          "wall_checks_ms": 866.8125998228788
+        },
+        "volume_delta_mm3": -157.6595475753062,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -12.594156589051313,
+              -7.0660172839162385,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -12.594156589051313,
+              -8.580173872967551,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.48,
+              -7.26862181195963,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 35,
+        "name": "auto_plane_slot",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 2.9714285714285715,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 463.87780021177605,
+          "source_and_plan_ms": 517.3893999890424,
+          "temporary_geometry_ms": 4317.287600017153,
+          "tool_clip_ms": 149.22770007979125,
+          "tool_construction_ms": 398.4531002352014,
+          "total_ms": 4834.677200007718,
+          "wall_checks_ms": 3206.1982997111045
+        },
+        "volume_delta_mm3": -56.274036506329224,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -11.311729895853004,
+              -8.43430399524089,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -12.041710728965514,
+              -8.151551445052284,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -13.347423608449876,
+              -8.337282968214426,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "name": "auto_wrap_through",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 4.702064327658225,
+        "timings": {
+          "batch_aggregate_ms": 92.72520005470142,
+          "batch_apply_ms": 62.55869998130947,
+          "batch_total_ms": 155.2839000360109,
+          "batch_union_calls": 44,
+          "batch_used": true,
+          "result_application_ms": 162.17170003801584,
+          "source_and_plan_ms": 321.2360999896191,
+          "temporary_geometry_ms": 1598.9515999681316,
+          "tool_clip_ms": 78.17209995118901,
+          "tool_construction_ms": 143.75339989783242,
+          "total_ms": 1920.1878999592736,
+          "wall_checks_ms": 1213.8054000097327
+        },
+        "volume_delta_mm3": -2585.140626878481,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.000000000000002,
+            "next_entry_mm": 29.00000000000001,
+            "point_mm": [
+              15.650361611740893,
+              3.326587053084147,
+              4.856841263119723
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.000000000000001,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              12.944271909999161,
+              9.404564036679567,
+              4.856841263119723
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.9999999999999996,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              8.000000000000005,
+              13.856406460551016,
+              4.856841263119723
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "name": "auto_wrap_engrave",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 4.702064327658225,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 321.1670998716727,
+          "source_and_plan_ms": 316.06569996802136,
+          "temporary_geometry_ms": 3152.5860000401735,
+          "tool_clip_ms": 80.32259996980429,
+          "tool_construction_ms": 164.69770029652864,
+          "total_ms": 3468.6519999522716,
+          "wall_checks_ms": 2461.207599961199
+        },
+        "volume_delta_mm3": -430.59752792644446,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.000000000000002,
+            "next_entry_mm": 29.00000000000001,
+            "point_mm": [
+              15.650361611740893,
+              3.326587053084147,
+              4.856841263119723
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.000000000000001,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              12.944271909999161,
+              9.404564036679567,
+              4.856841263119723
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.9999999999999996,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              8.000000000000005,
+              13.856406460551016,
+              4.856841263119723
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "name": "auto_wrap_emboss",
+        "passed": true,
+        "selected_faces": 1,
+        "size_mm": 4.702064327658225,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 306.80080031743273,
+          "source_and_plan_ms": 325.15990000683814,
+          "temporary_geometry_ms": 664.8056000121869,
+          "tool_clip_ms": 79.03319987235591,
+          "tool_construction_ms": 174.73160027293488,
+          "total_ms": 989.9659000220709,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 430.5161035811711,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              15.650361611740893,
+              3.326587053084147,
+              4.856841263119723
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              12.944271909999161,
+              9.404564036679567,
+              4.856841263119723
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.000000000000005,
+              13.856406460551016,
+              4.856841263119723
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 5,
+        "name": "plane_through",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 12.951199954841286,
+          "source_and_plan_ms": 12.545299949124455,
+          "temporary_geometry_ms": 171.22900002868846,
+          "tool_clip_ms": 8.22439999319613,
+          "tool_construction_ms": 17.539000080432743,
+          "total_ms": 183.77449997933581,
+          "wall_checks_ms": 131.93680002586916
+        },
+        "volume_delta_mm3": -467.6537180435971,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -4.0,
+              -5.071796769724491,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              4.0,
+              -5.071796769724491,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.0,
+              1.8564064605510175,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 5,
+        "name": "plane_engrave",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 8.51350004086271,
+          "source_and_plan_ms": 12.0456000440754,
+          "temporary_geometry_ms": 275.43959999457,
+          "tool_clip_ms": 7.716600084677339,
+          "tool_construction_ms": 18.11410003574565,
+          "total_ms": 287.48530003940687,
+          "wall_checks_ms": 126.54620001558214
+        },
+        "volume_delta_mm3": -155.88457268119882,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -4.0,
+              -5.071796769724491,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              4.0,
+              -5.071796769724491,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.0,
+              1.8564064605510175,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 5,
+        "name": "plane_emboss",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 9.269300033338368,
+          "source_and_plan_ms": 13.850999996066093,
+          "temporary_geometry_ms": 168.61699998844415,
+          "tool_clip_ms": 8.665699977427721,
+          "tool_construction_ms": 20.852899993769825,
+          "total_ms": 182.4682999867946,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 155.88457268119927,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -4.0,
+              -5.071796769724491,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              4.0,
+              -5.071796769724491,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.0,
+              1.8564064605510175,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 15,
+        "name": "cylinder_through",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_aggregate_ms": 31.0087000252679,
+          "batch_apply_ms": 24.85079999314621,
+          "batch_total_ms": 55.85950001841411,
+          "batch_union_calls": 14,
+          "batch_used": true,
+          "result_application_ms": 59.91599999833852,
+          "source_and_plan_ms": 90.72550002019852,
+          "temporary_geometry_ms": 821.6112999944016,
+          "tool_clip_ms": 37.50339988619089,
+          "tool_construction_ms": 59.17339987354353,
+          "total_ms": 912.3369000153616,
+          "wall_checks_ms": 664.0807000221685
+        },
+        "volume_delta_mm3": -1403.1941594277876,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open",
+              "opposite_unselected_wall_intact"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000004,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              11.707021901981134,
+              10.906220160373346,
+              6.928203230275509
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open",
+              "opposite_unselected_wall_intact"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.9999999999999987,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              5.045157798324299,
+              15.18375390968938,
+              6.928203230275509
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open",
+              "opposite_unselected_wall_intact"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000018,
+            "next_entry_mm": 29.000000000000007,
+            "point_mm": [
+              -2.8519368903918734,
+              15.743775149982993,
+              6.928203230275509
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 15,
+        "name": "cylinder_engrave",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 63.731699890922755,
+          "source_and_plan_ms": 98.71499997097999,
+          "temporary_geometry_ms": 1367.8069000015967,
+          "tool_clip_ms": 31.3139000791125,
+          "tool_construction_ms": 60.259300051257014,
+          "total_ms": 1466.5220999740995,
+          "wall_checks_ms": 1076.0598998167552
+        },
+        "volume_delta_mm3": -467.34969951187645,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained",
+              "opposite_unselected_wall_intact"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000004,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              11.707021901981134,
+              10.906220160373346,
+              6.928203230275509
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained",
+              "opposite_unselected_wall_intact"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.9999999999999987,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              5.045157798324299,
+              15.18375390968938,
+              6.928203230275509
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained",
+              "opposite_unselected_wall_intact"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000018,
+            "next_entry_mm": 29.000000000000007,
+            "point_mm": [
+              -2.8519368903918734,
+              15.743775149982993,
+              6.928203230275509
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 15,
+        "name": "cylinder_emboss",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 54.171200026758015,
+          "source_and_plan_ms": 76.84559997869655,
+          "temporary_geometry_ms": 279.6375000034459,
+          "tool_clip_ms": 29.30650004418567,
+          "tool_construction_ms": 58.61829995410517,
+          "total_ms": 356.48329998366535,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 467.0596223483727,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded",
+              "opposite_unselected_wall_intact"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              11.707021901981134,
+              10.906220160373346,
+              6.928203230275509
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded",
+              "opposite_unselected_wall_intact"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              5.045157798324299,
+              15.18375390968938,
+              6.928203230275509
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded",
+              "opposite_unselected_wall_intact"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -2.8519368903918734,
+              15.743775149982993,
+              6.928203230275509
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 2,
+        "name": "hex_through",
+        "passed": true,
+        "selected_faces": 2,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 7.137699984014034,
+          "source_and_plan_ms": 10.798099974635988,
+          "temporary_geometry_ms": 117.65550001291558,
+          "tool_clip_ms": 6.6000999649986625,
+          "tool_construction_ms": 8.031999983359128,
+          "total_ms": 128.45379998907447,
+          "wall_checks_ms": 95.00290005235001
+        },
+        "volume_delta_mm3": -187.06148721743966,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000018,
+            "next_entry_mm": 24.712812921102035,
+            "point_mm": [
+              11.999999999999996,
+              -6.928203230275509,
+              18.143593539448982
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 1,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": 24.712812921102035,
+            "point_mm": [
+              12.0,
+              6.928203230275507,
+              18.143593539448982
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 2,
+        "name": "hex_engrave",
+        "passed": true,
+        "selected_faces": 2,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 3.777700010687113,
+          "source_and_plan_ms": 13.089400017634034,
+          "temporary_geometry_ms": 346.4687999803573,
+          "tool_clip_ms": 3.2579999533481896,
+          "tool_construction_ms": 6.593999976757914,
+          "total_ms": 359.55850000027567,
+          "wall_checks_ms": 73.68969998788089
+        },
+        "volume_delta_mm3": -62.35382907247988,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000018,
+            "next_entry_mm": 24.712812921102035,
+            "point_mm": [
+              11.999999999999996,
+              -6.928203230275509,
+              18.143593539448982
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 1,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": 24.712812921102035,
+            "point_mm": [
+              12.0,
+              6.928203230275507,
+              18.143593539448982
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 2,
+        "name": "hex_emboss",
+        "passed": true,
+        "selected_faces": 2,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 3.252500027883798,
+          "source_and_plan_ms": 10.612600017338991,
+          "temporary_geometry_ms": 269.9901000014506,
+          "tool_clip_ms": 3.233900060877204,
+          "tool_construction_ms": 7.549000030849129,
+          "total_ms": 280.6029000203125,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 62.35382907247988,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              11.999999999999996,
+              -6.928203230275509,
+              18.143593539448982
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 1,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              12.0,
+              6.928203230275507,
+              18.143593539448982
+            ]
+          }
+        ]
+      },
+      {
+        "current_pitch_mm": 1,
+        "guidance_is_estimate": true,
+        "name": "single_face_density_guidance_and_recovery",
+        "one_selected_face": true,
+        "passed": true,
+        "recovered_cells": 84,
+        "source_and_settings_unchanged": true,
+        "suggested_pitch_mm": 2.4
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 36,
+        "crossing_seam_cells": 1,
+        "full_wrap_centers_checked": 36,
+        "name": "full_cylinder_wrap_through",
+        "passed": true,
+        "period_mm": 100.53096491487338,
+        "seam_sides_checked": 3,
+        "selected_faces": 1,
+        "timings": {
+          "batch_aggregate_ms": 88.02530000684783,
+          "batch_apply_ms": 57.147599989548326,
+          "batch_total_ms": 145.17289999639615,
+          "batch_union_calls": 35,
+          "batch_used": true,
+          "result_application_ms": 151.64209995418787,
+          "source_and_plan_ms": 179.57169999135658,
+          "temporary_geometry_ms": 1769.9877999839373,
+          "tool_clip_ms": 71.364100149367,
+          "tool_construction_ms": 126.76369998371229,
+          "total_ms": 1949.5595999760553,
+          "wall_checks_ms": 1419.128100038506
+        },
+        "volume_delta_mm3": -3367.665982626676,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": 29.000000000000007,
+            "point_mm": [
+              15.454813220625095,
+              4.141104721640327,
+              6.928203230275509
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": 29.000000000000007,
+            "point_mm": [
+              11.313708498984763,
+              11.313708498984758,
+              6.928203230275509
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              4.141104721640339,
+              15.454813220625091,
+              6.928203230275509
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 36,
+        "crossing_seam_cells": 1,
+        "full_wrap_centers_checked": 36,
+        "name": "full_cylinder_wrap_engrave",
+        "passed": true,
+        "period_mm": 100.53096491487338,
+        "seam_sides_checked": 3,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 229.63189997244626,
+          "source_and_plan_ms": 220.91819997876883,
+          "temporary_geometry_ms": 3046.5935000102036,
+          "tool_clip_ms": 64.8109000758268,
+          "tool_construction_ms": 132.74539989652112,
+          "total_ms": 3267.5123999943025,
+          "wall_checks_ms": 2484.995499951765
+        },
+        "volume_delta_mm3": -1121.639278828514,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": 29.000000000000007,
+            "point_mm": [
+              15.454813220625095,
+              4.141104721640327,
+              6.928203230275509
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": 29.000000000000007,
+            "point_mm": [
+              11.313708498984763,
+              11.313708498984758,
+              6.928203230275509
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              4.141104721640339,
+              15.454813220625091,
+              6.928203230275509
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 36,
+        "crossing_seam_cells": 1,
+        "full_wrap_centers_checked": 36,
+        "name": "full_cylinder_wrap_emboss",
+        "passed": true,
+        "period_mm": 100.53096491487338,
+        "seam_sides_checked": 3,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 257.33189994934946,
+          "source_and_plan_ms": 171.30460002226755,
+          "temporary_geometry_ms": 610.5435999925248,
+          "tool_clip_ms": 74.94419981958345,
+          "tool_construction_ms": 162.420499837026,
+          "total_ms": 781.8484000163153,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 1120.9430936403314,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              15.454813220625095,
+              4.141104721640327,
+              6.928203230275509
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              11.313708498984763,
+              11.313708498984758,
+              6.928203230275509
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              4.141104721640339,
+              15.454813220625091,
+              6.928203230275509
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": false,
+        "cells": 85,
+        "name": "cone_general_surface_engrave",
+        "passed": true,
+        "positive_general_surface": true,
+        "selected_faces": 1,
+        "surface_kind": "general",
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 6422.816000471357,
+          "source_and_plan_ms": 1170.3991999966092,
+          "temporary_geometry_ms": 45756.456200033426,
+          "tool_clip_ms": 558.7654000846669,
+          "tool_construction_ms": 1210.3553996421397,
+          "total_ms": 46926.85570003232,
+          "wall_checks_ms": 37215.37249983521
+        },
+        "volume_delta_mm3": -1063.8092132164036,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.9941577354486673,
+            "next_entry_mm": 29.822598999841485,
+            "point_mm": [
+              16.046177798144573,
+              2.9995504802279633,
+              5.186033323672463
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.9941577354486713,
+            "next_entry_mm": 29.822598999841507,
+            "point_mm": [
+              13.879052571564525,
+              8.593545527246125,
+              5.186033323672463
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.994157735448668,
+            "next_entry_mm": 29.822598999841492,
+            "point_mm": [
+              9.837484388709484,
+              13.026934632330082,
+              5.186033323672463
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 5,
+        "name": "plane_pattern_circle",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 26.822200044989586,
+          "source_and_plan_ms": 87.2465999564156,
+          "temporary_geometry_ms": 1005.5394000373781,
+          "tool_clip_ms": 27.082900051027536,
+          "tool_construction_ms": 64.19200001982972,
+          "total_ms": 1092.7861999953166,
+          "wall_checks_ms": 753.1845000339672
+        },
+        "volume_delta_mm3": -140.4650318516123,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -4.0,
+              -5.071796769724491,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              4.0,
+              -5.071796769724491,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.0,
+              1.8564064605510175,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 6,
+        "name": "plane_pattern_diamond",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 9.522100037429482,
+          "source_and_plan_ms": 9.366100013721734,
+          "temporary_geometry_ms": 304.85170002793893,
+          "tool_clip_ms": 9.005699947010726,
+          "tool_construction_ms": 19.06680007232353,
+          "total_ms": 314.21800004318357,
+          "wall_checks_ms": 131.24760007485747
+        },
+        "volume_delta_mm3": -108.0000000000001,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.0,
+              -4.0,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              0.0,
+              -4.0,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.0,
+              -4.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 6,
+        "name": "plane_pattern_square",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 9.896199975628406,
+          "source_and_plan_ms": 12.660700012929738,
+          "temporary_geometry_ms": 330.2673999569379,
+          "tool_clip_ms": 9.746400057338178,
+          "tool_construction_ms": 20.218199933879077,
+          "total_ms": 342.92839997215196,
+          "wall_checks_ms": 144.11349996225908
+        },
+        "volume_delta_mm3": -216.0000000000002,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.0,
+              -4.0,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              0.0,
+              -4.0,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.0,
+              -4.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 6,
+        "name": "plane_pattern_slot",
+        "passed": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 29.464199964422733,
+          "source_and_plan_ms": 83.85530003579333,
+          "temporary_geometry_ms": 961.8535999907181,
+          "tool_clip_ms": 25.864100083708763,
+          "tool_construction_ms": 71.65939995320514,
+          "total_ms": 1045.7091000280343,
+          "wall_checks_ms": 702.8931000968441
+        },
+        "volume_delta_mm3": -78.67435859622907,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.0,
+              -4.0,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              0.0,
+              -4.0,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.0,
+              -4.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "graphics_cleanup": true,
+        "name": "preview_graphics_cleanup",
+        "opaque_full_result": true,
+        "passed": true
+      },
+      {
+        "extra_bodies": 0,
+        "face_edge_body_feature_edit": true,
+        "legacy_read_unchanged_then_migrated_on_rebuild": true,
+        "name": "same_body_create_edit_rebuild",
+        "original_source_signature": [
+          "1172dcf77640bbb89afd628e80bae8efbff92ea3e6ebdabe7c826ffd9f376667",
+          [
+            [
+              7.68,
+              "adsk::core::Plane",
+              [
+                0.0,
+                0.0,
+                0.0
+              ]
+            ]
+          ]
+        ],
+        "owned_features": 3,
+        "passed": true,
+        "rebuild_modes": 3,
+        "same_body": true
+      },
+      {
+        "border_or_ridge_intact": false,
+        "cells": 48,
+        "name": "sphere_general_surface_engrave",
+        "passed": true,
+        "positive_general_surface": true,
+        "selected_faces": 1,
+        "surface_kind": "general",
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 334.11839976906776,
+          "source_and_plan_ms": 395.94479999504983,
+          "temporary_geometry_ms": 8441.562000021804,
+          "tool_clip_ms": 83.07280001463369,
+          "tool_construction_ms": 175.73799996171147,
+          "total_ms": 8837.507000018377,
+          "wall_checks_ms": 7669.653900084086
+        },
+        "volume_delta_mm3": -638.8840522003711,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.000000000000001,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              -15.412806945448501,
+              -1.8875244691619603e-15,
+              -4.294808734080543
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000013,
+            "next_entry_mm": 29.000000000000007,
+            "point_mm": [
+              -14.239576875447675,
+              -5.898225864264729,
+              -4.294808734080543
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.999999999999998,
+            "next_entry_mm": 29.000000000000007,
+            "point_mm": [
+              -10.898500308245751,
+              -10.898500308245753,
+              -4.294808734080543
+            ]
+          }
+        ]
+      },
+      {
+        "cells": 24,
+        "effective_pitch_mm": 40.0,
+        "existing_trim_borders_retained": true,
+        "middle_cells_below_slots": 5,
+        "name": "finite_trims_keep_middle_columns",
+        "passed": true,
+        "selected_faces": 1,
+        "target_pitch_mm": 40.0
+      },
+      {
+        "cells": 27,
+        "effective_pitch_mm": 41.81057559761477,
+        "existing_trim_borders_retained": true,
+        "middle_cells_below_slots": 6,
+        "name": "automatic_balanced_notched_panel",
+        "opposite_margins_mm": [
+          4.90258346529572,
+          4.90258346529572,
+          6.378848804770456,
+          6.378848804770456
+        ],
+        "passed": true,
+        "selected_faces": 1,
+        "target_pitch_mm": 40.0
+      },
+      {
+        "automatic_create_rebuild_same_body": true,
+        "cells": 182,
+        "effective_pitch_mm": 1.0374566126133786,
+        "name": "automatic_dense_target_without_refusal",
+        "passed": true,
+        "settings_unchanged": true,
+        "target_pitch_mm": 1
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "effective_pitch_mm": 6.702064327658225,
+        "name": "automatic_full_wrap_through",
+        "passed": true,
+        "periodic_closure_uniform": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_aggregate_ms": 103.08619996067137,
+          "batch_apply_ms": 63.17839998519048,
+          "batch_total_ms": 166.26459994586185,
+          "batch_union_calls": 44,
+          "batch_used": true,
+          "result_application_ms": 172.84350004047155,
+          "source_and_plan_ms": 449.39120003255084,
+          "temporary_geometry_ms": 2454.5817999751307,
+          "tool_clip_ms": 85.23640007479116,
+          "tool_construction_ms": 162.6974001992494,
+          "total_ms": 2903.973100008443,
+          "wall_checks_ms": 2032.6453998568468
+        },
+        "volume_delta_mm3": -2585.140626878484,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000004,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              16.0,
+              -3.552713678800501e-15,
+              10.195842034450504
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": 29.00000000000001,
+            "point_mm": [
+              14.616727322281617,
+              6.507786289212799,
+              10.195842034450504
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000013,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              10.706089701741737,
+              11.890317207638306,
+              10.195842034450504
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "effective_pitch_mm": 6.702064327658225,
+        "name": "automatic_full_wrap_engrave",
+        "passed": true,
+        "periodic_closure_uniform": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 322.8151996736415,
+          "source_and_plan_ms": 496.6423999867402,
+          "temporary_geometry_ms": 4133.959500002675,
+          "tool_clip_ms": 77.55839987657964,
+          "tool_construction_ms": 158.52710010949522,
+          "total_ms": 4630.602099990938,
+          "wall_checks_ms": 3397.952599625569
+        },
+        "volume_delta_mm3": -861.2847308702776,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000004,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              16.0,
+              -3.552713678800501e-15,
+              10.195842034450504
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": 29.00000000000001,
+            "point_mm": [
+              14.616727322281617,
+              6.507786289212799,
+              10.195842034450504
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000013,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              10.706089701741737,
+              11.890317207638306,
+              10.195842034450504
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 45,
+        "effective_pitch_mm": 6.702064327658225,
+        "name": "automatic_full_wrap_emboss",
+        "passed": true,
+        "periodic_closure_uniform": true,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 293.9791000680998,
+          "source_and_plan_ms": 410.11220001382753,
+          "temporary_geometry_ms": 682.8705000225455,
+          "tool_clip_ms": 78.30660027684644,
+          "tool_construction_ms": 170.96940003102645,
+          "total_ms": 1092.982900037896,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 860.9580487916055,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              16.0,
+              -3.552713678800501e-15,
+              10.195842034450504
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              14.616727322281617,
+              6.507786289212799,
+              10.195842034450504
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              10.706089701741737,
+              11.890317207638306,
+              10.195842034450504
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 11,
+        "fill_create_edit_rebuild_same_body": true,
+        "minimum_gap_mm": 1.5,
+        "name": "fill_fixed_size_plane_hexagon",
+        "passed": true,
+        "requested_size_mm": 5,
+        "selected_faces": 1,
+        "timings": {
+          "batch_aggregate_ms": 14.842099975794554,
+          "batch_apply_ms": 13.019600010011345,
+          "batch_total_ms": 27.8616999858059,
+          "batch_union_calls": 10,
+          "batch_used": true,
+          "result_application_ms": 29.296600027009845,
+          "source_and_plan_ms": 21.931400056928396,
+          "temporary_geometry_ms": 462.5277999439277,
+          "tool_clip_ms": 18.609599908813834,
+          "tool_construction_ms": 37.9646000219509,
+          "total_ms": 484.45940000237897,
+          "wall_checks_ms": 375.94250007532537
+        },
+        "volume_delta_mm3": -714.4709581221598,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -9.75,
+              -5.629165124598851,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -3.25,
+              -5.629165124598851,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              3.25,
+              -5.629165124598851,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 11,
+        "minimum_gap_mm": 1.5,
+        "name": "fill_fixed_size_plane_circle",
+        "passed": true,
+        "requested_size_mm": 5,
+        "selected_faces": 1,
+        "timings": {
+          "batch_aggregate_ms": 40.58299999451265,
+          "batch_apply_ms": 79.43270000396296,
+          "batch_total_ms": 120.01569999847561,
+          "batch_union_calls": 10,
+          "batch_used": true,
+          "result_application_ms": 129.47750004241243,
+          "source_and_plan_ms": 242.21270001726225,
+          "temporary_geometry_ms": 2972.033499972895,
+          "tool_clip_ms": 69.88370011094958,
+          "tool_construction_ms": 158.60179992159829,
+          "total_ms": 3214.24639999168,
+          "wall_checks_ms": 2613.2137999520637
+        },
+        "volume_delta_mm3": -643.7980626532209,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -9.75,
+              -5.629165124598851,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -3.25,
+              -5.629165124598851,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              3.25,
+              -5.629165124598851,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 12,
+        "minimum_gap_mm": 1.5,
+        "name": "fill_fixed_size_plane_diamond",
+        "passed": true,
+        "requested_size_mm": 5,
+        "selected_faces": 1,
+        "timings": {
+          "batch_aggregate_ms": 20.50520002376288,
+          "batch_apply_ms": 14.253199973609298,
+          "batch_total_ms": 34.75839999737218,
+          "batch_union_calls": 11,
+          "batch_used": true,
+          "result_application_ms": 36.53939999639988,
+          "source_and_plan_ms": 27.172899979632348,
+          "temporary_geometry_ms": 544.9985999730416,
+          "tool_clip_ms": 23.890999902505428,
+          "tool_construction_ms": 45.03949993522838,
+          "total_ms": 572.1716999541968,
+          "wall_checks_ms": 437.88949999725446
+        },
+        "volume_delta_mm3": -449.9999999999984,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -9.75,
+              -6.5,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -3.25,
+              -6.5,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              3.25,
+              -6.5,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 8,
+        "minimum_gap_mm": 1.5,
+        "name": "fill_fixed_size_plane_square",
+        "passed": true,
+        "requested_size_mm": 5,
+        "selected_faces": 1,
+        "timings": {
+          "batch_aggregate_ms": 9.296000003814697,
+          "batch_apply_ms": 7.854300027247518,
+          "batch_total_ms": 17.150300031062216,
+          "batch_union_calls": 7,
+          "batch_used": true,
+          "result_application_ms": 18.362400005571544,
+          "source_and_plan_ms": 12.138399994000793,
+          "temporary_geometry_ms": 240.94280001008883,
+          "tool_clip_ms": 10.85140008945018,
+          "tool_construction_ms": 22.41520007373765,
+          "total_ms": 253.08140000561252,
+          "wall_checks_ms": 188.75229987315834
+        },
+        "volume_delta_mm3": -599.9999999999999,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -9.75,
+              -3.25,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -3.25,
+              -3.25,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              3.25,
+              -3.25,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 12,
+        "minimum_gap_mm": 1.5,
+        "name": "fill_fixed_size_plane_slot",
+        "passed": true,
+        "requested_size_mm": 5,
+        "selected_faces": 1,
+        "timings": {
+          "batch_aggregate_ms": 44.392499956302345,
+          "batch_apply_ms": 69.92999999783933,
+          "batch_total_ms": 114.32249995414168,
+          "batch_union_calls": 11,
+          "batch_used": true,
+          "result_application_ms": 123.27350000850856,
+          "source_and_plan_ms": 198.96569999400526,
+          "temporary_geometry_ms": 2419.1094000125304,
+          "tool_clip_ms": 64.44410007679835,
+          "tool_construction_ms": 146.74220007145777,
+          "total_ms": 2618.0753000080585,
+          "wall_checks_ms": 2083.9481999282725
+        },
+        "volume_delta_mm3": -327.8098274842829,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -9.75,
+              -6.5,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              -3.25,
+              -6.5,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0,
+            "next_entry_mm": null,
+            "point_mm": [
+              3.25,
+              -6.5,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 36,
+        "effective_u_pitch_mm": 8.377580409572781,
+        "name": "fill_fixed_size_wrap_through",
+        "passed": true,
+        "requested_size_mm": 6,
+        "selected_faces": 1,
+        "timings": {
+          "batch_aggregate_ms": 167.7606000448577,
+          "batch_apply_ms": 262.5613999553025,
+          "batch_total_ms": 430.3220000001602,
+          "batch_union_calls": 35,
+          "batch_used": true,
+          "result_application_ms": 458.0460000433959,
+          "source_and_plan_ms": 540.2415000135079,
+          "temporary_geometry_ms": 3454.736999992747,
+          "tool_clip_ms": 101.23260010732338,
+          "tool_construction_ms": 172.5350997876376,
+          "total_ms": 3994.9787000077777,
+          "wall_checks_ms": 2721.5844000456855
+        },
+        "volume_delta_mm3": -3367.6659826266828,
+        "witnesses": [
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000004,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              16.0,
+              -3.552713678800501e-15,
+              9.071796769724491
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.000000000000003,
+            "next_entry_mm": 29.000000000000007,
+            "point_mm": [
+              13.856406460551021,
+              7.999999999999998,
+              9.071796769724491
+            ]
+          },
+          {
+            "checks": [
+              "first_wall_open",
+              "first_wall_open"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.9999999999999996,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              8.000000000000005,
+              13.856406460551016,
+              9.071796769724491
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 36,
+        "effective_u_pitch_mm": 8.377580409572781,
+        "name": "fill_fixed_size_wrap_engrave",
+        "passed": true,
+        "requested_size_mm": 6,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 508.92869994277135,
+          "source_and_plan_ms": 652.1903999964707,
+          "temporary_geometry_ms": 7145.446499984246,
+          "tool_clip_ms": 109.11250015487894,
+          "tool_construction_ms": 204.72630008589476,
+          "total_ms": 7797.637099982239,
+          "wall_checks_ms": 6064.479700056836
+        },
+        "volume_delta_mm3": -560.7240182074236,
+        "witnesses": [
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.0000000000000004,
+            "next_entry_mm": 29.0,
+            "point_mm": [
+              16.0,
+              -3.552713678800501e-15,
+              9.071796769724491
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 3.000000000000003,
+            "next_entry_mm": 29.000000000000007,
+            "point_mm": [
+              13.856406460551021,
+              7.999999999999998,
+              9.071796769724491
+            ]
+          },
+          {
+            "checks": [
+              "groove_depth_removed",
+              "groove_floor_retained"
+            ],
+            "face": 0,
+            "first_exit_mm": 2.9999999999999996,
+            "next_entry_mm": 29.000000000000004,
+            "point_mm": [
+              8.000000000000005,
+              13.856406460551016,
+              9.071796769724491
+            ]
+          }
+        ]
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 36,
+        "effective_u_pitch_mm": 8.377580409572781,
+        "name": "fill_fixed_size_wrap_emboss",
+        "passed": true,
+        "requested_size_mm": 6,
+        "selected_faces": 1,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 304.36519981594756,
+          "source_and_plan_ms": 578.167800034862,
+          "temporary_geometry_ms": 869.290100003127,
+          "tool_clip_ms": 101.3237001025118,
+          "tool_construction_ms": 209.1603001463227,
+          "total_ms": 1447.458100039512,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 560.5505057600766,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              16.0,
+              -3.552713678800501e-15,
+              9.071796769724491
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              13.856406460551021,
+              7.999999999999998,
+              9.071796769724491
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              8.000000000000005,
+              13.856406460551016,
+              9.071796769724491
+            ]
+          }
+        ]
+      },
+      {
+        "cells": 41,
+        "layout_mode": "balanced",
+        "name": "balanced_default_sparse_panel",
+        "passed": true,
+        "soft_limit_per_face": 48
+      },
+      {
+        "case_count": 20,
+        "cases": [
+          {
+            "clipped_ms": 12.73869996657595,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 2.12599994847551,
+              "definition_ms": 0.4881000495515764,
+              "edges": 18,
+              "expected_volume_mm3": 120.93594430639718,
+              "faces": 8,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.24829996982589364,
+              "total_ms": 3.147499985061586,
+              "vertices": 12,
+              "volume_mm3": 120.93594430639715
+            },
+            "frame": 0,
+            "intersection_error_mm3": 2.842170943040401e-14,
+            "interval_mm": [
+              -3,
+              0.02
+            ],
+            "new_ms": 3.2361000194214284,
+            "shape": "hexagon",
+            "speed_ratio": 3.9364357993030947
+          },
+          {
+            "clipped_ms": 10.6911999755539,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 2.162999997381121,
+              "definition_ms": 0.4209000035189092,
+              "edges": 18,
+              "expected_volume_mm3": 41.646815257832145,
+              "faces": 8,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.256099971011281,
+              "total_ms": 3.1949999975040555,
+              "vertices": 12,
+              "volume_mm3": 41.64681525783214
+            },
+            "frame": 0,
+            "intersection_error_mm3": 7.105427357601002e-15,
+            "interval_mm": [
+              -0.02,
+              1.02
+            ],
+            "new_ms": 3.250200010370463,
+            "shape": "hexagon",
+            "speed_ratio": 3.289397557516868
+          },
+          {
+            "clipped_ms": 11.404799995943904,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 1.867300015874207,
+              "definition_ms": 0.4267999902367592,
+              "edges": 18,
+              "expected_volume_mm3": 120.93594430639718,
+              "faces": 8,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.35559997195377946,
+              "total_ms": 2.936599950771779,
+              "vertices": 12,
+              "volume_mm3": 120.935944306397
+            },
+            "frame": 1,
+            "intersection_error_mm3": 1.7053025658242404e-13,
+            "interval_mm": [
+              -3,
+              0.02
+            ],
+            "new_ms": 3.00620001507923,
+            "shape": "hexagon",
+            "speed_ratio": 3.793759543189718
+          },
+          {
+            "clipped_ms": 12.551799998618662,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 2.4098000139929354,
+              "definition_ms": 0.3942999755963683,
+              "edges": 18,
+              "expected_volume_mm3": 41.646815257832145,
+              "faces": 8,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.23870001314207911,
+              "total_ms": 3.419900021981448,
+              "vertices": 12,
+              "volume_mm3": 41.64681525783181
+            },
+            "frame": 1,
+            "intersection_error_mm3": 3.339550858072471e-13,
+            "interval_mm": [
+              -0.02,
+              1.02
+            ],
+            "new_ms": 3.4907999797724187,
+            "shape": "hexagon",
+            "speed_ratio": 3.59568009377523
+          },
+          {
+            "clipped_ms": 65.17150002764538,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 7.64059997163713,
+              "definition_ms": 1.9813000108115375,
+              "edges": 96,
+              "expected_volume_mm3": 108.97339599951131,
+              "faces": 34,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 1.1235999991185963,
+              "total_ms": 11.131900013424456,
+              "vertices": 64,
+              "volume_mm3": 108.97339599951133
+            },
+            "frame": 0,
+            "intersection_error_mm3": 1.4210854715202004e-14,
+            "interval_mm": [
+              -3,
+              0.02
+            ],
+            "new_ms": 11.388899991288781,
+            "shape": "circle",
+            "speed_ratio": 5.722370033760433
+          },
+          {
+            "clipped_ms": 58.87780000921339,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 7.857699994929135,
+              "definition_ms": 1.603799988515675,
+              "edges": 96,
+              "expected_volume_mm3": 37.52726219850721,
+              "faces": 34,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 1.063500007148832,
+              "total_ms": 10.864200012292713,
+              "vertices": 64,
+              "volume_mm3": 37.5272621985072
+            },
+            "frame": 0,
+            "intersection_error_mm3": 7.105427357601002e-15,
+            "interval_mm": [
+              -0.02,
+              1.02
+            ],
+            "new_ms": 11.124499957077205,
+            "shape": "circle",
+            "speed_ratio": 5.292624408862207
+          },
+          {
+            "clipped_ms": 72.07789999665692,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 7.509100018069148,
+              "definition_ms": 1.6120999935083091,
+              "edges": 96,
+              "expected_volume_mm3": 108.97339599951131,
+              "faces": 34,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 1.0707000037655234,
+              "total_ms": 10.599499975796789,
+              "vertices": 64,
+              "volume_mm3": 108.97339599951937
+            },
+            "frame": 1,
+            "intersection_error_mm3": 8.057554623519536e-12,
+            "interval_mm": [
+              -3,
+              0.02
+            ],
+            "new_ms": 10.828099970240146,
+            "shape": "circle",
+            "speed_ratio": 6.656560264012633
+          },
+          {
+            "clipped_ms": 75.190500007011,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 7.811199990101159,
+              "definition_ms": 1.6619000234641135,
+              "edges": 96,
+              "expected_volume_mm3": 37.52726219850721,
+              "faces": 34,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 1.0318999993614852,
+              "total_ms": 11.00250001763925,
+              "vertices": 64,
+              "volume_mm3": 37.52726219851585
+            },
+            "frame": 1,
+            "intersection_error_mm3": 8.640199666842818e-12,
+            "interval_mm": [
+              -0.02,
+              1.02
+            ],
+            "new_ms": 11.24979997985065,
+            "shape": "circle",
+            "speed_ratio": 6.683718834262262
+          },
+          {
+            "clipped_ms": 7.69990001572296,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 1.3773000100627542,
+              "definition_ms": 0.39499998092651367,
+              "edges": 12,
+              "expected_volume_mm3": 69.82239999999999,
+              "faces": 6,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.1637000241316855,
+              "total_ms": 2.138199983164668,
+              "vertices": 8,
+              "volume_mm3": 69.82239999999996
+            },
+            "frame": 0,
+            "intersection_error_mm3": 2.842170943040401e-14,
+            "interval_mm": [
+              -3,
+              0.02
+            ],
+            "new_ms": 2.1788000012747943,
+            "shape": "diamond",
+            "speed_ratio": 3.534009551688005
+          },
+          {
+            "clipped_ms": 7.658499991521239,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 1.4580999850295484,
+              "definition_ms": 0.3198999911546707,
+              "edges": 12,
+              "expected_volume_mm3": 24.0448,
+              "faces": 6,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.19970000721514225,
+              "total_ms": 2.274499973282218,
+              "vertices": 8,
+              "volume_mm3": 24.04479999999999
+            },
+            "frame": 0,
+            "intersection_error_mm3": 7.105427357601002e-15,
+            "interval_mm": [
+              -0.02,
+              1.02
+            ],
+            "new_ms": 2.343100029975176,
+            "shape": "diamond",
+            "speed_ratio": 3.2685330944246447
+          },
+          {
+            "clipped_ms": 8.60060000559315,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 1.3897999888285995,
+              "definition_ms": 0.37510000402107835,
+              "edges": 12,
+              "expected_volume_mm3": 69.82239999999999,
+              "faces": 6,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.21959998412057757,
+              "total_ms": 2.428599982522428,
+              "vertices": 8,
+              "volume_mm3": 69.82239999999973
+            },
+            "frame": 1,
+            "intersection_error_mm3": 2.5579538487363607e-13,
+            "interval_mm": [
+              -3,
+              0.02
+            ],
+            "new_ms": 2.4991999962367117,
+            "shape": "diamond",
+            "speed_ratio": 3.44134123661328
+          },
+          {
+            "clipped_ms": 8.284700044896454,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 1.3654999784193933,
+              "definition_ms": 0.3307000151835382,
+              "edges": 12,
+              "expected_volume_mm3": 24.0448,
+              "faces": 6,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.19859999883919954,
+              "total_ms": 2.118100004736334,
+              "vertices": 8,
+              "volume_mm3": 24.044799999999867
+            },
+            "frame": 1,
+            "intersection_error_mm3": 1.3145040611561853e-13,
+            "interval_mm": [
+              -0.02,
+              1.02
+            ],
+            "new_ms": 2.178700000513345,
+            "shape": "diamond",
+            "speed_ratio": 3.802588719394324
+          },
+          {
+            "clipped_ms": 6.952300027478486,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 1.6827000072225928,
+              "definition_ms": 0.5009999731555581,
+              "edges": 12,
+              "expected_volume_mm3": 139.64479999999998,
+              "faces": 6,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.24020002456381917,
+              "total_ms": 2.662300015799701,
+              "vertices": 8,
+              "volume_mm3": 139.64479999999995
+            },
+            "frame": 0,
+            "intersection_error_mm3": 2.842170943040401e-14,
+            "interval_mm": [
+              -3,
+              0.02
+            ],
+            "new_ms": 2.7090999647043645,
+            "shape": "square",
+            "speed_ratio": 2.5662766668106944
+          },
+          {
+            "clipped_ms": 7.621700002346188,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 2.162800054065883,
+              "definition_ms": 0.7379999733529985,
+              "edges": 12,
+              "expected_volume_mm3": 48.08959999999999,
+              "faces": 6,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.33850001636892557,
+              "total_ms": 3.5809000255540013,
+              "vertices": 8,
+              "volume_mm3": 48.08959999999999
+            },
+            "frame": 0,
+            "intersection_error_mm3": 0.0,
+            "interval_mm": [
+              -0.02,
+              1.02
+            ],
+            "new_ms": 3.6338999634608626,
+            "shape": "square",
+            "speed_ratio": 2.097388502430709
+          },
+          {
+            "clipped_ms": 11.035399977117777,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 1.4956000377424061,
+              "definition_ms": 0.35769998794421554,
+              "edges": 12,
+              "expected_volume_mm3": 139.64479999999998,
+              "faces": 6,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.25620002998039126,
+              "total_ms": 2.3649000213481486,
+              "vertices": 8,
+              "volume_mm3": 139.64479999999935
+            },
+            "frame": 1,
+            "intersection_error_mm3": 6.252776074688882e-13,
+            "interval_mm": [
+              -3,
+              0.02
+            ],
+            "new_ms": 2.4081000010482967,
+            "shape": "square",
+            "speed_ratio": 4.58261698945801
+          },
+          {
+            "clipped_ms": 10.104100045282394,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 1.6861000331118703,
+              "definition_ms": 0.3874999820254743,
+              "edges": 12,
+              "expected_volume_mm3": 48.08959999999999,
+              "faces": 6,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.21989998640492558,
+              "total_ms": 2.677000011317432,
+              "vertices": 8,
+              "volume_mm3": 48.08959999999969
+            },
+            "frame": 1,
+            "intersection_error_mm3": 2.984279490192421e-13,
+            "interval_mm": [
+              -0.02,
+              1.02
+            ],
+            "new_ms": 2.756300033070147,
+            "shape": "square",
+            "speed_ratio": 3.6658200936230396
+          },
+          {
+            "clipped_ms": 47.70880000432953,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 6.758799951057881,
+              "definition_ms": 1.48460001219064,
+              "edges": 78,
+              "expected_volume_mm3": 50.863264218975594,
+              "faces": 28,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 1.083599985577166,
+              "total_ms": 9.694199950899929,
+              "vertices": 52,
+              "volume_mm3": 50.86326421897558
+            },
+            "frame": 0,
+            "intersection_error_mm3": 1.4210854715202004e-14,
+            "interval_mm": [
+              -3,
+              0.02
+            ],
+            "new_ms": 9.953900007531047,
+            "shape": "slot",
+            "speed_ratio": 4.792975614405751
+          },
+          {
+            "clipped_ms": 46.05419997824356,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 6.638199964072555,
+              "definition_ms": 1.4232000103220344,
+              "edges": 78,
+              "expected_volume_mm3": 17.51582608865385,
+              "faces": 28,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.8254999993368983,
+              "total_ms": 9.22900001751259,
+              "vertices": 52,
+              "volume_mm3": 17.515826088653846
+            },
+            "frame": 0,
+            "intersection_error_mm3": 3.552713678800501e-15,
+            "interval_mm": [
+              -0.02,
+              1.02
+            ],
+            "new_ms": 9.499700041487813,
+            "shape": "slot",
+            "speed_ratio": 4.847963596441167
+          },
+          {
+            "clipped_ms": 60.244399996008724,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 6.52210001135245,
+              "definition_ms": 1.3423999771475792,
+              "edges": 78,
+              "expected_volume_mm3": 50.863264218975594,
+              "faces": 28,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.8106000022962689,
+              "total_ms": 9.083899960387498,
+              "vertices": 52,
+              "volume_mm3": 50.863264218974244
+            },
+            "frame": 1,
+            "intersection_error_mm3": 1.3500311979441904e-12,
+            "interval_mm": [
+              -3,
+              0.02
+            ],
+            "new_ms": 9.28370002657175,
+            "shape": "slot",
+            "speed_ratio": 6.489266114111568
+          },
+          {
+            "clipped_ms": 52.45799996191636,
+            "diagnostics": {
+              "backend": "BRepBodyDefinition",
+              "create_calls": 1,
+              "create_ms": 6.375700002536178,
+              "definition_ms": 1.2682999949902296,
+              "edges": 78,
+              "expected_volume_mm3": 17.51582608865385,
+              "faces": 28,
+              "full_healing": true,
+              "outcome": [
+                "{\"description\":\"body ID\",\"entityID\":\"unknown\",\"code\":4}"
+              ],
+              "plan_ms": 0.833700003568083,
+              "total_ms": 8.863599970936775,
+              "vertices": 52,
+              "volume_mm3": 17.515826088654208
+            },
+            "frame": 1,
+            "intersection_error_mm3": 3.588240815588506e-13,
+            "interval_mm": [
+              -0.02,
+              1.02
+            ],
+            "new_ms": 9.037600015290082,
+            "shape": "slot",
+            "speed_ratio": 5.804417087851459
+          }
+        ],
+        "clipped_total_ms": 593.1268000276759,
+        "direct_total_ms": 116.05670000426471,
+        "document_unchanged": true,
+        "name": "direct_prism_twenty_native_equivalences",
+        "passed": true
+      },
+      {
+        "all_cell_material_witnesses": 195,
+        "batch_timings": {
+          "batch_aggregate_ms": 979.1729999706149,
+          "batch_apply_ms": 601.3004000415094,
+          "batch_total_ms": 1580.4734000121243,
+          "batch_union_calls": 194,
+          "batch_used": true,
+          "result_application_ms": 1665.8362000016496,
+          "source_and_plan_ms": 703.3268999657594,
+          "temporary_geometry_ms": 11174.050800036639,
+          "tool_clip_ms": 651.4080002089031,
+          "tool_construction_ms": 1074.8644003761,
+          "total_ms": 11877.378000004683,
+          "wall_checks_ms": 7777.835199900437
+        },
+        "cells": 195,
+        "forced_fallback_exact": true,
+        "graphics_draw_and_refresh_ms": 3142.5539999618195,
+        "name": "dense_batch_matches_exact_fallback",
+        "passed": true,
+        "same_complete_material": true,
+        "sequential_timings": {
+          "batch_used": false,
+          "result_application_ms": 2957.564199983608,
+          "source_and_plan_ms": 2228.914600040298,
+          "temporary_geometry_ms": 17755.91509998776,
+          "tool_clip_ms": 986.3866997766308,
+          "tool_construction_ms": 1485.3948001400568,
+          "total_ms": 19984.830000030342,
+          "wall_checks_ms": 12313.049700576812
+        }
+      },
+      {
+        "border_or_ridge_intact": true,
+        "cells": 5,
+        "completed": [
+          "newest"
+        ],
+        "computed": [
+          "newest"
+        ],
+        "exact_scratch_rollback": true,
+        "name": "production_async_supersede_postrollback_preview",
+        "passed": true,
+        "selected_faces": 1,
+        "source_refs_fresh_after_destroy": true,
+        "timings": {
+          "batch_used": false,
+          "result_application_ms": 9.753599995747209,
+          "source_and_plan_ms": 21.943099971394986,
+          "temporary_geometry_ms": 97.32290002284572,
+          "tool_clip_ms": 10.002900031395257,
+          "tool_construction_ms": 23.116399941500276,
+          "total_ms": 119.2663999972865,
+          "wall_checks_ms": 0.0
+        },
+        "volume_delta_mm3": 124.70765814495932,
+        "witnesses": [
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -4.0,
+              -5.071796769724491,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              4.0,
+              -5.071796769724491,
+              0.0
+            ]
+          },
+          {
+            "checks": [
+              "emboss_height_added",
+              "emboss_height_bounded"
+            ],
+            "face": 0,
+            "first_exit_mm": null,
+            "next_entry_mm": null,
+            "point_mm": [
+              -8.0,
+              1.8564064605510175,
+              0.0
+            ]
+          }
+        ]
+      },
+      {
+        "cache_survived_previous_transaction": true,
+        "name": "production_cached_result_create_rollback",
+        "passed": true,
+        "rollback_history_and_bodies_unchanged": true,
+        "same_body": true
+      },
+      {
+        "discarded_without_saving": true,
+        "name": "production_disposable_document_cleanup",
+        "original_camera_restored": true,
+        "original_component_and_model_unchanged": true,
+        "original_document_active": true,
+        "passed": true
+      }
+    ],
+    "unchanged": true,
+    "original_references_valid": true,
+    "colour_survived_rollback": true,
+    "production_async_passed": true,
+    "cached_create_passed": true
+  },
+  "native_display": {
+    "request_id": "3ff78f76-bb07-4b96-af74-65e57da7df99",
+    "cycles": 12,
+    "workflow_passed": true,
+    "auto_workflow_passed": true,
+    "original_model_and_camera_unchanged": true,
+    "cleanup_errors": []
+  },
+  "sources": {
+    "files": {
+      "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+      "Partelier/partelier/addin.py": "b281358a644e8f8dfd3a5852562b615c7e9244379b59ff134ac366b506a7b4f1",
+      "Partelier/partelier/diagnostics.py": "c13ac62898f6e751f7004a46d6f0ed5e0d732b4d07f8516eb5256b35861c2951",
+      "Partelier/partelier/palette.py": "df072eeb8940d35586c0df36c9d05784953b3f4001fb1950ed5908a4b1dcb863",
+      "Partelier/partelier/palette_protocol.py": "fff43402c432b8884a900b4d575b37f0d03045ff691a75448122599636482ba2",
+      "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+      "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+      "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+      "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+      "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+      "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+      "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+      "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+      "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+      "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+      "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+      "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+      "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+      "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+      "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+      "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+      "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+      "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+      "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+      "Partelier/partelier/tools/patterns/auto_fit.py": "5be4178c056629c6486ae2558653ad1eaf7f6fcaa10820309ed74ceea4345289",
+      "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+      "Partelier/partelier/tools/patterns/clipping.py": "1d5583190a77e6b164e000353c9237aa446fe762bd6c4d20f72703ddb7968822",
+      "Partelier/partelier/tools/patterns/colour_export.py": "5bde50f0d872fc57b30bc88d5a73e7d3460f80c06529cebe10f846a2348bb5ff",
+      "Partelier/partelier/tools/patterns/colour_store.py": "cf2f2ff1ecb6e28397a57373bc8e68b6ce6319a84423db8c2ca4ffc5c66b84dd",
+      "Partelier/partelier/tools/patterns/command.py": "6c80962d30718b0890e0b14471336af5f900b12998160aff57eb745f3e9f52ba",
+      "Partelier/partelier/tools/patterns/display_export.py": "aa5f683d270129781249d40d7d7f6e8eeacf93e8cb391af581f2e69dbbde0c5f",
+      "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+      "Partelier/partelier/tools/patterns/fusion.py": "62cc8092ea7af9569abe4b219215060cb2c25a574c2b9c85f6124f41c1847fa8",
+      "Partelier/partelier/tools/patterns/grilles.py": "07bdc21ed540aab104e581065b199d281dda68627dd391d9cbd79e97339981ac",
+      "Partelier/partelier/tools/patterns/inlay.py": "2fbc2ce692013442910062306cc6938caf464dde43e4dce54b32b30612608a1a",
+      "Partelier/partelier/tools/patterns/planner.py": "70f66da217988ec0031a9671df987a53b106e05fe05a82f073f52200094d83be",
+      "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+      "Partelier/partelier/tools/patterns/prism.py": "cb1ada026a5ef1964b68b0e749c45e6ae03d19ece19a518938ef4e7c444f58a5",
+      "Partelier/partelier/tools/patterns/recipe.py": "5e73aededf4bc41b8abbc71bf32a41df15dfb3a966ff821d634c90f22d02df44",
+      "Partelier/partelier/tools/patterns/settings.py": "d73032fb5fad34c151c6754a182dfe3c1148b60679530f6c42d1a2da8b0d15d3",
+      "Partelier/partelier/tools/patterns/store.py": "d8379a2663fb72fbf912e79323dafb4f607008893d641459227e59c8af03e52f",
+      "Partelier/partelier/tools/patterns/surfaces.py": "8a4e392b38e22f8c3579271b11499b0b7480f3e0abf829785a9f9be9761da74f",
+      "Partelier/partelier/tools/patterns/tiled_layout.py": "fd39879c2540ddb1924728783f288a5704a656263bfc9ae896c81fb70d8ed4da",
+      "Partelier/partelier/tools/patterns/tiles.py": "7d7c94fd7e897ee82b4ec5de5a8a33da5f962157cc82bd27746a9917fd931fd1",
+      "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80",
+      "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+      "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+      "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+      "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+      "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+      "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+      "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+      "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+      "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+      "tools/fusion/JoinFinishProbe/JoinFinishProbe.py": "67a57e39a6ee093f25efaef8b04f8fc35fd1e4df8db6a5695cd9a351f608126d",
+      "tools/fusion/PatternDisplayProbe/PatternDisplayProbe.py": "21f0af2aca048766f4e3deaca93bb438bbbf9c9a4b40c51f68455211a2dcbdef",
+      "tools/fusion/PatternProbe/PatternProbe.py": "c828fde3ec6206680badbea2235c51dc80ea6e98f161bd2e2a97c5261fd54e41",
+      "tools/fusion/PatternStatusProbe/PatternStatusProbe.py": "8102f16431c7f1507a67af1df22a9d749dff9f7e2a3b02135f6a3eda63ca83ed",
+      "tools/fusion/SnapFitProbe/SnapFitProbe.py": "fdda39fb9ad26700763284b50a69ab1dd4b8d8958b6b02be90b565f0ec104d8a"
+    },
+    "sha256": "2d9ce0fb16310983c9ea1e67fa913f6f88f4353e5cba1ef13ceda9d0a20c1002"
+  },
+  "git_blob_sha256": {
+    "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+    "Partelier/partelier/addin.py": "b281358a644e8f8dfd3a5852562b615c7e9244379b59ff134ac366b506a7b4f1",
+    "Partelier/partelier/diagnostics.py": "ff1ff5fcd1b7fdf50674a3cd39d10ac1c5ec2bb1b3f46b58c10ed5e0da16d7e5",
+    "Partelier/partelier/palette.py": "94b378124095384efda79e1a3a524c807a408e2dac2d9d071e93733ee3611c30",
+    "Partelier/partelier/palette_protocol.py": "43edaa5c24d74fd72235f10fb7aa88a6db244c54cccb1df1a51477454bd4d6d1",
+    "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+    "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+    "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+    "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+    "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+    "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+    "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+    "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+    "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+    "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+    "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+    "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+    "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+    "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+    "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+    "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+    "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+    "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+    "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+    "Partelier/partelier/tools/patterns/auto_fit.py": "5be4178c056629c6486ae2558653ad1eaf7f6fcaa10820309ed74ceea4345289",
+    "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+    "Partelier/partelier/tools/patterns/clipping.py": "1d5583190a77e6b164e000353c9237aa446fe762bd6c4d20f72703ddb7968822",
+    "Partelier/partelier/tools/patterns/colour_export.py": "dc9404373256ce66d4fc934c11cfa7917885318a804fe1d066bebf13db98079e",
+    "Partelier/partelier/tools/patterns/colour_store.py": "cf2f2ff1ecb6e28397a57373bc8e68b6ce6319a84423db8c2ca4ffc5c66b84dd",
+    "Partelier/partelier/tools/patterns/command.py": "6c80962d30718b0890e0b14471336af5f900b12998160aff57eb745f3e9f52ba",
+    "Partelier/partelier/tools/patterns/display_export.py": "3cfdc6031090dbe8c52422b41926f35d04c9e2e153131572b79711af094f19ff",
+    "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+    "Partelier/partelier/tools/patterns/fusion.py": "7011e51aa183d4cea65fae00a6a975eb722c1bcb89ab9e16688d1d0f7862708b",
+    "Partelier/partelier/tools/patterns/grilles.py": "52de538853d6064d318b5dd92629a31fa62a4f6a31b6ec34154b672c7a6c1a16",
+    "Partelier/partelier/tools/patterns/inlay.py": "1e3bb0c9396636cfec62182f437d0bfffb14489d9d116ff40b1aa9151b074218",
+    "Partelier/partelier/tools/patterns/planner.py": "49e86fc8874f31a8b98d0b12dc201b7ec697495bc369fe50c7d33e68c72fa51e",
+    "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+    "Partelier/partelier/tools/patterns/prism.py": "615e236e5d104a31a201028f28c596baf28f398f781b8e97731a19cbeb3a5950",
+    "Partelier/partelier/tools/patterns/recipe.py": "6620e242c9a8d6bd8408376d5b398759b7b9f5902f081af4d9501c9ae433de90",
+    "Partelier/partelier/tools/patterns/settings.py": "d936927e4fa8d42dda82888918cd55474d6dc56f5362484f768c1767ae4a4825",
+    "Partelier/partelier/tools/patterns/store.py": "d8379a2663fb72fbf912e79323dafb4f607008893d641459227e59c8af03e52f",
+    "Partelier/partelier/tools/patterns/surfaces.py": "8a4e392b38e22f8c3579271b11499b0b7480f3e0abf829785a9f9be9761da74f",
+    "Partelier/partelier/tools/patterns/tiled_layout.py": "fd39879c2540ddb1924728783f288a5704a656263bfc9ae896c81fb70d8ed4da",
+    "Partelier/partelier/tools/patterns/tiles.py": "7d7c94fd7e897ee82b4ec5de5a8a33da5f962157cc82bd27746a9917fd931fd1",
+    "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80",
+    "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+    "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+    "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+    "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+    "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+    "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+    "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+    "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+    "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+    "tools/fusion/JoinFinishProbe/JoinFinishProbe.py": "67a57e39a6ee093f25efaef8b04f8fc35fd1e4df8db6a5695cd9a351f608126d",
+    "tools/fusion/PatternDisplayProbe/PatternDisplayProbe.py": "9afe5f97e6f663a9288e8cdc4572be2b88f010707c3124e5e629224741aadaef",
+    "tools/fusion/PatternProbe/PatternProbe.py": "4d17540a60b23a338b60745150721e0a85e64666deda8cfd51f6dbeea13448f8",
+    "tools/fusion/PatternStatusProbe/PatternStatusProbe.py": "8102f16431c7f1507a67af1df22a9d749dff9f7e2a3b02135f6a3eda63ca83ed",
+    "tools/fusion/SnapFitProbe/SnapFitProbe.py": "fdda39fb9ad26700763284b50a69ab1dd4b8d8958b6b02be90b565f0ec104d8a"
+  },
+  "source_normalization": "Native fingerprints hash working bytes; staged Git blobs are verified identical after CRLF/LF normalization.",
+  "ui_sources": {
+    "Partelier/partelier/ui/catalog.js": {
+      "working_sha256": "26b6de6e5e16593a6d440412c4eca3631bd0839dcbea8e7f13124d95bef3dd49",
+      "git_blob_sha256": "58634caaf4d5662ab6b9660f6d3de097af8f2859d6ff9cd8366f5c284f28bd62"
+    },
+    "Partelier/partelier/ui/illustrations.js": {
+      "working_sha256": "941b1c70ee5cc5f9d53a4a1b066129a06c0aefbdc2ae2094d895801ed51334fd",
+      "git_blob_sha256": "2e36524ddfa2364bc2c83f48d98c7f24f0946e23a108abe007760b9d3d4d97e3"
+    },
+    "Partelier/partelier/ui/palette.css": {
+      "working_sha256": "73a1753948cd8a10a6c033a2d7a4b5671661429bbe7874940271c319ca01c8c2",
+      "git_blob_sha256": "73a1753948cd8a10a6c033a2d7a4b5671661429bbe7874940271c319ca01c8c2"
+    },
+    "Partelier/partelier/ui/palette.html": {
+      "working_sha256": "06887492798607330344be29bd533371d1d0d61455934a327a80a00d7554e23c",
+      "git_blob_sha256": "e000368a858ddf3ba634d3d35140f7caa672a72db27ea77fa0a9d68a2b65db5a"
+    },
+    "Partelier/partelier/ui/palette.js": {
+      "working_sha256": "baa99876271123ee63428a3ec6a5c85e2830e543e96e02dc63af3f10aa1715a6",
+      "git_blob_sha256": "1ef70655eba1c69500285d764a48317e683f92e8e38f427fbba19105c5664fd5"
+    },
+    "Partelier/partelier/ui/pattern-help.js": {
+      "working_sha256": "a4ef9eee9ad5ebad0f07a90862608b4ca9d2b7ffbb87466ed3e42d11a436fdfd",
+      "git_blob_sha256": "e54644d41f4cc53354df8794c944e30789fd3058f1d785acc1a5af74de2d8ac5"
+    },
+    "Partelier/partelier/ui/patterns.js": {
+      "working_sha256": "7fddf8e6524a4e1aae9c13b2a802e7c105c068b0e09c02828c78ac3ce270069b",
+      "git_blob_sha256": "4623c0b388c8f74ad44cf35726d12a14db0a9c87e538b46b680dd7f9d2aab682"
+    },
+    "Partelier/partelier/ui/snap.js": {
+      "working_sha256": "f3a79b8e14b1d05094fa98fcfd57961e3a8fa5f19775987e51952b1ccf2a45c7",
+      "git_blob_sha256": "619d13aca3fc45ceea21055b06d88a423224a9cd8ee4d93c9d79a78b4a8a59c0"
+    },
+    "Partelier/partelier/ui/pattern-previews/cairo.svg": {
+      "working_sha256": "62b61fafaa82d48f38e556bbe1171a300f67718e4551fbbd3205091c7d02ccc0",
+      "git_blob_sha256": "62b61fafaa82d48f38e556bbe1171a300f67718e4551fbbd3205091c7d02ccc0"
+    },
+    "Partelier/partelier/ui/pattern-previews/elongated_hexagon.svg": {
+      "working_sha256": "7db784fb5b6c3c25e3c839ca0444f10f022569e9fc09b31eb8f8f0ebef2439e9",
+      "git_blob_sha256": "7db784fb5b6c3c25e3c839ca0444f10f022569e9fc09b31eb8f8f0ebef2439e9"
+    },
+    "Partelier/partelier/ui/pattern-previews/octagon.svg": {
+      "working_sha256": "780bde96fbdd424212d89ac63253ed61605a80aeb930c8886a89e0e129e541c7",
+      "git_blob_sha256": "780bde96fbdd424212d89ac63253ed61605a80aeb930c8886a89e0e129e541c7"
+    },
+    "Partelier/partelier/ui/pattern-previews/octagon_square.svg": {
+      "working_sha256": "b6d30d19271015390c5f69474c335c09c113e8701dc2d31d197b2750cd9ca0fa",
+      "git_blob_sha256": "b6d30d19271015390c5f69474c335c09c113e8701dc2d31d197b2750cd9ca0fa"
+    },
+    "Partelier/partelier/ui/pattern-previews/pentagon.svg": {
+      "working_sha256": "360322d0a82041063823db1cc90217f3289dc62d6fdb4710afb32574f49aa522",
+      "git_blob_sha256": "360322d0a82041063823db1cc90217f3289dc62d6fdb4710afb32574f49aa522"
+    },
+    "Partelier/partelier/ui/pattern-previews/rhombille.svg": {
+      "working_sha256": "cf3f4dfccee06f77df5359c66e8937aaa770a26a292cd9d396ce9adc9c3f8468",
+      "git_blob_sha256": "cf3f4dfccee06f77df5359c66e8937aaa770a26a292cd9d396ce9adc9c3f8468"
+    },
+    "Partelier/partelier/ui/pattern-previews/rounded_hexagon.svg": {
+      "working_sha256": "6b72e822e36c215d791ffeb77fccff5e70dd56df71db34c0f74c4fad4eceb506",
+      "git_blob_sha256": "6b72e822e36c215d791ffeb77fccff5e70dd56df71db34c0f74c4fad4eceb506"
+    },
+    "Partelier/partelier/ui/pattern-previews/rounded_triangle.svg": {
+      "working_sha256": "dbc97b47ceecb4fc6d2691f433a7d739346f441e556a9900e05300725333d462",
+      "git_blob_sha256": "dbc97b47ceecb4fc6d2691f433a7d739346f441e556a9900e05300725333d462"
+    },
+    "Partelier/partelier/ui/pattern-previews/triangle.svg": {
+      "working_sha256": "d4905b8f6ab2203020cdb75569225dd42dfbbf0dd9eb83d91794da3375ac44cc",
+      "git_blob_sha256": "d4905b8f6ab2203020cdb75569225dd42dfbbf0dd9eb83d91794da3375ac44cc"
+    },
+    "Partelier/partelier/ui/pattern-previews/trihex.svg": {
+      "working_sha256": "a216a27473d0249b6594e340c4ebf24c25b1ac7c9b06aff6b7f196c3196cd07f",
+      "git_blob_sha256": "a216a27473d0249b6594e340c4ebf24c25b1ac7c9b06aff6b7f196c3196cd07f"
+    }
+  },
+  "bambu_import_export": {
+    "input": {
+      "parts": [
+        {
+          "vertices": 162,
+          "triangles": 320,
+          "volume_mm3": 2111.9074000996557,
+          "bounds_mm": [
+            [
+              -16.0000002384,
+              -12.0000004768,
+              -3.00000011921
+            ],
+            [
+              16.0000002384,
+              12.0000004768,
+              0.0
+            ]
+          ],
+          "closed_mesh": true
+        },
+        {
+          "vertices": 154,
+          "triangles": 252,
+          "volume_mm3": 192.09281732883045,
+          "bounds_mm": [
+            [
+              -13.9883136749,
+              -9.9883133173,
+              -0.599999986589
+            ],
+            [
+              13.9883136749,
+              9.9883133173,
+              0.0
+            ]
+          ],
+          "closed_mesh": true
+        }
+      ],
+      "part_names": [
+        "Base",
+        "Pattern colour"
+      ],
+      "mesh_repairs": [],
+      "sha256": "95bd16d7254f745390bc0eaf954537829b7856c75c4343e451cc615814a1a780"
+    },
+    "bambu_roundtrip": {
+      "parts": [
+        {
+          "vertices": 162,
+          "triangles": 320,
+          "volume_mm3": 2111.9073657263693,
+          "bounds_mm": [
+            [
+              -16.0,
+              -12.0,
+              0.0
+            ],
+            [
+              16.0,
+              12.0,
+              3.00000024
+            ]
+          ],
+          "closed_mesh": true
+        },
+        {
+          "vertices": 154,
+          "triangles": 252,
+          "volume_mm3": 192.09281827347516,
+          "bounds_mm": [
+            [
+              -13.9883137,
+              -9.98831367,
+              2.400000276
+            ],
+            [
+              13.9883137,
+              9.98831367,
+              3.00000024
+            ]
+          ],
+          "closed_mesh": true
+        }
+      ],
+      "part_names": [
+        "Base",
+        "Pattern colour"
+      ],
+      "mesh_repairs": [
+        {
+          "face_count": "320",
+          "edges_fixed": "0",
+          "degenerate_facets": "0",
+          "facets_removed": "0",
+          "facets_reversed": "0",
+          "backwards_edges": "0"
+        },
+        {
+          "face_count": "252",
+          "edges_fixed": "0",
+          "degenerate_facets": "0",
+          "facets_removed": "0",
+          "facets_reversed": "0",
+          "backwards_edges": "0"
+        }
+      ],
+      "sha256": "570d76e56c16b235baecffcf74523954a22a48aaf8c91638738c3dc2e824740d"
+    },
+    "one_assembly_two_named_parts": true,
+    "same_relative_alignment": true,
+    "flat_top_preserved": true,
+    "volume_conserved_mm3": 2304,
+    "bambu_mesh_repairs": 0,
+    "command_exit_code": 0,
+    "slicing_test": {
+      "passed": false,
+      "detail": "Optional CLI slicing/arrange attempts returned -6 or produced no result; no successful sliced toolpath is claimed."
+    },
+    "native_export_request": "4533dbca-a9fc-4c4c-b4d8-6de2bcdec369",
+    "native_export_sha256_verified": true,
+    "demo_sha256": "95bd16d7254f745390bc0eaf954537829b7856c75c4343e451cc615814a1a780"
+  },
+  "preflights_not_counted_as_success": [
+    {
+      "request_id": "73993b33-4a2b-4907-8f3e-b61c2ec235c2",
+      "state": "complete",
+      "success": false,
+      "cases_completed": 3,
+      "model_unchanged": true,
+      "error": [
+        "ValueError: Flat colour regions overlap. Select non-overlapping surfaces or reduce depth."
+      ]
+    },
+    {
+      "request_id": "ccf8f3e5-36c5-40b1-ab28-42d0c8124150",
+      "state": "complete",
+      "success": false,
+      "cases_completed": 5,
+      "model_unchanged": true,
+      "error": [
+        "ValueError: The material export exceeds its triangle budget."
+      ]
+    },
+    {
+      "request_id": "8cba62b2-6663-4a95-b7b9-a3c263eb13fd",
+      "state": "complete",
+      "success": false,
+      "cases_completed": 96,
+      "model_unchanged": true,
+      "error": [
+        "RuntimeError: A dense single face bypassed its cell budget."
+      ]
+    },
+    {
+      "request_id": "c5e048c5-d1f4-4cc8-8f80-6ad18504b4ab",
+      "state": "error",
+      "success": false,
+      "cases_completed": 114,
+      "model_unchanged": true,
+      "error": [
+        "RuntimeError: Fill face did not populate the plane."
+      ]
+    },
+    {
+      "request_id": "f094c33f-c0b4-460f-a9aa-bad569668f3d",
+      "state": "complete",
+      "success": false,
+      "cases_completed": 82,
+      "model_unchanged": true,
+      "error": [
+        "IndexError: tuple index out of range"
+      ]
+    }
+  ],
+  "limits": [
+    "Planar grilles; louvers require a rectangular untrimmed constant-thickness plate aligned with its chart.",
+    "Grille rib width is measured on the selected surface.",
+    "No actual CEF mouse-picking, Undo/Redo, save/reopen, motion, physical printing or successful Bambu CLI slicing is claimed.",
+    "The 41 unchanged polygon-family regressions remain in the explicit full probe mode; current successful native scope excludes them."
+  ]
+}

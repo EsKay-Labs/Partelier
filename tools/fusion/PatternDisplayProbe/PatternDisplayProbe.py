@@ -184,7 +184,7 @@ def _start_workflow(package,design,box,checkpoint,report,finish,runtime):
     command=importlib.import_module(package+'.tools.patterns.command')
     adapter=importlib.import_module(package+'.tools.patterns.fusion')
     recipe=importlib.import_module(package+'.tools.patterns.recipe')
-    settings=importlib.import_module(package+'.tools.patterns.settings').PatternSettings()
+    settings=importlib.import_module(package+'.tools.patterns.settings').PatternSettings(layout_mode='balanced',pitch_mm=17.5,web_mm=5,border_mm=2)
     Runner=importlib.import_module(package+'.tools.patterns.preview').PatternPreviewRunner
     root=design.rootComponent
     feature=root.features.baseFeatures.add()

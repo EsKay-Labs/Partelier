@@ -43,6 +43,9 @@ must be recorded during native validation; developer checks use local Python.
 | `tools/fusion/SnapFitProbe/` | Fixed rollback-only snap-fit native checks |
 | `Partelier/partelier/tools/patterns/auto_fit.py` | Bounded numeric visual-layout scoring, density and exact-size locks; at most two surface-checked proposals |
 | `Partelier/partelier/tools/patterns/tiles.py` / `tiled_layout.py` | Convex polygon motifs, inward gap offsets, rounded profiles and bounded multi-tile layouts |
+| `Partelier/partelier/tools/patterns/inlay.py` / `colour_store.py` | Exact base/colour partition and one owned multi-lump colour body; stable Rebuild and explicit mode conversion |
+| `Partelier/partelier/tools/patterns/colour_export.py` | Two aligned millimetre material meshes in a standard 3MF assembly, read only from recorded outputs |
+| `Partelier/partelier/tools/patterns/grilles.py` | Planar band/grid layouts and bounded sheared rectangular-plate channels |
 | `tools/generate_pattern_samples.py` | Reproduce local SVG family samples from the real numeric planner |
 
 Fusion requires a matching Python entry point and manifest in the add-in folder.

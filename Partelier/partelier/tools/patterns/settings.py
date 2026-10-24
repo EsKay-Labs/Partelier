@@ -21,9 +21,10 @@ class PatternSettings:
     edge_mode: str = "clip"
     density: str = "balanced"
     size_locked: bool = False
+    louver_angle_deg: float = 45.0
 
     def __post_init__(self):
-        for key in ("pitch_mm", "web_mm", "depth_mm", "border_mm", "rotation_deg", "offset_u_mm", "offset_v_mm"):
+        for key in ("pitch_mm", "web_mm", "depth_mm", "border_mm", "rotation_deg", "offset_u_mm", "offset_v_mm", "louver_angle_deg"):
             value = getattr(self, key)
             try:
                 finite = not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value)
@@ -35,10 +36,14 @@ class PatternSettings:
         self.validate()
 
     def validate(self):
-        if self.pattern not in ("hexagon", "circle", "diamond", "square", "slot")+TILED_PATTERNS:
+        if self.pattern not in ("hexagon", "circle", "diamond", "square", "slot", "grille_parallel", "grille_cross", "grille_louver")+TILED_PATTERNS:
             raise ValueError("Choose a supported pattern shape or polygon mosaic.")
-        if self.mode not in ("through", "engrave", "emboss"):
-            raise ValueError("Choose through, engrave or emboss.")
+        if self.mode not in ("through", "engrave", "emboss", "inlay"):
+            raise ValueError("Choose through, engrave, emboss or flat colour.")
+        if not 0 <= self.louver_angle_deg <= 60:
+            raise ValueError("Louver tilt must be between 0 and 60 degrees from the surface normal.")
+        if self.pattern.startswith('grille_') and (self.mode != 'through' or self.layout_mode != 'fill'):
+            raise ValueError("Grilles use through openings with fixed opening width and rib thickness.")
         if self.selection_scope not in ("faces", "body"):
             raise ValueError("Choose selected faces or the whole body.")
         if self.layout_mode not in ("auto", "balanced", "fill", "fit", "fixed"):

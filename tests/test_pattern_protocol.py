@@ -25,6 +25,13 @@ def request(**values):
 
 
 class PatternProtocolTests(unittest.TestCase):
+    def test_colour_export_accepts_only_a_user_selected_owned_result_without_paths(self):
+        value=read_request('pattern_export',request())
+        self.assertIsNone(value.settings)
+        for extra in ({'path':'some-file.3mf'},{'settings':{}},{'sessionId':IDENTITY}):
+            with self.subTest(extra=extra),self.assertRaises(ValueError):
+                read_request('pattern_export',request(**extra))
+
     def test_begin_merges_only_pattern_defaults_and_boolean_editing(self):
         value = read_request("pattern_begin", request(settings={"pattern": "circle", "mode": "engrave"}, editing=True))
         self.assertIsInstance(value.settings, PatternSettings)
@@ -41,7 +48,7 @@ class PatternProtocolTests(unittest.TestCase):
     def test_live_actions_require_all_twelve_fields_and_valid_revision(self):
         values = PatternSettings(pattern="slot", mode="emboss", rotation_deg=-45, offset_u_mm=-2,
                                  layout_mode="fixed").to_dict()
-        self.assertEqual(len(values), 14)
+        self.assertEqual(len(values), 15)
         for action in ("pattern_update", "pattern_preview", "pattern_commit"):
             with self.subTest(action=action):
                 parsed = read_request(action, request(settings=values, sessionId=IDENTITY, revision=5))
