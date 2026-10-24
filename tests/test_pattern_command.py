@@ -251,32 +251,57 @@ class PatternCommandTests(unittest.TestCase):
         self.assertTrue(session.preview_current)
         self.assertEqual(session.prepared.faces, self.faces[:1])
 
-    def test_add_face_preserves_existing_faces_and_returns_after_one_click(self):
+    def test_add_faces_accumulates_sides_until_escape_then_computes_once(self):
         self.ui.activeSelections = Collection([NS(entity=self.faces[0])])
         self.manager.begin_palette(PatternSettings().to_dict())
         session = self.manager._session
         self.preview(session)
-        self.picks[:] = [NS(entity=self.faces[1]), None]
+        states=[]
+        self.manager.set_state_callback(lambda state:states.append(state))
+        self.picks[:] = [NS(entity=self.faces[1]),NS(entity=self.faces[2]), None]
         result = self.action(session, "pattern_focus", target="add_face")
-        self.assertEqual(session.faces, self.faces[:2])
+        self.assertEqual(session.faces, self.faces)
         self.assertEqual(result["phase"], "ready")
-        self.assertEqual(self.ui.selectEntity.call_count, 1)
+        self.assertEqual(self.ui.selectEntity.call_count, 3)
+        self.assertTrue(any(state['phase']=='selecting' and '3 face(s)' in state['selections']['surface']['label'] for state in states))
+        self.assertEqual(len(self.prepared),1,'adding faces does not compute between picks')
         self.assertFalse(self.manager.busy)
         self.assertFalse(session.preview_current)
         self.assertTrue(self.body.isLightBulbOn)
         self.preview(session)
-        self.assertEqual(session.prepared.faces, self.faces[:2])
+        self.assertEqual(session.prepared.faces, self.faces)
 
-    def test_add_duplicate_and_escape_keep_selection_without_another_pick(self):
+    def test_add_duplicate_and_escape_keep_selection_and_do_not_duplicate_faces(self):
         session = self.begin()
         for selected in (NS(entity=self.faces[0]), None):
             with self.subTest(selected=selected):
-                self.picks[:] = [selected]
+                self.picks[:] = [selected,None] if selected is not None else [None]
                 self.action(session, "pattern_focus", target="add_face")
                 self.assertEqual(session.faces, self.faces)
                 self.assertEqual(session.phase, "ready")
                 self.assertFalse(self.manager.busy)
-        self.assertEqual(self.ui.selectEntity.call_count, 2)
+        self.assertEqual(self.ui.selectEntity.call_count, 3)
+
+    def test_escape_exception_finishes_batch_with_the_new_faces_retained(self):
+        self.ui.activeSelections=Collection([NS(entity=self.faces[0])])
+        self.manager.begin_palette(PatternSettings().to_dict())
+        session=self.manager._session
+        self.ui.selectEntity.side_effect=[NS(entity=self.faces[1]),RuntimeError('Selection cancelled')]
+        result=self.action(session,'pattern_focus',target='add_face')
+        self.assertEqual(session.faces,self.faces[:2])
+        self.assertEqual(result['phase'],'ready')
+        self.assertFalse(self.manager.busy)
+
+    def test_invalid_body_mid_batch_keeps_previously_added_sides(self):
+        self.ui.activeSelections=Collection([NS(entity=self.faces[0])])
+        self.manager.begin_palette(PatternSettings().to_dict())
+        session=self.manager._session
+        other=NS(kind='face',isValid=True,body=NS(name='Other'))
+        self.picks[:]=[NS(entity=self.faces[1]),NS(entity=other)]
+        with self.assertRaisesRegex(ValueError,'same solid body'):
+            self.action(session,'pattern_focus',target='add_face')
+        self.assertEqual(session.faces,self.faces[:2])
+        self.assertFalse(self.manager.busy)
 
     def test_replacing_faces_uses_only_new_face_and_escape_retains_previous_selection(self):
         session = self.begin()
@@ -305,6 +330,18 @@ class PatternCommandTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "at most 100 faces"):
             self.action(session, "pattern_focus", target="add_face")
         self.assertEqual(session.faces, faces[:100])
+        self.assertFalse(self.manager.busy)
+
+    def test_batch_stops_at_face_limit_without_waiting_for_escape(self):
+        faces=tuple(NS(kind='face',isValid=True,index=index,body=self.body) for index in range(100))
+        self.ui.activeSelections=Collection([NS(entity=face) for face in faces[:99]])
+        self.manager.begin_palette(PatternSettings().to_dict())
+        session=self.manager._session
+        self.picks[:]=[NS(entity=faces[99])]
+        result=self.action(session,'pattern_focus',target='add_face')
+        self.assertEqual(session.faces,faces)
+        self.assertEqual(result['phase'],'ready')
+        self.assertEqual(self.ui.selectEntity.call_count,1)
         self.assertFalse(self.manager.busy)
 
     def test_initial_escape_returns_without_geometry_or_waiting_for_another_face(self):

@@ -955,10 +955,62 @@ def _flat_grille_cases(design):
         _case('grille_'+shape+'_'+str(rotation)+'_'+str(tilt),grille)
 
 
+def _box_faces_cases(design):
+    """Six non-coplanar outer sides, retaining every independent face border.
+
+    Picks are supplied programmatically using real native faces; this does not
+    claim manual pointer/CEF acceptance of the repeated Fusion selector.
+    """
+    from types import SimpleNamespace as NS
+    commands=importlib.import_module(STATE['package_name']+'.tools.patterns.command')
+    for shape,mode in (('hexagon','through'),('triangle','engrave'),('cairo','emboss')):
+        def box(shape=shape,mode=mode):
+            manager=adsk.fusion.TemporaryBRepManager.get()
+            shell=_boolean(manager,_box(manager,-20,20,-20,20,-20,20),_box(manager,-17,17,-17,17,-17,17))
+            _,body=_persist(design,shell,'six-face-box-'+mode)
+            faces=tuple(face for face in _items(body.faces)
+                        if max(abs(value) for value in _xyz(face.pointOnFace))>1.99)
+            if len(faces)!=6:raise RuntimeError('Expected six outer box faces.')
+            settings=STATE['settings_module'].PatternSettings(pattern=shape,mode=mode,layout_mode='fill',
+                pitch_mm=17,web_mm=7,border_mm=5,depth_mm=.5)
+            snapshots=[]
+            owner=NS(publish=lambda session:snapshots.append(session.snapshot()))
+            session=commands._Session(owner,design,settings,False)
+            session.set_faces(faces[:1])
+            picks=iter([NS(entity=face) for face in faces[1:]]+[None])
+            ui=NS(activeCommand='SelectCommand',selectEntity=lambda *args:next(picks))
+            original_core=commands.core
+            commands.core=NS(Application=NS(get=lambda:NS(activeProduct=design,userInterface=ui)))
+            try:commands.PatternCommands.pick(owner,session,'add_face')
+            finally:commands.core=original_core
+            if session.faces!=faces or session.phase!='ready':
+                raise RuntimeError('Batch selection lost a box side after Escape.')
+            prepared=prepare_checked(design,session.faces,settings)
+            if len(prepared.layouts)!=6 or not all(layout.cell_count for layout in prepared.layouts):
+                raise RuntimeError('A selected box side received no pattern cells.')
+            if mode=='through':
+                if {item['face_index'] for item in prepared.accepted_samples}!=set(range(6)):
+                    raise RuntimeError('Wall witnesses do not cover all six box sides.')
+                if any(abs(item['first_exit_mm']-3)>.01 for item in prepared.accepted_samples):
+                    raise RuntimeError('The six-face box did not isolate each first wall.')
+                count,history=design.rootComponent.bRepBodies.count,design.timeline.count
+                anchor=STATE['recipe'].create_pattern(design,prepared)
+                target=STATE['recipe'].read_edit_target(design,body)
+                changed=STATE['recipe'].prepare_edit_pattern(design,target,replace(settings,rotation_deg=15))
+                STATE['recipe'].rebuild_pattern(design,target,changed)
+                if (target.record.target!=body or len(target.recipe['sources']['faces'])!=6
+                        or design.rootComponent.bRepBodies.count!=count or design.timeline.count!=history+3):
+                    raise RuntimeError('Multi-face Create/Edit/Rebuild lost sources or duplicated the body.')
+            return {'shape':shape,'mode':mode,'selected_faces':6,'cells_per_face':[layout.cell_count for layout in prepared.layouts],
+                'programmatic_native_face_picks':True,'first_wall_only':mode=='through','source_identity_retained':True}
+        _case('box_six_outer_faces_'+shape+'_'+mode,box)
+
+
 def cases(*, include_polygon_regressions=False):
     design = STATE["design"]
     Settings = _fixed_settings
     recipe = STATE["recipe"]
+    _box_faces_cases(design)
     _flat_grille_cases(design)
     _clip_cases(design)
     _auto_cases(design)

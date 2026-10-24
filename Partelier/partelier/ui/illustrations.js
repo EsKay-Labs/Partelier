@@ -299,7 +299,7 @@ window.PartelierIllustrations = (() => {
             return `<svg viewBox="0 0 440 270" role="img" aria-label="Planar grille concept" data-pattern-surface="panel" data-pattern-cell="${settings.pattern}"><rect x="20" y="22" width="400" height="212" rx="8" fill="#365f88"/><rect x="34" y="36" width="372" height="184" fill="#edf4ff"/>${bars}${inclined}${horizontal}<text x="220" y="258" text-anchor="middle" fill="#365f88" font-size="12">${cross?"Crossed ribs":louver?"Inclined channels · planar plate":"Parallel bars · rotate for diagonal"}</text></svg>`;
         }
         if(settings.mode==="inlay") {
-            if(mosaics.includes(settings.pattern)) return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} flat colour sample" data-pattern-surface="panel" data-pattern-mode="inlay"><image href="pattern-previews/${settings.pattern}.svg?v=0.13.0" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#365f88" font-size="12">Flat colour · flush surface · two material parts</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
+            if(mosaics.includes(settings.pattern)) return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} flat colour sample" data-pattern-surface="panel" data-pattern-mode="inlay"><image href="pattern-previews/${settings.pattern}.svg?v=0.13.1" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#365f88" font-size="12">Flat colour · flush surface · two material parts</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
             const cells=Array.from({length:5},(_,row)=>Array.from({length:8},(_,col)=>{
                 const x=52+col*44+(row%2)*22,y=45+row*39;
                 if(settings.pattern==="circle") return `<circle cx="${x}" cy="${y}" r="15" fill="#267de1"/>`;
@@ -312,7 +312,7 @@ window.PartelierIllustrations = (() => {
         }
         if (mosaics.includes(settings.pattern)) {
             const mode = ["through","engrave","emboss"].includes(settings.mode) ? settings.mode : "through";
-            return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} polygon pattern sample" data-pattern-surface="panel" data-pattern-mode="${mode}"><image href="pattern-previews/${settings.pattern}.svg?v=0.13.0" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#536b8c" font-family="Segoe UI,sans-serif" font-size="9">Pattern sample · exact live preview follows your selected surface</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
+            return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} polygon pattern sample" data-pattern-surface="panel" data-pattern-mode="${mode}"><image href="pattern-previews/${settings.pattern}.svg?v=0.13.1" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#536b8c" font-family="Segoe UI,sans-serif" font-size="9">Pattern sample · exact live preview follows your selected surface</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
         }
         const pattern = ["hexagon", "circle", "diamond", "square", "slot"].includes(settings.pattern) ? settings.pattern : "hexagon";
         const mode = ["through", "engrave", "emboss"].includes(settings.mode) ? settings.mode : "through";

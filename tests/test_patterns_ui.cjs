@@ -209,7 +209,7 @@ function fixture(options = {}) {
     f.config.holdPick=true;const timeouts=f.timeouts();f.$("begin-pattern-button").emit("click");await f.flush();assert.equal(f.timeouts(),timeouts);assert.equal(f.$("tool-select").disabled,true);
     f.config.release();f.config.holdPick=false;await f.flush();await f.click("pattern-select-surface");assert.equal(f.snapshot().phase,"preview");assert.equal(f.$("create-pattern-button").disabled,false);
     assert.equal(f.requests.filter(([a])=>a==="pattern_focus").at(-1)[1].target,"faces");
-    assert.equal(f.$("pattern-add-face").disabled,false);assert(!f.$("pattern-selection-help").textContent.includes("Esc"));
+    assert.equal(f.$("pattern-add-face").disabled,false);assert(f.$("pattern-selection-help").textContent.includes("Esc"));assert.equal(f.$("pattern-add-face").textContent,"Add faces");assert.equal(f.$("pattern-selection-help").hidden,false);
     const beforeAdd=f.requests.length;f.config.holdPick=true;f.$("pattern-add-face").emit("click");await f.flush();
     assert.equal(f.requests.at(-1)[1].target,"add_face");assert.equal(f.snapshot().selections.surface.selected,true,"adding a face keeps the existing selection while picking");
     f.push({...f.snapshot(),phase:"selecting"});assert.equal(f.$("pattern-live-preview-status").textContent,"Live preview · selecting surfaces");assert.equal(f.$("pattern-selection-help").hidden,false);
@@ -301,9 +301,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.13.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.13.1"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.13.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.13.1"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.click("begin-pattern-button");await logged.click("pattern-select-surface");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.click("begin-pattern-button");const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));

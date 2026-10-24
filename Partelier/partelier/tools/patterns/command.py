@@ -158,20 +158,22 @@ class PatternCommands:
         elif target=='body' and session.settings.selection_scope=='body':
             prompt,filters='Select the solid to pattern on all its faces. Esc cancels picking.','SolidBodies'
         elif target in {'faces','add_face'} and session.settings.selection_scope=='faces':
-            prompt,filters='Select one face. Use Add face for more surfaces. Esc cancels picking.','Faces'
+            prompt,filters=('Select more faces on this body. Esc finishes the selection.' if target=='add_face'
+                            else 'Select the first face. Use Add faces for more sides. Esc cancels picking.'),'Faces'
         else:raise ValueError("Use the current pattern selection scope.")
         session.phase='selecting';session.message=prompt;self.publish(session)
         faces=list(session.faces) if target=='add_face' else []
         emit('pattern.pick.wait',session_id=session.session_id,target=target,filters=filters,count=len(faces),
              active_command=_active_command())
-        try:selected=ui.selectEntity(prompt,filters)
-        except RuntimeError as error:
-            emit('pattern.pick.interrupted',session_id=session.session_id,error=str(error))
-            selected=None
-        emit('pattern.pick.return',session_id=session.session_id,target=target,
-             has_entity=selected is not None and selected.entity is not None)
-        session.ensure_design()
-        if selected is not None and selected.entity is not None:
+        while True:
+            try:selected=ui.selectEntity(prompt,filters)
+            except RuntimeError as error:
+                emit('pattern.pick.interrupted',session_id=session.session_id,error=str(error))
+                selected=None
+            emit('pattern.pick.return',session_id=session.session_id,target=target,
+                 has_entity=selected is not None and selected.entity is not None)
+            session.ensure_design()
+            if selected is None or selected.entity is None:break
             if session.editing:
                 session.select_target(selected.entity)
             elif target=='body':
@@ -181,11 +183,20 @@ class PatternCommands:
                 face=native.BRepFace.cast(selected.entity)
                 if face is None:raise ValueError("Select a solid face.")
                 if faces and face.body!=faces[0].body:raise ValueError("Choose faces on the same solid body.")
-                if face not in faces:faces.append(face)
+                if face not in faces:
+                    if len(faces)>=100:raise ValueError("Select at most 100 faces.")
+                    faces.append(face)
                 emit('pattern.pick.accepted',session_id=session.session_id,count=len(faces))
-                if len(faces)>100:raise ValueError("Select at most 100 faces.")
                 session.set_faces(faces)
+            if target=='add_face' and len(faces)<100:
+                # Keep the real solid visible while accumulating sides. Compute
+                # once after Esc, rather than rebuilding between every pick.
+                session.phase='selecting'
+                session.message=f'{len(faces)} faces selected. Click another side; Esc finishes and updates preview.'
+                self.publish(session)
+                continue
             self.publish(session)
+            break
         session.validate()
         emit('pattern.pick.end',session_id=session.session_id,target=target,count=len(session.faces),phase=session.phase)
 

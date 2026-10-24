@@ -6,6 +6,30 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.13.1 batch face selection
+
+**Add faces** accepts successive picks on the same solid until Esc, updates the
+selected count after each pick, and computes preview once at the end. The first
+face still starts preview immediately. Duplicate picks are ignored; escaping a
+batch retains accepted faces. The 100-face cap stops a full batch automatically.
+The separate **Replace faces** action retains its single-face behavior. The
+picker count, full-width Add faces button and persistent finishing instruction
+remain readable in headless Edge at 300/380/520 px without overflow.
+
+Passed **917 Python tests**, including 34 command lifecycle cases, all three
+Node DOM suites, compilation and whitespace checks. Native Fusion 2705.1.30
+request **c11d5dc8-bf84-4c7a-a0a5-c059ed3b1711** passes **90 cases**: the previous
+87-case scope plus six outer box sides with hexagon through cuts, triangle
+engraving and Cairo embossing. Each selected side receives cells. The through
+case measures the first 3 mm wall on every side and exercises Create/Edit/Rebuild
+with six saved source faces, the original body and exactly three owned features.
+Original document references and snapshots restore; async supersession and
+cached Create also pass. Picks use programmatic inputs with real native faces;
+actual manual pointer/CEF interaction remains to be confirmed. No motif, mapper
+or recipe schema changed, and the unchanged 41-case polygon-family matrix is
+excluded from this count. Fingerprints and scoped results are recorded in
+`docs/validation/multiple-faces-0.13.1.json`.
+
 ## 0.13.0 flat colour and planar grilles
 
 Passed **914 Python tests**, all three Node DOM suites, compilation and whitespace

@@ -15,9 +15,13 @@ and existing holes remain protected.
 
 Choose one of 15 shapes or mosaics, then **Through
 holes**, **Engrave** or **Emboss**. In 0.10.4, selecting one face immediately
-starts preview. Use **Add face** for another face on the same solid, or **Faces**
-to replace the selection. Esc cancels the current pick and keeps the previous
-selection. Multiple preselected faces are reused. The default **Layout > Auto fit** uses
+starts preview. In **0.13.1**, **Add faces** keeps the solid visible and accepts
+successive picks on different sides of the same body. Click each required side,
+then **Esc** to finish and update preview once. The live face count updates after
+each pick; duplicate picks do not add duplicate faces. **Replace faces** starts
+over with one face. Esc before a replacement keeps the previous selection;
+Esc during Add faces retains every accepted side. Faces need not be coplanar.
+Multiple preselected faces are also reused. The default **Layout > Auto fit** uses
 surface-dependent size and count; choose **Balanced** for an exact size and a sparse grid.
 Adjust **Cell size**, **Minimum gap** and **Border**. These names stay the same in all
 layout and action modes. Through holes hide the unused **Depth / height** field.

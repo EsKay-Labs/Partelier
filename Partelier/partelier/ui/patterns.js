@@ -171,8 +171,8 @@
     }
     function renderSelection() {
         const body = state.settings.selection_scope === "body", target = editing() ? "edit_target" : body ? "body" : "faces";
-        const caption = editing() ? "Pattern result" : body ? "Body" : "Faces";
         const picked = state.session?.selections?.surface;
+        const caption = editing() ? "Pattern result" : body ? "Body" : picked?.selected ? "Replace faces" : "Faces";
         const button = document.createElement("button"); button.id = "pattern-select-surface"; button.type = "button"; button.className = "selection-button";
         button.disabled = !supported() || !identity() || state.busy || state.session?.phase === "opening";
         const label = document.createElement("strong"); label.textContent = caption;
@@ -182,13 +182,12 @@
         button.addEventListener("click", () => { trace("click", { control:"surface",target }); cancelTimer(); run(async () => { await sessionAction("pattern_focus", { target }); await refresh(); },"pattern_focus"); });
         $("pattern-selections").replaceChildren(button);
         if (!editing() && !body && picked?.selected && identity()) {
-            button.setAttribute("style","grid-column:span 2");
-            const add = document.createElement("button"); add.id = "pattern-add-face"; add.type = "button"; add.className = "selection-button"; add.textContent = "Add face"; add.disabled = button.disabled;
+            const add = document.createElement("button"); add.id = "pattern-add-face"; add.type = "button"; add.className = "selection-button"; add.textContent = "Add faces"; add.disabled = button.disabled;
             add.addEventListener("click", () => { trace("click", { control:"add_face",target:"add_face" }); cancelTimer(); run(async () => { await sessionAction("pattern_focus", { target:"add_face" }); await refresh(); },"pattern_focus"); });
             $("pattern-selections").append(add);
         }
-        $("pattern-selection-help").textContent = editing() ? "Pick a saved Partelier pattern." : body ? "Pick one body. Preview updates automatically." : "Pick one face to preview. Use Add face for more surfaces.";
-        $("pattern-selection-help").hidden = !!identity() && selected() && !(state.busy && state.session?.phase === "selecting");
+        $("pattern-selection-help").textContent = editing() ? "Pick a saved Partelier pattern." : body ? "Pick one body. Preview updates automatically." : picked?.selected ? "Add faces: click each side of the same body, then Esc to finish and update preview." : "Pick one face to preview. Use Add faces for more sides.";
+        $("pattern-selection-help").hidden = (editing() || body) && !!identity() && selected() && !(state.busy && state.session?.phase === "selecting");
         $("begin-pattern-button").textContent = body ? "Select body" : "Select faces";
     }
     function render() {
@@ -428,5 +427,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.13.0" }); renderArt(); render();
+    trace("boot", { build:"0.13.1" }); renderArt(); render();
 })();
