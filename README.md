@@ -5,7 +5,7 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current code:** experimental 0.12.0 provides surface patterns, an editable separate-pin hinge
+**Current code:** experimental 0.12.1 provides surface patterns, an editable separate-pin hinge
 and four snap-fit families: Hook latch, Ball detent, Torsion latch and Annular
 ring. Hook latch also offers straight, tapered or twin arms. Snap-fits include
 optional 45-degree root/receiver roofs and complete eligible outer-edge chamfers;
@@ -43,6 +43,8 @@ including full cylinder wraps, regular cone/sphere regions and cached preview
 creation after rollback. The original model, document and camera are restored.
 Other tools remain planned. The older honeycomb input checker remains a separate
 diagnostic and creates no geometry.
+
+**New in 0.12.1:** new patterns start in **Auto fit**, with **7 mm Minimum gap** and **7 mm Border**. Existing saved patterns keep their settings.
 
 **New in 0.12.0:** the Pattern dropdown has **15 real choices**, adding alternating
 and rounded triangles, pentagons, Cairo pentagons, octagons, hexagon/triangle and
@@ -119,7 +121,7 @@ geometry remains separate for Create/Rebuild. Display scratch geometry is
 removed inside the rollback computation; temporary files are deleted. The
 unstable direct mesh-calculator experiment remains removed.
 
-**Try the updated tools:** Stop then Run Partelier to load 0.12.0. The tool library opens
+**Try the updated tools:** Stop then Run Partelier to load 0.12.1. The tool library opens
 automatically; choose **Snap-fit**, then **Snap type**. For Hook latch, Ball detent
 or Torsion latch, pick the base exterior wall A, the coplanar lid wall B,
 then either facing straight rim. Matching rims may have a gap between them;

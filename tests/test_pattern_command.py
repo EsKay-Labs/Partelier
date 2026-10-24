@@ -179,7 +179,8 @@ class PatternCommandTests(unittest.TestCase):
         self.prepared = []
         def prepare(design, faces, settings):
             value = NS(design=design, body=self.body, faces=faces, settings=settings, cell_count=24,
-                       result_body=NS(isTemporary=True), record=None)
+                       result_body=NS(isTemporary=True), record=None,
+                       layouts=(NS(cell_count=24,cell_size_mm=12.5,effective_pitch_mm=20,proposals_evaluated=16,acceptance_checks=24),))
             self.prepared.append(value)
             return value
         self.fusion.prepare_pattern.side_effect = prepare
@@ -457,7 +458,7 @@ class PatternCommandTests(unittest.TestCase):
                               NS(cell_count=4, effective_pitch_mm=22))
             return result
         self.fusion.prepare_pattern.side_effect = prepare
-        session = self.begin(PatternSettings(web_mm=1.5))
+        session = self.begin(PatternSettings(layout_mode="balanced",pitch_mm=17.5,web_mm=1.5))
         self.preview(session)
         self.assertIn('cell size 16 mm', session.message)
         self.assertIn('grid gap ≈ 4.00 mm', session.message)
@@ -475,7 +476,7 @@ class PatternCommandTests(unittest.TestCase):
         self.assertIn('Auto fit · balanced',session.message)
         self.assertIn('cell size 18.25 mm',session.message)
         self.assertEqual(session.snapshot()['suggestedSizeMm'],18.25)
-        self.assertEqual(session.settings.pitch_mm,17.5)
+        self.assertEqual(session.settings.pitch_mm,19.5)
         session.clear_preview()
         self.assertIsNone(session.snapshot()['suggestedSizeMm'])
 
@@ -493,7 +494,7 @@ class PatternCommandTests(unittest.TestCase):
             result.layouts=(NS(cell_count=7,cell_size_mm=12.5,repeat_u_mm=40),)
             return result
         self.fusion.prepare_pattern.side_effect=prepare
-        session=self.begin(PatternSettings(pattern='trihex'))
+        session=self.begin(PatternSettings(pattern='trihex',layout_mode='fill',pitch_mm=17.5,web_mm=5))
         self.preview(session)
         self.assertIn('cell size 12.50 mm',session.message)
         self.assertIn('minimum gap 5 mm',session.message)

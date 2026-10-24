@@ -6,6 +6,17 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.12.1 pattern defaults
+
+New patterns start in Auto fit with 7 mm gap and 7 mm border. The manual size
+reference stays 12.5 mm; saved recipes retain their stored settings. No geometry
+algorithm or recipe format changed. Local validation passed 902 Python tests,
+all three Node UI suites, compilation and whitespace checks. Existing fixture
+values are explicit where tests exercise historical layouts or dimensions;
+the default and Edit UI checks cover the new values and restoration of old ones.
+No additional native Fusion run was performed for this defaults-only release;
+the 0.12.0 native results below remain evidence for that earlier revision.
+
 ## One-time setup
 
 In Fusion, open Utilities > Scripts and Add-Ins > + > Script or add-in from device.

@@ -9,15 +9,15 @@ from .tiles import TILED_PATTERNS
 class PatternSettings:
     pattern: str = "hexagon"
     mode: str = "through"
-    pitch_mm: float = 17.5
-    web_mm: float = 5.0
+    pitch_mm: float = 19.5
+    web_mm: float = 7.0
     depth_mm: float = 1.0
-    border_mm: float = 2.0
+    border_mm: float = 7.0
     rotation_deg: float = 0.0
     offset_u_mm: float = 0.0
     offset_v_mm: float = 0.0
     selection_scope: str = "faces"
-    layout_mode: str = "balanced"
+    layout_mode: str = "auto"
     edge_mode: str = "clip"
     density: str = "balanced"
     size_locked: bool = False

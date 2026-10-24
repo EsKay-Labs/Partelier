@@ -293,7 +293,7 @@ window.PartelierIllustrations = (() => {
         const mosaics = ["triangle","rounded_triangle","pentagon","octagon","trihex","octagon_square","cairo","rhombille","rounded_hexagon","elongated_hexagon"];
         if (mosaics.includes(settings.pattern)) {
             const mode = ["through","engrave","emboss"].includes(settings.mode) ? settings.mode : "through";
-            return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} polygon pattern sample" data-pattern-surface="panel" data-pattern-mode="${mode}"><image href="pattern-previews/${settings.pattern}.svg?v=0.12.0" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#536b8c" font-family="Segoe UI,sans-serif" font-size="9">Pattern sample · exact live preview follows your selected surface</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
+            return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} polygon pattern sample" data-pattern-surface="panel" data-pattern-mode="${mode}"><image href="pattern-previews/${settings.pattern}.svg?v=0.12.1" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#536b8c" font-family="Segoe UI,sans-serif" font-size="9">Pattern sample · exact live preview follows your selected surface</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
         }
         const pattern = ["hexagon", "circle", "diamond", "square", "slot"].includes(settings.pattern) ? settings.pattern : "hexagon";
         const mode = ["through", "engrave", "emboss"].includes(settings.mode) ? settings.mode : "through";

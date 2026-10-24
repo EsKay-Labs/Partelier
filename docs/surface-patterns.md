@@ -17,14 +17,17 @@ Choose one of 15 shapes or mosaics, then **Through
 holes**, **Engrave** or **Emboss**. In 0.10.4, selecting one face immediately
 starts preview. Use **Add face** for another face on the same solid, or **Faces**
 to replace the selection. Esc cancels the current pick and keeps the previous
-selection. Multiple preselected faces are reused. Choose **Layout > Auto fit** for
-surface-dependent size and count, or keep **Balanced** for an exact size and a sparse grid.
+selection. Multiple preselected faces are reused. The default **Layout > Auto fit** uses
+surface-dependent size and count; choose **Balanced** for an exact size and a sparse grid.
 Adjust **Cell size**, **Minimum gap** and **Border**. These names stay the same in all
 layout and action modes. Through holes hide the unused **Depth / height** field.
 Rotation, offsets and **Edge cells** live under Advanced.
 
-Version **0.12.0** retains the new-pattern defaults of **12.5 mm Cell size**, **5 mm Minimum
-gap**, **2 mm Border** and **Clip at border**. The local **?** dialogs explain
+Version **0.12.1** starts new patterns in **Auto fit**, with **7 mm Minimum gap**,
+**7 mm Border**, **Balanced** density, automatic size, and **Clip at border**.
+The manual size reference remains **12.5 mm** (19.5 mm pitch minus 7 mm gap).
+Gap and Border are independently editable after starting; saved patterns retain
+their stored dimensions and layout when loaded for Edit. The local **?** dialogs explain
 every field in Greek with an original SVG comparison; they do not request CAD
 geometry or change settings. Close with Esc, the close button or a backdrop
 click; focus returns to the help trigger.

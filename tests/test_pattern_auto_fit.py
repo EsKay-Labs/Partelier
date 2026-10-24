@@ -13,7 +13,7 @@ from test_pattern_fit_layout import opening_distance
 
 class AutoFitTests(unittest.TestCase):
     def settings(self, **values):
-        return PatternSettings(**{'layout_mode':'auto',**values})
+        return PatternSettings(**{'layout_mode':'auto','web_mm':5,'border_mm':2,**values})
 
     def test_densities_change_size_and_count_for_all_current_shapes(self):
         for shape in ('hexagon','circle','diamond','square','slot'):

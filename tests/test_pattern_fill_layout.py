@@ -17,7 +17,7 @@ class PatternFillLayoutTests(unittest.TestCase):
                 layouts=[]
                 for size in (5,10,20):
                     with self.subTest(shape=shape,edge=edge,size=size):
-                        settings=PatternSettings(pattern=shape,pitch_mm=size+5,edge_mode=edge)
+                        settings=PatternSettings(pattern=shape,pitch_mm=size+5,web_mm=5,layout_mode="balanced",edge_mode=edge)
                         layout=build_layout(settings,(0,300,0,170))
                         self.assertTrue(0<layout.cell_count<=48)
                         self.assertGreaterEqual(layout.pitch_mm,settings.pitch_mm-1e-7)
@@ -30,7 +30,7 @@ class PatternFillLayoutTests(unittest.TestCase):
     def test_balanced_size_and_minimum_gap_survive_wrap_spacing_adjustment(self):
         period=200
         for size in (5,10,15):
-            settings=PatternSettings(pitch_mm=size+5,edge_mode='whole')
+            settings=PatternSettings(pitch_mm=size+5,web_mm=5,layout_mode='balanced',edge_mode='whole')
             layout=build_layout(settings,(0,period,0,100),period)
             self.assertTrue(0<layout.cell_count<=48)
             self.assertGreaterEqual(layout.pitch_mm,settings.pitch_mm-1e-7)
@@ -44,8 +44,11 @@ class PatternFillLayoutTests(unittest.TestCase):
         settings = PatternSettings()
         sparse = build_layout(settings, (0,200,0,160))
         automatic = build_layout(replace(settings, layout_mode='fit'), (0,200,0,160))
-        self.assertEqual(settings.layout_mode, 'balanced')
-        self.assertTrue(0 < sparse.cell_count <= 48)
+        self.assertEqual(settings.layout_mode, 'auto')
+        self.assertEqual((settings.web_mm, settings.border_mm), (7, 7))
+        self.assertEqual(settings.pitch_mm-settings.web_mm, 12.5)
+        self.assertFalse(settings.size_locked)
+        self.assertTrue(0 < sparse.cell_count <= 64)
         self.assertGreater(automatic.cell_count, sparse.cell_count)
         self.assertGreater(sparse.pitch_mm, automatic.pitch_mm)
 

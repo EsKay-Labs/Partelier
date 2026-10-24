@@ -202,7 +202,7 @@ class SurfaceBoundaryTests(unittest.TestCase):
 
     def test_pattern_cells_cover_middle_below_all_three_top_tabs(self):
         chart,_=self.chart()
-        settings=PatternSettings(pitch_mm=8,web_mm=1.2,layout_mode='fixed',edge_mode='whole')
+        settings=PatternSettings(pitch_mm=8,web_mm=1.2,border_mm=2,layout_mode='fixed',edge_mode='whole')
         accepted=[chart.sample(*cell.center_mm).point_mm for cell in
             build_cells(settings,chart.bounds,period_u_mm=chart.period_u_mm)
             if chart.accepts(*cell.center_mm,cell.radius_mm,settings.border_mm)]

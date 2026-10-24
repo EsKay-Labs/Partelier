@@ -2,7 +2,7 @@
 // Exercise all three actual controllers through one native-message fixture.
 const assert = require("node:assert/strict"), fs = require("node:fs"), vm = require("node:vm"), path = require("node:path");
 const ui = path.join(__dirname, "..", "Partelier", "partelier", "ui"), html = fs.readFileSync(path.join(ui, "palette.html"), "utf8");
-const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 17.5, web_mm: 5, depth_mm: 1, border_mm: 2, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "balanced", edge_mode: "clip", density: "balanced", size_locked: false };
+const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false };
 const idle = () => ({ sessionId: null, revision: 0, phase: "idle", editing: false, settings: null, selections: {}, message: "" });
 function fixture(options = {}) {
     const ids = new Map();
@@ -98,7 +98,10 @@ function fixture(options = {}) {
     }
     assert.equal(guide.requests.length,beforeHelp,"illustrated help never sends CAD or preview requests");
     assert.equal(guide.$("pattern-cell_size_mm").value,"12.5");
-    assert.equal(guide.$("pattern-web_mm").value,"5");
+    assert.equal(guide.$("pattern-web_mm").value,"7");
+    assert.equal(guide.$("pattern-border_mm").value,"7");
+    assert.equal(guide.$("pattern-layout_mode").value,"auto");
+    assert.equal(guide.$("pattern-size_locked").value,"false");
     assert.equal(guide.$("pattern-edge_mode").value,"clip");
     for(const mode of ["fit","fixed","balanced","fill"]) {
         await guide.input("layout_mode",mode);
@@ -139,17 +142,17 @@ function fixture(options = {}) {
     const autoBefore=auto.requests.filter(([a])=>a==="pattern_preview").length;
     await auto.input("cell_size_mm",9);
     assert.equal(auto.snapshot().settings.size_locked,true);
-    assert.equal(auto.snapshot().settings.pitch_mm,14);
+    assert.equal(auto.snapshot().settings.pitch_mm,16);
     assert.equal(auto.$("pattern-size_locked").value,"true");
     assert.equal(auto.requests.filter(([a])=>a==="pattern_preview").length,autoBefore+1);
     await auto.input("density","dense");
     assert.equal(auto.snapshot().settings.size_locked,true,"density does not undo a manual size lock");
-    assert.equal(auto.snapshot().settings.pitch_mm,14);
+    assert.equal(auto.snapshot().settings.pitch_mm,16);
     await auto.input("size_locked","false");
     assert.equal(auto.snapshot().settings.size_locked,false,"the wire snapshot retains a real boolean");
     auto.push({...auto.snapshot(),suggestedSizeMm:18.25,previewCurrent:true});
     await auto.input("size_locked","true");
-    assert.equal(auto.snapshot().settings.pitch_mm,23.25,"locking the displayed proposal adopts its actual dimension");
+    assert.equal(auto.snapshot().settings.pitch_mm,25.25,"locking the displayed proposal adopts its actual dimension");
     await auto.input("cell_size_mm","");
     assert.equal(auto.$("create-pattern-button").disabled,true);
     await auto.input("size_locked","false");
@@ -166,7 +169,7 @@ function fixture(options = {}) {
     const f=fixture();await f.flush();await f.select("honeycomb");
     assert.equal(f.$("pattern-tool").hidden,false);assert.equal(f.$("planned-tool").hidden,true);assert.equal(f.$("hinge-action-dock").hidden,true);assert.equal(f.$("snap-action-dock").hidden,true);
     assert.equal(f.$("pattern-pattern").value,"hexagon");assert.equal(f.$("pattern-mode").value,"through");assert.equal(f.$("pattern-depth_mm").disabled,true);
-    assert.equal(f.$("pattern-layout_mode").value,"balanced");assert.equal(f.$("pattern-layout_mode").parentElement.children[0].textContent,"Layout");
+    assert.equal(f.$("pattern-layout_mode").value,"auto");assert.equal(f.$("pattern-layout_mode").parentElement.children[0].textContent,"Layout");
     assert.equal(f.$("pattern-pitch_mm").parentElement.children[0].textContent,"Pitch");
     assert.deepEqual(f.$("pattern-layout_mode").children.map(option=>[option.value,option.textContent]),[["auto","Auto fit · visual balance"],["balanced","Balanced · fewer cells"],["fill","Fill face · fixed size"],["fit","Automatic size"],["fixed","Exact pitch"]]);
     assert.equal(f.$("begin-pattern-button").disabled,false);assert.equal(f.$("create-pattern-button").disabled,true);
@@ -215,7 +218,7 @@ function fixture(options = {}) {
     await f.click("pattern-select-surface");assert.equal(f.requests.filter(([a])=>a==="pattern_focus").at(-1)[1].target,"body");assert.equal(f.$("create-pattern-button").disabled,false);
     f.config.holdCommit=true;f.$("create-pattern-button").emit("click");await f.flush();const committing=f.snapshot();f.push(committing);assert.equal(f.$("pattern-pattern").disabled,true);f.push({...committing,sessionId:null,phase:"created",message:"Pattern created."});f.config.release();f.config.holdCommit=false;await f.flush();assert.equal(f.$("tool-select").disabled,false);assert.equal(f.$("cancel-pattern-button").disabled,true);
     f.config.completePick=true;await f.click("begin-pattern-button");const retiring=f.snapshot();await f.click("cancel-pattern-button");f.push({...retiring,phase:"preview"});assert.equal(f.$("tool-select").disabled,false);f.config.delayedPush={...retiring,phase:"preview"};await f.click("begin-pattern-button");assert.notEqual(f.snapshot().sessionId,retiring.sessionId);await f.click("cancel-pattern-button");
-    f.config.saved={...defaults,pattern:"square",mode:"engrave",pitch_mm:12,depth_mm:.7,selection_scope:"body",layout_mode:"fixed"};await f.click("edit-pattern-button");assert.equal(f.$("pattern-pattern").value,"square");assert.equal(f.$("pattern-depth_mm").value,"0.7");assert.equal(f.$("pattern-selection_scope").disabled,true);
+    f.config.saved={...defaults,pattern:"square",mode:"engrave",pitch_mm:12,web_mm:5,border_mm:2,depth_mm:.7,selection_scope:"body",layout_mode:"fixed"};await f.click("edit-pattern-button");assert.equal(f.$("pattern-pattern").value,"square");assert.equal(f.$("pattern-web_mm").value,"5");assert.equal(f.$("pattern-border_mm").value,"2");assert.equal(f.$("pattern-layout_mode").value,"fixed");assert.equal(f.$("pattern-depth_mm").value,"0.7");assert.equal(f.$("pattern-selection_scope").disabled,true);
     assert.equal(f.$("pattern-layout_mode").value,"fixed","migrated recipes retain exact spacing when Edit opens");assert.equal(f.$("pattern-pitch_mm").parentElement.children[0].textContent,"Pitch");
     assert(!f.$("pattern-selections").children.some(element=>element.id==="pattern-add-face"),"Edit has no Add face action");
     const beforeScope=f.requests.length;await f.input("selection_scope","faces");assert.equal(f.requests.length,beforeScope);assert.equal(f.$("pattern-selection_scope").value,"body");await f.input("depth_mm",.8);await f.click("create-pattern-button");assert.equal(f.snapshot().settings.depth_mm,.8);assert.equal(f.snapshot().settings.layout_mode,"fixed");assert.equal(f.$("pattern-selection_scope").disabled,false);
@@ -274,9 +277,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.12.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.12.1"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.12.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.12.1"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.click("begin-pattern-button");await logged.click("pattern-select-surface");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.click("begin-pattern-button");const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));

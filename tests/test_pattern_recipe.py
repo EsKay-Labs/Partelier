@@ -65,7 +65,7 @@ class PatternRecipeTests(unittest.TestCase):
         self.design.findEntityByToken = Mock(side_effect=resolve)
         self.anchor = NS(attributes=Attributes(self.events))
         self.record = NS(anchor=self.anchor, feature_id="a824b03c-044b-467b-8b12-19e85e6d3510")
-        self.settings = PatternSettings(pattern="circle", mode="engrave", pitch_mm=9,
+        self.settings = PatternSettings(pattern="circle", mode="engrave", layout_mode="balanced", pitch_mm=9,
             web_mm=1.5, depth_mm=.6, border_mm=0, rotation_deg=-30,
             offset_u_mm=-1.2, offset_v_mm=2.3, selection_scope="faces")
         self.tokens = {"body": self.body.entityToken, "faces": [face.entityToken for face in self.faces]}
