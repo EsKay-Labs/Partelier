@@ -1311,6 +1311,7 @@ def cases(*, include_polygon_regressions=False, include_shared_regressions=False
         legacy=json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)
         legacy['version']=1;legacy['settings'].pop('layout_mode');legacy['settings'].pop('edge_mode')
         legacy['settings'].pop('density');legacy['settings'].pop('size_locked');legacy['settings'].pop('louver_angle_deg')
+        legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm')
         legacy_raw=json.dumps(legacy,separators=(',',':'))
         anchor.attributes.add(recipe.GROUP,'recipe',legacy_raw)
         legacy_target=recipe.read_edit_target(design,plane)
@@ -1336,7 +1337,7 @@ def cases(*, include_polygon_regressions=False, include_shared_regressions=False
                 raise RuntimeError("Rebuild added geometry/history, lost settings, or changed the target identity/state.")
             if _signature(plane) != _signature(updated.result_body):
                 raise RuntimeError("Rebuild did not persist the exact full preview shape.")
-        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=5:
+        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=6:
             raise RuntimeError('The explicit legacy rebuild did not migrate its recipe.')
         return {"same_body": True, "extra_bodies": 0, "owned_features": 3, "rebuild_modes": 3,
                 "face_edge_body_feature_edit": True, "original_source_signature": source_signature,

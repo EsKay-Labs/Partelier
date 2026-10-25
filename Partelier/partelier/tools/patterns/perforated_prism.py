@@ -69,6 +69,11 @@ def plan(frame,outer,holes,low,high):
 
 def create(frame,outer,holes,low,high):
     geometry=plan(frame,outer,holes,low,high)
+    return create_plan(geometry)
+
+
+def create_plan(geometry):
+    """Create a previously validated closed multi-loop planar solid."""
     core,native=simple._api();require=simple._required
     definition=require(native.BRepBodyDefinition.create(),'Fusion could not define the grid body.')
     definition.doFullHealing=True

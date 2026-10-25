@@ -22,9 +22,11 @@ class PatternSettings:
     density: str = "balanced"
     size_locked: bool = False
     louver_angle_deg: float = 45.0
+    grille_profile: str = "flat"
+    grille_height_mm: float = 3.0
 
     def __post_init__(self):
-        for key in ("pitch_mm", "web_mm", "depth_mm", "border_mm", "rotation_deg", "offset_u_mm", "offset_v_mm", "louver_angle_deg"):
+        for key in ("pitch_mm", "web_mm", "depth_mm", "border_mm", "rotation_deg", "offset_u_mm", "offset_v_mm", "louver_angle_deg", "grille_height_mm"):
             value = getattr(self, key)
             try:
                 finite = not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value)
@@ -44,6 +46,10 @@ class PatternSettings:
             raise ValueError("Louver tilt must be between 0 and 60 degrees from the surface normal.")
         if self.pattern.startswith('grille_') and (self.mode != 'through' or self.layout_mode != 'fill'):
             raise ValueError("Grilles use through openings with fixed opening width and rib thickness.")
+        if self.grille_profile not in ('flat','raised','chamfer'):
+            raise ValueError('Choose Flat, Raised or Chamfered grille profile.')
+        if not .2 <= self.grille_height_mm <= 20:
+            raise ValueError('Grille height must be between 0.2 and 20 mm above the selected face.')
         if self.selection_scope not in ("faces", "body"):
             raise ValueError("Choose selected faces or the whole body.")
         if self.layout_mode not in ("auto", "balanced", "fill", "fit", "fixed"):

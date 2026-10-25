@@ -1,4 +1,4 @@
-# Grilles on existing bodies — 0.14.1
+# Grilles on existing bodies — 0.15.0
 
 The user selected integrated openings in the existing body. Grilles remains the
 third entry under Patterns. It shares the user-accepted 0.13.4 additive face
@@ -11,6 +11,8 @@ selection, preview-after-Done and in-place Create/Edit/Rebuild workflow.
    5 mm opening, 2 mm rib and 7 mm border. Repeat distance is opening plus rib.
 3. Set **Direction** using 0° / 45° / 90° or any supported custom angle. Direction
    follows each face's local surface axes. It is separate from louver tilt.
+   Choose **Profile**: Flat, Raised, or Raised + chamfer. Raised profiles add
+   **Height above face**, initially 3 mm. Their plate back is the bed-facing side.
 4. **Select faces**, click each required side of the same body, then **Done**.
    No geometry preview is computed during selection. Clear selection starts over.
 5. Review the real Fusion preview, then **Create grille**. Use **Edit existing**
@@ -21,6 +23,56 @@ selection, preview-after-Done and in-place Create/Edit/Rebuild workflow.
 | Parallel bars | Long through openings separated by continuous ribs |
 | Crossed grid | Square through openings with connected ribs; rotate for diagonals |
 | Louvers · inclined channels | Channels sheared within the wall, initially tilted 45° from the normal |
+
+## Raised profiles for back-to-bed printing
+
+Parallel bars, Crossed grid and Louvers each support **Raised** and **Raised +
+chamfer**, six new combinations. The original Flat profile remains the default.
+Raised parallel bars/grid extend above the selected face; raised louvers shear
+sideways by exactly their height, forming 45-degree undersides. Their original
+plate openings are vertical. The legacy Louver tilt control applies only to Flat;
+external louvers use a fixed 45-degree profile. Height is 0.2–20 mm above the
+original face, independent of plate thickness. Taller louvers require more Border.
+
+The raised frame leaves a flat reveal within the original border. Its footprint
+never expands outside the original plate. Chamfers narrow the upper ribs and
+frame automatically, by at most 0.6 mm and bounded by height/rib/border; Opening
+width and Rib width still describe the roots on the original face. The local
+section diagram shows the back against the bed and responds to profile/height.
+Both new fields have illustrated help. Slots are covered by Parallel bars;
+no redundant slot family or HVAC nozzle simulator is added.
+
+Raised profiles require **one selected rectangular planar face of a uniform
+solid plate**, a flat back, Border >= 0.5 mm and at most 200 openings. Whole-body,
+multi-face, curved and stepped-back raised output is refused. Full plate material
+and volume checks prove the back is flat, rather than assuming this from a few
+rays. The intended print-up direction is the selected outward face normal;
+the add-in does not rotate the model. Geometry bounds do not prove printing on
+every material/printer, airflow or mechanical strength.
+
+New raised geometry uses one perforated plate and one or two multi-loop profile
+segments; no native cutter Boolean or history feature is made per opening.
+Corresponding convex loops are validated at bottom/mid/top, with planar shared
+sides, exact closed volume and every downward side limited to 45 degrees for
+this print direction. Unsupported height/frame collisions are refused without
+changing dimensions. These rectangular profiles use an exact numeric border
+inset, avoiding the general surface-boundary capsule's decomposed fragments.
+
+Raised output adds material, so it uses full-shape Join/Intersect history, three
+owned features. Flat-to-raised Edit converts a validated end-of-history Cut:
+the original target, BaseFeature and ownership UUID are retained; only the last
+owned Cut is replaced by owned Join/Intersect. The enclosing native command owns
+rollback on failure. Later features must first be preserved. Subsequent height,
+profile and raised-to-flat Rebuilds retain that full-shape history. No user body
+is replaced, renamed or duplicated. Settings recipe 6 reads versions 1–5 with
+Flat/3 mm defaults, without rewriting a saved recipe until Rebuild.
+
+Fusion 2705.1.30 passes ten isolated MCP cases: all six raised/profile combinations,
+conversion to/from Flat and three guard refusals. Preview mesh upload/cleanup is
+checked for bars and external louvers. Original caller documents are unchanged.
+Local checks pass 974 Python tests, three Node UI suites and headless Edge layouts
+at 300/380/520 px. Source hashes and case measurements:
+[raised-grilles-0.15.0.json](validation/raised-grilles-0.15.0.json).
 
 The type dropdown and Direction occupy full rows. Direction presets are disabled
 while selecting faces or creating geometry. Local illustrated help explains the
@@ -76,7 +128,7 @@ constant-thickness plate at the existing sampled wall witnesses. Tilt is 0–60�
 The existing first-wall isolation and border clipping remain in force. Curved
 grilles and separate removable inserts are not introduced by this release.
 
-New grilles use one owned cutter BaseFeature and one native consuming Cut
+New Flat grilles use one owned cutter BaseFeature and one native consuming Cut
 (solid record version 2). The cutter is the exact difference between an owned
 copy of the historical input and the reviewed result; its volume must match the
 removed material. Disconnected cutter lumps are allowed, while the final body
@@ -86,7 +138,7 @@ All three grille types can be interchanged through Edit.
 Existing version 1 records retain their full-shape Join/Intersect history and
 remain editable. They are not automatically migrated to Cut history; large dense
 Rebuilds of legacy records have not been revalidated. The pattern settings recipe
-remains version 5, and generic Patterns keep their existing persistence route.
+is now version 6, and generic Patterns keep their existing persistence route.
 
 Create modifies the selected body instead of adding a replacement copy. The
 existing single-owned-pattern-per-body and timeline-end Edit contract remains;

@@ -2,7 +2,7 @@
 // Exercise all three actual controllers through one native-message fixture.
 const assert = require("node:assert/strict"), fs = require("node:fs"), vm = require("node:vm"), path = require("node:path");
 const ui = path.join(__dirname, "..", "Partelier", "partelier", "ui"), html = fs.readFileSync(path.join(ui, "palette.html"), "utf8");
-const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45 };
+const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3 };
 const idle = () => ({ sessionId: null, revision: 0, phase: "idle", editing: false, settings: null, selections: {}, message: "" });
 function fixture(options = {}) {
     const ids = new Map();
@@ -114,7 +114,27 @@ function fixture(options = {}) {
     assert.notEqual(grilleUI.$("pattern-illustration").innerHTML,zeroTilt);
     await grilleUI.input("rotation_deg",225);
     assert.equal(grilleUI.$("grille-direction-45")["aria-pressed"],"false","inclined channels at 225 degrees reverse their tilt compared with 45");
+    await grilleUI.input("grille_profile","raised");
+    assert.equal(grilleUI.$("pattern-grille_height_mm").parentElement.hidden,false);
+    assert.equal(grilleUI.$("pattern-louver_angle_deg").parentElement.hidden,true,"external louvers use the fixed 45 degree profile");
+    assert.equal(grilleUI.$("pattern-selection_scope").disabled,true);
+    assert(grilleUI.$("pattern-illustration").innerHTML.includes('data-grille-profile="raised"'));
+    assert(grilleUI.$("pattern-illustration").innerHTML.includes('Back to bed'));
+    const heightPreviews=grilleUI.requests.filter(([a])=>a==="pattern_preview").length;
+    await grilleUI.input("grille_height_mm",4);
+    assert.equal(grilleUI.snapshot().settings.grille_height_mm,4);
+    assert.equal(grilleUI.requests.filter(([a])=>a==="pattern_preview").length,heightPreviews+1);
+    assert(grilleUI.$("pattern-illustration").innerHTML.includes('data-grille-height="4"'));
+    await grilleUI.click("pattern-help-grille_height_mm");
+    assert(grilleUI.$("pattern-help-image").innerHTML.includes('data-help-image="grille_height_mm"'));
+    await grilleUI.click("pattern-help-close");
+    await grilleUI.input("grille_profile","chamfer");
+    assert(grilleUI.$("pattern-illustration").innerHTML.includes('data-grille-profile="chamfer"'));
+    await grilleUI.input("grille_profile","flat");
+    assert.equal(grilleUI.$("pattern-grille_height_mm").parentElement.hidden,true);
+    assert.equal(grilleUI.$("pattern-louver_angle_deg").parentElement.hidden,false);
     await grilleUI.click("cancel-pattern-button");await grilleUI.select("honeycomb");
+    assert.equal(grilleUI.$("pattern-grille_profile").parentElement.hidden,true);
     assert.equal(grilleUI.$("pattern-rotation_deg").parentElement.parentElement.id,"pattern-placement-fields");
     assert.equal(grilleUI.$("grille-direction-presets").hidden,true);
     assert.equal(grilleUI.$("pattern-pattern").children.length,15);
@@ -349,9 +369,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.14.1"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.15.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.14.1"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.15.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.begin();await logged.click("pattern-select-surface");await logged.click("pattern-finish-faces");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.begin();const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));

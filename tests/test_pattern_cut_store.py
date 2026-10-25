@@ -69,3 +69,19 @@ class CutStoreTests(unittest.TestCase):
             self.assertEqual(self.host.timeline.markerPosition,cut.timelineObject.index)
         base.timelineObject.rollTo.assert_not_called()
         self.assertEqual(self.host.timeline.markerPosition,self.host.timeline.count)
+
+    def test_raised_conversion_refuses_later_history_before_any_owned_deletion(self):
+        base,record=self.create()
+        later=fixtures.Entity(self.host,'feature','later unrelated')
+        later.timelineObject=self.host.timeline_node(later)
+        cut=self.host.combine_features[0];base.startEdit.reset_mock()
+        with self.assertRaisesRegex(ValueError,'end of the timeline'):
+            self.store.promote(self.host.design,record,self.final(8))
+        cut.deleteMe.assert_not_called();later.deleteMe.assert_not_called();base.startEdit.assert_not_called()
+        self.assert_user_bodies_preserved()
+
+    def test_raised_conversion_refuses_tampered_cut_before_deletion(self):
+        base,record=self.create()
+        cut=self.host.combine_features[0];cut.operation=1
+        with self.assertRaises(ValueError):self.store.promote(self.host.design,record,self.final(8))
+        cut.deleteMe.assert_not_called()

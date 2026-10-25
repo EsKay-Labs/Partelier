@@ -58,3 +58,21 @@ class CutRecipeTests(unittest.TestCase):
             self.module.rebuild_pattern(self.design,target,prepared)
         cut.assert_called_once_with(prepared)
         self.store.update.assert_called_once_with(self.design,self.record,prepared.result_body,cut_tool=self.cutter)
+
+    def test_raised_create_uses_complete_shape_without_cutting_away_added_material(self):
+        prepared=replace(self.prepared,settings=replace(self.settings,grille_profile='raised'))
+        self.module.create_pattern(self.design,prepared)
+        self.store.create.assert_called_once_with(self.design,self.body,prepared.result_body)
+        self.manager.copy.assert_not_called()
+
+    def test_cut_to_raised_validates_historical_sources_then_promotes_after_restoring(self):
+        self.record.recipe={'version':2}
+        target,prepared=self.edited(replace(self.settings,grille_profile='chamfer'))
+        def promote(*args):
+            self.assertFalse(self.design.historical)
+            return self.anchor
+        self.store.promote=Mock(side_effect=promote)
+        self.module.rebuild_pattern(self.design,target,prepared)
+        self.store.promote.assert_called_once_with(self.design,self.record,prepared.result_body)
+        self.store.update.assert_not_called()
+        self.manager.copy.assert_not_called()

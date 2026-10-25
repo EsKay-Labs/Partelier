@@ -6,6 +6,41 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.15.0 raised grilles, back to bed
+
+The opt-in Fusion MCP add-in at localhost:9100 was inspected and used through
+its `execute_api_script` tool, without mouse/keyboard automation or modifications
+to the MCP add-in. `tools/fusion/RaisedGrilleProbe.py` passes **10 isolated native
+cases** on Fusion 2705.1.30: Parallel/Crossed/Louver with Raised and Chamfered
+profiles, Flat Cut-to-raised conversion and return to Flat, and three explicit
+refusals (over 200 openings, excessive louver height, stepped back). Every call
+creates/discards its own unsaved document and verifies the caller model snapshot,
+active document and component are unchanged; the captured camera is restored.
+
+Six geometry cases check real Create/Edit/Rebuild, same body/name, one connected
+result, three owned history features, flat back, expected height and through-hole
+witnesses. Conversion retains target/BaseFeature/UUID and replaces only the last
+validated owned Cut. Cached STL preview upload and graphics deletion are checked
+for straight bars and external louvers, leaving model/history counts unchanged.
+Rotated chamfered grid and louver cases use 30 degrees. Their numeric profile
+segments enforce planar sides, closed volume and downward slopes <=45 degrees
+relative to the selected plate normal. These checks do not constitute printing,
+airflow or strength validation.
+
+Local checks pass **974 Python tests**, three Node UI suites, compilation and
+whitespace checks. Headless Edge at 300/380/520 px verifies all six combinations,
+full-width Profile, height-driven section changes, illustrated help and no
+horizontal overflow. Native fixture images were inspected. Evidence and source
+hashes: [raised-grilles-0.15.0.json](validation/raised-grilles-0.15.0.json).
+
+Raised support is deliberately bounded to one rectangular planar uniform plate,
+Border >=0.5 mm, Height 0.2–20 mm and <=200 openings. Unsupported profiles are
+refused before persistence. Flat dense-grid limits remain unchanged. Full async
+selection/supersession, dense Flat matrices, save/reopen, Undo/Redo and physical
+pointer/CEF/orbit acceptance were not repeated. An initial fragment-loop candidate
+and in-place Cut-operation conversion failed in disposable documents; both were
+replaced before the passing final matrix.
+
 ## 0.14.1 dense crossed grilles
 
 Native request **15df7954-633f-49a8-a56c-9d726e6b95cc** on Fusion 2705.1.30

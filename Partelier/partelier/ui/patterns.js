@@ -3,7 +3,7 @@
 // One pattern session serves the honeycomb, perforation and texture presets.
 (() => {
     const $ = id => document.getElementById(id);
-    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45 });
+    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3 });
     const presets = { honeycomb: { pattern: "hexagon", mode: "through" }, perforation: { pattern: "circle", mode: "through" }, knurl: { pattern: "diamond", mode: "emboss" }, grilles: { pattern: "grille_parallel", mode: "through", layout_mode: "fill", pitch_mm: 7, web_mm: 2, border_mm: 7, edge_mode: "clip", rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0 } };
     const choices = {
         pattern: [["hexagon", "Hexagons"], ["rounded_hexagon", "Rounded hexagons"], ["elongated_hexagon", "Elongated hexagons"],
@@ -15,10 +15,11 @@
         layout_mode: [["auto", "Auto fit · visual balance"], ["balanced", "Balanced · fewer cells"], ["fill", "Fill face · fixed size"], ["fit", "Automatic size"], ["fixed", "Exact pitch"]],
         density: [["sparse", "Sparse"], ["balanced", "Balanced"], ["dense", "Dense"]],
         size_locked: [["false", "Automatic"], ["true", "Custom size"]],
+        grille_profile: [["flat", "Flat · within the wall"], ["raised", "Raised · back to bed"], ["chamfer", "Raised + chamfer · back to bed"]],
         selection_scope: [["faces", "Selected faces"], ["body", "Whole body"]],
         edge_mode: [["clip", "Clip at border"], ["whole", "Whole cells only"]]
     };
-    const grilleChoices = [["grille_parallel","Parallel bars"],["grille_cross","Crossed grid"],["grille_louver","Louvers · inclined channels"]];
+    const grilleChoices = [["grille_parallel","Parallel bars"],["grille_cross","Crossed grid"],["grille_louver","Louvers"]];
     const grille = () => state.settings.pattern.startsWith("grille_");
     const optionsFor = name => name === "pattern" && grille() ? grilleChoices : choices[name];
     let showingGrilles = false;
@@ -147,7 +148,11 @@
             button.disabled=committing;button.classList.toggle("selected",selected);button.setAttribute("aria-pressed",String(selected));
         }
         for (const name of ["mode","layout_mode","edge_mode"]) { const input=$("pattern-"+name); input.parentElement.hidden=isGrille; }
-        $("pattern-louver_angle_deg").parentElement.hidden=state.settings.pattern!=="grille_louver";
+        const raised=isGrille && state.settings.grille_profile!=="flat";
+        $("pattern-grille_profile").parentElement.hidden=!isGrille;
+        $("pattern-grille_profile").parentElement.classList.toggle("full-width-parameter",isGrille);
+        $("pattern-grille_height_mm").parentElement.hidden=!raised;
+        $("pattern-louver_angle_deg").parentElement.hidden=state.settings.pattern!=="grille_louver" || raised;
         $("pattern-offset_u_mm").parentElement.hidden=isGrille;
         for (const input of $("pattern-settings").querySelectorAll("[name]")) input.disabled = committing;
         const depth = $("pattern-depth_mm"), through = state.settings.mode === "through";
@@ -156,6 +161,7 @@
             state.settings.depth_mm = defaults.depth_mm; depth.value = defaults.depth_mm; depth.setCustomValidity("");
         }
         $("pattern-selection_scope").disabled = committing || editing();
+        if(raised) $("pattern-selection_scope").disabled=true;
         $("pattern-scope-note").hidden = !editing();
         for (const name of ["density", "size_locked"]) {
             const control = $("pattern-"+name); control.parentElement.hidden = state.settings.layout_mode !== "auto";
@@ -176,6 +182,7 @@
             : "Το Automatic size προσαρμόζει το μέγεθος· το Exact pitch το διατηρεί.";
         $("pattern-depth_mm").parentElement.children[0].textContent = state.settings.mode === "inlay" ? "Colour depth" : "Depth / height";
         if(isGrille) $("pattern-layout-note").textContent="Επίπεδες επιφάνειες · σταθερό άνοιγμα και πλάτος νεύρου. Rotation αλλάζει την κατεύθυνση. Οι περσίδες χρειάζονται ορθογώνια πλάκα σταθερού πάχους.";
+        if(raised) $("pattern-layout-note").textContent="Πίσω πλευρά στο bed · ένα ορθογώνιο face πλάκας σταθερού πάχους. Έως 200 ανοίγματα. Οι εξωτερικές περσίδες χτίζονται στις 45°. Το Height μετριέται πάνω από το face.";
         if(state.settings.mode==="inlay") $("pattern-layout-note").textContent += " Flat colour: επίπεδη επιφάνεια, ξεχωριστό μέρος για χρωματισμό. Το βάθος πρέπει να αφήνει υλικό από κάτω.";
     }
     function renderSelection() {
@@ -356,20 +363,21 @@
         const rect = event.target.getBoundingClientRect();
         if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.target.close();
     });
-    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Layout", "pattern-size-fields"], ["density", "Density", "pattern-size-fields"], ["size_locked", "Size", "pattern-size-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"], ["edge_mode", "Edge cells", "pattern-scope-fields"]]) {
+    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["grille_profile", "Profile", "pattern-design-fields"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Layout", "pattern-size-fields"], ["density", "Density", "pattern-size-fields"], ["size_locked", "Size", "pattern-size-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"], ["edge_mode", "Edge cells", "pattern-scope-fields"]]) {
         const item = document.createElement("div"); item.className = "parameter-item";
         const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
         const input = document.createElement("select"); input.id = `pattern-${name}`; input.name = name; input.required = true;
         for (const [value, text] of choices[name]) { const option = document.createElement("option"); option.value = value; option.textContent = text; input.append(option); }
         input.value = defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
     }
-    for (const [container, fields] of [["pattern-size-fields", [["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Border"], ["depth_mm", "Relief height"], ["louver_angle_deg", "Louver tilt (°)"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
+    for (const [container, fields] of [["pattern-size-fields", [["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Border"], ["depth_mm", "Relief height"], ["louver_angle_deg", "Louver tilt (°)"], ["grille_height_mm", "Height above face (mm)"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
         for (const [name, caption] of fields) {
             const item = document.createElement("div"); item.className = "parameter-item";
             const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
             const input = document.createElement("input"); input.id = `pattern-${name}`; if (name !== "cell_size_mm") input.name = name; input.type = "number"; input.required = true; input.step = "any";
             if (!signed.has(name)) input.min = "0";
             if (name === "louver_angle_deg") input.max="60";
+            if (name === "grille_height_mm") {input.min="0.2";input.max="20";}
             input.value = name === "cell_size_mm" ? defaults.pitch_mm-defaults.web_mm : defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
             if(name==="rotation_deg") {
                 const presets=document.createElement("div");presets.id="grille-direction-presets";presets.className="grille-direction-presets";presets.setAttribute("role","group");presets.setAttribute("aria-label","Grille direction presets");
@@ -421,6 +429,9 @@
                 $("pattern-pitch_mm").value = state.settings.pitch_mm;
             }
             state.settings[input.name] = input.name === "size_locked" ? input.value === "true" : input.value;
+            if(input.name==="grille_profile" && input.value!=="flat" && !editing()) {
+                state.settings.selection_scope="faces"; $("pattern-selection_scope").value="faces";
+            }
         }
         if (input.id !== "pattern-cell_size_mm" && (input.name !== "web_mm" || !sized))
             $("pattern-cell_size_mm").value = Number((state.settings.pitch_mm-state.settings.web_mm).toFixed(6));
@@ -456,5 +467,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.14.1" }); renderArt(); render();
+    trace("boot", { build:"0.15.0" }); renderArt(); render();
 })();

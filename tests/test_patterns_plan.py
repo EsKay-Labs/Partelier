@@ -17,7 +17,7 @@ class PatternSettingsTests(unittest.TestCase):
             for mode in ('through','engrave','emboss'):
                 value=PatternSettings(pattern=pattern,mode=mode,rotation_deg=-30,offset_u_mm=-2)
                 self.assertEqual(PatternSettings.from_dict(value.to_dict()),value)
-        self.assertEqual(len(PatternSettings().to_dict()),15)
+        self.assertEqual(len(PatternSettings().to_dict()),17)
 
     def test_invalid_dimensions_modes_and_partial_snapshots_are_refused(self):
         for values in ({'pitch_mm':0},{'web_mm':PatternSettings().pitch_mm},{'depth_mm':-1},{'border_mm':-1},

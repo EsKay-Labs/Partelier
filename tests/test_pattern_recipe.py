@@ -120,7 +120,7 @@ class PatternRecipeTests(unittest.TestCase):
             spec.loader.exec_module(self.module)
         self.module.STORE = self.store
         self.module.colour_store=NS(selection_anchor=lambda selected,group:selected,read=Mock(return_value=None),apply=Mock())
-        self.saved = {"version": 5, "tool": "surface_pattern", "feature_id": self.record.feature_id,
+        self.saved = {"version": 6, "tool": "surface_pattern", "feature_id": self.record.feature_id,
                       "settings": self.settings.to_dict(), "sources": deepcopy(self.tokens)}
         self.write_recipe(self.saved)
 
@@ -147,7 +147,7 @@ class PatternRecipeTests(unittest.TestCase):
         self.assertEqual(self.events, ["validate-current", "create", "save"])
         saved = json.loads(self.anchor.attributes.itemByName(self.module.GROUP, "recipe").value)
         self.assertEqual(saved, self.saved)
-        self.assertEqual(len(saved["settings"]), 15)
+        self.assertEqual(len(saved["settings"]), 17)
         self.assertEqual(saved["sources"], self.tokens)
         selected = object()
         self.events.clear()
@@ -177,7 +177,7 @@ class PatternRecipeTests(unittest.TestCase):
 
     def test_recipe_envelope_and_exact_settings_are_strict_on_public_edit_read(self):
         malformed = []
-        for key, value in (("version", True), ("version", 6), ("tool", "snap_fit"), ("feature_id", "another-pattern")):
+        for key, value in (("version", True), ("version", 7), ("tool", "snap_fit"), ("feature_id", "another-pattern")):
             damaged = deepcopy(self.saved)
             damaged[key] = value
             malformed.append(damaged)
@@ -205,7 +205,7 @@ class PatternRecipeTests(unittest.TestCase):
         self.store.input_scope.assert_not_called()
 
     def test_legacy_read_preserves_exact_spacing_and_migrates_only_on_rebuild(self):
-        legacy=deepcopy(self.saved)
+        legacy=deepcopy(self.saved);legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm')
         legacy['version']=1
         legacy['settings'].pop('density');legacy['settings'].pop('size_locked');legacy['settings'].pop('louver_angle_deg')
         legacy['settings'].pop('layout_mode')
@@ -221,7 +221,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,settings)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],5)
+        self.assertEqual(saved['version'],6)
         self.assertEqual(saved['settings']['layout_mode'],'fixed')
         self.assertEqual(saved['settings']['pitch_mm'],legacy['settings']['pitch_mm'])
 
@@ -237,7 +237,7 @@ class PatternRecipeTests(unittest.TestCase):
                 self.assert_no_persistence()
 
     def test_version_four_retains_all_dimensions_and_migrates_only_on_rebuild(self):
-        legacy=deepcopy(self.saved);legacy['version']=4
+        legacy=deepcopy(self.saved);legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm');legacy['version']=4
         legacy['settings'].pop('louver_angle_deg')
         self.write_recipe(legacy)
         before=self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value
@@ -248,12 +248,12 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,target.settings)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],5)
+        self.assertEqual(saved['version'],6)
         self.assertEqual(saved['settings']['louver_angle_deg'],45)
         for key,value in legacy['settings'].items():self.assertEqual(saved['settings'][key],value)
 
     def test_version_three_injects_auto_defaults_without_rewriting_saved_settings(self):
-        legacy=deepcopy(self.saved);legacy['version']=3
+        legacy=deepcopy(self.saved);legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm');legacy['version']=3
         legacy['settings'].pop('density');legacy['settings'].pop('size_locked');legacy['settings'].pop('louver_angle_deg')
         self.write_recipe(legacy)
         before=self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value
@@ -265,7 +265,7 @@ class PatternRecipeTests(unittest.TestCase):
         self.assert_no_persistence()
 
     def test_version_two_restores_whole_cells_without_rewriting_its_recipe(self):
-        legacy=deepcopy(self.saved);legacy['version']=2;legacy['settings'].pop('edge_mode')
+        legacy=deepcopy(self.saved);legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm');legacy['version']=2;legacy['settings'].pop('edge_mode')
         legacy['settings'].pop('density');legacy['settings'].pop('size_locked');legacy['settings'].pop('louver_angle_deg')
         self.write_recipe(legacy)
         before=self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value

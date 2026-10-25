@@ -3,6 +3,8 @@
 // Local explanatory drawings, independent of the CAD preview and its queue.
 window.PartelierPatternHelp = (() => {
     const entries = {
+        grille_profile: ["Profile · Διατομή γρίλιας", "Flat: ανοίγματα μέσα στο αρχικό τοίχωμα. Raised: μπάρες ή πλέγμα πάνω από το face. Raised + chamfer: λοξότμητη κορυφή. Με Louvers οι υπερυψωμένες περσίδες χτίζονται στις 45°.", "Η πίσω πλευρά της ορθογώνιας πλάκας πατάει στο bed. Το frame ανεβαίνει μαζί με τα πτερύγια. Ελέγχονται οι κάτω πλευρές ως προς αυτή τη φορά εκτύπωσης· η τελική εκτύπωση χρειάζεται έλεγχο στον slicer."],
+        grille_height_mm: ["Height · Ύψος πάνω από το face", "Πόσο προεξέχει η γρίλια πάνω από την αρχική επιφάνεια. Δεν περιλαμβάνει το πάχος της πλάκας. Στις εξωτερικές περσίδες 45° το ίδιο ύψος δίνει ίση πλάγια μετατόπιση.", "Αν η περσίδα πλησιάζει πολύ το πλαίσιο, μείωσε Height ή αύξησε Border. Το άνοιγμα και το Rib width μετριούνται στη ρίζα, πάνω στο αρχικό face· το chamfer στενεύει την κορυφή των νεύρων."],
         grille_type: ["Grille type · Τύπος γρίλιας", "Parallel bars: μακριά παράλληλα ανοίγματα. Crossed grid: τετράγωνα ανοίγματα με διασταυρωμένα νεύρα. Louvers: λοξά κανάλια μέσα στο πάχος ορθογώνιας πλάκας.", "Το Rotation αλλάζει την κατεύθυνση πάνω στο face. Το Louver tilt αλλάζει μόνο την κλίση μέσα στο πάχος. Αρχικά οι γρίλιες λειτουργούν σε επίπεδες επιφάνειες."],
         grille_direction: ["Direction · Κατεύθυνση γρίλιας", "Στρέφει τα ανοίγματα πάνω στην επιλεγμένη επιφάνεια. Τα κουμπιά 0° / 45° / 90° είναι γρήγορες επιλογές· μπορείς να γράψεις και δική σου γωνία.", "Οι μοίρες ακολουθούν τους τοπικούς άξονες του κάθε face, όχι απαραίτητα τους άξονες του Fusion. Στις περσίδες το Tilt ρυθμίζει χωριστά την κλίση μέσα στο πάχος. Το 180° αντιστρέφει αυτή την κλίση."],
         opening_width: ["Opening width · Καθαρό άνοιγμα", "Το πλάτος του ανοίγματος πάνω στην επιλεγμένη επιφάνεια. Στη διασταυρωτή γρίλια είναι η πλευρά του τετραγώνου. Δεν περιλαμβάνει το νεύρο.", "Η απόσταση επανάληψης είναι Opening width + Rib width. Το άνοιγμα και το νεύρο μένουν σταθερά όταν μεγαλώνει το face· επαναλαμβάνονται περισσότερες φορές. Στο border μπορεί να μείνει τμήμα ανοίγματος."],
@@ -55,6 +57,10 @@ window.PartelierPatternHelp = (() => {
         else if(name==="colour_depth") {
             const section=d=>`<path d="M8 35H132V105H8Z" fill="#dbe7f8" stroke="#55759e"/><path d="M45 35H90V${35+d}H45Z" fill="#267de1" stroke="#245fc2"/>`;
             left=section(12);right=section(35);a="Ρηχή χρωματιστή ζώνη";b="Βαθύτερη · ίδια επιφάνεια";
+        }
+        else if(name==="grille_profile"||name==="grille_height_mm") {
+            const section=(height,chamfer)=>`<path d="M8 105H132" stroke="#bd501c" stroke-width="3"/><path d="M15 105V85H50V${85-height}L${chamfer?55:50} ${80-height}H${chamfer?65:70}L70 ${85-height}V85H115V105Z" fill="#8fb5f4" stroke="#365f88"/><path d="M15 85H115" stroke="#365f88" stroke-dasharray="3 3"/>`;
+            left=section(15,false);right=section(40,true);a="Πίσω πλευρά στο bed";b="Ύψος + chamfer";
         }
         else if(name==="louver_angle_deg") {
             const section=shift=>`<path d="M10 25H130V105H10Z" fill="#dbe7f8" stroke="#55759e"/><path d="M45 25H70L${70+shift} 105H${45+shift}Z" fill="#fff" stroke="#245fc2"/>`;

@@ -500,6 +500,9 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
     _trace_geometry("source_read.begin",face_count=len(faces))
     signature, tokens = _signature(body, faces), _tokens(body, faces)
     _trace_geometry("source_read.end",face_count=len(faces))
+    if settings.pattern.startswith('grille_') and settings.grille_profile!='flat':
+        from .raised_grilles import prepare
+        return prepare(design,faces,settings,body,signature,tokens,started,historical=_historical)
     _trace_geometry("mapping.begin",face_count=len(faces),layout_mode=settings.layout_mode)
     try:
         mapped, layouts = _mapped_cells(faces, settings, _return_layouts=True)

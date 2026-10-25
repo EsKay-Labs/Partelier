@@ -424,6 +424,53 @@ class PatternStore:
                 base.deleteMe()
             raise
 
+    def promote(self, design, record, final):
+        """Convert owned end-of-history Cut to full-shape Join/Intersect.
+
+        Raised output adds material. Keep the existing base and target; replace
+        only the validated last owned Cut with owned Join/Intersect features.
+        The caller owns command rollback, including any failure mid-conversion.
+        """
+        current=self._fresh(design,record)
+        if current.recipe['version']!=2:
+            raise ValueError('Only an owned grille Cut can change to raised history.')
+        final=_body(final,temporary=True)
+        base,combines=self._feature_set(design,current.recipe)
+        finish=combines['cut']
+        if finish.timelineObject.index!=design.timeline.count-1:
+            raise ValueError('Raised conversion requires this grille at the end of the timeline. Preserve later features first.')
+        target=current.target
+        token,name,visible=_token(target),target.name,target.isLightBulbOn
+        count=design.rootComponent.bRepBodies.count
+        editing=False
+        try:
+            # Fusion 2705 refuses changing this consuming Cut to Intersect after
+            # its cutter becomes a full shape. Remove only the validated owned
+            # last feature, then recreate its two full-shape operations.
+            if not finish.deleteMe():raise ValueError('Fusion could not replace the owned grille Cut.')
+            if not base.timelineObject.rollTo(False):
+                raise ValueError('Fusion could not inspect the grille tool.')
+            tools=_items(base.bodies)
+            if len(tools)!=1 or tools[0]!=_resolve(design,current.recipe['tool_token']):
+                raise ValueError('The editable grille tool changed outside Partelier.')
+            if not base.startEdit():raise ValueError('Fusion could not edit the grille tool.')
+            editing=True
+            sources=_items(base.bodies)
+            if len(sources)!=1 or not base.updateBody(sources[0],final):
+                raise ValueError('Fusion could not update the raised grille source.')
+            if not base.finishEdit():raise ValueError('Fusion could not finish the raised grille source.')
+            editing=False
+            tool_token=_token(_items(base.bodies)[0])
+            join=self._combine(design,_resolve(design,token),_resolve(design,tool_token),'join',current.feature_id,[])
+            finish=self._combine(design,_resolve(design,token),_resolve(design,tool_token),'intersect',current.feature_id,[])
+        finally:
+            if editing and _valid(base):base.finishEdit()
+            design.timeline.markerPosition=design.timeline.count
+        _healthy(join);_healthy(finish)
+        self._outputs(design,target,final,token,name,visible,count)
+        self._record(base,current.feature_id,target,tool_token,{'join':join,'intersect':finish})
+        return base
+
     def update(self, design, record, final, *, cut_tool=None):
         """Update the same one tool source; native body/history identities stay."""
         current = self._fresh(design, record)

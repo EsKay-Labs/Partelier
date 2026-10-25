@@ -675,3 +675,47 @@ before starting its fixture command. Its existing runtime test document remains
 separate. Both are discarded without saving; the caller document is activated,
 its captured camera is reassigned, and its model snapshot, references and active
 component are checked afterward.
+
+## Raised grille profiles (0.15.0)
+
+`PatternSettings` adds `grille_profile` (flat/raised/chamfer) and
+`grille_height_mm` (0.2–20, default 3). Strict recipe 6 reads exact legacy schemas
+1–5 with Flat/3 mm defaults; it does not rewrite legacy settings during read.
+The HTML Profile dropdown and illustrated height control share normal complete
+snapshots, debounce, selection and Create/Edit handling. Flat remains default;
+the old in-wall louver angle is hidden for external louvers, fixed at 45 degrees.
+
+`raised_grilles.prepare` runs before generic mapping only for raised grille
+settings. It requires one chart-aligned rectangular uniform solid plate. A
+full-plate mask intersection and source volume equality rule out cavities,
+stepped backs and external additions. Numeric regular aperture polygons are
+clipped to an exact border rectangle, then mapped using a planar affine frame.
+One perforated prism supplies the base; one or two `profile_loft` segments supply
+the raised shape and optional upper chamfer. Native body creation is independent
+of aperture count; final Union counts are one or two. Work is capped at 200
+apertures before body creation; the existing dense Flat grid path is unchanged.
+
+`profile_loft` reuses the shared cap/edge topology of `perforated_prism`, validates
+bottom, midpoint and top sections, and accepts only matching convex loops with
+planar sides. Each downward side must have its normal's downward component no
+greater than its in-plane component, giving the 45-degree bound relative to the
+plate normal. Oriented boundary volume is checked against Simpson integration
+of sectional area. This is a geometric guard, not a physical printing guarantee.
+
+Raised persistence uses existing full-shape solid record 1. `PatternStore.promote`
+validates record 2 ownership/input/result and requires its Cut at the timeline
+end. It deletes only that owned Cut, updates the same BaseFeature source and adds
+owned Join/Intersect, retaining target/BaseFeature/UUID. Fusion 2705 rejected
+editing the consuming Cut's operation in place; the replacement route is tested
+in an isolated document. Caller-owned command rollback covers every mutation.
+Flat-to-raised adds one history feature; later Rebuilds retain the new three.
+Subsequent return to Flat retains full-shape history. Other tools cannot trigger
+this conversion through recipe dispatch.
+
+The opt-in Fusion MCP at localhost:9100 is available at
+`%APPDATA%/Autodesk/Autodesk Fusion 360/API/AddIns/Fusion MCP Addin`.
+`tools/fusion/RaisedGrilleProbe.py` can be invoked through its
+`execute_api_script` tool. Each call freshly imports runtime sources, creates and
+discards its own unsaved fixture document, and restores the caller document,
+component and camera. It does not control the mouse or modify the MCP add-in.
+The existing validation bridge remains available for its broader async scenarios.

@@ -36,7 +36,7 @@ def _parse(raw,record):
     except (ValueError,TypeError) as error:
         raise ValueError("The saved pattern recipe is damaged.") from error
     if (not isinstance(value,dict) or set(value)!={"version","tool","feature_id","settings","sources"}
-            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5)
+            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5,6)
             or value['tool']!='surface_pattern' or value['feature_id']!=record.feature_id):
         raise ValueError("The saved pattern recipe has an unsupported structure.")
     sources=value['sources']
@@ -48,7 +48,7 @@ def _parse(raw,record):
         raise ValueError("The saved pattern face references are damaged.")
     supplied=value['settings']
     if value['version'] in (1,2,3):
-        legacy_fields=set(PatternSettings().to_dict())-{'density','size_locked','louver_angle_deg'}
+        legacy_fields=set(PatternSettings().to_dict())-{'density','size_locked','louver_angle_deg','grille_profile','grille_height_mm'}
         if value['version']<3:legacy_fields-={'edge_mode'}
         if value['version']==1:legacy_fields-={'layout_mode'}
         if not isinstance(supplied,dict) or set(supplied)!=legacy_fields:
@@ -56,12 +56,18 @@ def _parse(raw,record):
         if supplied.get('layout_mode') not in (None,'fixed','fit','fill','balanced'):
             raise ValueError('The saved legacy layout is unsupported.')
         settings=PatternSettings.from_dict({**supplied,**({'layout_mode':'fixed'} if value['version']==1 else {}),
-            **({'edge_mode':'whole'} if value['version']<3 else {}),'density':'balanced','size_locked':False,'louver_angle_deg':45})
+            **({'edge_mode':'whole'} if value['version']<3 else {}),'density':'balanced','size_locked':False,'louver_angle_deg':45,
+            'grille_profile':'flat','grille_height_mm':3})
     elif value['version']==4:
-        expected=set(PatternSettings().to_dict())-{'louver_angle_deg'}
+        expected=set(PatternSettings().to_dict())-{'louver_angle_deg','grille_profile','grille_height_mm'}
         if not isinstance(supplied,dict) or set(supplied)!=expected:
             raise ValueError('The saved pattern settings are damaged.')
-        settings=PatternSettings.from_dict({**supplied,'louver_angle_deg':45})
+        settings=PatternSettings.from_dict({**supplied,'louver_angle_deg':45,'grille_profile':'flat','grille_height_mm':3})
+    elif value['version']==5:
+        expected=set(PatternSettings().to_dict())-{'grille_profile','grille_height_mm'}
+        if not isinstance(supplied,dict) or set(supplied)!=expected:
+            raise ValueError('The saved pattern settings are damaged.')
+        settings=PatternSettings.from_dict({**supplied,'grille_profile':'flat','grille_height_mm':3})
     else:
         settings=PatternSettings.from_dict(supplied)
     if value['version']<5 and (settings.mode=='inlay' or settings.pattern.startswith('grille_')):
@@ -137,7 +143,7 @@ def validate_preview_sources(prepared, *, make_cut=False):
 
 
 def _save(anchor,record,prepared):
-    value={'version':5,'tool':'surface_pattern','feature_id':record.feature_id,
+    value={'version':6,'tool':'surface_pattern','feature_id':record.feature_id,
            'settings':prepared.settings.to_dict(),'sources':prepared.source_tokens}
     raw=json.dumps(value,separators=(',',':'))
     _parse(raw,record)
@@ -146,7 +152,7 @@ def _save(anchor,record,prepared):
 
 
 def create_pattern(design,prepared):
-    cutter=validate_preview_sources(prepared,make_cut=prepared.settings.pattern.startswith('grille_'))
+    cutter=validate_preview_sources(prepared,make_cut=prepared.settings.pattern.startswith('grille_') and prepared.settings.grille_profile=='flat')
     if design!=prepared.design or prepared.record is not None:
         raise ValueError("Use Create on the current new-pattern preview.")
     anchor=(STORE.create(design,prepared.body,prepared.result_body) if cutter is None
@@ -158,7 +164,9 @@ def create_pattern(design,prepared):
 
 
 def rebuild_pattern(design,target,prepared):
-    cutter=validate_preview_sources(prepared,make_cut=prepared.record is not None and prepared.record.recipe['version']==2)
+    raised=prepared.settings.pattern.startswith('grille_') and prepared.settings.grille_profile!='flat'
+    promote=raised and prepared.record is not None and prepared.record.recipe['version']==2
+    cutter=validate_preview_sources(prepared,make_cut=prepared.record is not None and prepared.record.recipe['version']==2 and not raised)
     if (design!=prepared.design or not isinstance(target,EditTarget)
             or prepared.record!=target.record or prepared.saved_recipe!=target.recipe):
         raise ValueError("Reopen Edit to rebuild the current pattern.")
@@ -169,7 +177,8 @@ def rebuild_pattern(design,target,prepared):
     if previous is not None and getattr(prepared,"colour_body",None) is None:
         if previous[0].timelineObject.index!=design.timeline.count-1:
             raise ValueError("Move/remove later features before changing Flat colour to another mode.")
-    anchor=(STORE.update(design,target.record,prepared.result_body) if cutter is None
+    anchor=(STORE.promote(design,target.record,prepared.result_body) if promote else
+            STORE.update(design,target.record,prepared.result_body) if cutter is None
             else STORE.update(design,target.record,prepared.result_body,cut_tool=cutter))
     record=STORE.read(design,anchor)
     colour_store.apply(design,STORE,record,getattr(prepared,"colour_body",None),previous)
