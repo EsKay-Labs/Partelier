@@ -1338,7 +1338,7 @@ def cases(*, include_polygon_regressions=False, include_shared_regressions=False
                 raise RuntimeError("Rebuild added geometry/history, lost settings, or changed the target identity/state.")
             if _signature(plane) != _signature(updated.result_body):
                 raise RuntimeError("Rebuild did not persist the exact full preview shape.")
-        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=8:
+        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=9:
             raise RuntimeError('The explicit legacy rebuild did not migrate its recipe.')
         return {"same_body": True, "extra_bodies": 0, "owned_features": 3, "rebuild_modes": 3,
                 "face_edge_body_feature_edit": True, "original_source_signature": source_signature,

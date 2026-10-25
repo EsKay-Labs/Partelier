@@ -120,7 +120,7 @@ class PatternRecipeTests(unittest.TestCase):
             spec.loader.exec_module(self.module)
         self.module.STORE = self.store
         self.module.colour_store=NS(selection_anchor=lambda selected,group:selected,read=Mock(return_value=None),apply=Mock())
-        self.saved = {"version": 8, "tool": "surface_pattern", "feature_id": self.record.feature_id,
+        self.saved = {"version": 9, "tool": "surface_pattern", "feature_id": self.record.feature_id,
                       "settings": self.settings.to_dict(), "sources": deepcopy(self.tokens)}
         self.write_recipe(self.saved)
 
@@ -170,6 +170,15 @@ class PatternRecipeTests(unittest.TestCase):
                 with self.subTest(version=version,angle=angle),self.assertRaises(ValueError):self.read()
                 self.assert_no_persistence()
 
+    def test_old_mounted_recipe_keeps_its_requested_border_and_explains_new_preview(self):
+        legacy=deepcopy(self.saved);legacy['version']=8
+        legacy['settings'].update(pattern='grille_parallel',mode='through',layout_mode='fill',mount_mode='plain',border_mm=7)
+        self.write_recipe(legacy);target=self.read()
+        self.assertEqual(target.recipe,legacy)
+        self.assertEqual(target.settings.border_mm,7)
+        self.assertIn('minimum border',self.module.edit_notice(target))
+        self.assert_no_persistence()
+
     def assert_no_persistence(self):
         self.store.create.assert_not_called()
         self.store.update.assert_not_called()
@@ -212,7 +221,7 @@ class PatternRecipeTests(unittest.TestCase):
 
     def test_recipe_envelope_and_exact_settings_are_strict_on_public_edit_read(self):
         malformed = []
-        for key, value in (("version", True), ("version", 9), ("tool", "snap_fit"), ("feature_id", "another-pattern")):
+        for key, value in (("version", True), ("version", 10), ("tool", "snap_fit"), ("feature_id", "another-pattern")):
             damaged = deepcopy(self.saved)
             damaged[key] = value
             malformed.append(damaged)
@@ -256,7 +265,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,settings)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],8)
+        self.assertEqual(saved['version'],9)
         self.assertEqual(saved['settings']['layout_mode'],'fixed')
         self.assertEqual(saved['settings']['pitch_mm'],legacy['settings']['pitch_mm'])
 
@@ -283,7 +292,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,target.settings)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],8)
+        self.assertEqual(saved['version'],9)
         self.assertEqual(saved['settings']['louver_angle_deg'],45)
         for key,value in legacy['settings'].items():self.assertEqual(saved['settings'][key],value)
 

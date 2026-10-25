@@ -393,6 +393,8 @@ class _Session:
                 if self.edit_target is not None and self.settings==self.edit_target.settings:
                     notice=recipe.edit_notice(self.edit_target)
                     if notice:self.message+=' · '+notice
+                if self.settings.mount_mode!='off':
+                    self.message+=f" · mounting border {prepared.timings['mount_border_mm']:.2f} mm"
                 self.owner.publish(self)
             except Exception as error:failed(error)
         def failed(error):

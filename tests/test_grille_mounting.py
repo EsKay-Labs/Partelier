@@ -4,6 +4,7 @@ from dataclasses import replace
 import json
 from types import SimpleNamespace as N
 import unittest
+from unittest.mock import patch
 from Partelier.partelier.tools.patterns import mounting,recipe
 from Partelier.partelier.tools.patterns.flat_plate import Plate
 from Partelier.partelier.tools.patterns.settings import PatternSettings
@@ -26,6 +27,50 @@ class MountPlanTests(unittest.TestCase):
         self.assertAlmostEqual(changed.head_diameter_mm,value.head_diameter_mm)
         self.assertAlmostEqual(changed.hole_diameter_mm,4.5)
         self.assertAlmostEqual(changed.countersink_depth_mm,2.678)
+
+    def test_automatic_border_contains_the_whole_head_and_rim_for_each_screw(self):
+        for screw,expected in (('M3',10.292),('M4',12.756),('M5',15.22),('M6',17.684)):
+            settings=replace(self.settings,mount_screw=screw)
+            before=settings.to_dict();border=mounting.border_for_screw(settings)
+            self.assertAlmostEqual(border,expected)
+            mount=self.plan(settings,thickness=6)
+            for x,z in mount.centers_mm:
+                self.assertGreaterEqual(border+1e-8,30-abs(x)+mount.land_radius_mm)
+                self.assertGreaterEqual(border+1e-8,25-abs(z)+mount.land_radius_mm)
+            self.assertEqual(settings.to_dict(),before)
+
+    def test_auto_border_keeps_larger_minimum_and_follows_custom_head_and_inset(self):
+        self.assertEqual(mounting.border_for_screw(replace(self.settings,border_mm=20)),20)
+        self.assertAlmostEqual(mounting.border_for_screw(replace(self.settings,mount_head_mm=8)),11.7)
+        self.assertAlmostEqual(mounting.border_for_screw(replace(self.settings,mount_inset_mm=8)),14.128)
+        self.assertEqual(mounting.border_for_screw(replace(self.settings,mount_mode='off')),7)
+
+    def test_dispatch_resolves_border_before_inspection_and_repeat_planning(self):
+        from Partelier.partelier.tools.patterns import fusion,flat_plate
+        plate=N(outer=((-30,-25),(30,-25),(30,25),(-30,25)),thickness_mm=3)
+        events=[]
+        def inspect(design,faces,settings,body):
+            self.assertAlmostEqual(settings.border_mm,12.756);events.append('inspect');return plate
+        def prepare(design,faces,settings,**kwargs):
+            self.assertEqual(events,['inspect']);self.assertAlmostEqual(settings.border_mm,12.756)
+            events.append('repeat')
+            return fusion.PreparedPattern(design,faces,body,settings,object(),(),{},1,{})
+        body=object()
+        with patch.object(fusion,'_selection',return_value=(('face',),body)),patch.object(flat_plate,'inspect',side_effect=inspect),patch.object(fusion,'_prepare_pattern_impl',side_effect=prepare),patch.object(mounting,'apply',side_effect=lambda p,*a:p),patch.object(fusion,'validate_sources'):
+            result=fusion.prepare_pattern(object(),('face',),self.settings)
+        self.assertEqual(events,['inspect','repeat'])
+        self.assertEqual(result.settings,self.settings)
+        self.assertAlmostEqual(result.timings['mount_border_mm'],12.756)
+        self.assertEqual(result.timings['requested_border_mm'],7)
+
+    def test_excessive_border_or_bad_seat_never_reaches_repeat_planning(self):
+        from Partelier.partelier.tools.patterns import fusion,flat_plate
+        plate=N(outer=((-30,-25),(30,-25),(30,25),(-30,25)),thickness_mm=3)
+        with patch.object(fusion,'_selection',return_value=(('face',),object())),patch.object(flat_plate,'inspect',return_value=plate),patch.object(fusion,'_prepare_pattern_impl') as repeat:
+            for values in ({'border_mm':30},{'mount_head_mm':3},{'mount_inset_mm':2}):
+                with self.subTest(values=values),self.assertRaises(ValueError):
+                    fusion.prepare_pattern(object(),('face',),replace(self.settings,**values))
+            repeat.assert_not_called()
 
     def test_measured_head_overrides_catalogue_before_percentage(self):
         value=self.plan(replace(self.settings,mount_head_mm=8))

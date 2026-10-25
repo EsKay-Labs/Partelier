@@ -130,7 +130,13 @@
         $("pattern-cell_size_mm").setCustomValidity("");
         renderArt();
     }
-    function renderArt() { $("pattern-illustration").innerHTML = window.PartelierIllustrations.renderPattern(state.settings); }
+    function mountingBorder() {
+        const s=state.settings,heads={M3:6.72,M4:8.96,M5:11.2,M6:13.44};
+        if(!grille() || s.mount_mode==="off")return s.border_mm;
+        const radius=(s.mount_head_mm || heads[s.mount_screw])*(1+s.mount_head_extra_percent/100)/2+1.2;
+        return Math.max(s.border_mm,(s.mount_inset_mm || radius+.5)+radius);
+    }
+    function renderArt() { $("pattern-illustration").innerHTML = window.PartelierIllustrations.renderPattern({...state.settings,border_mm:mountingBorder()}); }
     function availability(committing) {
         const isGrille=grille();
         if (showingGrilles !== isGrille) {
@@ -162,7 +168,7 @@
             const hole=size?.[0]+state.settings.mount_clearance_mm,head=(state.settings.mount_head_mm || size?.[1])*(1+state.settings.mount_head_extra_percent/100);
             const inset=state.settings.mount_inset_mm || head/2+1.7,fmt=value=>Number(value.toFixed(2));
             $("pattern-mount-summary").textContent=Number.isFinite(hole+head+inset)
-                ? `4 corners · Ø${fmt(hole)} mm`+(state.settings.mount_mode==="countersink"?` · 90° seat Ø${fmt(head)} mm · depth ${fmt((head-hole)/2)} mm`:"")+` · centre inset ${fmt(inset)} mm. Preview checks the plate thickness and frame.`
+                ? `4 corners · Ø${fmt(hole)} mm`+(state.settings.mount_mode==="countersink"?` · 90° seat Ø${fmt(head)} mm · depth ${fmt((head-hole)/2)} mm`:"")+` · centre inset ${fmt(inset)} mm · Border used ${fmt(mountingBorder())} mm (auto for ${state.settings.mount_screw}). Calculated before the pattern preview.`
                 : "Check the mounting settings.";
         }
         $("pattern-grille_profile").parentElement.hidden=!isGrille;
@@ -190,6 +196,7 @@
         size.parentElement.hidden = !sized; size.disabled = committing || !sized;
         size.parentElement.children[0].textContent = isGrille ? "Opening width" : "Cell size";
         $("pattern-web_mm").parentElement.children[0].textContent = isGrille ? "Rib width · on face" : "Minimum gap";
+        $("pattern-border_mm").parentElement.children[0].textContent=mounting?"Minimum border (mm)":"Border";
         $("pattern-layout-note").textContent = state.settings.layout_mode === "auto"
             ? state.settings.size_locked ? "Το μέγεθος κλειδώθηκε · προσαρμόζονται οι αποστάσεις." : "Αυτόματη πρόταση μεγέθους και πλήθους. Άλλαξε το Cell size για να το κλειδώσεις."
             : state.settings.layout_mode === "fill"
@@ -486,5 +493,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.16.1" }); renderArt(); render();
+    trace("boot", { build:"0.16.2" }); renderArt(); render();
 })();

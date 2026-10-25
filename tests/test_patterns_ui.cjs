@@ -155,6 +155,15 @@ function fixture(options = {}) {
     assert(grilleUI.$("pattern-mount-summary").textContent.includes("Ø4.3 mm"));
     assert(grilleUI.$("pattern-mount-summary").textContent.includes("Ø9.86 mm"));
     assert(grilleUI.$("pattern-mount-summary").textContent.includes("2.78 mm"));
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Border used 12.76 mm"));
+    assert.equal(Number(grilleUI.$("pattern-border_mm").value),7,"the requested minimum is retained independently of the automatic border");
+    await grilleUI.input("mount_screw","M3");
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Border used 10.29 mm"));
+    await grilleUI.input("mount_screw","M6");
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Border used 17.68 mm"));
+    await grilleUI.input("border_mm",20);
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Border used 20 mm"));
+    await grilleUI.input("mount_screw","M4");await grilleUI.input("border_mm",7);
     assert.equal((grilleUI.$("pattern-illustration").innerHTML.match(/data-mounting-hole=/g)||[]).length,4);
     await grilleUI.input("mount_head_mm",8);
     assert(grilleUI.$("pattern-mount-summary").textContent.includes("Ø8.8 mm"));
@@ -404,9 +413,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.16.1"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.16.2"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.16.1"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.16.2"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.begin();await logged.click("pattern-select-surface");await logged.click("pattern-finish-faces");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.begin();const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));

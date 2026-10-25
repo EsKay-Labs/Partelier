@@ -1,4 +1,4 @@
-# Grilles on existing bodies — 0.16.1
+# Grilles on existing bodies — 0.16.2
 
 The user selected integrated openings in the existing body. Grilles remains the
 third entry under Patterns. It shares the user-accepted 0.13.4 additive face
@@ -68,7 +68,7 @@ the original target, BaseFeature and ownership UUID are retained; only the last
 owned Cut is replaced by owned Join/Intersect. The enclosing native command owns
 rollback on failure. Later features must first be preserved. Subsequent height,
 profile and raised-to-flat Rebuilds retain that full-shape history. No user body
-is replaced, renamed or duplicated. Settings recipe 8 reads versions 1–7 without
+is replaced, renamed or duplicated. Settings recipe 9 reads versions 1–8 without
 rewriting a saved recipe until Rebuild. Old raised louvers load at their actual
 original fixed 45°, regardless of the old dormant angle value. Old Flat angles
 above 45° propose 45° for the next Rebuild and show an explicit notice; reading
@@ -124,24 +124,77 @@ without a counterbore. **Edge to centre = 0** calculates symmetric corner insets
 an explicit value is measured from both outer edges to each hole centre.
 Every control has illustrated help and the summary shows resulting dimensions.
 
+### Automatic border before preview — 0.16.2
+
+With mounting enabled, **Minimum border** remains the user's requested minimum.
+Before plate inspection, repeat layout, cell sizing, cutters or preview geometry,
+the host resolves the effective solid perimeter from the screw/head envelope:
+
+`rim radius = head diameter with allowance / 2 + 1.2 mm`
+
+`automatic inset = rim radius + 0.5 mm`
+
+`border used = max(requested minimum, inset + rim radius)`
+
+This reserves the whole head plus surrounding material inside a continuous
+perimeter, rather than filling only four corners after making a pattern.
+Plain and Countersunk both reserve head access. A custom measured head or explicit
+centre inset also updates this calculation; a larger requested border is retained.
+The UI summary and diagram show the effective border before selecting a face.
+Switching to a smaller screw recalculates from the original requested minimum,
+so a previous automatic enlargement does not become a permanent user setting.
+No extra toggle or setting is added. Off uses the original requested border.
+
+| Screw | Border with catalogue head, +10%, Auto inset and 7 mm minimum |
+| --- | ---: |
+| M3 | 10.292 mm |
+| M4 (default) | 12.756 mm |
+| M5 | 15.220 mm |
+| M6 | 17.684 mm |
+
+Plate/head/inset/thickness and remaining grille area are checked before repeat
+construction. Unsupported dimensions are refused rather than shrinking a screw
+or changing an opening width. The full-border route skips four restoration
+intersections and four unions previously needed for the corner lands.
+Settings recipe 9 retains the requested minimum separately from the resolved
+border recorded in preview diagnostics. Old mounted recipes show a notice about
+the new border calculation before Rebuild; simply reading Edit leaves their
+saved geometry and settings unchanged.
+
+This increment passes **993 Python tests**, three Node UI suites, compilation,
+whitespace checks and headless Edge at 300/380/520 px. Fourteen isolated MCP cases
+on Fusion 2705.1.30 cover plain/countersunk M4, raised and chamfered louvers,
+M3/M6, a custom head/inset, a larger requested minimum, zero requested minimum,
+256 dense-grid openings and early border/thickness refusals. Independent material
+witnesses sample all four inner border limits at three plate depths, excluding
+the head envelopes. Bore/seat witnesses, cached preview cleanup, same body/name/
+history, and original caller restoration pass. An M3→M6→M4 Edit cycle resolves
+10.292→17.684→12.756 mm and returns to exactly the original volume, with no stale
+holes. Old mounted settings read without writing geometry or recipes.
+
+Evidence: [grille-auto-border-0.16.2.json](validation/grille-auto-border-0.16.2.json).
+These geometric checks do not prove physical screw fit, strength, printing,
+pointer/orbit behavior, save/reopen or Undo/Redo.
+
 Both mounting modes reserve four solid corner blocks within the original plate,
 with at least 1.2 mm material beyond the selected head envelope. Hole positions
 leave an additional 0.5 mm to the exterior; the blocks reach the exterior corners
 and join a frame with Border >=1 mm. Blocks must be separated from one another.
-Pattern openings are locally filled with original plate material in these
-regions. Raised fins/frame above the blocks are cleared
+The automatic perimeter already contains the original plate material in these
+regions. A fallback for internal narrow-border callers retains corner restoration.
+Raised fins/frame above the blocks are cleared
 to the original front face, so the head has access and a flat seating plane.
 Neither the plate footprint nor its back is enlarged. Four analytic cylinders
 and optional conical seats cut the holes; no feature is created per hole.
 
-Mounting requires one rectangular uniform solid plate face. Too little border,
-an inadequate plate size, invalid insets or excessive countersink depth are
+Mounting requires one rectangular uniform solid plate face. An excessive minimum
+border, inadequate plate size, invalid inset or excessive countersink depth is
 refused before pattern construction. Plain holes also work on thinner plates.
 Mounting works with Flat, Raised and Chamfered profiles, including the dense
 Flat Crossed grid path. Off adds no plate inspection or mounting geometry work.
 All changes share the existing preview/Create/Edit/Rebuild transaction. Editing
 between Off/Plain/Countersunk reconstructs from the original plate, leaving no
-old holes or duplicate bodies. Settings recipe 8 reads versions 1–6 with mounting
+old holes or duplicate bodies. Settings recipe 9 reads versions 1–6 with mounting
 Off and rewrites only on successful Rebuild.
 
 The type dropdown and Direction occupy full rows. Direction presets are disabled
@@ -208,7 +261,7 @@ All three grille types can be interchanged through Edit.
 Existing version 1 records retain their full-shape Join/Intersect history and
 remain editable. They are not automatically migrated to Cut history; large dense
 Rebuilds of legacy records have not been revalidated. The pattern settings recipe
-is now version 8, and generic Patterns keep their existing persistence route.
+is now version 9, and generic Patterns keep their existing persistence route.
 
 Create modifies the selected body instead of adding a replacement copy. The
 existing single-owned-pattern-per-body and timeline-end Edit contract remains;

@@ -64,6 +64,26 @@ def louver_angles(body,settings,thickness):
     return sorted(set(round(angle,5) for angle in angles))
 
 
+def border_witnesses(adapter,body,settings,width,depth,thickness,timings):
+    """Independent solid witnesses at all four inner border limits, at 3 depths."""
+    border=timings['mount_border_mm'];radius=timings['mount_head_diameter_mm']/2
+    inset=timings['mount_inset_mm']
+    centers=[(x,y) for x in (-width/2+inset,width/2-inset) for y in (-depth/2+inset,depth/2-inset)]
+    points=[]
+    for index in range(25):
+        x=-width/2+.1+(width-.2)*index/24;y=-depth/2+.1+(depth-.2)*index/24
+        points.extend(((x,-depth/2+border-.1),(x,depth/2-border+.1),(-width/2+border-.1,y),(width/2-border+.1,y)))
+    count=0
+    for x,y in points:
+        if any(math.hypot(x-cx,y-cy)<=radius+.1 for cx,cy in centers):continue
+        for z in (.08,thickness/2,thickness-.08):
+            assert adapter._containment(body,(x,y,z)),(x,y,z,border)
+            count+=1
+    assert count>=20
+    assert border>=settings.border_mm and border+1e-8>=inset+radius+1.2
+    return count
+
+
 def run(context):
     context=context or {}
     root=Path(__file__).resolve().parents[2]
@@ -75,7 +95,7 @@ def run(context):
     app=core.Application.get();caller=app.activeDocument;original=native.Design.cast(app.activeProduct)
     before=snapshot(original);camera=app.activeViewport.camera
     original_component=original.activeComponent if original else None
-    report={'version':'0.16.1','fusion_version':app.version,'context':context,'success':False}
+    report={'version':'0.16.2','fusion_version':app.version,'context':context,'success':False}
     owned=None
     try:
         if app.userInterface.activeCommand not in ('','SelectCommand'):
@@ -98,7 +118,7 @@ def run(context):
         token=body.entityToken
         face=next(f for f in body.faces if abs(f.pointOnFace.z-thickness/10)<1e-7)
         settings=settings_module.PatternSettings(pattern=context.get('pattern','grille_parallel'),layout_mode='fill',
-            pitch_mm=7,web_mm=2,border_mm=7,rotation_deg=context.get('rotation_deg',0),
+            pitch_mm=7,web_mm=2,border_mm=context.get('border_mm',7),rotation_deg=context.get('rotation_deg',0),
             grille_profile=context.get('profile','raised'),grille_height_mm=context.get('height_mm',3),
             louver_angle_deg=context.get('louver_angle_deg',45))
         settings=replace(settings,**{key:value for key,value in context.items() if key.startswith('mount_') and key in settings.to_dict()})
@@ -139,6 +159,8 @@ def run(context):
         if settings.mount_mode!='off':
             mounting_witnesses(adapter,prepared.result_body,settings,width,depth,thickness,prepared.timings)
             report['mount_bore_and_seat_witnesses']=4
+            report['solid_border_witnesses']=border_witnesses(adapter,prepared.result_body,settings,width,depth,thickness,prepared.timings)
+            assert prepared.timings['mount_border_restores']==0
         report['through_opening_witnesses']=min(3,len(prepared.accepted_samples)) if settings.mount_mode=='off' else 0
         if context.get('preview'):
             clean=snapshot(design);graphics=design.rootComponent.customGraphicsGroups.count
@@ -157,6 +179,14 @@ def run(context):
         assert design.timeline.count==history+features
         target=recipe.read_edit_target(design,body)
         assert target.settings==settings and target.record.recipe['version']==(1 if raised or prior else 2)
+        if context.get('legacy_mount'):
+            unchanged=snapshot(design)
+            legacy=json.loads(target.anchor.attributes.itemByName(recipe.GROUP,'recipe').value);legacy['version']=8
+            raw=json.dumps(legacy,separators=(',',':'));assert target.anchor.attributes.add(recipe.GROUP,'recipe',raw)
+            target=recipe.read_edit_target(design,body)
+            assert target.recipe==legacy and target.settings==settings and snapshot(design)==unchanged
+            assert 'minimum border' in recipe.edit_notice(target)
+            report['legacy_mount_read_without_model_changes']=True
         if context.get('legacy_raised'):
             unchanged=snapshot(design)
             saved=target.anchor.attributes.itemByName(recipe.GROUP,'recipe').value
@@ -183,6 +213,18 @@ def run(context):
         assert abs(body.boundingBox.maxPoint.z-(thickness+(settings.grille_height_mm if raised else 0))/10)<1e-7
         if settings.mount_mode!='off':
             mounting_witnesses(adapter,body,settings,width,depth,thickness,changed.timings)
+            border_witnesses(adapter,body,settings,width,depth,thickness,changed.timings)
+        if context.get('mount_screw_cycle'):
+            unchanged_volume=float(body.volume);report['mount_screw_cycle']=[]
+            for screw,mode in (('M3','plain'),('M6','plain'),('M4','countersink')):
+                target=recipe.read_edit_target(design,body);revised=replace(settings,mount_screw=screw,mount_mode=mode)
+                staged=recipe.prepare_edit_pattern(design,target,revised);recipe.rebuild_pattern(design,target,staged)
+                assert design.rootComponent.bRepBodies.count==1 and design.timeline.count==history+features
+                assert design.findEntityByToken(token)[0]==body and recipe.read_edit_target(design,body).settings==revised
+                mounting_witnesses(adapter,body,revised,width,depth,thickness,staged.timings)
+                border_witnesses(adapter,body,revised,width,depth,thickness,staged.timings)
+                report['mount_screw_cycle'].append({'screw':screw,'border_mm':staged.timings['mount_border_mm']})
+            assert abs(body.volume-unchanged_volume)<1e-8
         if context.get('tilt_edit_cycle'):
             report['tilt_edit_cycle']=[]
             for tilt in (0,20,45):

@@ -654,15 +654,19 @@ def prepare_pattern(design, faces, settings, *, _historical=False):
             from . import mounting,flat_plate
             mount_started=time.perf_counter()
             settings.validate()
+            effective=replace(settings,border_mm=mounting.border_for_screw(settings))
             sources,body=_selection(design,faces,_historical)
-            plate=flat_plate.inspect(design,sources,settings,body)
+            plate=flat_plate.inspect(design,sources,effective,body)
             bounds=tuple(value for axis in (0,1) for value in (min(p[axis] for p in plate.outer),max(p[axis] for p in plate.outer)))
-            mount=mounting.plan(settings,bounds,plate.thickness_mm)
+            mount=mounting.plan(effective,bounds,plate.thickness_mm)
+            if min(bounds[1]-bounds[0],bounds[3]-bounds[2])<=2*effective.border_mm:
+                raise ValueError(f'Mounting border {effective.border_mm:.2f} mm leaves no grille area. Reduce Border or screw/head size, or use a larger plate.')
             preflight_ms=(time.perf_counter()-mount_started)*1000
-            prepared=_prepare_pattern_impl(design,sources,settings,_historical=_historical,_plate=plate)
+            prepared=_prepare_pattern_impl(design,sources,effective,_historical=_historical,_plate=plate)
             prepared=mounting.apply(prepared,plate,mount)
             validate_sources(prepared,_historical=_historical)
-            prepared=replace(prepared,timings={**prepared.timings,'mount_preflight_ms':preflight_ms,
+            prepared=replace(prepared,settings=settings,timings={**prepared.timings,'mount_preflight_ms':preflight_ms,
+                'mount_border_mm':effective.border_mm,'requested_border_mm':settings.border_mm,
                 'total_ms':(time.perf_counter()-mount_started)*1000})
         else:
             prepared=_prepare_pattern_impl(design,faces,settings,_historical=_historical)

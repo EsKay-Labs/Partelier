@@ -16,6 +16,26 @@ EDGE_MM=.5
 MIN_BARREL_MM=.2
 
 
+def border_for_screw(settings):
+    """Resolve the solid perimeter before generating any repeat or native tool.
+
+    A whole head and its material rim must fit between the outer edge and the
+    first opening. Retain the user's larger minimum; Off adds no restriction.
+    """
+    settings.validate()
+    if settings.mount_mode=='off':return settings.border_mm
+    nominal,head=SCREWS[settings.mount_screw]
+    hole=nominal+settings.mount_clearance_mm
+    head=(settings.mount_head_mm or head)*(1+settings.mount_head_extra_percent/100)
+    if head<=hole+.1:
+        raise ValueError('Head diameter must be larger than the through hole. Check Head Ø and Hole allowance.')
+    radius=head/2+RIM_MM
+    inset=settings.mount_inset_mm or radius+EDGE_MM
+    if inset<radius+EDGE_MM-1e-8:
+        raise ValueError(f'Mounting centres need at least {radius+EDGE_MM:.2f} mm from the outside edges. Use 0 for Auto.')
+    return max(settings.border_mm,inset+radius)
+
+
 @dataclass(frozen=True)
 class MountPlan:
     centers_mm: tuple
@@ -79,13 +99,16 @@ def apply(prepared,plate,mount):
         return prism(plate.frame,((lo,bottom),(hi,bottom),(hi,top),(lo,top)),low,high)
     # Full corner blocks avoid the thin crescents left when circular clearances
     # meet inclined or chamfered fin ends. All material stays inside the plate.
-    for bounds in mount.land_bounds_mm:
-        land=block(bounds,-plate.thickness_mm-.02,.02)
-        boolean(land,plate.body,operations.IntersectionBooleanType)
-        expected=(bounds[1]-bounds[0])*(bounds[3]-bounds[2])*plate.thickness_mm/1000
-        if abs(float(land.volume)-expected)>max(1e-8,expected*1e-7):
-            raise ValueError('The mounting land is not fully supported by the original plate.')
-        boolean(result,land,operations.UnionBooleanType)
+    restores=0
+    if prepared.settings.border_mm+1e-8<mount.inset_mm+mount.land_radius_mm:
+        for bounds in mount.land_bounds_mm:
+            land=block(bounds,-plate.thickness_mm-.02,.02)
+            boolean(land,plate.body,operations.IntersectionBooleanType)
+            expected=(bounds[1]-bounds[0])*(bounds[3]-bounds[2])*plate.thickness_mm/1000
+            if abs(float(land.volume)-expected)>max(1e-8,expected*1e-7):
+                raise ValueError('The mounting land is not fully supported by the original plate.')
+            boolean(result,land,operations.UnionBooleanType)
+            restores+=1
     if prepared.settings.grille_profile!='flat':
         # Seats stay on the original front plane. Clear fins/frame above the
         # reserved lands so the head can reach that plane from the outside.
@@ -110,7 +133,7 @@ def apply(prepared,plate,mount):
     samples=tuple(sample for sample in prepared.accepted_samples if not reserved(sample['point_mm']))
     prepared=replace(prepared,result_body=result,accepted_samples=samples,timings={**prepared.timings,
         'mounting_ms':elapsed,'total_ms':prepared.timings.get('total_ms',0)+elapsed,
-        'mount_holes':4,'mount_hole_diameter_mm':mount.hole_diameter_mm,
+        'mount_holes':4,'mount_border_restores':restores,'mount_hole_diameter_mm':mount.hole_diameter_mm,
         'mount_head_diameter_mm':mount.head_diameter_mm,'mount_countersink_depth_mm':mount.countersink_depth_mm,
         'mount_inset_mm':mount.inset_mm})
     return prepared
