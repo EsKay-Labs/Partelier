@@ -49,8 +49,8 @@ class PatternSettings:
             raise ValueError("Choose a supported pattern shape or polygon mosaic.")
         if self.mode not in ("through", "engrave", "emboss", "inlay"):
             raise ValueError("Choose through, engrave, emboss or flat colour.")
-        if not 0 <= self.louver_angle_deg <= 60:
-            raise ValueError("Louver tilt must be between 0 and 60 degrees from the surface normal.")
+        if not 0 <= self.louver_angle_deg <= 45:
+            raise ValueError("Louver tilt must be between 0 and 45 degrees from the surface normal.")
         if self.pattern.startswith('grille_') and (self.mode != 'through' or self.layout_mode != 'fill'):
             raise ValueError("Grilles use through openings with fixed opening width and rib thickness.")
         if self.grille_profile not in ('flat','raised','chamfer'):

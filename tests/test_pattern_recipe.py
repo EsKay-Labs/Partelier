@@ -120,7 +120,7 @@ class PatternRecipeTests(unittest.TestCase):
             spec.loader.exec_module(self.module)
         self.module.STORE = self.store
         self.module.colour_store=NS(selection_anchor=lambda selected,group:selected,read=Mock(return_value=None),apply=Mock())
-        self.saved = {"version": 7, "tool": "surface_pattern", "feature_id": self.record.feature_id,
+        self.saved = {"version": 8, "tool": "surface_pattern", "feature_id": self.record.feature_id,
                       "settings": self.settings.to_dict(), "sources": deepcopy(self.tokens)}
         self.write_recipe(self.saved)
 
@@ -134,6 +134,41 @@ class PatternRecipeTests(unittest.TestCase):
         target = self.read()
         self.events.clear()
         return target, self.module.prepare_edit_pattern(self.design, target, settings or self.settings)
+
+    def test_legacy_raised_tilt_keeps_its_original_fixed_geometry_without_saving(self):
+        for version in (6,7):
+            for angle in (0,20,45,60):
+                with self.subTest(version=version,angle=angle):
+                    legacy=deepcopy(self.saved);legacy['version']=version
+                    legacy['settings'].update(pattern='grille_louver',mode='through',layout_mode='fill',grille_profile='raised',louver_angle_deg=angle)
+                    if version==6:
+                        legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('mount_')}
+                    self.write_recipe(legacy)
+                    target=self.read()
+                    self.assertEqual(target.settings.louver_angle_deg,45)
+                    self.assertEqual(target.recipe,legacy)
+                    self.assertEqual(json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value),legacy)
+                    self.assert_no_persistence()
+
+    def test_legacy_flat_tilt_proposes_new_limit_and_explicit_rebuild_notice(self):
+        legacy=deepcopy(self.saved);legacy['version']=7
+        legacy['settings'].update(pattern='grille_louver',mode='through',layout_mode='fill',louver_angle_deg=60)
+        self.write_recipe(legacy);target=self.read()
+        self.assertEqual(target.settings.louver_angle_deg,45)
+        self.assertEqual(target.recipe,legacy)
+        self.assertIn('existing body is unchanged',self.module.edit_notice(target))
+        self.assert_no_persistence()
+        for angle in (0,20,45):
+            legacy['settings']['louver_angle_deg']=angle;self.write_recipe(legacy)
+            self.assertEqual(self.read().settings.louver_angle_deg,angle)
+
+    def test_legacy_and_current_angle_corruption_is_never_clamped(self):
+        for version,angles in ((7,(True,'45',-1,61,10**400,float('nan'))),(8,(46,60))):
+            for angle in angles:
+                value=deepcopy(self.saved);value['version']=version;value['settings']['louver_angle_deg']=angle
+                self.write_recipe(value)
+                with self.subTest(version=version,angle=angle),self.assertRaises(ValueError):self.read()
+                self.assert_no_persistence()
 
     def assert_no_persistence(self):
         self.store.create.assert_not_called()
@@ -177,7 +212,7 @@ class PatternRecipeTests(unittest.TestCase):
 
     def test_recipe_envelope_and_exact_settings_are_strict_on_public_edit_read(self):
         malformed = []
-        for key, value in (("version", True), ("version", 8), ("tool", "snap_fit"), ("feature_id", "another-pattern")):
+        for key, value in (("version", True), ("version", 9), ("tool", "snap_fit"), ("feature_id", "another-pattern")):
             damaged = deepcopy(self.saved)
             damaged[key] = value
             malformed.append(damaged)
@@ -221,7 +256,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,settings)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],7)
+        self.assertEqual(saved['version'],8)
         self.assertEqual(saved['settings']['layout_mode'],'fixed')
         self.assertEqual(saved['settings']['pitch_mm'],legacy['settings']['pitch_mm'])
 
@@ -248,7 +283,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,target.settings)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],7)
+        self.assertEqual(saved['version'],8)
         self.assertEqual(saved['settings']['louver_angle_deg'],45)
         for key,value in legacy['settings'].items():self.assertEqual(saved['settings'][key],value)
 

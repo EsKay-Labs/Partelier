@@ -1,0 +1,714 @@
+{
+  "version": "0.16.1",
+  "client_date": "2026-10-25",
+  "local": {
+    "python_tests": 988,
+    "node_ui_suites": 3,
+    "compilation_passed": true,
+    "whitespace_passed": true,
+    "headless_edge": {
+      "checks": [
+        {
+          "width": 300,
+          "threeProfiles": true,
+          "angles": [
+            0,
+            20,
+            45
+          ],
+          "defaultAndMaximum": 45,
+          "invalid46Blocked": true,
+          "mountSummary": true,
+          "illustratedHelp": true,
+          "noOverflow": true
+        },
+        {
+          "width": 380,
+          "threeProfiles": true,
+          "angles": [
+            0,
+            20,
+            45
+          ],
+          "defaultAndMaximum": 45,
+          "invalid46Blocked": true,
+          "mountSummary": true,
+          "illustratedHelp": true,
+          "noOverflow": true
+        },
+        {
+          "width": 520,
+          "threeProfiles": true,
+          "angles": [
+            0,
+            20,
+            45
+          ],
+          "defaultAndMaximum": 45,
+          "invalid46Blocked": true,
+          "mountSummary": true,
+          "illustratedHelp": true,
+          "noOverflow": true
+        }
+      ],
+      "errors": []
+    }
+  },
+  "native": {
+    "transport": "Opt-in Fusion MCP execute_api_script, localhost:9100",
+    "fusion_version": "2705.1.30",
+    "case_count": 10,
+    "all_passed": true,
+    "cases": [
+      {
+        "version": "0.16.1",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 191.68660003924742,
+        "openings": 5,
+        "timings": {
+          "source_and_plan_ms": 53.2468999736011,
+          "temporary_geometry_ms": 131.85669999802485,
+          "total_ms": 185.104499978479,
+          "wall_checks_ms": 25.82610002718866,
+          "tool_construction_ms": 67.53479992039502,
+          "tool_clip_ms": 13.587600027676672,
+          "result_application_ms": 18.61919998191297,
+          "batch_used": false,
+          "louver_face_setups": 1
+        },
+        "analytic_wall_angles": [
+          0.0
+        ],
+        "through_opening_witnesses": 3,
+        "create_ms": 248.5492000123486,
+        "edit_rebuild_ms": 672.3523000255227,
+        "same_body": true,
+        "flat_back": true,
+        "owned_features": 2,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "flat-zero",
+        "inputs": {
+          "pattern": "grille_louver",
+          "profile": "flat",
+          "louver_angle_deg": 0
+        },
+        "report_sha256": "2e4f62e6e0ea2c0b133795ff57fc6f699a73cae1c3b264019805147837d378a7"
+      },
+      {
+        "version": "0.16.1",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 196.36249996256083,
+        "openings": 5,
+        "timings": {
+          "source_and_plan_ms": 57.02960002236068,
+          "temporary_geometry_ms": 132.6306999544613,
+          "total_ms": 189.66119998367503,
+          "wall_checks_ms": 26.26750007038936,
+          "tool_construction_ms": 68.65080003626645,
+          "tool_clip_ms": 14.0190000529401,
+          "result_application_ms": 18.7525000073947,
+          "batch_used": false,
+          "louver_face_setups": 1
+        },
+        "analytic_wall_angles": [
+          0.0,
+          20.0
+        ],
+        "through_opening_witnesses": 3,
+        "cached_preview_draw_cleanup": true,
+        "preview_triangles": 112,
+        "create_ms": 258.17809998989105,
+        "edit_rebuild_ms": 685.1298999972641,
+        "same_body": true,
+        "flat_back": true,
+        "owned_features": 2,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "flat-twenty",
+        "inputs": {
+          "pattern": "grille_louver",
+          "profile": "flat",
+          "louver_angle_deg": 20,
+          "preview": true
+        },
+        "report_sha256": "d9ddb1b800f43969a7ca9e8d49ea59622fc25a2144f0715b7af709ff79643ca5"
+      },
+      {
+        "version": "0.16.1",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 103.0340000288561,
+        "openings": 5,
+        "timings": {
+          "source_and_plan_ms": 40.38960003526881,
+          "temporary_geometry_ms": 55.105899984482676,
+          "total_ms": 95.49550001975149,
+          "raised_profile": "raised",
+          "raised_body_creations": 2,
+          "raised_height_mm": 3.0,
+          "underside_limit_deg": 45,
+          "louver_angle_deg": 0.0
+        },
+        "analytic_wall_angles": [
+          0.0
+        ],
+        "through_opening_witnesses": 3,
+        "create_ms": 245.07109995465726,
+        "edit_rebuild_ms": 600.8308999589644,
+        "same_body": true,
+        "flat_back": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "raised-zero",
+        "inputs": {
+          "pattern": "grille_louver",
+          "profile": "raised",
+          "louver_angle_deg": 0
+        },
+        "report_sha256": "49c07220014bead83d64ad3f3a6b6fc5aace6fda40009a155b6ae426bd562a6e"
+      },
+      {
+        "version": "0.16.1",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 156.0416000429541,
+        "openings": 9,
+        "timings": {
+          "source_and_plan_ms": 51.5677000512369,
+          "temporary_geometry_ms": 97.32020000228658,
+          "total_ms": 148.88790005352348,
+          "raised_profile": "raised",
+          "raised_body_creations": 2,
+          "raised_height_mm": 3.0,
+          "underside_limit_deg": 45,
+          "louver_angle_deg": 20.0
+        },
+        "analytic_wall_angles": [
+          0.0,
+          10.3141,
+          17.49524,
+          20.0
+        ],
+        "through_opening_witnesses": 3,
+        "cached_preview_draw_cleanup": true,
+        "preview_triangles": 268,
+        "create_ms": 348.99379999842495,
+        "edit_rebuild_ms": 837.1571999741718,
+        "same_body": true,
+        "flat_back": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "raised-twenty",
+        "inputs": {
+          "pattern": "grille_louver",
+          "profile": "raised",
+          "louver_angle_deg": 20,
+          "preview": true,
+          "rotation_deg": 30
+        },
+        "report_sha256": "c5868d1847ee4617994e1e3418f806ae26e51fdee8536cef4a499b9cb95e2c9d"
+      },
+      {
+        "version": "0.16.1",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 316.87560002319515,
+        "openings": 5,
+        "timings": {
+          "source_and_plan_ms": 27.58170000743121,
+          "temporary_geometry_ms": 95.9212000016123,
+          "total_ms": 311.78749998798594,
+          "raised_profile": "chamfer",
+          "raised_body_creations": 3,
+          "raised_height_mm": 3.0,
+          "underside_limit_deg": 45,
+          "louver_angle_deg": 20.0,
+          "mounting_ms": 153.80779997212812,
+          "mount_holes": 4,
+          "mount_hole_diameter_mm": 4.3,
+          "mount_head_diameter_mm": 9.856000000000002,
+          "mount_countersink_depth_mm": 2.778000000000001,
+          "mount_inset_mm": 6.628000000000001,
+          "mount_preflight_ms": 19.8563999729231
+        },
+        "analytic_wall_angles": [
+          0.0,
+          20.0
+        ],
+        "mount_bore_and_seat_witnesses": 4,
+        "through_opening_witnesses": 0,
+        "cached_preview_draw_cleanup": true,
+        "preview_triangles": 1156,
+        "create_ms": 375.48229994717985,
+        "edit_rebuild_ms": 1077.1681000478566,
+        "same_body": true,
+        "flat_back": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "chamfer-twenty-mounted",
+        "inputs": {
+          "pattern": "grille_louver",
+          "profile": "chamfer",
+          "louver_angle_deg": 20,
+          "mount_mode": "countersink",
+          "preview": true
+        },
+        "report_sha256": "8cf0f84ec64d12fb3d233a45274593728b8ecc12f9f1e0c56cd8f0c710c8d678"
+      },
+      {
+        "version": "0.16.1",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 104.19000004185364,
+        "openings": 5,
+        "timings": {
+          "source_and_plan_ms": 43.76230004709214,
+          "temporary_geometry_ms": 53.74909995589405,
+          "total_ms": 97.51140000298619,
+          "raised_profile": "raised",
+          "raised_body_creations": 2,
+          "raised_height_mm": 3.0,
+          "underside_limit_deg": 45,
+          "louver_angle_deg": 45.0
+        },
+        "analytic_wall_angles": [
+          0.0,
+          45.0
+        ],
+        "through_opening_witnesses": 3,
+        "create_ms": 272.7236000355333,
+        "edit_rebuild_ms": 651.8417000188492,
+        "tilt_edit_cycle": [
+          {
+            "requested": 0,
+            "measured_wall_angles": [
+              0.0
+            ]
+          },
+          {
+            "requested": 20,
+            "measured_wall_angles": [
+              0.0,
+              20.0
+            ]
+          },
+          {
+            "requested": 45,
+            "measured_wall_angles": [
+              0.0,
+              45.0
+            ]
+          }
+        ],
+        "same_body": true,
+        "flat_back": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "raised-edit-angles",
+        "inputs": {
+          "pattern": "grille_louver",
+          "profile": "raised",
+          "tilt_edit_cycle": true
+        },
+        "report_sha256": "8a857b5a1f44633e7458a32131f9ad6084579f2cab3aaa6bda02e7e8dfb57999"
+      },
+      {
+        "version": "0.16.1",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 383.8138999999501,
+        "openings": 5,
+        "timings": {
+          "source_and_plan_ms": 54.15659997379407,
+          "temporary_geometry_ms": 195.4012000351213,
+          "total_ms": 378.34259995725006,
+          "wall_checks_ms": 32.261099899187684,
+          "tool_construction_ms": 121.68449995806441,
+          "tool_clip_ms": 13.505999930202961,
+          "result_application_ms": 21.332599979359657,
+          "batch_used": false,
+          "louver_face_setups": 1,
+          "mounting_ms": 85.78050002688542,
+          "mount_holes": 4,
+          "mount_hole_diameter_mm": 4.3,
+          "mount_head_diameter_mm": 9.856000000000002,
+          "mount_countersink_depth_mm": 0.0,
+          "mount_inset_mm": 6.628000000000001,
+          "mount_preflight_ms": 29.452399990987033
+        },
+        "analytic_wall_angles": [
+          0.0,
+          45.0
+        ],
+        "mount_bore_and_seat_witnesses": 4,
+        "through_opening_witnesses": 0,
+        "create_ms": 306.709700031206,
+        "edit_rebuild_ms": 959.0444000205025,
+        "tilt_edit_cycle": [
+          {
+            "requested": 0,
+            "measured_wall_angles": [
+              0.0
+            ]
+          },
+          {
+            "requested": 20,
+            "measured_wall_angles": [
+              0.0,
+              20.0
+            ]
+          },
+          {
+            "requested": 45,
+            "measured_wall_angles": [
+              0.0,
+              45.0
+            ]
+          }
+        ],
+        "same_body": true,
+        "flat_back": true,
+        "owned_features": 2,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "flat-edit-angles-mounted",
+        "inputs": {
+          "pattern": "grille_louver",
+          "profile": "flat",
+          "mount_mode": "plain",
+          "tilt_edit_cycle": true
+        },
+        "report_sha256": "b208173a587363e0b63c05ce5f9de2616fe553d1a8f57855afa2f6c8c4602991"
+      },
+      {
+        "version": "0.16.1",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 160.16369999852031,
+        "openings": 5,
+        "timings": {
+          "source_and_plan_ms": 55.61469995882362,
+          "temporary_geometry_ms": 97.69490000326186,
+          "total_ms": 153.30959996208549,
+          "raised_profile": "chamfer",
+          "raised_body_creations": 3,
+          "raised_height_mm": 3.0,
+          "underside_limit_deg": 45,
+          "louver_angle_deg": 45.0
+        },
+        "analytic_wall_angles": [
+          0.0,
+          45.0
+        ],
+        "through_opening_witnesses": 3,
+        "create_ms": 303.2249000389129,
+        "edit_rebuild_ms": 754.248799989,
+        "tilt_edit_cycle": [
+          {
+            "requested": 0,
+            "measured_wall_angles": [
+              0.0
+            ]
+          },
+          {
+            "requested": 20,
+            "measured_wall_angles": [
+              0.0,
+              20.0
+            ]
+          },
+          {
+            "requested": 45,
+            "measured_wall_angles": [
+              0.0,
+              45.0
+            ]
+          }
+        ],
+        "same_body": true,
+        "flat_back": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "chamfer-edit-angles",
+        "inputs": {
+          "pattern": "grille_louver",
+          "profile": "chamfer",
+          "tilt_edit_cycle": true
+        },
+        "report_sha256": "198e898a168c3b195b9c866253f7e5383e4ff82f5d8143eb74d2e1acb81f03c4"
+      },
+      {
+        "version": "0.16.1",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 1022.4092999706045,
+        "openings": 40,
+        "timings": {
+          "source_and_plan_ms": 119.4079999695532,
+          "temporary_geometry_ms": 605.8878000476398,
+          "total_ms": 1016.170900024008,
+          "raised_profile": "chamfer",
+          "raised_body_creations": 3,
+          "raised_height_mm": 3.0,
+          "underside_limit_deg": 45,
+          "louver_angle_deg": 0,
+          "mounting_ms": 236.29229998914525,
+          "mount_holes": 4,
+          "mount_hole_diameter_mm": 4.3,
+          "mount_head_diameter_mm": 9.856000000000002,
+          "mount_countersink_depth_mm": 2.778000000000001,
+          "mount_inset_mm": 6.628000000000001,
+          "mount_preflight_ms": 23.012900026515126
+        },
+        "mount_bore_and_seat_witnesses": 4,
+        "through_opening_witnesses": 0,
+        "create_ms": 1231.726600031834,
+        "edit_rebuild_ms": 3550.0115000177175,
+        "same_body": true,
+        "flat_back": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "grid-regression",
+        "inputs": {
+          "pattern": "grille_cross",
+          "profile": "chamfer",
+          "mount_mode": "countersink"
+        },
+        "report_sha256": "02dbbfc296e757b873fde586f7598a9be23dbea929301d7bcda21a080ca05e6f"
+      },
+      {
+        "version": "0.16.1",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 104.25520001444966,
+        "openings": 5,
+        "timings": {
+          "source_and_plan_ms": 42.36149997450411,
+          "temporary_geometry_ms": 55.39749999297783,
+          "total_ms": 97.75899996748194,
+          "raised_profile": "raised",
+          "raised_body_creations": 2,
+          "raised_height_mm": 3.0,
+          "underside_limit_deg": 45,
+          "louver_angle_deg": 45.0
+        },
+        "analytic_wall_angles": [
+          0.0,
+          45.0
+        ],
+        "through_opening_witnesses": 3,
+        "create_ms": 265.3155999723822,
+        "legacy_dormant_angle_restored_to_actual_45_without_model_changes": true,
+        "edit_rebuild_ms": 636.5679999580607,
+        "same_body": true,
+        "flat_back": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "legacy-raised",
+        "inputs": {
+          "pattern": "grille_louver",
+          "profile": "raised",
+          "legacy_raised": true
+        },
+        "report_sha256": "7bfeaa10e9f1c53653f3a36766964c70d8dad2eb00fe46ba7ff53305af81a91e"
+      }
+    ],
+    "probe_sha256": "4a8e85ba473b5284646e099d352bc8c484f311997e6bf9d28f1647e969df20bf"
+  },
+  "native_source_sha256": {
+    "Partelier/partelier/addin.py": "b281358a644e8f8dfd3a5852562b615c7e9244379b59ff134ac366b506a7b4f1",
+    "Partelier/partelier/diagnostics.py": "9370eff73555556e0e1859e2dd176e0212d9b385608ae9a9b73091716df9215c",
+    "Partelier/partelier/palette.py": "df072eeb8940d35586c0df36c9d05784953b3f4001fb1950ed5908a4b1dcb863",
+    "Partelier/partelier/palette_protocol.py": "558c68e710bd22ba2733060c6a0c602d6974f8f6ee95016d7eb167888daf9a56",
+    "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+    "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+    "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+    "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+    "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+    "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+    "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+    "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+    "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+    "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+    "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+    "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+    "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+    "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+    "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+    "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+    "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+    "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+    "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+    "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+    "Partelier/partelier/tools/patterns/auto_fit.py": "5be4178c056629c6486ae2558653ad1eaf7f6fcaa10820309ed74ceea4345289",
+    "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+    "Partelier/partelier/tools/patterns/clipping.py": "1d5583190a77e6b164e000353c9237aa446fe762bd6c4d20f72703ddb7968822",
+    "Partelier/partelier/tools/patterns/colour_export.py": "5bde50f0d872fc57b30bc88d5a73e7d3460f80c06529cebe10f846a2348bb5ff",
+    "Partelier/partelier/tools/patterns/colour_store.py": "cf2f2ff1ecb6e28397a57373bc8e68b6ce6319a84423db8c2ca4ffc5c66b84dd",
+    "Partelier/partelier/tools/patterns/command.py": "2ecfd9c3f493bd015c138f066e4cc483d5cf31718c47231acf3bde11fbacc3c1",
+    "Partelier/partelier/tools/patterns/dense_grid.py": "81652510eaf37bf981f2c56d608519d8d99e215f07b90d8de448dc76187d84de",
+    "Partelier/partelier/tools/patterns/display_export.py": "aa5f683d270129781249d40d7d7f6e8eeacf93e8cb391af581f2e69dbbde0c5f",
+    "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+    "Partelier/partelier/tools/patterns/face_selection.py": "809ad6728c9273bd9dd35e5674e415257b71863e443387841b926713c33dcec3",
+    "Partelier/partelier/tools/patterns/fingerprint.py": "2741a20d00bd5ed65b3491f0e03fdb9899f7c61b94b39d49f98ba091f3e6ad20",
+    "Partelier/partelier/tools/patterns/flat_plate.py": "f590d33ef2bd07a5c5bbae693e127f90d2a8b035e000ed174e72ddbe18e7a1c8",
+    "Partelier/partelier/tools/patterns/fusion.py": "27473192f389e9b27fbee52ae080d9a8e4041945268e215d0facde85700ecea2",
+    "Partelier/partelier/tools/patterns/grilles.py": "434b0d78e59f0734f3e5b9a44376055d5a43ea0b7708ce56330b5811298d39d1",
+    "Partelier/partelier/tools/patterns/inlay.py": "2fbc2ce692013442910062306cc6938caf464dde43e4dce54b32b30612608a1a",
+    "Partelier/partelier/tools/patterns/mounting.py": "043bdb7fcb19506e27df8e36e8cff622f341868c28b9fb25956c3f2a8bc1ab24",
+    "Partelier/partelier/tools/patterns/perforated_prism.py": "ed5aed934b3c9d4bc013b183f079689358929a16cd4ed1d5c67f6320cdde969b",
+    "Partelier/partelier/tools/patterns/planner.py": "70f66da217988ec0031a9671df987a53b106e05fe05a82f073f52200094d83be",
+    "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+    "Partelier/partelier/tools/patterns/prism.py": "cb1ada026a5ef1964b68b0e749c45e6ae03d19ece19a518938ef4e7c444f58a5",
+    "Partelier/partelier/tools/patterns/profile_loft.py": "da702b356ae686edfcb274c567a7a4e46729fc980734d86882c0316c2daf90c4",
+    "Partelier/partelier/tools/patterns/raised_grilles.py": "5e253c373058725d6ac163c8d7821fb0dbe1a3dbddcaa7e18eec884cd6c49eb9",
+    "Partelier/partelier/tools/patterns/recipe.py": "f90133637edb28c661022eae48bc9ba7a8bd51072712b64fa2fb45bc7ba86362",
+    "Partelier/partelier/tools/patterns/settings.py": "88b151f54b1fbbb9e5513ce0b19b230ed17e9d5e26082bfe4b6b602d5aa20c78",
+    "Partelier/partelier/tools/patterns/store.py": "e0f422fd30b349e37ac5a998b7851cd9d2f4849d9d854929654ddf130b3eea11",
+    "Partelier/partelier/tools/patterns/surfaces.py": "8a4e392b38e22f8c3579271b11499b0b7480f3e0abf829785a9f9be9761da74f",
+    "Partelier/partelier/tools/patterns/tiled_layout.py": "fd39879c2540ddb1924728783f288a5704a656263bfc9ae896c81fb70d8ed4da",
+    "Partelier/partelier/tools/patterns/tiles.py": "7d7c94fd7e897ee82b4ec5de5a8a33da5f962157cc82bd27746a9917fd931fd1",
+    "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+    "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+    "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+    "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+    "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+    "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+    "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+    "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+    "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+    "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80"
+  },
+  "ui_source_sha256": {
+    "Partelier/partelier/ui/catalog.js": "26b6de6e5e16593a6d440412c4eca3631bd0839dcbea8e7f13124d95bef3dd49",
+    "Partelier/partelier/ui/illustrations.js": "b9f7428fb4d5db99cc2d4435b62b6f16e4ad3a2735a52397913e50ccf24eb8ae",
+    "Partelier/partelier/ui/palette.css": "f99ac213adf43205c872208ba409193a32239a7dacbc3bd8ca0bd3a04d3e3bf2",
+    "Partelier/partelier/ui/palette.html": "5cd8af3dc1870a77890e2d6d91ddb25a715b6138ae857f9e1f565f850121556f",
+    "Partelier/partelier/ui/palette.js": "a3f5d9539d98602a50b7e601f18fe4904656f3c6e90af228c7fdff635e900f02",
+    "Partelier/partelier/ui/pattern-help.js": "b32ff571a1f779b0d4c2f1dea2a322126a77c748749a2ef8f2a0e4681e6567f2",
+    "Partelier/partelier/ui/patterns.js": "01c65b602fa7d1a03a8d10b332b1533e31015d4d71fd017a9bd46106f51ceba7",
+    "Partelier/partelier/ui/snap.js": "f3a79b8e14b1d05094fa98fcfd57961e3a8fa5f19775987e51952b1ccf2a45c7",
+    "Partelier/partelier/ui/pattern-previews/cairo.svg": "62b61fafaa82d48f38e556bbe1171a300f67718e4551fbbd3205091c7d02ccc0",
+    "Partelier/partelier/ui/pattern-previews/elongated_hexagon.svg": "7db784fb5b6c3c25e3c839ca0444f10f022569e9fc09b31eb8f8f0ebef2439e9",
+    "Partelier/partelier/ui/pattern-previews/octagon.svg": "780bde96fbdd424212d89ac63253ed61605a80aeb930c8886a89e0e129e541c7",
+    "Partelier/partelier/ui/pattern-previews/octagon_square.svg": "b6d30d19271015390c5f69474c335c09c113e8701dc2d31d197b2750cd9ca0fa",
+    "Partelier/partelier/ui/pattern-previews/pentagon.svg": "360322d0a82041063823db1cc90217f3289dc62d6fdb4710afb32574f49aa522",
+    "Partelier/partelier/ui/pattern-previews/rhombille.svg": "cf3f4dfccee06f77df5359c66e8937aaa770a26a292cd9d396ce9adc9c3f8468",
+    "Partelier/partelier/ui/pattern-previews/rounded_hexagon.svg": "6b72e822e36c215d791ffeb77fccff5e70dd56df71db34c0f74c4fad4eceb506",
+    "Partelier/partelier/ui/pattern-previews/rounded_triangle.svg": "dbc97b47ceecb4fc6d2691f433a7d739346f441e556a9900e05300725333d462",
+    "Partelier/partelier/ui/pattern-previews/triangle.svg": "d4905b8f6ab2203020cdb75569225dd42dfbbf0dd9eb83d91794da3375ac44cc",
+    "Partelier/partelier/ui/pattern-previews/trihex.svg": "a216a27473d0249b6594e340c4ebf24c25b1ac7c9b06aff6b7f196c3196cd07f"
+  },
+  "git_blob_sha256": {
+    "Partelier/partelier/addin.py": "b281358a644e8f8dfd3a5852562b615c7e9244379b59ff134ac366b506a7b4f1",
+    "Partelier/partelier/diagnostics.py": "880b1d1c8c87c8cf82ef0290de4796d3a02cbbf1134e5ad43af45815e8db7e08",
+    "Partelier/partelier/palette.py": "94b378124095384efda79e1a3a524c807a408e2dac2d9d071e93733ee3611c30",
+    "Partelier/partelier/palette_protocol.py": "4a958ea98c03c5f83574a86306b531b91c84545f364e918a1b31741f8364abac",
+    "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+    "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+    "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+    "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+    "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+    "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+    "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+    "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+    "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+    "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+    "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+    "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+    "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+    "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+    "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+    "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+    "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+    "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+    "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+    "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+    "Partelier/partelier/tools/patterns/auto_fit.py": "5be4178c056629c6486ae2558653ad1eaf7f6fcaa10820309ed74ceea4345289",
+    "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+    "Partelier/partelier/tools/patterns/clipping.py": "1d5583190a77e6b164e000353c9237aa446fe762bd6c4d20f72703ddb7968822",
+    "Partelier/partelier/tools/patterns/colour_export.py": "dc9404373256ce66d4fc934c11cfa7917885318a804fe1d066bebf13db98079e",
+    "Partelier/partelier/tools/patterns/colour_store.py": "cf2f2ff1ecb6e28397a57373bc8e68b6ce6319a84423db8c2ca4ffc5c66b84dd",
+    "Partelier/partelier/tools/patterns/command.py": "2ecfd9c3f493bd015c138f066e4cc483d5cf31718c47231acf3bde11fbacc3c1",
+    "Partelier/partelier/tools/patterns/dense_grid.py": "9adb25ce64ba02c1d614fbafcac4057995dd471f0ce2f2740f8edf97d96add70",
+    "Partelier/partelier/tools/patterns/display_export.py": "3cfdc6031090dbe8c52422b41926f35d04c9e2e153131572b79711af094f19ff",
+    "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+    "Partelier/partelier/tools/patterns/face_selection.py": "809ad6728c9273bd9dd35e5674e415257b71863e443387841b926713c33dcec3",
+    "Partelier/partelier/tools/patterns/fingerprint.py": "2741a20d00bd5ed65b3491f0e03fdb9899f7c61b94b39d49f98ba091f3e6ad20",
+    "Partelier/partelier/tools/patterns/flat_plate.py": "f590d33ef2bd07a5c5bbae693e127f90d2a8b035e000ed174e72ddbe18e7a1c8",
+    "Partelier/partelier/tools/patterns/fusion.py": "bce707f1a7373df3ed42a349bdf1e35ced5bbf649cfe678be2321b5554480cd7",
+    "Partelier/partelier/tools/patterns/grilles.py": "e33d0d72eff03168fe39c4a8b3a7e7dbc5b0e45068ccf3be750ada94a5e947da",
+    "Partelier/partelier/tools/patterns/inlay.py": "1e3bb0c9396636cfec62182f437d0bfffb14489d9d116ff40b1aa9151b074218",
+    "Partelier/partelier/tools/patterns/mounting.py": "043bdb7fcb19506e27df8e36e8cff622f341868c28b9fb25956c3f2a8bc1ab24",
+    "Partelier/partelier/tools/patterns/perforated_prism.py": "ed5aed934b3c9d4bc013b183f079689358929a16cd4ed1d5c67f6320cdde969b",
+    "Partelier/partelier/tools/patterns/planner.py": "49e86fc8874f31a8b98d0b12dc201b7ec697495bc369fe50c7d33e68c72fa51e",
+    "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+    "Partelier/partelier/tools/patterns/prism.py": "615e236e5d104a31a201028f28c596baf28f398f781b8e97731a19cbeb3a5950",
+    "Partelier/partelier/tools/patterns/profile_loft.py": "da702b356ae686edfcb274c567a7a4e46729fc980734d86882c0316c2daf90c4",
+    "Partelier/partelier/tools/patterns/raised_grilles.py": "5e253c373058725d6ac163c8d7821fb0dbe1a3dbddcaa7e18eec884cd6c49eb9",
+    "Partelier/partelier/tools/patterns/recipe.py": "643a62cdf65d660b5cbc161c148436bcbd5a562424acec04e23c98ec52b1a001",
+    "Partelier/partelier/tools/patterns/settings.py": "99c154587f99a97f4c99432c5de6f791169065de7a71e5479df91e75f5cffa2f",
+    "Partelier/partelier/tools/patterns/store.py": "e0f422fd30b349e37ac5a998b7851cd9d2f4849d9d854929654ddf130b3eea11",
+    "Partelier/partelier/tools/patterns/surfaces.py": "8a4e392b38e22f8c3579271b11499b0b7480f3e0abf829785a9f9be9761da74f",
+    "Partelier/partelier/tools/patterns/tiled_layout.py": "fd39879c2540ddb1924728783f288a5704a656263bfc9ae896c81fb70d8ed4da",
+    "Partelier/partelier/tools/patterns/tiles.py": "7d7c94fd7e897ee82b4ec5de5a8a33da5f962157cc82bd27746a9917fd931fd1",
+    "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+    "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+    "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+    "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+    "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+    "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+    "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+    "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+    "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+    "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80",
+    "Partelier/partelier/ui/catalog.js": "58634caaf4d5662ab6b9660f6d3de097af8f2859d6ff9cd8366f5c284f28bd62",
+    "Partelier/partelier/ui/illustrations.js": "282ffd02e511f80f755e8ecb55a2dd2e276b711e142d1e2146545fa65de2c0ec",
+    "Partelier/partelier/ui/palette.css": "f99ac213adf43205c872208ba409193a32239a7dacbc3bd8ca0bd3a04d3e3bf2",
+    "Partelier/partelier/ui/palette.html": "87dd9e9a31dffc1be28788ed5e518bf97e013f8759a0ad3873af5c90bef503bd",
+    "Partelier/partelier/ui/palette.js": "c7285c7c69efe78e51223e069c9b4ab3579f5b80d0d3946ebb983424ba298b72",
+    "Partelier/partelier/ui/pattern-help.js": "bda475902f4bef7b05774fd1a0232925411de1ac5631b681c3e46b75036dfe3f",
+    "Partelier/partelier/ui/patterns.js": "96f9cf5f88adc43d78199c5e0d2798a406325a3f4160729fe6437349d2b102ad",
+    "Partelier/partelier/ui/snap.js": "619d13aca3fc45ceea21055b06d88a423224a9cd8ee4d93c9d79a78b4a8a59c0",
+    "Partelier/partelier/ui/pattern-previews/cairo.svg": "62b61fafaa82d48f38e556bbe1171a300f67718e4551fbbd3205091c7d02ccc0",
+    "Partelier/partelier/ui/pattern-previews/elongated_hexagon.svg": "7db784fb5b6c3c25e3c839ca0444f10f022569e9fc09b31eb8f8f0ebef2439e9",
+    "Partelier/partelier/ui/pattern-previews/octagon.svg": "780bde96fbdd424212d89ac63253ed61605a80aeb930c8886a89e0e129e541c7",
+    "Partelier/partelier/ui/pattern-previews/octagon_square.svg": "b6d30d19271015390c5f69474c335c09c113e8701dc2d31d197b2750cd9ca0fa",
+    "Partelier/partelier/ui/pattern-previews/pentagon.svg": "360322d0a82041063823db1cc90217f3289dc62d6fdb4710afb32574f49aa522",
+    "Partelier/partelier/ui/pattern-previews/rhombille.svg": "cf3f4dfccee06f77df5359c66e8937aaa770a26a292cd9d396ce9adc9c3f8468",
+    "Partelier/partelier/ui/pattern-previews/rounded_hexagon.svg": "6b72e822e36c215d791ffeb77fccff5e70dd56df71db34c0f74c4fad4eceb506",
+    "Partelier/partelier/ui/pattern-previews/rounded_triangle.svg": "dbc97b47ceecb4fc6d2691f433a7d739346f441e556a9900e05300725333d462",
+    "Partelier/partelier/ui/pattern-previews/triangle.svg": "d4905b8f6ab2203020cdb75569225dd42dfbbf0dd9eb83d91794da3375ac44cc",
+    "Partelier/partelier/ui/pattern-previews/trihex.svg": "a216a27473d0249b6594e340c4ebf24c25b1ac7c9b06aff6b7f196c3196cd07f",
+    "tools/fusion/RaisedGrilleProbe.py": "4a8e85ba473b5284646e099d352bc8c484f311997e6bf9d28f1647e969df20bf",
+    "docs/validation/images/mounted-louvers-20deg-0.16.1.png": "90fce3dcc2f51cb2a1393ad11d902a87afde6b8514bd3559f02842be71f50667"
+  },
+  "inspected_native_image": {
+    "docs/validation/images/mounted-louvers-20deg-0.16.1.png": "90fce3dcc2f51cb2a1393ad11d902a87afde6b8514bd3559f02842be71f50667"
+  },
+  "normalization": "All final native working-source digests match. Staged sources match working bytes after CRLF/LF normalization; the image matches exactly.",
+  "scope": [
+    "Adjustable louver tilt 0–45 degrees from the plate normal, default/maximum 45, in Flat/Raised/Chamfer profiles.",
+    "Actual analytic planar wall normals measured at requested 0/20/45 degrees, including rotated fins with lower-angle projected end walls.",
+    "Cached mesh upload/cleanup, Create/Edit/Rebuild retain the selected body, name and history counts.",
+    "Raised and Flat angle Edit cycles; optional mounting bore/seat witnesses; grid/chamfer mounting regression.",
+    "Strict version-8 recipe; old raised dormant angle restored to actual original 45 without writes until Rebuild. Local legacy Flat >45 migration notice and invalid-angle refusals.",
+    "Ten disposable fixtures, caller document/component snapshots and camera restored."
+  ],
+  "limits": [
+    "Raised louvers and mounting require one rectangular uniform plate, back on the bed; raised limit remains 200 openings.",
+    "No physical printing, screw-fit, strength, airflow, pointer/CEF, full async supersession/orbit, save/reopen or Undo/Redo proof.",
+    "Dense-grid performance was not repeated in this tilt increment; prior evidence remains historical.",
+    "Old Flat angles above 45 propose 45 for the next Rebuild with a visible notice. Existing saved geometry is not modified by reading Edit."
+  ]
+}

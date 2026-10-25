@@ -936,7 +936,7 @@ def _flat_grille_cases(design):
 def _grille_cases(design,*,focused=False):
     Settings=STATE['settings_module'].PatternSettings
     adapter=STATE['adapter'];recipe=STATE['recipe']
-    for shape,rotation,tilt in (('grille_parallel',0,45),('grille_parallel',30,45),('grille_cross',0,45),('grille_louver',0,0),('grille_louver',0,30),('grille_louver',0,45),('grille_louver',0,60)):
+    for shape,rotation,tilt in (('grille_parallel',0,45),('grille_parallel',30,45),('grille_cross',0,45),('grille_louver',0,0),('grille_louver',0,30),('grille_louver',0,45),('grille_louver',0,20)):
         if focused and (shape,rotation,tilt) not in {('grille_parallel',0,45),('grille_cross',0,45),('grille_louver',0,45)}:continue
         def grille(shape=shape,rotation=rotation,tilt=tilt):
             _,body,faces=fixture(design,'plane')
@@ -1338,7 +1338,7 @@ def cases(*, include_polygon_regressions=False, include_shared_regressions=False
                 raise RuntimeError("Rebuild added geometry/history, lost settings, or changed the target identity/state.")
             if _signature(plane) != _signature(updated.result_body):
                 raise RuntimeError("Rebuild did not persist the exact full preview shape.")
-        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=7:
+        if json.loads(anchor.attributes.itemByName(recipe.GROUP,'recipe').value)['version']!=8:
             raise RuntimeError('The explicit legacy rebuild did not migrate its recipe.')
         return {"same_body": True, "extra_bodies": 0, "owned_features": 3, "rebuild_modes": 3,
                 "face_edge_body_feature_edit": True, "original_source_signature": source_signature,

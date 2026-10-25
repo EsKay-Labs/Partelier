@@ -295,6 +295,7 @@ class _Session:
     def select_target(self,entity):
         self.clear_preview();self.edit_target=recipe.read_edit_target(self.design,entity)
         self.settings=self.edit_target.settings;self.validate()
+        if recipe.edit_notice(self.edit_target):self.message=recipe.edit_notice(self.edit_target)
 
     def require_selections(self):
         self.ensure_design();self.settings.validate()
@@ -389,6 +390,9 @@ class _Session:
                 elif self.settings.layout_mode=='fill':
                     self.message=(f'{prepared.cell_count} cells · size {self.settings.pitch_mm-self.settings.web_mm:g} mm'
                                   f' · minimum gap {self.settings.web_mm:g} mm · border ≥ {self.settings.border_mm:g} mm')
+                if self.edit_target is not None and self.settings==self.edit_target.settings:
+                    notice=recipe.edit_notice(self.edit_target)
+                    if notice:self.message+=' · '+notice
                 self.owner.publish(self)
             except Exception as error:failed(error)
         def failed(error):

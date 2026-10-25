@@ -57,19 +57,20 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
                                 'first_exit_mm':thickness,'next_entry_mm':None})
     layout=replace(layout,cells=tuple(cells))
     height=settings.grille_height_mm
-    slope=(a._dot(plate.across,frame.x_axis),a._dot(plate.across,frame.z_axis)) if settings.pattern=='grille_louver' else (0.,0.)
+    shear=math.tan(math.radians(settings.louver_angle_deg)) if settings.pattern=='grille_louver' else 0.
+    slope=tuple(shear*a._dot(plate.across,axis) for axis in (frame.x_axis,frame.z_axis))
     cap=min(.6,height/2,settings.web_mm/4,settings.border_mm/4) if settings.grille_profile=='chamfer' else 0.
     # Retain a flat reveal around the raised frame. Angled fins need extra
     # room in the frame for their sideways rise; never enlarge the footprint.
-    reveal=max(0,min(settings.border_mm/2,settings.border_mm-height-2*cap-.5)) if settings.pattern=='grille_louver' else max(0,settings.border_mm-min(settings.web_mm,settings.border_mm/2))
+    reveal=max(0,min(settings.border_mm/2,settings.border_mm-height*shear-2*cap-.5)) if settings.pattern=='grille_louver' else max(0,settings.border_mm-min(settings.web_mm,settings.border_mm/2))
     raised_outer=clipping.offset_convex(outer,reveal) if reveal else outer
     def section(z,inset=0):
         boundary=clipping.offset_convex(raised_outer,inset) if inset else raised_outer
         openings=tuple(tuple((u+z*slope[0],v+z*slope[1]) for u,v in (clipping.offset_convex(hole,-inset) if inset else hole)) for hole in holes)
         return boundary,openings
     # Validate every numeric segment before any expensive preparation or SDK
-    # creation. The angled profile is exactly 45 degrees, independent of the
-    # legacy in-wall channel angle. Frames remain inside the original footprint.
+    # creation. Tilt is measured from the plate normal (0 through 45 degrees).
+    # Frames remain inside the original footprint.
     levels=(0.,height-cap,height) if cap else (0.,height)
     plans=[]
     for low,high in zip(levels,levels[1:]):
@@ -92,7 +93,8 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
     prepared=a.PreparedPattern(design,faces,body,settings,result,signature,
         {'source_and_plan_ms':(planned-started)*1000,'temporary_geometry_ms':(completed-planned)*1000,
          'total_ms':(completed-started)*1000,'raised_profile':settings.grille_profile,
-         'raised_body_creations':1+len(plans),'raised_height_mm':height,'underside_limit_deg':45},
+         'raised_body_creations':1+len(plans),'raised_height_mm':height,'underside_limit_deg':45,
+         'louver_angle_deg':settings.louver_angle_deg if settings.pattern=='grille_louver' else 0},
         len(holes),tokens,accepted_samples=tuple(diagnostics),layouts=(layout,))
     a.validate_sources(prepared,_historical=historical)
     return prepared

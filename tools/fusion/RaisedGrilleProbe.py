@@ -9,6 +9,7 @@ import hashlib
 import importlib
 import importlib.util
 import json
+import math
 from pathlib import Path
 import sys
 import time
@@ -40,6 +41,29 @@ def mounting_witnesses(adapter,body,settings,width,depth,thickness,timings):
                 assert not adapter._containment(body,(x,y,thickness+.05))
 
 
+def louver_angles(body,settings,thickness):
+    """Read actual analytic wall normals, independently of planner diagnostics."""
+    angles=[]
+    raised=settings.grille_profile!='flat'
+    cap=min(.6,settings.grille_height_mm/2,settings.web_mm/4,settings.border_mm/4) if settings.grille_profile=='chamfer' else 0
+    for face in body.faces:
+        if face.geometry.surfaceType!=core.SurfaceTypes.PlaneSurfaceType:continue
+        bounds=face.boundingBox
+        if raised and (bounds.minPoint.z<thickness/10-1e-7 or
+                bounds.maxPoint.z>(thickness+settings.grille_height_mm-cap)/10+1e-7):continue
+        ok,normal=face.evaluator.getNormalAtPoint(face.pointOnFace);assert ok
+        angle=math.degrees(math.asin(min(1,abs(normal.z))))
+        if angle>89.999 or bounds.maxPoint.z-bounds.minPoint.z<1e-5:continue
+        angles.append(angle)
+    assert angles,'No analytic grille walls were measured'
+    expected=settings.louver_angle_deg
+    assert any(abs(angle-expected)<1e-4 for angle in angles),(expected,angles)
+    # Clipped ends project the shear onto the frame's own wall direction;
+    # their tilt can be smaller than the main fin wall, never greater.
+    assert all(angle<=expected+1e-4 for angle in angles),(expected,angles)
+    return sorted(set(round(angle,5) for angle in angles))
+
+
 def run(context):
     context=context or {}
     root=Path(__file__).resolve().parents[2]
@@ -51,7 +75,7 @@ def run(context):
     app=core.Application.get();caller=app.activeDocument;original=native.Design.cast(app.activeProduct)
     before=snapshot(original);camera=app.activeViewport.camera
     original_component=original.activeComponent if original else None
-    report={'version':'0.16.0','fusion_version':app.version,'context':context,'success':False}
+    report={'version':'0.16.1','fusion_version':app.version,'context':context,'success':False}
     owned=None
     try:
         if app.userInterface.activeCommand not in ('','SelectCommand'):
@@ -75,7 +99,8 @@ def run(context):
         face=next(f for f in body.faces if abs(f.pointOnFace.z-thickness/10)<1e-7)
         settings=settings_module.PatternSettings(pattern=context.get('pattern','grille_parallel'),layout_mode='fill',
             pitch_mm=7,web_mm=2,border_mm=7,rotation_deg=context.get('rotation_deg',0),
-            grille_profile=context.get('profile','raised'),grille_height_mm=context.get('height_mm',3))
+            grille_profile=context.get('profile','raised'),grille_height_mm=context.get('height_mm',3),
+            louver_angle_deg=context.get('louver_angle_deg',45))
         settings=replace(settings,**{key:value for key,value in context.items() if key.startswith('mount_') and key in settings.to_dict()})
         if context.get('expect_refusal'):
             clean=snapshot(design)
@@ -99,6 +124,8 @@ def run(context):
         prepared=recipe.prepare_edit_pattern(design,prior,settings) if prior else adapter.prepare_pattern(design,(face,),settings)
         report['prepare_ms']=(time.perf_counter()-start)*1000
         report['openings']=prepared.cell_count;report['timings']=prepared.timings
+        if settings.pattern=='grille_louver':
+            report['analytic_wall_angles']=louver_angles(prepared.result_body,settings,thickness)
         assert body==design.findEntityByToken(token)[0] and design.rootComponent.bRepBodies.count==1
         assert abs(prepared.result_body.boundingBox.minPoint.z)<1e-7
         raised=settings.grille_profile!='flat'
@@ -130,6 +157,17 @@ def run(context):
         assert design.timeline.count==history+features
         target=recipe.read_edit_target(design,body)
         assert target.settings==settings and target.record.recipe['version']==(1 if raised or prior else 2)
+        if context.get('legacy_raised'):
+            unchanged=snapshot(design)
+            saved=target.anchor.attributes.itemByName(recipe.GROUP,'recipe').value
+            legacy=json.loads(saved);legacy['version']=7;legacy['settings']['louver_angle_deg']=0
+            raw=json.dumps(legacy,separators=(',',':'))
+            assert target.anchor.attributes.add(recipe.GROUP,'recipe',raw)
+            target=recipe.read_edit_target(design,body)
+            assert target.settings.louver_angle_deg==45 and target.recipe==legacy
+            assert snapshot(design)==unchanged
+            assert target.anchor.attributes.itemByName(recipe.GROUP,'recipe').value==raw
+            report['legacy_dormant_angle_restored_to_actual_45_without_model_changes']=True
         if prior:
             assert target.anchor==original_base and target.record.feature_id==prior.record.feature_id
             assert not original_cut.isValid
@@ -145,6 +183,19 @@ def run(context):
         assert abs(body.boundingBox.maxPoint.z-(thickness+(settings.grille_height_mm if raised else 0))/10)<1e-7
         if settings.mount_mode!='off':
             mounting_witnesses(adapter,body,settings,width,depth,thickness,changed.timings)
+        if context.get('tilt_edit_cycle'):
+            report['tilt_edit_cycle']=[]
+            for tilt in (0,20,45):
+                target=recipe.read_edit_target(design,body)
+                revised=replace(settings,louver_angle_deg=tilt)
+                staged=recipe.prepare_edit_pattern(design,target,revised)
+                recipe.rebuild_pattern(design,target,staged)
+                assert design.rootComponent.bRepBodies.count==1 and design.timeline.count==history+features
+                assert design.findEntityByToken(token)[0]==body and body.name=='Raised grille fixture'
+                assert recipe.read_edit_target(design,body).settings==revised
+                measured=louver_angles(body,revised,thickness)
+                if revised.mount_mode!='off':mounting_witnesses(adapter,body,revised,width,depth,thickness,staged.timings)
+                report['tilt_edit_cycle'].append({'requested':tilt,'measured_wall_angles':measured})
         if context.get('mount_edit_cycle'):
             unchanged_volume=float(body.volume)
             for mode in ('plain','countersink','off'):

@@ -1,4 +1,4 @@
-# Grilles on existing bodies — 0.16.0
+# Grilles on existing bodies — 0.16.1
 
 The user selected integrated openings in the existing body. Grilles remains the
 third entry under Patterns. It shares the user-accepted 0.13.4 additive face
@@ -13,6 +13,10 @@ selection, preview-after-Done and in-place Create/Edit/Rebuild workflow.
    follows each face's local surface axes. It is separate from louver tilt.
    Choose **Profile**: Flat, Raised, or Raised + chamfer. Raised profiles add
    **Height above face**, initially 3 mm. Their plate back is the bed-facing side.
+   For Louvers, **Louver tilt** is adjustable from **0° to 45°**, default **45°**,
+   in all three profiles. It is measured from the plate normal: 0° is vertical
+   when the back rests on the bed. Direction presets rotate the grille on the
+   face and are independent of this tilt limit.
 4. **Select faces**, click each required side of the same body, then **Done**.
    No geometry preview is computed during selection. Clear selection starts over.
 5. Review the real Fusion preview, then **Create grille**. Use **Edit existing**
@@ -29,9 +33,9 @@ selection, preview-after-Done and in-place Create/Edit/Rebuild workflow.
 Parallel bars, Crossed grid and Louvers each support **Raised** and **Raised +
 chamfer**, six new combinations. The original Flat profile remains the default.
 Raised parallel bars/grid extend above the selected face; raised louvers shear
-sideways by exactly their height, forming 45-degree undersides. Their original
-plate openings are vertical. The legacy Louver tilt control applies only to Flat;
-external louvers use a fixed 45-degree profile. Height is 0.2–20 mm above the
+sideways by `height × tan(tilt)`, up to their height at 45°. Their original
+plate openings are vertical. The same Louver tilt control applies to Flat and
+external louvers. Height is 0.2–20 mm above the
 original face, independent of plate thickness. Taller louvers require more Border.
 
 The raised frame leaves a flat reveal within the original border. Its footprint
@@ -64,8 +68,11 @@ the original target, BaseFeature and ownership UUID are retained; only the last
 owned Cut is replaced by owned Join/Intersect. The enclosing native command owns
 rollback on failure. Later features must first be preserved. Subsequent height,
 profile and raised-to-flat Rebuilds retain that full-shape history. No user body
-is replaced, renamed or duplicated. Settings recipe 7 reads versions 1–6 with
-Flat/3 mm defaults, without rewriting a saved recipe until Rebuild.
+is replaced, renamed or duplicated. Settings recipe 8 reads versions 1–7 without
+rewriting a saved recipe until Rebuild. Old raised louvers load at their actual
+original fixed 45°, regardless of the old dormant angle value. Old Flat angles
+above 45° propose 45° for the next Rebuild and show an explicit notice; reading
+Edit does not modify their existing geometry. Malformed old angles are refused.
 
 Fusion 2705.1.30 passes ten isolated MCP cases: all six raised/profile combinations,
 conversion to/from Flat and three guard refusals. Preview mesh upload/cleanup is
@@ -73,6 +80,26 @@ checked for bars and external louvers. Original caller documents are unchanged.
 Local checks pass 974 Python tests, three Node UI suites and headless Edge layouts
 at 300/380/520 px. Source hashes and case measurements:
 [raised-grilles-0.15.0.json](validation/raised-grilles-0.15.0.json).
+
+## 0.16.1 adjustable tilt validation
+
+Local checks pass 988 Python tests, the three Node UI suites, compilation and
+whitespace checks. Headless Edge at 300/380/520 px checks the control in all
+three profiles, default/maximum 45°, valid zero, blocked 46°, changing section
+drawings, illustrated help, mounting summary and no horizontal overflow.
+
+Fusion 2705.1.30 passes ten isolated MCP cases. Actual analytic wall normals
+confirm 0°, 20° and 45°; clipped ends of rotated fins have smaller projected
+angles. Flat, Raised and Chamfered Edit cycles retain target/name/body count and
+owned history, including mounting bores/seats. Cached previews clean up their
+graphics. An old raised recipe with dormant angle 0° reads at its original
+actual 45°, leaving geometry and saved recipe unchanged until explicit Rebuild.
+Every temporary document is discarded and the original caller is restored.
+The tilt change uses the same one/two loft segments and Boolean budget;
+it does not add a feature or cutter per opening. These small fixtures do not
+repeat dense-grid, physical-printing, pointer/orbit, save/reopen or Undo/Redo proof.
+
+Evidence: [grille-tilt-0.16.1.json](validation/grille-tilt-0.16.1.json).
 
 ## Optional mounting holes
 
@@ -114,7 +141,7 @@ Mounting works with Flat, Raised and Chamfered profiles, including the dense
 Flat Crossed grid path. Off adds no plate inspection or mounting geometry work.
 All changes share the existing preview/Create/Edit/Rebuild transaction. Editing
 between Off/Plain/Countersunk reconstructs from the original plate, leaving no
-old holes or duplicate bodies. Settings recipe 7 reads versions 1–6 with mounting
+old holes or duplicate bodies. Settings recipe 8 reads versions 1–6 with mounting
 Off and rewrites only on successful Rebuild.
 
 The type dropdown and Direction occupy full rows. Direction presets are disabled
@@ -167,7 +194,7 @@ and old full-shape records keep their original fingerprint path.
 This release supports planar faces on one root-component solid. Faces may be on
 different sides of the body. Per-face repeat grids are centered independently.
 Louvers require a straight, rectangular, chart-aligned face without holes and a
-constant-thickness plate at the existing sampled wall witnesses. Tilt is 0–60°.
+constant-thickness plate at the existing sampled wall witnesses. Tilt is 0–45°.
 The existing first-wall isolation and border clipping remain in force. Curved
 grilles and separate removable inserts are not introduced by this release.
 
@@ -181,7 +208,7 @@ All three grille types can be interchanged through Edit.
 Existing version 1 records retain their full-shape Join/Intersect history and
 remain editable. They are not automatically migrated to Cut history; large dense
 Rebuilds of legacy records have not been revalidated. The pattern settings recipe
-is now version 7, and generic Patterns keep their existing persistence route.
+is now version 8, and generic Patterns keep their existing persistence route.
 
 Create modifies the selected body instead of adding a replacement copy. The
 existing single-owned-pattern-per-body and timeline-end Edit contract remains;

@@ -36,7 +36,7 @@ def _parse(raw,record):
     except (ValueError,TypeError) as error:
         raise ValueError("The saved pattern recipe is damaged.") from error
     if (not isinstance(value,dict) or set(value)!={"version","tool","feature_id","settings","sources"}
-            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5,6,7)
+            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5,6,7,8)
             or value['tool']!='surface_pattern' or value['feature_id']!=record.feature_id):
         raise ValueError("The saved pattern recipe has an unsupported structure.")
     sources=value['sources']
@@ -60,10 +60,28 @@ def _parse(raw,record):
         raise ValueError('The saved pattern settings are damaged.')
     if value['version']<=3 and supplied.get('layout_mode') not in (None,'fixed','fit','fill','balanced'):
         raise ValueError('The saved legacy layout is unsupported.')
-    settings=PatternSettings.from_dict({**injected,**supplied})
+    proposed={**injected,**supplied}
+    if value['version']<8:
+        angle=proposed['louver_angle_deg']
+        if isinstance(angle,bool) or not isinstance(angle,(int,float)) or not 0<=angle<=60 or not math.isfinite(angle):
+            raise ValueError('The saved louver tilt is damaged.')
+        # Old raised geometry always used 45 regardless of the dormant value.
+        # Keep the raw recipe untouched for ownership validation. A legacy flat
+        # angle above the new limit proposes 45 only for the next Rebuild.
+        proposed['louver_angle_deg']=(45 if proposed['pattern']=='grille_louver'
+            and proposed['grille_profile']!='flat' else min(angle,45))
+    settings=PatternSettings.from_dict(proposed)
     if value['version']<5 and (settings.mode=='inlay' or settings.pattern.startswith('grille_')):
         raise ValueError('The saved legacy pattern mode is unsupported.')
     return value,settings
+
+
+def edit_notice(target):
+    saved=target.recipe['settings']
+    if (target.recipe['version']<8 and saved.get('louver_angle_deg',45)>45
+            and saved.get('grille_profile','flat')=='flat'):
+        return 'Legacy tilt exceeds the new 45° limit. Edit proposes 45° for Rebuild; the existing body is unchanged.'
+    return ''
 
 
 def _resolve(design,token):
@@ -134,7 +152,7 @@ def validate_preview_sources(prepared, *, make_cut=False):
 
 
 def _save(anchor,record,prepared):
-    value={'version':7,'tool':'surface_pattern','feature_id':record.feature_id,
+    value={'version':8,'tool':'surface_pattern','feature_id':record.feature_id,
            'settings':prepared.settings.to_dict(),'sources':prepared.source_tokens}
     raw=json.dumps(value,separators=(',',':'))
     _parse(raw,record)

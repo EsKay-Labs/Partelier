@@ -60,7 +60,7 @@ class GrilleTests(unittest.TestCase):
         self.assertNotEqual(small.cells,shifted.cells)
 
     def test_grille_modes_and_angles_cannot_be_silently_reinterpreted(self):
-        for values in ({'mode':'inlay'},{'layout_mode':'auto'},{'louver_angle_deg':61},
+        for values in ({'mode':'inlay'},{'layout_mode':'auto'},{'louver_angle_deg':46},
                        {'louver_angle_deg':True},{'louver_angle_deg':math.nan}):
             with self.subTest(values=values),self.assertRaises(ValueError):self.settings(**values)
         self.assertEqual(self.settings(louver_angle_deg=0).louver_angle_deg,0)
@@ -68,7 +68,7 @@ class GrilleTests(unittest.TestCase):
     def test_louver_shear_preserves_closed_volume_and_exact_front_footprint(self):
         frame=NS(origin_mm=(10,20,30),x_axis=(1,0,0),y_axis=(0,1,0),z_axis=(0,0,1))
         footprint=((-10,-2),(10,-2),(10,2),(-10,2))
-        for degrees in (0,30,45,60):
+        for degrees in (0,20,30,45):
             slope=math.tan(math.radians(degrees))
             plan=plan_prism(frame,footprint,-3,0,shear_xz_per_y=(0,slope))
             self.assertAlmostEqual(plan.volume_mm3,240)

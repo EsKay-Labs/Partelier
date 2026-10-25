@@ -183,6 +183,7 @@ class PatternCommandTests(unittest.TestCase):
         adsk.core, adsk.fusion = core, native
         self.fusion = ModuleType(package.__name__ + ".fusion")
         self.recipe = ModuleType(package.__name__ + ".recipe")
+        self.recipe.edit_notice = Mock(return_value='')
         preview = ModuleType(package.__name__ + ".preview")
         preview.PatternPreviewRunner = Runner
         for name in ("prepare_pattern", "preview_pattern", "preview_hide_bodies"):
@@ -748,6 +749,19 @@ class PatternCommandTests(unittest.TestCase):
         self.recipe.create_pattern.assert_not_called()
         with self.assertRaisesRegex(ValueError, "new pattern"):
             session.update(replace(target.settings, selection_scope="body").to_dict(), 1)
+
+    def test_legacy_limit_notice_survives_first_preview_and_clears_after_an_edit(self):
+        target=NS(anchor=object(),settings=PatternSettings(pattern='grille_louver',layout_mode='fill'))
+        self.recipe.read_edit_target.return_value=target
+        self.recipe.edit_notice.return_value='Legacy tilt exceeds 45. Existing body is unchanged.'
+        session=self.begin(editing=True)
+        self.assertIn('Legacy tilt',session.message)
+        self.preview(session)
+        self.assertEqual(session.phase,'preview')
+        self.assertIn('Legacy tilt',session.message)
+        session.update(replace(target.settings,louver_angle_deg=20).to_dict(),1)
+        self.preview(session)
+        self.assertNotIn('Legacy tilt',session.message)
 
     def test_malformed_or_stale_snapshots_do_not_partially_change_session(self):
         session = self.begin()

@@ -168,7 +168,7 @@
         $("pattern-grille_profile").parentElement.hidden=!isGrille;
         $("pattern-grille_profile").parentElement.classList.toggle("full-width-parameter",isGrille);
         $("pattern-grille_height_mm").parentElement.hidden=!raised;
-        $("pattern-louver_angle_deg").parentElement.hidden=state.settings.pattern!=="grille_louver" || raised;
+        $("pattern-louver_angle_deg").parentElement.hidden=state.settings.pattern!=="grille_louver";
         $("pattern-offset_u_mm").parentElement.hidden=isGrille;
         for (const input of $("pattern-settings").querySelectorAll("[name]")) input.disabled = committing;
         const depth = $("pattern-depth_mm"), through = state.settings.mode === "through";
@@ -198,7 +198,7 @@
             : "Το Automatic size προσαρμόζει το μέγεθος· το Exact pitch το διατηρεί.";
         $("pattern-depth_mm").parentElement.children[0].textContent = state.settings.mode === "inlay" ? "Colour depth" : "Depth / height";
         if(isGrille) $("pattern-layout-note").textContent="Επίπεδες επιφάνειες · σταθερό άνοιγμα και πλάτος νεύρου. Rotation αλλάζει την κατεύθυνση. Οι περσίδες χρειάζονται ορθογώνια πλάκα σταθερού πάχους.";
-        if(raised) $("pattern-layout-note").textContent="Πίσω πλευρά στο bed · ένα ορθογώνιο face πλάκας σταθερού πάχους. Έως 200 ανοίγματα. Οι εξωτερικές περσίδες χτίζονται στις 45°. Το Height μετριέται πάνω από το face.";
+        if(raised) $("pattern-layout-note").textContent="Πίσω πλευρά στο bed · ένα ορθογώνιο face πλάκας σταθερού πάχους. Έως 200 ανοίγματα. Κλίση περσίδας 0–45° από την κάθετο, αρχικά 45°. Το Height μετριέται πάνω από το face.";
         if(state.settings.mode==="inlay") $("pattern-layout-note").textContent += " Flat colour: επίπεδη επιφάνεια, ξεχωριστό μέρος για χρωματισμό. Το βάθος πρέπει να αφήνει υλικό από κάτω.";
     }
     function renderSelection() {
@@ -394,7 +394,7 @@
             const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
             const input = document.createElement("input"); input.id = `pattern-${name}`; if (name !== "cell_size_mm") input.name = name; input.type = "number"; input.required = true; input.step = "any";
             if (!signed.has(name)) input.min = "0";
-            if (name === "louver_angle_deg") input.max="60";
+            if (name === "louver_angle_deg") input.max="45";
             if (name === "grille_height_mm") {input.min="0.2";input.max="20";}
             if (name.startsWith("mount_")) input.max=({mount_clearance_mm:2,mount_head_extra_percent:30,mount_head_mm:40,mount_inset_mm:1000})[name];
             input.value = name === "cell_size_mm" ? defaults.pitch_mm-defaults.web_mm : defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
@@ -486,5 +486,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.16.0" }); renderArt(); render();
+    trace("boot", { build:"0.16.1" }); renderArt(); render();
 })();
