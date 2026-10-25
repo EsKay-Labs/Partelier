@@ -3,6 +3,7 @@
 from dataclasses import asdict, dataclass, fields
 import math
 from .tiles import TILED_PATTERNS
+from ..truss.planner import STYLES
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,8 @@ class PatternSettings:
     mount_head_extra_percent: float = 10.0
     mount_head_mm: float = 0.0
     mount_inset_mm: float = 0.0
+    truss_bays: int = 6
+    truss_axis: str = 'long'
 
     def __post_init__(self):
         for key in ("pitch_mm", "web_mm", "depth_mm", "border_mm", "rotation_deg", "offset_u_mm", "offset_v_mm", "louver_angle_deg", "grille_height_mm",
@@ -45,10 +48,20 @@ class PatternSettings:
         self.validate()
 
     def validate(self):
-        if self.pattern not in ("hexagon", "circle", "diamond", "square", "slot", "grille_parallel", "grille_cross", "grille_louver")+TILED_PATTERNS:
+        if self.pattern not in ("hexagon", "circle", "diamond", "square", "slot", "grille_parallel", "grille_cross", "grille_louver")+TILED_PATTERNS+STYLES:
             raise ValueError("Choose a supported pattern shape or polygon mosaic.")
         if self.mode not in ("through", "engrave", "emboss", "inlay"):
             raise ValueError("Choose through, engrave, emboss or flat colour.")
+        if type(self.truss_bays) is not int or not 2<=self.truss_bays<=64 or self.truss_axis not in ('long','short'):
+            raise ValueError('Use 2–64 whole Bays and Long side or Short side for the truss span.')
+        if self.pattern in STYLES:
+            if (self.mode!='through' or self.layout_mode!='fill' or self.selection_scope!='faces'
+                    or self.grille_profile!='flat' or self.rotation_deg or self.offset_u_mm or self.offset_v_mm):
+                raise ValueError('Planar trusses use one plate face, through openings, and Long/Short side direction.')
+            if self.pattern!='truss_warren' and self.truss_bays%2:
+                raise ValueError('Pratt and Howe need an even number of Bays for a symmetric centre.')
+            if not .4<=self.web_mm<=100 or not .5<=self.border_mm<=1000:
+                raise ValueError('Use Member width 0.4–100 mm and Frame width 0.5–1000 mm.')
         if not 0 <= self.louver_angle_deg <= 45:
             raise ValueError("Louver tilt must be between 0 and 45 degrees from the surface normal.")
         if self.pattern.startswith('grille_') and (self.mode != 'through' or self.layout_mode != 'fill'):
@@ -74,7 +87,7 @@ class PatternSettings:
             raise ValueError('Choose clipped or whole edge cells.')
         if min(self.pitch_mm, self.web_mm, self.depth_mm) <= 0 or self.border_mm < 0:
             raise ValueError("Pitch, web and depth must be positive; border may be zero.")
-        if self.web_mm >= self.pitch_mm:
+        if self.web_mm >= self.pitch_mm and self.pattern not in STYLES:
             raise ValueError("Web thickness must be smaller than pitch.")
         if self.pitch_mm > 10000 or self.depth_mm > 1000 or abs(self.rotation_deg)>36000:
             raise ValueError("Pattern dimensions exceed the supported working range.")

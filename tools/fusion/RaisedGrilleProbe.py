@@ -95,7 +95,7 @@ def run(context):
     app=core.Application.get();caller=app.activeDocument;original=native.Design.cast(app.activeProduct)
     before=snapshot(original);camera=app.activeViewport.camera
     original_component=original.activeComponent if original else None
-    report={'version':'0.16.2','fusion_version':app.version,'context':context,'success':False}
+    report={'version':'0.17.0','fusion_version':app.version,'context':context,'success':False}
     owned=None
     try:
         if app.userInterface.activeCommand not in ('','SelectCommand'):
@@ -181,7 +181,7 @@ def run(context):
         assert target.settings==settings and target.record.recipe['version']==(1 if raised or prior else 2)
         if context.get('legacy_mount'):
             unchanged=snapshot(design)
-            legacy=json.loads(target.anchor.attributes.itemByName(recipe.GROUP,'recipe').value);legacy['version']=8
+            legacy=json.loads(target.anchor.attributes.itemByName(recipe.GROUP,'recipe').value);legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('truss_')};legacy['version']=8
             raw=json.dumps(legacy,separators=(',',':'));assert target.anchor.attributes.add(recipe.GROUP,'recipe',raw)
             target=recipe.read_edit_target(design,body)
             assert target.recipe==legacy and target.settings==settings and snapshot(design)==unchanged
@@ -190,7 +190,7 @@ def run(context):
         if context.get('legacy_raised'):
             unchanged=snapshot(design)
             saved=target.anchor.attributes.itemByName(recipe.GROUP,'recipe').value
-            legacy=json.loads(saved);legacy['version']=7;legacy['settings']['louver_angle_deg']=0
+            legacy=json.loads(saved);legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('truss_')};legacy['version']=7;legacy['settings']['louver_angle_deg']=0
             raw=json.dumps(legacy,separators=(',',':'))
             assert target.anchor.attributes.add(recipe.GROUP,'recipe',raw)
             target=recipe.read_edit_target(design,body)

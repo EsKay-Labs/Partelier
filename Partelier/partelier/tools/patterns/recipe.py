@@ -36,7 +36,7 @@ def _parse(raw,record):
     except (ValueError,TypeError) as error:
         raise ValueError("The saved pattern recipe is damaged.") from error
     if (not isinstance(value,dict) or set(value)!={"version","tool","feature_id","settings","sources"}
-            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5,6,7,8,9)
+            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5,6,7,8,9,10)
             or value['tool']!='surface_pattern' or value['feature_id']!=record.feature_id):
         raise ValueError("The saved pattern recipe has an unsupported structure.")
     sources=value['sources']
@@ -53,7 +53,8 @@ def _parse(raw,record):
         4:{'density':'balanced','size_locked':False},5:{'louver_angle_deg':45},
         6:{'grille_profile':'flat','grille_height_mm':3},
         7:{name:defaults[name] for name in ('mount_mode','mount_screw','mount_clearance_mm',
-            'mount_head_extra_percent','mount_head_mm','mount_inset_mm')}}
+            'mount_head_extra_percent','mount_head_mm','mount_inset_mm')},
+        10:{'truss_bays':6,'truss_axis':'long'}}
     for version,fields in introduced.items():
         if value['version']<version:injected.update(fields)
     if not isinstance(supplied,dict) or set(supplied)!=set(defaults)-set(injected):
@@ -73,6 +74,8 @@ def _parse(raw,record):
     settings=PatternSettings.from_dict(proposed)
     if value['version']<5 and (settings.mode=='inlay' or settings.pattern.startswith('grille_')):
         raise ValueError('The saved legacy pattern mode is unsupported.')
+    if value['version']<10 and settings.pattern.startswith('truss_'):
+        raise ValueError('The saved legacy truss mode is unsupported.')
     return value,settings
 
 
@@ -125,8 +128,8 @@ def prepare_edit_pattern(design,target,settings):
 
 
 def _cut_tool(prepared):
-    if not prepared.settings.pattern.startswith('grille_') or prepared.settings.mode != 'through':
-        raise ValueError('This grille history supports grille types only. Preserve it before changing to another tool.')
+    if not prepared.settings.pattern.startswith(('grille_','truss_')) or prepared.settings.mode != 'through':
+        raise ValueError('This cut history supports grilles or planar trusses only. Preserve it before changing to another tool.')
     _,native=fusion._api();manager=native.TemporaryBRepManager.get()
     expected=float(prepared.body.volume)-float(prepared.result_body.volume)
     if not math.isfinite(expected) or expected<=1e-10:
@@ -155,7 +158,7 @@ def validate_preview_sources(prepared, *, make_cut=False):
 
 
 def _save(anchor,record,prepared):
-    value={'version':9,'tool':'surface_pattern','feature_id':record.feature_id,
+    value={'version':10,'tool':'surface_pattern','feature_id':record.feature_id,
            'settings':prepared.settings.to_dict(),'sources':prepared.source_tokens}
     raw=json.dumps(value,separators=(',',':'))
     _parse(raw,record)
@@ -164,7 +167,7 @@ def _save(anchor,record,prepared):
 
 
 def create_pattern(design,prepared):
-    cutter=validate_preview_sources(prepared,make_cut=prepared.settings.pattern.startswith('grille_') and prepared.settings.grille_profile=='flat')
+    cutter=validate_preview_sources(prepared,make_cut=prepared.settings.pattern.startswith(('grille_','truss_')) and prepared.settings.grille_profile=='flat')
     if design!=prepared.design or prepared.record is not None:
         raise ValueError("Use Create on the current new-pattern preview.")
     anchor=(STORE.create(design,prepared.body,prepared.result_body) if cutter is None

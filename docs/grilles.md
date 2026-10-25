@@ -1,5 +1,9 @@
 # Grilles on existing bodies — 0.16.2
 
+Shared storage update in 0.17.0: settings recipe 10 adds only the dormant
+truss_bays/truss_axis defaults to old grille recipes. Grille geometry is unchanged;
+reading legacy settings performs no writes. See [Planar truss](planar-truss.md).
+
 The user selected integrated openings in the existing body. Grilles remains the
 third entry under Patterns. It shares the user-accepted 0.13.4 additive face
 selection, preview-after-Done and in-place Create/Edit/Rebuild workflow.

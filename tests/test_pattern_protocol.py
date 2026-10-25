@@ -57,7 +57,7 @@ class PatternProtocolTests(unittest.TestCase):
     def test_live_actions_require_all_twelve_fields_and_valid_revision(self):
         values = PatternSettings(pattern="slot", mode="emboss", rotation_deg=-45, offset_u_mm=-2,
                                  layout_mode="fixed").to_dict()
-        self.assertEqual(len(values), 23)
+        self.assertEqual(len(values), 25)
         for action in ("pattern_update", "pattern_preview", "pattern_commit"):
             with self.subTest(action=action):
                 parsed = read_request(action, request(settings=values, sessionId=IDENTITY, revision=5))

@@ -290,6 +290,20 @@ window.PartelierIllustrations = (() => {
         return `<svg viewBox="0 0 440 270" ${filletEdges ? 'data-fillet-finish="true"' : ''} ${snapAttributes} role="img" aria-label="${id} concept illustration${exploded ? ", separated view" : ""}"><g fill="none" stroke="#a4c5ce" opacity=".055" stroke-width=".8">${grid}</g><ellipse cx="220" cy="203" rx="124" ry="23" fill="#0b171f" opacity=".2"/>${geometry}${overlays.join("")}<g fill="none" stroke="#9bbac1" stroke-width="1" opacity=".5"><path d="M36 233h20m-20 0v-17m0 17-9 6"/></g><g fill="#9bbac1" font-family="Consolas,monospace" font-size="7" opacity=".65"><text x="60" y="236">X</text><text x="33" y="212">Z</text></g></svg>`;
     }
     function renderPattern(settings = {}) {
+        if(String(settings.pattern).startsWith("truss_")) {
+            const bays=Math.max(2,Math.min(64,Math.round(Number(settings.truss_bays)||6))),short=settings.truss_axis==="short";
+            const lo=short?65:36,hi=short?205:404,bottom=short?36:65,top=short?404:205,step=(hi-lo)/bays;
+            const map=(x,y)=>short?`${y},${x}`:`${x},${y}`,lines=[];
+            const line=(x,y,u,v)=>lines.push(`<path d="M${map(x,y)}L${map(u,v)}"/>`);
+            if(settings.pattern==="truss_warren")for(let i=0;i<bays;i++)line(lo+i*step,i%2?bottom:top,lo+(i+1)*step,i%2?top:bottom);
+            else for(let i=0;i<bays;i++) {
+                const down=(i<bays/2)===(settings.pattern==="truss_pratt"),x=lo+i*step;
+                line(x,down?bottom:top,x+step,down?top:bottom);if(i)line(x,bottom,x,top);
+            }
+            const width=Math.max(2,Math.min(13,Number(settings.web_mm)*2||4)),frame=Math.max(3,Math.min(20,Number(settings.border_mm)*2||6));
+            const name={truss_warren:"Warren",truss_pratt:"Pratt",truss_howe:"Howe"}[settings.pattern]||"Truss";
+            return `<svg viewBox="0 0 440 270" role="img" aria-label="Planar ${name} truss layout sample" data-truss-style="${settings.pattern}" data-truss-bays="${bays}" data-truss-axis="${short?"short":"long"}"><rect x="30" y="59" width="380" height="152" fill="#edf4ff" stroke="#365f88" stroke-width="${frame}"/><g stroke="#365f88" stroke-width="${width}" stroke-linecap="square" fill="none">${lines.join("")}</g><text x="220" y="35" text-anchor="middle" fill="#365f88" font-size="14">${name} · ${bays} bays</text><text x="220" y="248" text-anchor="middle" fill="#365f88" font-size="11">Connected members · original plate thickness</text></svg>`;
+        }
         const mosaics = ["triangle","rounded_triangle","pentagon","octagon","trihex","octagon_square","cairo","rhombille","rounded_hexagon","elongated_hexagon"];
         if (String(settings.pattern).startsWith("grille_")) {
             const cross=settings.pattern==="grille_cross",louver=settings.pattern==="grille_louver";
@@ -316,7 +330,7 @@ window.PartelierIllustrations = (() => {
             return `<svg viewBox="0 0 440 270" role="img" aria-label="Grille direction and opening sample" data-pattern-surface="panel" data-pattern-cell="${settings.pattern}" data-grille-direction="${angle}"><defs><clipPath id="grille-opening"><rect x="${20+border}" y="${22+border}" width="${width-2*border}" height="${212-2*border}"/></clipPath><clipPath id="grille-raised-section"><rect x="302" y="85" width="116" height="101"/></clipPath><clipPath id="grille-section"><rect x="302" y="109" width="116" height="57"/></clipPath></defs><rect x="20" y="22" width="${width}" height="212" rx="6" fill="#365f88"/><rect x="${20+border}" y="${22+border}" width="${width-2*border}" height="${212-2*border}" fill="#edf4ff"/><g clip-path="url(#grille-opening)"><g transform="rotate(${-angle} ${cx} ${cy})" fill="#7697be" stroke="#365f88" stroke-width=".4">${bars.join("")}</g></g>${mountingArt}${section}<text x="220" y="258" text-anchor="middle" fill="#365f88" font-size="12">${cross?"Crossed grid":louver?"Louvers":"Parallel bars"} · direction ${angle}°</text></svg>`;
         }
         if(settings.mode==="inlay") {
-            if(mosaics.includes(settings.pattern)) return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} flat colour sample" data-pattern-surface="panel" data-pattern-mode="inlay"><image href="pattern-previews/${settings.pattern}.svg?v=0.16.2" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#365f88" font-size="12">Flat colour · flush surface · two material parts</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
+            if(mosaics.includes(settings.pattern)) return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} flat colour sample" data-pattern-surface="panel" data-pattern-mode="inlay"><image href="pattern-previews/${settings.pattern}.svg?v=0.17.0" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#365f88" font-size="12">Flat colour · flush surface · two material parts</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
             const cells=Array.from({length:5},(_,row)=>Array.from({length:8},(_,col)=>{
                 const x=52+col*44+(row%2)*22,y=45+row*39;
                 if(settings.pattern==="circle") return `<circle cx="${x}" cy="${y}" r="15" fill="#267de1"/>`;
@@ -329,7 +343,7 @@ window.PartelierIllustrations = (() => {
         }
         if (mosaics.includes(settings.pattern)) {
             const mode = ["through","engrave","emboss"].includes(settings.mode) ? settings.mode : "through";
-            return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} polygon pattern sample" data-pattern-surface="panel" data-pattern-mode="${mode}"><image href="pattern-previews/${settings.pattern}.svg?v=0.16.2" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#536b8c" font-family="Segoe UI,sans-serif" font-size="9">Pattern sample · exact live preview follows your selected surface</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
+            return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} polygon pattern sample" data-pattern-surface="panel" data-pattern-mode="${mode}"><image href="pattern-previews/${settings.pattern}.svg?v=0.17.0" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#536b8c" font-family="Segoe UI,sans-serif" font-size="9">Pattern sample · exact live preview follows your selected surface</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
         }
         const pattern = ["hexagon", "circle", "diamond", "square", "slot"].includes(settings.pattern) ? settings.pattern : "hexagon";
         const mode = ["through", "engrave", "emboss"].includes(settings.mode) ? settings.mode : "through";

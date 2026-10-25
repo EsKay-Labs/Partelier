@@ -3,6 +3,11 @@
 // Local explanatory drawings, independent of the CAD preview and its queue.
 window.PartelierPatternHelp = (() => {
     const entries = {
+        truss_type: ["Truss layout · Διάταξη", "Warren: συνεχές ζιγκ-ζαγκ χωρίς ενδιάμεσους κάθετους στύλους. Pratt: κάθετοι στύλοι και διαγώνιοι προς το κάτω κέντρο. Howe: οι αντίθετοι διαγώνιοι με τους ίδιους κάθετους στύλους.", "Κόβονται τριγωνικά παράθυρα στην αρχική πλάκα. Οι νευρώσεις και το πλαίσιο παραμένουν ενιαίο σώμα. Οι ονομασίες περιγράφουν γεωμετρία, όχι υπολογισμένη αντοχή."],
+        truss_bays: ["Bays · Αριθμός τμημάτων", "Χωρίζει τη διάσταση του span σε ίσα τμήματα. Περισσότερα bays σημαίνουν περισσότερους και μικρότερους διαγωνίους. Warren: 2–64. Pratt και Howe: ζυγός αριθμός 2–64 για συμμετρία.", "Το πάχος των μελών παραμένει αυτό που όρισες. Αν τα παράθυρα κλείνουν από πολύ πυκνά ή παχιά μέλη, μείωσε τα Bays ή το Member width. Δεν μειώνεται αυτόματα το πάχος."],
+        truss_axis: ["Span direction · Κατεύθυνση", "Along long side: το truss αναπτύσσεται στη μεγαλύτερη πλευρά του επιλεγμένου ορθογωνίου. Along short side: στη μικρότερη. Η κατεύθυνση υπολογίζεται από την ίδια την πλάκα.", "Δεν εξαρτάται από τους παγκόσμιους άξονες του Fusion. Η πλάκα παραμένει στη θέση της και αλλάζει μόνο η διάταξη των νευρώσεων."],
+        truss_member: ["Member width · Πάχος νευρώσεων", "Το πραγματικό πλάτος κάθε διαγωνίου και κάθετου στύλου, κάθετα στη γραμμή του. Αρχικά 2 mm. Το πάχος σε βάθος είναι το αρχικό πάχος της πλάκας.", "Στους κόμβους τα μέλη είναι ενωμένα με το πλαίσιο. Η ίδια τιμή εφαρμόζεται σε όλους τους εσωτερικούς στύλους. Περισσότερο υλικό δεν αποτελεί αυτόματα πιστοποίηση αντοχής."],
+        truss_frame: ["Frame width · Περιμετρικό πλαίσιο", "Συμπαγές πλαίσιο γύρω από όλο το ορθογώνιο. Αρχικά 3 mm. Οι επάνω και κάτω πλευρές σχηματίζουν τα chords και οι δύο άκρες ενώνουν το σύνολο.", "Μετριέται από την αρχική εξωτερική ακμή μέχρι το πρώτο παράθυρο. Οι διαγώνιοι καταλήγουν στο πλαίσιο. Αν δεν μένει εσωτερικός χώρος, μείωσε Frame width ή χρησιμοποίησε μεγαλύτερη πλάκα."],
         mount_mode: ["Mounting holes · Οπές στερέωσης", "Off: χωρίς τρύπες. Plain: τέσσερις απλές διαμπερείς οπές στις γωνίες. Countersunk: οι ίδιες οπές με κωνική έδρα 90° για φρεζάτη βίδα.", "Δημιουργείται συμπαγής περιοχή γύρω από κάθε θέση, συνδεδεμένη με το πλαίσιο. Στα Raised καθαρίζουν τα πτερύγια από πάνω της, ώστε η κεφαλή να πατάει στο αρχικό face. Χρειάζεται μία επίπεδη ορθογώνια πλάκα. Πρώτα υπολογίζεται το border από τη βίδα/κεφαλή, μετά σχεδιάζονται τα ανοίγματα μέσα στην υπόλοιπη περιοχή."],
         mount_screw: ["Screw size · Μέγεθος βίδας", "M3, M4, M5 ή M6. Η οπή είναι η ονομαστική διάμετρος συν Hole allowance: M4 + 0.3 mm = 4.3 mm. Δεν δημιουργούνται σπειρώματα.", "Η αυτόματη κεφαλή χρησιμοποιεί τον κατάλογο ISO 10642 της Böllhoff για φρεζάτες βίδες. Διαφορετικοί τύποι έχουν διαφορετική κεφαλή: βάλε τη μετρημένη διάμετρο στο Head Ø όταν χρειάζεται."],
         mount_clearance_mm: ["Hole allowance · Περιθώριο οπής", "Προστίθεται στη διάμετρο της βίδας, όχι στην ακτίνα. Για M4, τιμή 0.3 δίνει οπή Ø4.3 mm. Είναι ανεξάρτητο από το περιθώριο της κεφαλής.", "Δεν εφαρμόζεται κλιμάκωση στη βίδα ή στο σπείρωμα. Η πραγματική εφαρμογή εξαρτάται και από την εκτύπωση. Η αλλαγή ενημερώνει αυτόματα το βάθος της κωνικής έδρας."],
@@ -56,7 +61,23 @@ window.PartelierPatternHelp = (() => {
             }
             return `<rect x="4" y="4" width="132" height="112" rx="3" fill="#8fb5f4" stroke="#55759e"/>${slots}`;
         };
-        if(name==="grille_type") {left=grille(12,8);right=grille(12,8,true);a="Parallel bars";b="Crossed grid";}
+        const truss=(bays=4,width=4,frame=5,posts=false,vertical=false)=>{
+            let lines='';
+            for(let i=0;i<bays;i++) {
+                const x=12+i*116/bays,u=12+(i+1)*116/bays,y=i%2?16:104,v=i%2?104:16;
+                lines+=`<path d="M${x} ${y}L${u} ${v}"/>`;
+                if(posts&&i)lines+=`<path d="M${x} 16V104"/>`;
+            }
+            return `<rect x="8" y="12" width="124" height="96" fill="#fff" stroke="#55759e" stroke-width="${frame}"/><g transform="${vertical?'translate(130 -10) rotate(90) scale(.75 .85)':'translate(0 0)'}" fill="none" stroke="#245fc2" stroke-width="${width}">${lines}</g>`;
+        };
+        if(name.startsWith("truss_")) {
+            left=truss();right=truss(6);a="4 bays";b="6 bays";
+            if(name==="truss_type") {right=truss(4,4,5,true);a="Warren · χωρίς στύλους";b="Στύλοι + διαγώνιοι";}
+            if(name==="truss_member") {right=truss(4,9);a="Στενότερα μέλη";b="Φαρδύτερα μέλη";}
+            if(name==="truss_frame") {right=truss(4,4,12);a="Στενότερο πλαίσιο";b="Φαρδύτερο πλαίσιο";}
+            if(name==="truss_axis") {right=truss(4,4,5,false,true);a="Μεγάλη πλευρά";b="Μικρή πλευρά";}
+        }
+        else if(name==="grille_type") {left=grille(12,8);right=grille(12,8,true);a="Parallel bars";b="Crossed grid";}
         else if(name==="grille_direction") {left=grille(12,8);right=`<rect x="4" y="4" width="132" height="112" rx="3" fill="#8fb5f4" stroke="#55759e"/><svg x="12" y="12" width="116" height="96" overflow="hidden"><g transform="rotate(-45 58 48)" fill="#fff">${Array.from({length:14},(_,i)=>`<rect x="-90" y="${-100+i*20}" width="300" height="12"/>`).join("")}</g></svg>`;a="0°";b="45°";}
         else if(name==="opening_width") {left=grille(8,8);right=grille(22,8);a="Μικρότερο άνοιγμα";b="Μεγαλύτερο άνοιγμα";}
         else if(name==="rib_width") {left=grille(14,4);right=grille(14,18);a="Στενότερα νεύρα";b="Φαρδύτερα νεύρα";}
@@ -97,7 +118,8 @@ window.PartelierPatternHelp = (() => {
         return `<svg viewBox="0 0 320 160" role="img" aria-label="${entries[name][0]}: ${a} / ${b}" data-help-image="${name}"><defs><marker id="help-arrow" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L6 3L0 6" fill="#bd501c"/></marker></defs><g transform="translate(8 24)" fill="#fff" stroke="#245fc2">${left}</g><g transform="translate(172 24)" fill="#fff" stroke="#245fc2">${right}</g><g fill="#243e64" font-family="Segoe UI,sans-serif" font-size="10" font-weight="600" text-anchor="middle"><text x="78" y="16">${a}</text><text x="242" y="16">${b}</text></g></svg>`;
     }
     return Object.freeze({ get: (name,settings={}) => {
-        if(String(settings.pattern).startsWith("grille_")) name=({pattern:"grille_type",cell_size_mm:"opening_width",web_mm:"rib_width",rotation_deg:"grille_direction"})[name]||name;
+        if(String(settings.pattern).startsWith("truss_")) name=({pattern:"truss_type",web_mm:"truss_member",border_mm:"truss_frame"})[name]||name;
+        else if(String(settings.pattern).startsWith("grille_")) name=({pattern:"grille_type",cell_size_mm:"opening_width",web_mm:"rib_width",rotation_deg:"grille_direction"})[name]||name;
         else if(settings.mode==="inlay"&&name==="depth_mm") name="colour_depth";
         return entries[name]?{title:entries[name][0],description:entries[name][1],detail:entries[name][2],image:image(name)}:null;
     } });

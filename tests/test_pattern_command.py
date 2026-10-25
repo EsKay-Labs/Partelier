@@ -252,6 +252,23 @@ class PatternCommandTests(unittest.TestCase):
         self.module._Created(self.manager).notify(NS(command=command))
         return command
 
+    def test_truss_preview_message_and_commit_use_the_reviewed_result(self):
+        make=self.fusion.prepare_pattern.side_effect
+        def prepare(*args):
+            value=make(*args);value.cell_count=7
+            value.timings={'truss_bay_span_mm':19,'truss_open_area_percent':70}
+            return value
+        self.fusion.prepare_pattern.side_effect=prepare
+        session=self.begin(PatternSettings(pattern='truss_warren',layout_mode='fill',web_mm=2,border_mm=3))
+        self.preview(session)
+        self.assertEqual(session.phase,'preview')
+        self.assertIn('6 bays · 7 windows',session.message)
+        self.assertIn('19.00 mm',session.message)
+        reviewed=session.prepared
+        self.action(session,'pattern_commit');command=self.native_command(session)
+        command.execute.handlers[0].notify(NS(executeFailed=False))
+        self.recipe.create_pattern.assert_called_once_with(self.design,reviewed)
+
     def test_register_once_and_stop_only_owned_events_and_runner(self):
         self.manager.start()
         self.assertEqual(len(self.definitions), 1)

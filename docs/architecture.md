@@ -369,7 +369,7 @@ project. Its validation results do not validate Partelier geometry.
 | `structforge_src/core/body_mutation.py` | Distinguish preview/persistent intent; return and validate the current body after mutation | Small explicit operation results; no stale handles or speculative body fallback |
 | `structforge_src/core/group_update.py` and `core/group_edit.py` | Preflight ownership/dependencies and defer retirement of old results | Scoped feature Edit/Rebuild with preserved prior results on failure |
 | `structforge_src/app.py` | Retain event references; remove owned UI and temporary display during shutdown | Thin lifecycle helpers, without importing its large application controller |
-| `structforge_src/core/truss_layout.py` | Pure immutable planar segment planning for Warren/Pratt/Howe/Fan layouts | Revisit at the truss gate; adapt its cm convention to this project's mm contract |
+| `structforge_src/core/truss_layout.py` | Pure immutable planar segment planning for Warren/Pratt/Howe/Fan layouts | Planning reference only. Partelier 0.17.0 uses an original millimetre triangular-window planner, shared one-solid construction and Cut persistence; no source was copied. See planar-truss.md. |
 
 Prefer these patterns before importing implementations. If a small self-contained
 algorithm is adapted later, record its origin, unit/identity changes and focused

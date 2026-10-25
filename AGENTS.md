@@ -5,7 +5,8 @@ Build a Python add-in for Autodesk Fusion that automates time-consuming small
 CAD details on the user's existing designs: hinges, snap-fits, sliding guides,
 connections, hardware pockets, and later reinforcement/pattern tools. Prioritize
 reusable parametric helpers. The proposed first release is hinges, snap-fits and
-sliding guides; honeycomb and trusses remain planned extensions. The user has
+sliding guides; honeycomb and grilles are implemented, and 0.17.0 adds rectangular
+plate Warren/Pratt/Howe planar trusses. The user has
 approved Partelier as the product name. Use Partelier for the UI, Fusion bundle
 and project folder, and partelier for the Python package.
 The repository root is `C:\Users\SKTech\Desktop\Programming_Projects\Apps\Fusion360\Partelier`;
@@ -61,6 +62,10 @@ Edit/Rebuild before adding the other first-release helpers.
   Current recipe v9 adds attached in-place persistence; v8 added movement relief; v1-v6 retain flat webs/no relief, v7 retains taper/no relief. See docs/hinge-design.md for scope.
 - `tools/fusion/HingeFixture/`: standalone disposable fixture script, not runtime.
 - `tests/`: standard-library tests runnable outside Fusion.
+- `Partelier/partelier/tools/truss/`: pure bounded triangular-window planning and
+  one-solid Fusion adaptation. Shares the HTML pattern session, plate inspector,
+  cached mesh and same-body Cut persistence. See docs/planar-truss.md for scope;
+  shared settings recipe 10 adds truss_bays/truss_axis and reads versions 1–9.
 - `docs/`: product plan, architecture, development and AI workflow guidance.
 - `.ai/templates/`: manually selected task prompts, not auto-loaded instructions.
 Use docs/architecture.md for module boundaries and docs/development.md for setup

@@ -500,6 +500,9 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False, _plate=
     _trace_geometry("source_read.begin",face_count=len(faces))
     signature, tokens = _signature(body, faces), _tokens(body, faces)
     _trace_geometry("source_read.end",face_count=len(faces))
+    if settings.pattern.startswith('truss_'):
+        from ..truss.fusion import prepare
+        return prepare(design,faces,settings,body,signature,tokens,started,historical=_historical)
     if settings.pattern.startswith('grille_') and settings.grille_profile!='flat':
         from .raised_grilles import prepare
         return prepare(design,faces,settings,body,signature,tokens,started,historical=_historical,plate=_plate)

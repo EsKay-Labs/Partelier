@@ -1,0 +1,747 @@
+{
+  "version": "0.17.0",
+  "client_date": "2026-10-25",
+  "local": {
+    "python_tests": 1001,
+    "node_ui_suites": 3,
+    "compilation_passed": true,
+    "whitespace_passed": true,
+    "headless_edge": {
+      "checks": [
+        {
+          "width": 300,
+          "threeStyles": true,
+          "longShortAxes": true,
+          "evenBayGuard": true,
+          "fiveIllustratedHelpItems": true,
+          "hiddenUnrelatedControls": true,
+          "familySwitch": true,
+          "noOverflow": true
+        },
+        {
+          "width": 380,
+          "threeStyles": true,
+          "longShortAxes": true,
+          "evenBayGuard": true,
+          "fiveIllustratedHelpItems": true,
+          "hiddenUnrelatedControls": true,
+          "familySwitch": true,
+          "noOverflow": true
+        },
+        {
+          "width": 520,
+          "threeStyles": true,
+          "longShortAxes": true,
+          "evenBayGuard": true,
+          "fiveIllustratedHelpItems": true,
+          "hiddenUnrelatedControls": true,
+          "familySwitch": true,
+          "noOverflow": true
+        }
+      ],
+      "errors": []
+    }
+  },
+  "native": {
+    "transport": "Opt-in Fusion MCP execute_api_script, localhost:9100",
+    "fusion_version": "2705.1.30",
+    "case_count": 15,
+    "all_passed": true,
+    "cases": [
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 24.387100000240025,
+        "timings": {
+          "source_and_plan_ms": 14.410199999929318,
+          "temporary_geometry_ms": 7.406799999898794,
+          "total_ms": 21.816999999828113,
+          "truss_body_creations": 1,
+          "truss_bays": 6,
+          "truss_axis": "u",
+          "truss_bay_span_mm": 19.0,
+          "truss_open_area_percent": 71.30636610462756
+        },
+        "windows": 7,
+        "window_and_perpendicular_width_witnesses": 31,
+        "preview_draw_cleanup": true,
+        "preview_triangles": 124,
+        "create_ms": 119.86249999972642,
+        "edits": [
+          {
+            "style": "truss_warren",
+            "axis": "long",
+            "bays": 8,
+            "witnesses": 41,
+            "elapsed_ms": 387.35840000026656
+          }
+        ],
+        "same_body": true,
+        "owned_features": 2,
+        "flat_back": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "warren",
+        "inputs": {
+          "style": "truss_warren",
+          "preview": true
+        },
+        "report_sha256": "ec232780d474f84ad2fd8f784dce4ea6d1c0506b55b3bb5caa6a9a4a5fe37a3f"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 27.636400000119465,
+        "timings": {
+          "source_and_plan_ms": 13.280700000450452,
+          "temporary_geometry_ms": 11.67109999960303,
+          "total_ms": 24.95180000005348,
+          "truss_body_creations": 1,
+          "truss_bays": 6,
+          "truss_axis": "u",
+          "truss_bay_span_mm": 19.0,
+          "truss_open_area_percent": 64.83650518563962
+        },
+        "windows": 12,
+        "window_and_perpendicular_width_witnesses": 56,
+        "preview_draw_cleanup": true,
+        "preview_triangles": 204,
+        "create_ms": 136.4368999998078,
+        "edits": [
+          {
+            "style": "truss_pratt",
+            "axis": "long",
+            "bays": 8,
+            "witnesses": 76,
+            "elapsed_ms": 467.1694999997271
+          }
+        ],
+        "same_body": true,
+        "owned_features": 2,
+        "flat_back": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "pratt",
+        "inputs": {
+          "style": "truss_pratt",
+          "preview": true
+        },
+        "report_sha256": "5cb935ab00566b32076ee042bf51c369c403f714ee8f21b413ad2822218e581b"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 28.198499999689375,
+        "timings": {
+          "source_and_plan_ms": 13.581499999872904,
+          "temporary_geometry_ms": 11.721500000021479,
+          "total_ms": 25.302999999894382,
+          "truss_body_creations": 1,
+          "truss_bays": 6,
+          "truss_axis": "u",
+          "truss_bay_span_mm": 19.0,
+          "truss_open_area_percent": 64.83650518563962
+        },
+        "windows": 12,
+        "window_and_perpendicular_width_witnesses": 56,
+        "preview_draw_cleanup": true,
+        "preview_triangles": 204,
+        "create_ms": 136.01340000013806,
+        "edits": [
+          {
+            "style": "truss_howe",
+            "axis": "long",
+            "bays": 8,
+            "witnesses": 76,
+            "elapsed_ms": 473.7582000002476
+          }
+        ],
+        "same_body": true,
+        "owned_features": 2,
+        "flat_back": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "howe",
+        "inputs": {
+          "style": "truss_howe",
+          "preview": true
+        },
+        "report_sha256": "f181a8fe4209caec6cf00e078f7bacd4a6cc03468e8d692c150a4e61ac46d34e"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 26.93120000003546,
+        "timings": {
+          "source_and_plan_ms": 15.352700000221375,
+          "temporary_geometry_ms": 8.24239999974452,
+          "total_ms": 23.595099999965896,
+          "truss_body_creations": 1,
+          "truss_bays": 5,
+          "truss_axis": "u",
+          "truss_bay_span_mm": 22.8,
+          "truss_open_area_percent": 72.44664236381928
+        },
+        "windows": 6,
+        "window_and_perpendicular_width_witnesses": 26,
+        "create_ms": 117.44530000032682,
+        "edits": [
+          {
+            "style": "truss_warren",
+            "axis": "long",
+            "bays": 7,
+            "witnesses": 36,
+            "elapsed_ms": 384.1079999997419
+          }
+        ],
+        "same_body": true,
+        "owned_features": 2,
+        "flat_back": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "odd-warren",
+        "inputs": {
+          "bays": 5
+        },
+        "report_sha256": "80bac985d7627e2f2328b15d62b90edeb42fd5f0a9944206a0dd3b4003acc855"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 20.608199999969656,
+        "timings": {
+          "source_and_plan_ms": 12.00189999963186,
+          "temporary_geometry_ms": 5.980800000088493,
+          "total_ms": 17.982699999720353,
+          "truss_body_creations": 1,
+          "truss_bays": 4,
+          "truss_axis": "v",
+          "truss_bay_span_mm": 8.5,
+          "truss_open_area_percent": 62.821119382326735
+        },
+        "windows": 5,
+        "window_and_perpendicular_width_witnesses": 21,
+        "create_ms": 108.65869999997813,
+        "edits": [
+          {
+            "style": "truss_warren",
+            "axis": "short",
+            "bays": 6,
+            "witnesses": 31,
+            "elapsed_ms": 359.40320000008796
+          }
+        ],
+        "same_body": true,
+        "owned_features": 2,
+        "flat_back": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "short-span",
+        "inputs": {
+          "axis": "short",
+          "bays": 4
+        },
+        "report_sha256": "2c10e10ba7d8cc5721a3dfc883eb1bc4c1288ee3f571c28f25fc73e008e841ae"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 22.581700000046112,
+        "timings": {
+          "source_and_plan_ms": 12.298399999963294,
+          "temporary_geometry_ms": 7.766499999888765,
+          "total_ms": 20.06489999985206,
+          "truss_body_creations": 1,
+          "truss_bays": 6,
+          "truss_axis": "u",
+          "truss_bay_span_mm": 19.0,
+          "truss_open_area_percent": 71.30636610462756
+        },
+        "windows": 7,
+        "window_and_perpendicular_width_witnesses": 31,
+        "preview_draw_cleanup": true,
+        "preview_triangles": 124,
+        "create_ms": 113.02780000005441,
+        "edits": [
+          {
+            "style": "truss_warren",
+            "axis": "long",
+            "bays": 8,
+            "witnesses": 41,
+            "elapsed_ms": 395.2709000000141
+          }
+        ],
+        "same_body": true,
+        "owned_features": 2,
+        "flat_back": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "inclined-plate",
+        "inputs": {
+          "incline_deg": 60,
+          "preview": true
+        },
+        "report_sha256": "6b1a793392a2dd2ad90e79ab74b6fd9ac63003a0606a2ebfbf133eeedffeabc3"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 159.34310000011465,
+        "timings": {
+          "source_and_plan_ms": 29.09030000000712,
+          "temporary_geometry_ms": 126.1554999996406,
+          "total_ms": 155.24579999964772,
+          "truss_body_creations": 1,
+          "truss_bays": 64,
+          "truss_axis": "u",
+          "truss_bay_span_mm": 15.53125,
+          "truss_open_area_percent": 81.8044728266681
+        },
+        "windows": 128,
+        "window_and_perpendicular_width_witnesses": 636,
+        "create_ms": 607.570399999986,
+        "edits": [
+          {
+            "style": "truss_pratt",
+            "axis": "long",
+            "bays": 64,
+            "witnesses": 636,
+            "elapsed_ms": 2203.270599999996
+          }
+        ],
+        "same_body": true,
+        "owned_features": 2,
+        "flat_back": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "maximum-bays",
+        "inputs": {
+          "style": "truss_pratt",
+          "width_mm": 1000,
+          "depth_mm": 100,
+          "bays": 64,
+          "member_mm": 1
+        },
+        "report_sha256": "983d1908f6beed12151760ab409d876391ccb76854576a027eede324e88d26ea"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 25.033599999915168,
+        "timings": {
+          "source_and_plan_ms": 14.295200000105979,
+          "temporary_geometry_ms": 7.991999999831023,
+          "total_ms": 22.287199999937002,
+          "truss_body_creations": 1,
+          "truss_bays": 6,
+          "truss_axis": "u",
+          "truss_bay_span_mm": 19.0,
+          "truss_open_area_percent": 71.30636610462756
+        },
+        "windows": 7,
+        "window_and_perpendicular_width_witnesses": 31,
+        "preview_draw_cleanup": true,
+        "preview_triangles": 124,
+        "create_ms": 114.94500000026164,
+        "edits": [
+          {
+            "style": "truss_pratt",
+            "axis": "long",
+            "bays": 8,
+            "witnesses": 76,
+            "elapsed_ms": 440.5035000004318
+          },
+          {
+            "style": "truss_howe",
+            "axis": "long",
+            "bays": 8,
+            "witnesses": 76,
+            "elapsed_ms": 513.3485000001201
+          },
+          {
+            "style": "truss_warren",
+            "axis": "short",
+            "bays": 8,
+            "witnesses": 41,
+            "elapsed_ms": 488.134700000046
+          },
+          {
+            "style": "truss_warren",
+            "axis": "long",
+            "bays": 8,
+            "witnesses": 41,
+            "elapsed_ms": 419.75879999972676
+          }
+        ],
+        "same_body": true,
+        "owned_features": 2,
+        "flat_back": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "edit-cycle",
+        "inputs": {
+          "edit_cycle": true,
+          "preview": true
+        },
+        "report_sha256": "af7ebc3afe7078a1b7fe1ef74530673efa1537bd49ceb04f8fea77f5c1d80efe"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "Pratt and Howe need an even number of Bays for a symmetric centre.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "odd-pratt-refusal",
+        "inputs": {
+          "style": "truss_pratt",
+          "bays": 5,
+          "expect_refusal": "even number"
+        },
+        "report_sha256": "bdade5c4172493283281f3549d03ad1114af81a7fe7e94bd6a33261c1efb4404"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "Use 2–64 whole Bays and Long side or Short side for the truss span.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "excessive-bays-refusal",
+        "inputs": {
+          "bays": 65,
+          "expect_refusal": "whole Bays"
+        },
+        "report_sha256": "e0d9a794391854b02d139a0bad552794d2d8b603b171b811c5aeac2cfebcde95"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "The truss windows are too small. Reduce Bays/Member width/Frame width, or use a larger plate.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "closed-windows-refusal",
+        "inputs": {
+          "member_mm": 50,
+          "expect_refusal": "windows are too small"
+        },
+        "report_sha256": "ff8480686e7d7ce42e03afc47b4b2612b8903282d7e7749e26b0f4e9f5fc506f"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "Frame width leaves no truss region. Reduce Frame width or use a larger plate.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "excessive-frame-refusal",
+        "inputs": {
+          "frame_mm": 25,
+          "expect_refusal": "no truss region"
+        },
+        "report_sha256": "3d42381b78618f4d7d0561f337b14456c779925591157fc806f5679cfcd352ef"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "Planar truss needs one straight rectangular planar face of a uniform solid plate, with a flat back.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "stepped-back-refusal",
+        "inputs": {
+          "stepped_back": true,
+          "expect_refusal": "uniform solid plate"
+        },
+        "report_sha256": "842b2bd131c12e9b6e5ba947a2e0431bb78cb5e7215c7654458e2d79d3939937"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "Planar truss needs one rectangular face of a uniform solid plate.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "multiple-faces-refusal",
+        "inputs": {
+          "two_faces": true,
+          "expect_refusal": "one rectangular face"
+        },
+        "report_sha256": "55165db3d33f78a254968703b7d8774b5045a157159d93a9b6fce335a75f722e"
+      },
+      {
+        "version": "0.17.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 95.55940000018381,
+        "openings": 5,
+        "timings": {
+          "source_and_plan_ms": 18.512899999677757,
+          "temporary_geometry_ms": 43.86720000002242,
+          "total_ms": 92.90699999974095,
+          "wall_checks_ms": 12.370199999622855,
+          "tool_construction_ms": 12.671399999817368,
+          "tool_clip_ms": 6.339800000660034,
+          "result_application_ms": 11.750499999834574,
+          "batch_used": false,
+          "mounting_ms": 13.702499999908468,
+          "mount_holes": 4,
+          "mount_border_restores": 0,
+          "mount_hole_diameter_mm": 4.3,
+          "mount_head_diameter_mm": 9.856000000000002,
+          "mount_countersink_depth_mm": 2.778000000000001,
+          "mount_inset_mm": 6.628000000000001,
+          "mount_preflight_ms": 9.411699999873235,
+          "mount_border_mm": 12.756000000000002,
+          "requested_border_mm": 7.0
+        },
+        "mount_bore_and_seat_witnesses": 4,
+        "solid_border_witnesses": 300,
+        "through_opening_witnesses": 0,
+        "cached_preview_draw_cleanup": true,
+        "preview_triangles": 968,
+        "create_ms": 146.88829999977315,
+        "legacy_mount_read_without_model_changes": true,
+        "edit_rebuild_ms": 355.8708000000479,
+        "same_body": true,
+        "flat_back": true,
+        "owned_features": 2,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "grille-regression",
+        "inputs": {
+          "pattern": "grille_parallel",
+          "profile": "flat",
+          "mount_mode": "countersink",
+          "legacy_mount": true,
+          "preview": true
+        },
+        "report_sha256": "3d8667e6ee4237fc6878e8193e501b775b9b9956f8b36d9474912012d6d153ad"
+      }
+    ],
+    "probe_sha256": {
+      "tools/fusion/TrussProbe.py": "13c1ae5cc52604d0ff143b5607ec6d7f671e60837f8734fa6348ad3068c322db",
+      "tools/fusion/RaisedGrilleProbe.py": "d13305937510e457dc77c184b8721b26733b669b7ea6cd9eafd07ab5dda38bd7"
+    }
+  },
+  "native_source_sha256": {
+    "Partelier/partelier/addin.py": "b281358a644e8f8dfd3a5852562b615c7e9244379b59ff134ac366b506a7b4f1",
+    "Partelier/partelier/diagnostics.py": "31dcc2492880d3484a7f374c11856ee6e8bcf3bef7116cf0f91e7e2bc084e04b",
+    "Partelier/partelier/palette.py": "df072eeb8940d35586c0df36c9d05784953b3f4001fb1950ed5908a4b1dcb863",
+    "Partelier/partelier/palette_protocol.py": "558c68e710bd22ba2733060c6a0c602d6974f8f6ee95016d7eb167888daf9a56",
+    "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+    "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+    "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+    "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+    "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+    "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+    "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+    "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+    "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+    "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+    "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+    "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+    "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+    "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+    "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+    "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+    "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+    "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+    "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+    "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+    "Partelier/partelier/tools/patterns/auto_fit.py": "5be4178c056629c6486ae2558653ad1eaf7f6fcaa10820309ed74ceea4345289",
+    "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+    "Partelier/partelier/tools/patterns/clipping.py": "1d5583190a77e6b164e000353c9237aa446fe762bd6c4d20f72703ddb7968822",
+    "Partelier/partelier/tools/patterns/colour_export.py": "5bde50f0d872fc57b30bc88d5a73e7d3460f80c06529cebe10f846a2348bb5ff",
+    "Partelier/partelier/tools/patterns/colour_store.py": "cf2f2ff1ecb6e28397a57373bc8e68b6ce6319a84423db8c2ca4ffc5c66b84dd",
+    "Partelier/partelier/tools/patterns/command.py": "b0e53070b96ff4ef79cdf847400eda6076870e8dc6a8f68c3ea41b76b66086e5",
+    "Partelier/partelier/tools/patterns/dense_grid.py": "81652510eaf37bf981f2c56d608519d8d99e215f07b90d8de448dc76187d84de",
+    "Partelier/partelier/tools/patterns/display_export.py": "aa5f683d270129781249d40d7d7f6e8eeacf93e8cb391af581f2e69dbbde0c5f",
+    "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+    "Partelier/partelier/tools/patterns/face_selection.py": "809ad6728c9273bd9dd35e5674e415257b71863e443387841b926713c33dcec3",
+    "Partelier/partelier/tools/patterns/fingerprint.py": "2741a20d00bd5ed65b3491f0e03fdb9899f7c61b94b39d49f98ba091f3e6ad20",
+    "Partelier/partelier/tools/patterns/flat_plate.py": "f590d33ef2bd07a5c5bbae693e127f90d2a8b035e000ed174e72ddbe18e7a1c8",
+    "Partelier/partelier/tools/patterns/fusion.py": "e2a1faae47012a9aa427dc1749c9932c96fad557463af5541aa7432f5c5dfb35",
+    "Partelier/partelier/tools/patterns/grilles.py": "434b0d78e59f0734f3e5b9a44376055d5a43ea0b7708ce56330b5811298d39d1",
+    "Partelier/partelier/tools/patterns/inlay.py": "2fbc2ce692013442910062306cc6938caf464dde43e4dce54b32b30612608a1a",
+    "Partelier/partelier/tools/patterns/mounting.py": "e225e461f9c4db8394847cfc29bb029fcc2556d6f63b0af1b51b853c47cbd938",
+    "Partelier/partelier/tools/patterns/perforated_prism.py": "ed5aed934b3c9d4bc013b183f079689358929a16cd4ed1d5c67f6320cdde969b",
+    "Partelier/partelier/tools/patterns/planner.py": "70f66da217988ec0031a9671df987a53b106e05fe05a82f073f52200094d83be",
+    "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+    "Partelier/partelier/tools/patterns/prism.py": "cb1ada026a5ef1964b68b0e749c45e6ae03d19ece19a518938ef4e7c444f58a5",
+    "Partelier/partelier/tools/patterns/profile_loft.py": "da702b356ae686edfcb274c567a7a4e46729fc980734d86882c0316c2daf90c4",
+    "Partelier/partelier/tools/patterns/raised_grilles.py": "5e253c373058725d6ac163c8d7821fb0dbe1a3dbddcaa7e18eec884cd6c49eb9",
+    "Partelier/partelier/tools/patterns/recipe.py": "af62151f4ec95764709d67bc59eb42df98e2546db51fa539d70743c75a637f6b",
+    "Partelier/partelier/tools/patterns/settings.py": "605b152ce8dfc5b9ae07f6c19aa8c33b10941710671cc436b726b29907b9ccb0",
+    "Partelier/partelier/tools/patterns/store.py": "e0f422fd30b349e37ac5a998b7851cd9d2f4849d9d854929654ddf130b3eea11",
+    "Partelier/partelier/tools/patterns/surfaces.py": "8a4e392b38e22f8c3579271b11499b0b7480f3e0abf829785a9f9be9761da74f",
+    "Partelier/partelier/tools/patterns/tiled_layout.py": "fd39879c2540ddb1924728783f288a5704a656263bfc9ae896c81fb70d8ed4da",
+    "Partelier/partelier/tools/patterns/tiles.py": "7d7c94fd7e897ee82b4ec5de5a8a33da5f962157cc82bd27746a9917fd931fd1",
+    "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+    "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+    "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+    "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+    "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+    "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+    "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+    "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+    "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+    "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80",
+    "Partelier/partelier/tools/truss/fusion.py": "f2b806c2b132b7d7dcca50c8c482efae8eadb97b41b6d810c6f8119bc9a98e9b",
+    "Partelier/partelier/tools/truss/planner.py": "2f8888d59b33d079d7e7c4663d192fc1571182908bb04928b53c42a24158cf4f",
+    "Partelier/partelier/tools/truss/__init__.py": "428300e3cc349f372952610ee2fd58541c3d642f3704d7e7e2a319809bf75692"
+  },
+  "ui_source_sha256": {
+    "Partelier/partelier/ui/catalog.js": "8f636b99723fb44e3ceca0dda23f0d1ef8360bd19835cbec35618ae7dfa653ca",
+    "Partelier/partelier/ui/illustrations.js": "b30961e5cba98d455b7ee919143bfb1ac8ddc684047e6ceb4ad4be6bcffa1a00",
+    "Partelier/partelier/ui/palette.css": "f99ac213adf43205c872208ba409193a32239a7dacbc3bd8ca0bd3a04d3e3bf2",
+    "Partelier/partelier/ui/palette.html": "8ac19a4647161623c881ea9608059c3c3a0ecbd7377a05f223994cedcc917a0d",
+    "Partelier/partelier/ui/palette.js": "41bfe84d32d4c8012d07a7c341068cca2d4cac5648b545dd5387256f8cbb961d",
+    "Partelier/partelier/ui/pattern-help.js": "52303491735c0b4b622f95d36c4307316cde64ffef37faed1d5f39fb78322551",
+    "Partelier/partelier/ui/patterns.js": "401773d12bd8d700289817c60163396793a9bfd6b14cdbb87317c5a474703ef5",
+    "Partelier/partelier/ui/snap.js": "f3a79b8e14b1d05094fa98fcfd57961e3a8fa5f19775987e51952b1ccf2a45c7",
+    "Partelier/partelier/ui/pattern-previews/cairo.svg": "62b61fafaa82d48f38e556bbe1171a300f67718e4551fbbd3205091c7d02ccc0",
+    "Partelier/partelier/ui/pattern-previews/elongated_hexagon.svg": "7db784fb5b6c3c25e3c839ca0444f10f022569e9fc09b31eb8f8f0ebef2439e9",
+    "Partelier/partelier/ui/pattern-previews/octagon.svg": "780bde96fbdd424212d89ac63253ed61605a80aeb930c8886a89e0e129e541c7",
+    "Partelier/partelier/ui/pattern-previews/octagon_square.svg": "b6d30d19271015390c5f69474c335c09c113e8701dc2d31d197b2750cd9ca0fa",
+    "Partelier/partelier/ui/pattern-previews/pentagon.svg": "360322d0a82041063823db1cc90217f3289dc62d6fdb4710afb32574f49aa522",
+    "Partelier/partelier/ui/pattern-previews/rhombille.svg": "cf3f4dfccee06f77df5359c66e8937aaa770a26a292cd9d396ce9adc9c3f8468",
+    "Partelier/partelier/ui/pattern-previews/rounded_hexagon.svg": "6b72e822e36c215d791ffeb77fccff5e70dd56df71db34c0f74c4fad4eceb506",
+    "Partelier/partelier/ui/pattern-previews/rounded_triangle.svg": "dbc97b47ceecb4fc6d2691f433a7d739346f441e556a9900e05300725333d462",
+    "Partelier/partelier/ui/pattern-previews/triangle.svg": "d4905b8f6ab2203020cdb75569225dd42dfbbf0dd9eb83d91794da3375ac44cc",
+    "Partelier/partelier/ui/pattern-previews/trihex.svg": "a216a27473d0249b6594e340c4ebf24c25b1ac7c9b06aff6b7f196c3196cd07f"
+  },
+  "git_blob_sha256": {
+    "Partelier/partelier/addin.py": "b281358a644e8f8dfd3a5852562b615c7e9244379b59ff134ac366b506a7b4f1",
+    "Partelier/partelier/diagnostics.py": "31c1f9ae936f52c43a66c62f9a9d6db83b556e93b5628bc902b2649fb2f9ccbf",
+    "Partelier/partelier/palette.py": "94b378124095384efda79e1a3a524c807a408e2dac2d9d071e93733ee3611c30",
+    "Partelier/partelier/palette_protocol.py": "4a958ea98c03c5f83574a86306b531b91c84545f364e918a1b31741f8364abac",
+    "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+    "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+    "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+    "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+    "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+    "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+    "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+    "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+    "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+    "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+    "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+    "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+    "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+    "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+    "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+    "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+    "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+    "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+    "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+    "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+    "Partelier/partelier/tools/patterns/auto_fit.py": "5be4178c056629c6486ae2558653ad1eaf7f6fcaa10820309ed74ceea4345289",
+    "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+    "Partelier/partelier/tools/patterns/clipping.py": "1d5583190a77e6b164e000353c9237aa446fe762bd6c4d20f72703ddb7968822",
+    "Partelier/partelier/tools/patterns/colour_export.py": "dc9404373256ce66d4fc934c11cfa7917885318a804fe1d066bebf13db98079e",
+    "Partelier/partelier/tools/patterns/colour_store.py": "cf2f2ff1ecb6e28397a57373bc8e68b6ce6319a84423db8c2ca4ffc5c66b84dd",
+    "Partelier/partelier/tools/patterns/command.py": "b0e53070b96ff4ef79cdf847400eda6076870e8dc6a8f68c3ea41b76b66086e5",
+    "Partelier/partelier/tools/patterns/dense_grid.py": "9adb25ce64ba02c1d614fbafcac4057995dd471f0ce2f2740f8edf97d96add70",
+    "Partelier/partelier/tools/patterns/display_export.py": "3cfdc6031090dbe8c52422b41926f35d04c9e2e153131572b79711af094f19ff",
+    "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+    "Partelier/partelier/tools/patterns/face_selection.py": "809ad6728c9273bd9dd35e5674e415257b71863e443387841b926713c33dcec3",
+    "Partelier/partelier/tools/patterns/fingerprint.py": "2741a20d00bd5ed65b3491f0e03fdb9899f7c61b94b39d49f98ba091f3e6ad20",
+    "Partelier/partelier/tools/patterns/flat_plate.py": "f590d33ef2bd07a5c5bbae693e127f90d2a8b035e000ed174e72ddbe18e7a1c8",
+    "Partelier/partelier/tools/patterns/fusion.py": "9d2136f25313bbd9b433da428edbc9c67d7b0b410e8cc4088d5fa20b51b6751a",
+    "Partelier/partelier/tools/patterns/grilles.py": "e33d0d72eff03168fe39c4a8b3a7e7dbc5b0e45068ccf3be750ada94a5e947da",
+    "Partelier/partelier/tools/patterns/inlay.py": "1e3bb0c9396636cfec62182f437d0bfffb14489d9d116ff40b1aa9151b074218",
+    "Partelier/partelier/tools/patterns/mounting.py": "e225e461f9c4db8394847cfc29bb029fcc2556d6f63b0af1b51b853c47cbd938",
+    "Partelier/partelier/tools/patterns/perforated_prism.py": "ed5aed934b3c9d4bc013b183f079689358929a16cd4ed1d5c67f6320cdde969b",
+    "Partelier/partelier/tools/patterns/planner.py": "49e86fc8874f31a8b98d0b12dc201b7ec697495bc369fe50c7d33e68c72fa51e",
+    "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+    "Partelier/partelier/tools/patterns/prism.py": "615e236e5d104a31a201028f28c596baf28f398f781b8e97731a19cbeb3a5950",
+    "Partelier/partelier/tools/patterns/profile_loft.py": "da702b356ae686edfcb274c567a7a4e46729fc980734d86882c0316c2daf90c4",
+    "Partelier/partelier/tools/patterns/raised_grilles.py": "5e253c373058725d6ac163c8d7821fb0dbe1a3dbddcaa7e18eec884cd6c49eb9",
+    "Partelier/partelier/tools/patterns/recipe.py": "10794d0f1797c1fd4917087a90ba85192a41cc9a426104f251d870137a711a16",
+    "Partelier/partelier/tools/patterns/settings.py": "aa5a3a9b4e2a6969d8e7760a53807fe6fdf7722982d43ee369225dbaecb451f4",
+    "Partelier/partelier/tools/patterns/store.py": "e0f422fd30b349e37ac5a998b7851cd9d2f4849d9d854929654ddf130b3eea11",
+    "Partelier/partelier/tools/patterns/surfaces.py": "8a4e392b38e22f8c3579271b11499b0b7480f3e0abf829785a9f9be9761da74f",
+    "Partelier/partelier/tools/patterns/tiled_layout.py": "fd39879c2540ddb1924728783f288a5704a656263bfc9ae896c81fb70d8ed4da",
+    "Partelier/partelier/tools/patterns/tiles.py": "7d7c94fd7e897ee82b4ec5de5a8a33da5f962157cc82bd27746a9917fd931fd1",
+    "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+    "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+    "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+    "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+    "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+    "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+    "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+    "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+    "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+    "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80",
+    "Partelier/partelier/tools/truss/fusion.py": "f2b806c2b132b7d7dcca50c8c482efae8eadb97b41b6d810c6f8119bc9a98e9b",
+    "Partelier/partelier/tools/truss/planner.py": "2f8888d59b33d079d7e7c4663d192fc1571182908bb04928b53c42a24158cf4f",
+    "Partelier/partelier/tools/truss/__init__.py": "428300e3cc349f372952610ee2fd58541c3d642f3704d7e7e2a319809bf75692",
+    "Partelier/partelier/ui/catalog.js": "dbf078a024b6a74f3cab2edd213bea977ae58ae90cedcd096fecf03e3b8472ba",
+    "Partelier/partelier/ui/illustrations.js": "ff2818754ed00a0d67fe2371248d287d50a8edfc647bb5c436bc875a15274de3",
+    "Partelier/partelier/ui/palette.css": "f99ac213adf43205c872208ba409193a32239a7dacbc3bd8ca0bd3a04d3e3bf2",
+    "Partelier/partelier/ui/palette.html": "a4d0468a57e01f30262a60be4e0c68c8f1d9dcc807d52e613fa62aabb58de803",
+    "Partelier/partelier/ui/palette.js": "dc0b394e58c2a32ef7d9f8c3d0aaea202912dca0bf11172b95761c3034d29de9",
+    "Partelier/partelier/ui/pattern-help.js": "a5d18c80b30ea36221204eaa9d9586fb9de69ae549bdf38a11083bfef6769e45",
+    "Partelier/partelier/ui/patterns.js": "7c4e7fe0eb0b309f541e898d7ede4e56989552557af0c5ace58d6dd4265bb5b4",
+    "Partelier/partelier/ui/snap.js": "619d13aca3fc45ceea21055b06d88a423224a9cd8ee4d93c9d79a78b4a8a59c0",
+    "Partelier/partelier/ui/pattern-previews/cairo.svg": "62b61fafaa82d48f38e556bbe1171a300f67718e4551fbbd3205091c7d02ccc0",
+    "Partelier/partelier/ui/pattern-previews/elongated_hexagon.svg": "7db784fb5b6c3c25e3c839ca0444f10f022569e9fc09b31eb8f8f0ebef2439e9",
+    "Partelier/partelier/ui/pattern-previews/octagon.svg": "780bde96fbdd424212d89ac63253ed61605a80aeb930c8886a89e0e129e541c7",
+    "Partelier/partelier/ui/pattern-previews/octagon_square.svg": "b6d30d19271015390c5f69474c335c09c113e8701dc2d31d197b2750cd9ca0fa",
+    "Partelier/partelier/ui/pattern-previews/pentagon.svg": "360322d0a82041063823db1cc90217f3289dc62d6fdb4710afb32574f49aa522",
+    "Partelier/partelier/ui/pattern-previews/rhombille.svg": "cf3f4dfccee06f77df5359c66e8937aaa770a26a292cd9d396ce9adc9c3f8468",
+    "Partelier/partelier/ui/pattern-previews/rounded_hexagon.svg": "6b72e822e36c215d791ffeb77fccff5e70dd56df71db34c0f74c4fad4eceb506",
+    "Partelier/partelier/ui/pattern-previews/rounded_triangle.svg": "dbc97b47ceecb4fc6d2691f433a7d739346f441e556a9900e05300725333d462",
+    "Partelier/partelier/ui/pattern-previews/triangle.svg": "d4905b8f6ab2203020cdb75569225dd42dfbbf0dd9eb83d91794da3375ac44cc",
+    "Partelier/partelier/ui/pattern-previews/trihex.svg": "a216a27473d0249b6594e340c4ebf24c25b1ac7c9b06aff6b7f196c3196cd07f",
+    "tools/fusion/TrussProbe.py": "13c1ae5cc52604d0ff143b5607ec6d7f671e60837f8734fa6348ad3068c322db",
+    "tools/fusion/RaisedGrilleProbe.py": "abf7fb2fd8bb0f27b4858142e430b0ae3f900e121fa66f66b108a6966b0f2feb",
+    "docs/validation/images/truss-warren-0.17.0.png": "2ce66b3a326dabd1bfcc9362951c10d93f586e39dddbe6bcb3de23e03dfe786d",
+    "docs/validation/images/truss-pratt-0.17.0.png": "b43d5a15fcff7db6fd958beded2f2c09d0360ec70910d7b6a2b85e8653e5d565",
+    "docs/validation/images/truss-howe-0.17.0.png": "a2af18e1865ee1cc9ffea6de2f104c1977a5d4b3bb1ce8cb4a4cc127fb063a14"
+  },
+  "inspected_native_images": {
+    "docs/validation/images/truss-warren-0.17.0.png": "2ce66b3a326dabd1bfcc9362951c10d93f586e39dddbe6bcb3de23e03dfe786d",
+    "docs/validation/images/truss-pratt-0.17.0.png": "b43d5a15fcff7db6fd958beded2f2c09d0360ec70910d7b6a2b85e8653e5d565",
+    "docs/validation/images/truss-howe-0.17.0.png": "a2af18e1865ee1cc9ffea6de2f104c1977a5d4b3bb1ce8cb4a4cc127fb063a14"
+  },
+  "normalization": "All final native working-source digests match. Staged sources match working bytes after CRLF/LF normalization; images match exactly.",
+  "origin": {
+    "implementation": "Original millimetre triangle subdivision and half-width erosion; no StructForge code was copied.",
+    "nomenclature_reference": "https://steelconstruction.info/topics/design/trusses/"
+  },
+  "scope": [
+    "Warren/Pratt/Howe through-window trusses on one rectangular uniform plate; original thickness retained.",
+    "2–64 bays, even Pratt/Howe counts, perpendicular member widths, continuous perimeter and long/short-side layout.",
+    "Pure triangle partition-area proof, convex window separation, opposed shared edges, exact solid volume and single connected lump.",
+    "Independent actual material witnesses at every window and both sides of every diagonal/post at half-width plus/minus 0.03 mm.",
+    "One closed multi-loop temporary body, no native Boolean or history feature per member; at most 128 windows.",
+    "Cached mesh preview upload/cleanup and real Create/Edit/Rebuild retain body/name/visibility/feature ID/history counts.",
+    "60-degree inclined plate, 64-bay maximum, style/axis/dimension Edit cycle, early count/geometry/window refusals.",
+    "Recipe 10 reads strict legacy 1–9 schemas with only absent truss defaults; local malformed-old-truss guard and native mounted-grille legacy regression.",
+    "Fifteen isolated fixture documents discarded without saving; original caller document/component/camera restored."
+  ],
+  "limits": [
+    "Only one root-component straight rectangular chart-aligned face on a complete uniform solid plate; flat opposite back required.",
+    "No arbitrary sketch profiles, curved/nonrectangular/hollow/stepped plates, multiple faces, raised/engraved trusses, mounting holes or member chamfers.",
+    "One owned pattern/grille/truss per body, guarded timeline-end Create/Edit; source thickness is not an adjustable truss setting.",
+    "No structural optimization, FEA, physical printing/load/fit, pointer/CEF/orbit, save/reopen or Undo/Redo proof.",
+    "Performance timings are fixture observations, not universal guarantees."
+  ]
+}

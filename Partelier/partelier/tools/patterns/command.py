@@ -362,7 +362,11 @@ class _Session:
                             ' '.join(f'{key}={value:.3f}' for key,value in timings.items() if type(value) in (int,float)))
                     except Exception:pass
                 self.phase='preview';self.message=str(prepared.cell_count)+' cells. Review the pattern before Create.'
-                if self.settings.layout_mode=='auto':
+                if self.settings.pattern.startswith('truss_'):
+                    self.message=(f"{self.settings.truss_bays} bays · {prepared.cell_count} windows"
+                        f" · span per bay {prepared.timings['truss_bay_span_mm']:.2f} mm"
+                        f" · open area {prepared.timings['truss_open_area_percent']:.1f}%")
+                elif self.settings.layout_mode=='auto':
                     sizes=[layout.cell_size_mm for layout in prepared.layouts if layout.cell_count]
                     caption=f'{min(sizes):.2f}' if max(sizes)-min(sizes)<.005 else f'{min(sizes):.2f}–{max(sizes):.2f}'
                     self.message=f'Auto fit · {self.settings.density} · {prepared.cell_count} cells · cell size {caption} mm'
