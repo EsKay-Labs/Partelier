@@ -109,6 +109,34 @@ def _ring(frame,bounds,outset,inset,low,high):
     return perforated_prism.create(frame,planner.rectangle(bounds,outset),(planner.rectangle(bounds,inset),),low,high)
 
 
+def _lip_run(frame,polygon,low,high,top=None):
+    geometry=planner.lip_loft(frame,polygon,polygon if top is None else top,low,high)
+    return perforated_prism.create_plan(perforated_prism.Plan(*geometry))
+
+
+def _selected_lip_tools(frame,bounds,gap,depth,settings,A,B,manager):
+    inset,width,height=settings.lip_inset_mm,settings.lip_width_mm,settings.lip_height_mm
+    clearance,lead=settings.lip_clearance_mm,settings.lead_mm
+    lips=[];cuts=[]
+    polygons=planner.lip_polygons(bounds,inset,width,settings.lip_sides)
+    for polygon in polygons:
+        groove=planner.offset_polygon(polygon,-clearance)
+        _material(manager,_lip_run(frame,polygon,-EMBED,0),A,
+            'Every selected lip root must be supported by face A. Reduce inset/width or choose a wider rim.')
+        _material(manager,_lip_run(frame,groove,gap,gap+depth+settings.socket_floor_mm),B,
+            'Each selected groove needs complete lid material and a protected floor, including its end clearance.')
+        lip=_lip_run(frame,polygon,-EMBED,height-lead if lead else height)
+        if lead:
+            # Offset the continuous run before lofting: adjacent selected sides
+            # have one finished contour, with no chamfer seam at the corner.
+            top=planner.offset_polygon(polygon,lead)
+            lip=_union(manager,(lip,_lip_run(frame,polygon,height-lead,height,top)))
+        lips.append(lip);cuts.append(_lip_run(frame,groove,gap-.02,gap+depth))
+    return (_union(manager,lips),_union(manager,cuts)),{
+        'gap_mm':gap,'socket_depth_mm':depth,'lip_perimeter':False,
+        'lip_sides':settings.lip_sides,'lip_runs':len(polygons)}
+
+
 def _mating(faces,settings):
     frame,bounds=_frame(faces[0]);_frame(faces[1])
     if a._dot(frame.y_axis,_normal(faces[1]))>-.99999:
@@ -125,6 +153,8 @@ def _pair_tools(faces,settings,manager):
         inset,width,height=settings.lip_inset_mm,settings.lip_width_mm,settings.lip_height_mm
         c=settings.lip_clearance_mm
         if inset<c+.1:raise ValueError('Lip inset must leave at least 0.1 mm beyond the receiving groove clearance.')
+        if settings.lip_layout=='selected' and settings.lip_sides!=15:
+            return _selected_lip_tools(frame,bounds,gap,depth,settings,A,B,manager)
         _material(manager,_ring(frame,bounds,inset,inset+width,-EMBED,0),A,'The complete lip root must be supported by face A. Reduce inset/width or choose a wider rim.')
         # The full receiving ring plus a protected floor must be original B
         # material. This checks every point, not a few rays through the lid.

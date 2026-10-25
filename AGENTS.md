@@ -64,7 +64,7 @@ Edit/Rebuild before adding the other first-release helpers.
 - `tests/`: standard-library tests runnable outside Fusion.
 - `Partelier/partelier/tools/details/`: 0.18.0 rectangular mating lid lip/groove,
   alignment pins and same-body 90-degree ribs/gussets. Hardware pockets excluded.
-  Separate 19-field settings and version-1 delta-tool records; same target bodies,
+  Separate 21-field settings and version-2 delta-tool records (strict version-1 reads); same target bodies,
   two/three native features, guarded timeline-end Edit. See docs/small-details.md.
 - `Partelier/partelier/tools/truss/`: pure bounded triangular-window planning and
   one-solid Fusion adaptation. Shares the HTML pattern session, plate inspector,
@@ -174,3 +174,9 @@ See docs/fusion-validation.md. Local mocks remain distinct from native evidence.
 - Startup size is 380 × 760; actual docked height belongs to Fusion. Saved is the header entry point for operations; the alternate model picker is inside it. Examples and all secondary parameters remain available.
 - Session revisions are local to their session. On a legitimately adopted new operation, load its settings even if its revision is lower than the previous session's. Continue rejecting retired sessions and older same-session pushes.
 - See docs/compact-ui.md and docs/validation/compact-ui-0.20.0.json for scoped checks. Browser screenshots are not native pointer acceptance.
+
+## Selected lip sides (0.21.0)
+- Lid lip & groove has Continuous perimeter and Selected sides. Source faces remain rectangular. Side indices are cyclic in the historical face A frame; persist lip_sides as a strict 1–15 bit mask and lip_layout as closed/selected. Keep mask15 on the original ring path.
+- Selected runs use a unified contour before the 45° tip, with receiving clearance around run ends too. Never chamfer separate strips and join them afterward. Preview stays gated until the additive native edge picker finishes with Done; Esc clears pending sides. Restore handlers, native selections and visibility on Cancel/Stop.
+- Exact 19-field recipe1 records upgrade to closed/15 only in memory; explicit Create/Rebuild writes recipe2 with21 fields. Active snapshots remain strict. Side masks are host-owned, changed by model picking and Done.
+- Ribs show Height on A and Width on B together; Thickness is separate. Internal dimension names retain their existing meanings. See docs/small-details.md and selected-lip-0.21.0 validation evidence.

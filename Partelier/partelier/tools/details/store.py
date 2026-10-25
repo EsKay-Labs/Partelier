@@ -36,12 +36,17 @@ def _parse(raw):
     try:value=json.loads(raw)
     except (ValueError,TypeError) as error:raise ValueError('The detail record is damaged.') from error
     keys={'version','id','settings','sources','base','combines','tools','tool_signatures','results'}
-    if not isinstance(value,dict) or set(value)!=keys or type(value['version']) is not int or value['version']!=1:
+    if not isinstance(value,dict) or set(value)!=keys or type(value['version']) is not int or value['version'] not in (1,2):
         raise ValueError('The detail record has an unsupported structure.')
     try:
         if str(uuid.UUID(value['id']))!=value['id']:raise ValueError()
     except (ValueError,TypeError,AttributeError) as error:raise ValueError('The detail identity is damaged.') from error
-    settings=DetailSettings.from_dict(value['settings']);count=1 if settings.kind=='ribs' else 2
+    saved=value['settings']
+    if value['version']==1:
+        legacy=set(DetailSettings().to_dict())-{'lip_layout','lip_sides'}
+        if not isinstance(saved,dict) or set(saved)!=legacy:raise ValueError('The legacy detail fields are damaged.')
+        saved={**saved,'lip_layout':'closed','lip_sides':15}
+    settings=DetailSettings.from_dict(saved);count=1 if settings.kind=='ribs' else 2
     sources=value['sources']
     if (not isinstance(sources,dict) or set(sources)!={'faces','bodies'} or not isinstance(sources['faces'],list)
             or len(sources['faces'])!=2 or not isinstance(sources['bodies'],list) or len(sources['bodies'])!=count
@@ -149,7 +154,7 @@ def validate(prepared):
 
 
 def _save(design,base,prepared,features,identity,tool_tokens):
-    value={'version':1,'id':identity,'settings':prepared.settings.to_dict(),'sources':prepared.tokens,
+    value={'version':2,'id':identity,'settings':prepared.settings.to_dict(),'sources':prepared.tokens,
         'base':_token(base),'combines':[_token(f) for f in features],'tools':list(tool_tokens),
         'tool_signatures':[a.h._body_signature(t) for t in prepared.tools],
         'results':[a.h._body_signature(b) for b in prepared.targets]}

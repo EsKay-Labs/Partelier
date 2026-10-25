@@ -286,7 +286,11 @@ dialog { max-width: 380px; }
 
 .configuration-dimensions > .section-heading { display: none; }
 #pattern-layout-note { display: none; }
-.detail-style-choice { order: -1; grid-column: 1 / -1; }
+.detail-style-choice { order: -10; grid-column: 1 / -1; }
+#detail-fields [data-field="rib_height_b_mm"] { order: -8; }
+#detail-fields [data-field="rib_height_a_mm"] { order: -7; }
+.detail-side-actions { display: grid; grid-column: 1 / -1; gap: 7px; margin-top: 8px; }
+.detail-side-actions .create-button { min-height: 36px; }
 #pattern-grille_profile-field { grid-column: auto; }
 .grille-direction-presets button { min-height: 26px; font-size: 10px; }
 

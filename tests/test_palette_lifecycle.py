@@ -483,7 +483,7 @@ class PaletteLifecycleTests(unittest.TestCase):
         reply=json.loads(self.library.handle_message('detail_begin',json.dumps({
             'protocol':1,'requestId':'details','settings':{'kind':'ribs'},'editing':False})))
         self.assertIn('detail-palette',reply['capabilities']);self.assertIn('detail-edit',reply['capabilities'])
-        self.assertEqual(len(reply['detailDefaults']),19)
+        self.assertEqual(len(reply['detailDefaults']),21)
         values=manager.begin_palette.call_args.args[0];self.assertEqual(values['kind'],'ribs');self.assertEqual(values['rib_count'],3)
 
     def test_detail_and_existing_tool_owners_are_mutually_exclusive(self):

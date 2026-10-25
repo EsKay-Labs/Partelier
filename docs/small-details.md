@@ -1,4 +1,4 @@
-# Small details — 0.18.0
+# Small details — 0.21.0
 
 The Small details menu now implements **Lid lip & groove**, **Alignment pins** and
 **Ribs & gussets**. Hardware pockets remains planned and unchanged. Each helper
@@ -23,15 +23,17 @@ Full-volume checks require material behind both complete rib legs, so an outside
 convex corner cannot masquerade as a supported inside corner. Heights, reaches
 and count must fit the actual source faces and shared edge.
 
-Preselecting both faces is supported. Otherwise select A, then use the B button.
-The preview begins once both are selected. Re-picking restores the original
-source visibility before asking for a face. Press Esc to stop picking, or Cancel
-to remove the preview. Geometry changes and stale previews block Create.
+Preselecting both faces is supported. Otherwise select A and the picker advances
+automatically to B. Continuous lips, pins and ribs preview after both supports.
+Selected-side lips additionally require edge selection and Done. Re-picking
+restores source visibility. Esc resets supports, or clears pending sides during
+side selection; Cancel removes the temporary session. Stale previews block Create.
 
 ## Lid lip & groove
 
 | Setting | Default and interpretation |
 | --- | --- |
+| Lip layout | Continuous perimeter; optionally Selected sides |
 | Lip height | 2.5 mm outward from A toward B |
 | Lip width | 1.2 mm across the continuous rectangular ring |
 | Edge inset | 0.8 mm from A's outer boundary to the lip's outside |
@@ -51,6 +53,15 @@ tip with 45° faces. It must be less than half the lip width and its height.
 The complete ring root must be original A material. The complete receiving ring
 and protected floor must be original B material. These are volume checks, not
 samples that could miss a cavity or an opening through the opposite side.
+
+**Selected sides:** choose the straight outer boundary edges on face A, or matching
+edges on B. Normal clicks accumulate blue edges without Ctrl. Up to four sides
+are supported. Clear sides or Esc starts that selection over; **Done · update
+preview** confirms it. No geometry computation starts while choosing sides.
+The matching groove follows only those sides. Adjacent sides form one continuous
+L/U contour before the tip chamfer; opposite sides remain separate runs. Side
+clearance applies around the ends as well. All four sides use the original ring
+geometry. Saved masks load on Edit, and Lip sides lets you pick them again.
 
 Actual Fusion base and matching lid after changing height to 3 mm in Edit:
 
@@ -88,7 +99,8 @@ After editing from two 4 mm pins to four 4.4 mm pins:
 ## Ribs & gussets
 
 Choose **Triangular gusset** or **Full rectangular rib**. Defaults are 2 mm rib
-thickness, 12 mm reach on B, 12 mm height on A, three ribs and 5 mm end margins.
+thickness, 12 mm width/reach on B, 12 mm height on A, three ribs and 5 mm end margins.
+Height and Width are adjacent in the UI; Thickness occupies the next row.
 Rib thickness is measured along the shared edge. Every rib is joined to the
 existing body, with finite material overlap into both supports.
 
@@ -131,7 +143,9 @@ face references are checked. Rebuild updates the same source tools and retains
 target body tokens, names, visibility, feature IDs and history counts. Failed
 native writes rely on the enclosing Fusion command transaction for rollback.
 
-The recipe is a separate strict version-1 Small details schema with 19 settings.
+The recipe is a separate strict version-2 Small details schema with 21 settings.
+Version-1 records require their exact original 19 fields; they load as closed
+perimeter/15 in memory without being rewritten. Explicit Rebuild saves version2.
 Existing hinge/snap/pattern/truss records are unchanged. Starting another tool
 while one owns selection/preview is blocked in both HTML and the host. Late
 responses and retired session pushes cannot reactivate a cancelled session.
@@ -179,3 +193,22 @@ Browser checks at 300/380/520 px pass for all three guides: six sections, labell
 ## Selection and saved operations (0.19.0)
 
 Support selection now advances A → B automatically and Esc clears references/preview while keeping dimensions. The **In this design** list opens a specific saved operation; **Pick from model** is the alternate selection path. New operations have named native timeline groups and distinct Lip/Groove or Pins/Pin holes children. See [selection-history.md](selection-history.md) for Edit, deletion, legacy adoption, dependency limits, scrolling and scoped validation.
+
+## Selected-side validation (0.21.0)
+
+1041 Python tests and four Node UI suites pass. A simulated-host browser check at
+320/380/440 px verifies Height/Width ordering, separate Thickness,21-field
+snapshots, locked parameters during side picking, no preview before Done and no
+horizontal overflow.
+
+Fusion2705.1.30 passes all15 side masks with0/.2mm lead-ins (30 detached geometry
+cases,240 independent material/void witnesses), cached preview cleanup,
+Create3 → Rebuild5/7/15/1, unchanged target identity/body counts/history, Edit
+selection seeding, native edge highlight accumulation and B-edge alias
+deduplication. Clear, empty Done refusal, invalid-face refusal and Cancel handler
+cleanup also pass. Tests use programmatic native events/selections in a discarded
+fixture document; they do not establish manual CEF pointer, save/reopen or physical
+printing acceptance. The caller model remains unchanged. Native preparation was
+approximately25–59ms on this fixture; timing depends on source geometry/hardware.
+
+Evidence: [selected-lip-0.21.0.json](validation/selected-lip-0.21.0.json).

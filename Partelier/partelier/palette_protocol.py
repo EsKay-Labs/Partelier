@@ -19,7 +19,7 @@ SNAP_SESSION_ACTIONS = SNAP_SESSION_SETTINGS_ACTIONS | {"snap_cancel", "snap_foc
 PATTERN_SETTINGS_ACTIONS=frozenset({"pattern_update","pattern_preview","pattern_commit"})
 PATTERN_SESSION_ACTIONS=PATTERN_SETTINGS_ACTIONS|{"pattern_cancel","pattern_focus","pattern_finish_faces","pattern_clear_faces","pattern_reset"}
 DETAIL_SETTINGS_ACTIONS=frozenset({'detail_update','detail_preview','detail_commit'})
-DETAIL_SESSION_ACTIONS=DETAIL_SETTINGS_ACTIONS|{'detail_cancel','detail_focus','detail_reset'}
+DETAIL_SESSION_ACTIONS=DETAIL_SETTINGS_ACTIONS|{'detail_cancel','detail_focus','detail_reset','detail_finish_sides','detail_clear_sides'}
 ALLOWED_ACTIONS = frozenset({
     "ready", "open_input_check", "hinge_create", "hinge_edit", "hinge_begin", "hinge_status",
     "snap_begin", "snap_status", "pattern_begin", "pattern_status", "pattern_export", "diagnostic_log",
@@ -107,7 +107,7 @@ def read_request(action, raw_data):
     if action in begin_actions and type(editing) is not bool:
         raise ValueError(f"{tool_name.capitalize()} editing mode must be true or false.")
     target = request.get("target")
-    targets={'face_a','face_b','edit_target'} if detail else {"faces","add_face","body","edit_target"} if pattern else {"face_a", "face_b", "axis_edge", "edit_target"}
+    targets={'face_a','face_b','edit_target','lip_sides'} if detail else {"faces","add_face","body","edit_target"} if pattern else {"face_a", "face_b", "axis_edge", "edit_target"}
     if action in focus_actions and (not isinstance(target, str) or target not in targets):
         raise ValueError(f"Select a supported {tool_name} geometry target.")
     settings = None

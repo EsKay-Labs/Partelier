@@ -11,14 +11,15 @@ class DetailSettingsTests(unittest.TestCase):
     def test_all_three_helpers_round_trip_exactly_and_defaults_have_print_leads(self):
         for kind in ('lid','alignment','ribs'):
             s=DetailSettings(kind=kind);self.assertEqual(DetailSettings.from_dict(s.to_dict()),s)
-            self.assertEqual(len(s.to_dict()),19)
+            self.assertEqual(len(s.to_dict()),21)
         self.assertEqual(DetailSettings().lead_mm,.2)
         with self.assertRaises(FrozenInstanceError):DetailSettings().lip_height_mm=4
 
     def test_numeric_type_and_geometry_bounds_are_strict(self):
         cases=[{'kind':'pockets'},{'rib_style':'circle'},{'pin_count':True},{'pin_count':3},{'pin_count':2.0},
                {'rib_count':33},{'rib_count':0},{'rib_count':2.0},{'lip_height_mm':0},{'lead_mm':.6},
-               {'kind':'alignment','lead_mm':2},{'lip_clearance_mm':2.01},{'pin_clearance_mm':-1}]
+               {'kind':'alignment','lead_mm':2},{'lip_clearance_mm':2.01},{'pin_clearance_mm':-1},
+               {'lip_layout':'tapered'},{'lip_sides':0},{'lip_sides':16},{'lip_sides':True},{'lip_sides':1.0}]
         cases.extend({name:value} for name in ('lip_width_mm','pin_height_mm','rib_width_mm') for value in (True,math.nan,math.inf,10**400,'3'))
         for values in cases:
             with self.subTest(values=values),self.assertRaises(ValueError):DetailSettings(**values)
@@ -71,7 +72,10 @@ class DetailProtocolTests(unittest.TestCase):
 
     def test_focus_and_revision_are_tool_scoped(self):
         sid=str(uuid.uuid4())
-        for target in ('face_a','face_b','edit_target'):self.request('detail_focus',sessionId=sid,target=target)
+        for target in ('face_a','face_b','edit_target','lip_sides'):self.request('detail_focus',sessionId=sid,target=target)
+        for action in ('detail_finish_sides','detail_clear_sides'):
+            self.request(action,sessionId=sid)
+            with self.assertRaises(ValueError):self.request(action,sessionId=sid,settings={})
         for target in ('axis_edge','faces','body','add_face'):
             with self.assertRaises(ValueError):self.request('detail_focus',sessionId=sid,target=target)
         for revision in (True,-1,1.5):
@@ -81,10 +85,18 @@ class DetailProtocolTests(unittest.TestCase):
     def test_ownership_record_rejects_bad_references_and_geometry_hashes_before_host_access(self):
         from copy import deepcopy
         from Partelier.partelier.tools.details import store
-        value={'version':1,'id':str(uuid.uuid4()),'settings':DetailSettings().to_dict(),
+        value={'version':2,'id':str(uuid.uuid4()),'settings':DetailSettings().to_dict(),
             'sources':{'faces':['fa','fb'],'bodies':['a','b']},'base':'base','combines':['join','cut'],
             'tools':['one','two'],'tool_signatures':['0'*64,'1'*64],'results':['2'*64,'3'*64]}
         self.assertEqual(store._parse(json.dumps(value))[0],value)
+        old=deepcopy(value);old['version']=1
+        del old['settings']['lip_layout'];del old['settings']['lip_sides']
+        raw,upgraded=store._parse(json.dumps(old))
+        self.assertEqual(raw,old);self.assertEqual(upgraded,DetailSettings())
+        self.assertNotIn('lip_layout',raw['settings'])
+        for wrong in (value['settings'],{**old['settings'],'unknown':1}):
+            with self.assertRaises(ValueError):store._parse(json.dumps({**old,'settings':wrong}))
+        with self.assertRaises(ValueError):store._parse(json.dumps({**value,'settings':old['settings']}))
         changes=[('version',True),('id','other'),('base',None),('tools',['one']),('tool_signatures',[{},{}])]
         for key,wrong in changes:
             damaged={**value,key:wrong}

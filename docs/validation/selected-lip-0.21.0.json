@@ -1,0 +1,230 @@
+{
+  "release": "0.21.0",
+  "date": "2026-10-25",
+  "python_tests": 1041,
+  "node_suites": [
+    "test_palette_ui.cjs",
+    "test_patterns_ui.cjs",
+    "test_snap_fit_ui.cjs",
+    "test_details_ui.cjs"
+  ],
+  "native": {
+    "version": "0.21.0",
+    "fusion_version": "2705.1.30",
+    "success": true,
+    "cases": [
+      {
+        "mask": 1,
+        "lead_mm": 0,
+        "prepare_ms": 25.4
+      },
+      {
+        "mask": 2,
+        "lead_mm": 0,
+        "prepare_ms": 26.62
+      },
+      {
+        "mask": 3,
+        "lead_mm": 0,
+        "prepare_ms": 31.64
+      },
+      {
+        "mask": 4,
+        "lead_mm": 0,
+        "prepare_ms": 27.05
+      },
+      {
+        "mask": 5,
+        "lead_mm": 0,
+        "prepare_ms": 43.31
+      },
+      {
+        "mask": 6,
+        "lead_mm": 0,
+        "prepare_ms": 31.33
+      },
+      {
+        "mask": 7,
+        "lead_mm": 0,
+        "prepare_ms": 36.82
+      },
+      {
+        "mask": 8,
+        "lead_mm": 0,
+        "prepare_ms": 27.2
+      },
+      {
+        "mask": 9,
+        "lead_mm": 0,
+        "prepare_ms": 31.56
+      },
+      {
+        "mask": 10,
+        "lead_mm": 0,
+        "prepare_ms": 42.77
+      },
+      {
+        "mask": 11,
+        "lead_mm": 0,
+        "prepare_ms": 37.34
+      },
+      {
+        "mask": 12,
+        "lead_mm": 0,
+        "prepare_ms": 33.95
+      },
+      {
+        "mask": 13,
+        "lead_mm": 0,
+        "prepare_ms": 35.39
+      },
+      {
+        "mask": 14,
+        "lead_mm": 0,
+        "prepare_ms": 35.71
+      },
+      {
+        "mask": 15,
+        "lead_mm": 0,
+        "prepare_ms": 39.39
+      },
+      {
+        "mask": 1,
+        "lead_mm": 0.2,
+        "prepare_ms": 33.38
+      },
+      {
+        "mask": 2,
+        "lead_mm": 0.2,
+        "prepare_ms": 31.86
+      },
+      {
+        "mask": 3,
+        "lead_mm": 0.2,
+        "prepare_ms": 41.12
+      },
+      {
+        "mask": 4,
+        "lead_mm": 0.2,
+        "prepare_ms": 36.01
+      },
+      {
+        "mask": 5,
+        "lead_mm": 0.2,
+        "prepare_ms": 56.25
+      },
+      {
+        "mask": 6,
+        "lead_mm": 0.2,
+        "prepare_ms": 44.23
+      },
+      {
+        "mask": 7,
+        "lead_mm": 0.2,
+        "prepare_ms": 49.56
+      },
+      {
+        "mask": 8,
+        "lead_mm": 0.2,
+        "prepare_ms": 35.38
+      },
+      {
+        "mask": 9,
+        "lead_mm": 0.2,
+        "prepare_ms": 40.52
+      },
+      {
+        "mask": 10,
+        "lead_mm": 0.2,
+        "prepare_ms": 58.32
+      },
+      {
+        "mask": 11,
+        "lead_mm": 0.2,
+        "prepare_ms": 48.63
+      },
+      {
+        "mask": 12,
+        "lead_mm": 0.2,
+        "prepare_ms": 44.66
+      },
+      {
+        "mask": 13,
+        "lead_mm": 0.2,
+        "prepare_ms": 47.04
+      },
+      {
+        "mask": 14,
+        "lead_mm": 0.2,
+        "prepare_ms": 47.13
+      },
+      {
+        "mask": 15,
+        "lead_mm": 0.2,
+        "prepare_ms": 51.68
+      }
+    ],
+    "additive_side_picker": {
+      "done_required": true,
+      "normal_replacement_accumulates": true,
+      "lid_alias_deduplicated": true,
+      "clear_and_empty_done": true
+    },
+    "material_witnesses": 240,
+    "preview_cleanup": true,
+    "create_rebuild_masks": [
+      3,
+      5,
+      7,
+      15,
+      1
+    ],
+    "preserved_body_identity": true,
+    "preserved_history": true,
+    "edit_side_seed": true,
+    "caller_unchanged": true
+  },
+  "browser": {
+    "checks": [
+      {
+        "width": 320,
+        "ribHeightWidthSameRow": true,
+        "thicknessSeparate": true,
+        "sidesWaitForDone": true,
+        "controlsLockedDuringPicking": true,
+        "settings21": true,
+        "noOverflow": true
+      },
+      {
+        "width": 380,
+        "ribHeightWidthSameRow": true,
+        "thicknessSeparate": true,
+        "sidesWaitForDone": true,
+        "controlsLockedDuringPicking": true,
+        "settings21": true,
+        "noOverflow": true
+      },
+      {
+        "width": 440,
+        "ribHeightWidthSameRow": true,
+        "thicknessSeparate": true,
+        "sidesWaitForDone": true,
+        "controlsLockedDuringPicking": true,
+        "settings21": true,
+        "noOverflow": true
+      }
+    ],
+    "errors": []
+  },
+  "installed_reload": {
+    "version": "0.21.0",
+    "caller_unchanged": true,
+    "palette_width": 380,
+    "palette_height": 691
+  },
+  "limits": [
+    "Programmatic native selection, not manual pointer acceptance",
+    "Rectangular mating source faces",
+    "Physical printing and save/reopen not tested in this release"
+  ]
+}

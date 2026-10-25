@@ -25,6 +25,8 @@ class DetailSettings:
     rib_count: int = 3
     rib_margin_mm: float = 5.
     rib_style: str = 'triangle'
+    lip_layout: str = 'closed'
+    lip_sides: int = 15
 
     def __post_init__(self):
         for key,value in asdict(self).items():
@@ -37,6 +39,10 @@ class DetailSettings:
     def validate(self):
         if self.kind not in ('lid','alignment','ribs') or self.rib_style not in ('triangle','full'):
             raise ValueError('Choose Lid lip & groove, Alignment pins or Ribs & gussets.')
+        if self.lip_layout not in ('closed','selected'):
+            raise ValueError('Choose a closed lip or selected lip sides.')
+        if type(self.lip_sides) is not int or not 1<=self.lip_sides<=15:
+            raise ValueError('Choose at least one of the four lip sides.')
         if type(self.pin_count) is not int or self.pin_count not in (2,4):raise ValueError('Choose 2 or 4 alignment pins.')
         if type(self.rib_count) is not int or not 1<=self.rib_count<=32:raise ValueError('Use 1–32 ribs.')
         for key in ('lip_height_mm','lip_width_mm','pin_diameter_mm','pin_height_mm','socket_floor_mm','rib_width_mm','rib_height_a_mm','rib_height_b_mm'):

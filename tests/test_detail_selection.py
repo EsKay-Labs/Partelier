@@ -56,3 +56,37 @@ class DetailSelectionTests(unittest.TestCase):
         self.assertEqual(self.session.faces,(self.a,replacement));self.assertEqual(self.ui.selectEntity.call_count,1)
         self.owner.reset(self.session)
         self.assertIs(self.session.settings,settings);self.assertEqual(self.session.faces,(None,None))
+
+    def test_escape_during_side_selection_clears_only_pending_sides(self):
+        picker=NS(clear=Mock());self.session.side_picker=picker
+        self.session.faces=(self.a,self.b)
+        self.owner.reset(self.session)
+        picker.clear.assert_called_once_with()
+        self.assertEqual(self.session.faces,(self.a,self.b));self.assertEqual(self.session.revision,0)
+        self.owner.runner.cancel.assert_not_called()
+
+    def test_side_mask_is_host_authoritative_and_layout_change_requires_confirmation(self):
+        from dataclasses import replace
+        from Partelier.partelier.tools.details.settings import DetailSettings
+        session=NS(settings=DetailSettings(),revision=2,sides_confirmed=True,preview_revision=2)
+        update=self.module._Session.update
+        update(session,replace(session.settings,lip_layout='selected').to_dict(),3)
+        self.assertFalse(session.sides_confirmed);self.assertIsNone(session.preview_revision)
+        with self.assertRaisesRegex(ValueError,'on the model'):
+            update(session,replace(session.settings,lip_sides=3).to_dict(),4)
+        self.assertEqual(session.settings.lip_sides,15);self.assertEqual(session.revision,3)
+
+    def test_done_requires_nonempty_valid_selection_before_releasing_picker(self):
+        from Partelier.partelier.tools.details.settings import DetailSettings
+        picker=NS(synchronize=Mock(),mask=0,error=None,stop=Mock())
+        session=NS(side_picker=picker,settings=DetailSettings(lip_layout='selected'),revision=2,validate=Mock(),picking_target='lip_sides')
+        finish=self.module._Session.finish_sides
+        with self.assertRaisesRegex(ValueError,'at least one'):finish(session)
+        picker.stop.assert_not_called()
+        picker.mask=3;picker.error='Unsupported edge'
+        with self.assertRaisesRegex(ValueError,'Unsupported'):finish(session)
+        picker.stop.assert_not_called()
+        picker.error=None;finish(session)
+        picker.stop.assert_called_once_with();self.assertIsNone(session.side_picker)
+        self.assertIsNone(session.picking_target);self.assertEqual(session.settings.lip_sides,3)
+        self.assertEqual(session.revision,3);self.assertTrue(session.sides_confirmed)
