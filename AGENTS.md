@@ -103,8 +103,9 @@ Partelier folder after native validation; add packaging only when needed.
   controls remain appropriate for Fusion geometry selection and the diagnostic.
   Show units and actionable errors. HTML must not access or mutate the model
   directly; route supported actions through the Python adapter.
-- The user prefers a grouped tool dropdown to the card gallery. The 0.20 UI uses neutral white/graphite surfaces and a restrained active-pick
-  highlight. The dropdown exposes implemented tools only; keep Saved and
+- The user prefers a grouped tool dropdown to the card gallery. The 0.20.1 UI uses a graphite header, slate-gray workspace, pale cards and
+  white inputs. Preserve visible surface contrast; the 0.20 all-white result
+  was explicitly rejected by the user. Keep a clear active-pick highlight. The dropdown exposes implemented tools only; keep Saved and
   secondary controls out of the default configuration view.
 - Keep UI text in English initially, matching the reference tool; this is an
   assumption, not a confirmed language requirement.

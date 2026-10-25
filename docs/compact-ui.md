@@ -1,5 +1,11 @@
 # Compact workflow — 0.20.0
 
+**0.20.1 contrast correction:** the off-white workspace and white cards were too
+close in tone. The header is now graphite, the workspace slate gray, the cards
+pale blue-gray and the inputs nearly white. Size and workflow are unchanged.
+The new HTML was refreshed in Fusion at 380 px with the model unchanged. Evidence:
+[contrast-ui-0.20.1.json](validation/contrast-ui-0.20.1.json).
+
 The palette opens at **380 × 760** instead of 540 × 840. Fusion docking can
 override the height; the native check measured a 380 px width and 691 px docked
 height. White/graphite surfaces replace the broad blue theme. A small selection
