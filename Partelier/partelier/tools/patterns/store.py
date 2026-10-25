@@ -1,9 +1,11 @@
-"""One existing solid updated by one owned history tool and two Combines.
+"""One existing solid updated by owned tool geometry and native Combines.
 
 This is the single-target form of the validated SolidPairStore technique.
 The caller MUST own a Fusion command transaction and abort it on failure.
 Join(keep) followed by Intersect(consume) preserves the original body identity;
 Rebuild updates that same one tool source, without backup or dummy bodies.
+Version 2 stores subtractive grilles as one owned cutter and one consuming Cut;
+version 1 full-shape Join/Intersect records remain supported unchanged.
 Tool-specific settings and selected-face recipes belong to the caller.
 """
 
@@ -18,6 +20,7 @@ import uuid
 RECORD_NAME = "solid"
 OWNER_NAME = "solid_owner"
 COMBINE_ROLES = ("join", "intersect")
+CUT_ROLES = ("cut",)
 RECORD_KEYS = frozenset({"version", "tool", "feature_id", "base_feature",
                          "target", "result", "tool_token", "combines"})
 
@@ -42,6 +45,16 @@ def _api():
 def _signature(body):
     from ..hinge.fusion import _body_signature
     return _body_signature(body)
+
+
+def _cut_signature(body):
+    from .fingerprint import signature
+    try:
+        return signature(body)
+    except (OSError,ValueError,RuntimeError):
+        # Unsupported versions, transforms or export permissions retain the
+        # exact existing guard, with its original cost rather than a weaker hash.
+        return _signature(body)
 
 
 def _items(collection):
@@ -94,6 +107,17 @@ def _healthy(feature):
     if feature.healthState != fusion.FeatureHealthStates.HealthyFeatureHealthState:
         detail = feature.errorOrWarningMessage
         raise ValueError("An owned pattern feature could not compute cleanly." + (" " + detail if detail else ""))
+
+
+def _tool(body):
+    if (not _valid(body) or not body.isSolid or body.lumps.count < 1
+            or not math.isfinite(float(body.volume)) or float(body.volume) <= 0):
+        raise ValueError("The pattern cutter must contain valid solid material.")
+    return body
+
+
+def _roles(recipe):
+    return CUT_ROLES if recipe['version'] == 2 else COMBINE_ROLES
 
 
 @contextmanager
@@ -161,11 +185,11 @@ class PatternStore:
         except (TypeError, ValueError) as error:
             raise ValueError("The saved pattern solid record is damaged.") from error
         if (not isinstance(recipe, dict) or set(recipe) != RECORD_KEYS
-                or type(recipe["version"]) is not int or recipe["version"] != 1
+                or type(recipe["version"]) is not int or recipe["version"] not in (1, 2)
                 or recipe["tool"] != self.tool_id or not _identity(recipe["feature_id"])):
             raise ValueError("The saved pattern solid record has an unsupported structure.")
         combines = recipe["combines"]
-        if (not isinstance(combines, dict) or set(combines) != set(COMBINE_ROLES)
+        if (not isinstance(combines, dict) or set(combines) != set(_roles(recipe))
                 or not all(_valid_token(value) for value in combines.values())):
             raise ValueError("The saved pattern Combine references are damaged.")
         refs = [recipe[name] for name in ("base_feature", "target", "tool_token")] + list(combines.values())
@@ -189,7 +213,7 @@ class PatternStore:
                  if self._owned(candidate, recipe["feature_id"])]
         if owned != [base]:
             raise ValueError("The pattern has ambiguous ownership history.")
-        combines = {role: _resolve(design, recipe["combines"][role]) for role in COMBINE_ROLES}
+        combines = {role: _resolve(design, recipe["combines"][role]) for role in _roles(recipe)}
         indices = []
         for role, feature in [(None, base)] + list(combines.items()):
             if not _valid(feature) or feature.parentComponent != design.rootComponent:
@@ -202,13 +226,22 @@ class PatternStore:
                 raise ValueError("The pattern requires ungrouped native history features.")
             indices.append(node.index)
             _healthy(feature)
-        if indices != list(range(indices[0], indices[0] + 3)):
+        if indices != list(range(indices[0], indices[0] + 1 + len(combines))):
             raise ValueError("Features were inserted inside the pattern history. Preserve them before rebuilding.")
-        for role, feature in combines.items():
-            with _history(design, feature):
+        # Inspect inputs in timeline order and restore the end only once.
+        # Restoring between each check needlessly recomputes both Combines on
+        # dense grids. Every original ownership/definition check still runs.
+        # A Cut's BaseFeature only adds the cutter: the original target is
+        # unchanged immediately before Cut. Retain the active BaseFeature so
+        # inspecting inputs does not repeatedly re-import its dense geometry.
+        history_input = combines['cut'] if recipe['version'] == 2 else base
+        with _history(design, history_input):
+            self._target(design, recipe)
+            for role, feature in combines.items():
+                if not feature.timelineObject.rollTo(True):
+                    raise ValueError("Fusion could not inspect the original pattern input.")
                 target, tool = self._target(design, recipe), _resolve(design, recipe["tool_token"])
-                expected = (fusion.FeatureOperations.JoinFeatureOperation if role == "join"
-                            else fusion.FeatureOperations.IntersectFeatureOperation)
+                expected = self._operation(fusion, role)
                 if (feature.targetBody != target or target == tool or _items(feature.toolBodies) != (tool,)
                         or feature.operation != expected or feature.isKeepToolBodies != (role == "join")
                         or feature.isNewComponent):
@@ -223,13 +256,12 @@ class PatternStore:
         target = self._target(design, recipe)
         if selected_body is not None and selected_body != target:
             raise ValueError("The selected body does not belong to this pattern.")
-        if not self._owned(target, recipe["feature_id"], "target") or _signature(target) != recipe["result"]:
+        digest = _cut_signature(target) if recipe['version'] == 2 else _signature(target)
+        if not self._owned(target, recipe["feature_id"], "target") or digest != recipe["result"]:
             raise ValueError("The pattern result was edited after creation. Preserve those edits before rebuilding.")
         base, _ = self._feature_set(design, recipe)
         if base != anchor:
             raise ValueError("The saved pattern record identifies another feature.")
-        with _history(design, base):
-            self._target(design, recipe)
         return PatternRecord(base, recipe["feature_id"], target, recipe)
 
     def read(self, design, selected):
@@ -275,7 +307,9 @@ class PatternStore:
     def input_scope(self, design, record):
         """Yield exactly one original body before this pattern, then restore."""
         current = self._fresh(design, record)
-        with _history(design, current.anchor):
+        history_input = (_resolve(design, current.recipe['combines']['cut'])
+                         if current.recipe['version'] == 2 else current.anchor)
+        with _history(design, history_input):
             yield self._target(design, current.recipe)
 
     def _combine(self, design, target, tool, role, feature_id, created):
@@ -287,8 +321,7 @@ class PatternStore:
         spec = collection.createInput(target, tools)
         if spec is None:
             raise ValueError("Fusion could not define the in-place pattern Combine.")
-        spec.operation = (fusion.FeatureOperations.JoinFeatureOperation if role == "join"
-                          else fusion.FeatureOperations.IntersectFeatureOperation)
+        spec.operation = self._operation(fusion, role)
         spec.isKeepToolBodies = role == "join"
         spec.isNewComponent = False
         feature = collection.add(spec)
@@ -299,6 +332,12 @@ class PatternStore:
         feature.name = "Partelier " + self.tool_id + " " + role
         self._stamp(feature, feature_id, role)
         return feature
+
+    @staticmethod
+    def _operation(fusion, role):
+        if role == 'cut':return fusion.FeatureOperations.CutFeatureOperation
+        if role == 'join':return fusion.FeatureOperations.JoinFeatureOperation
+        return fusion.FeatureOperations.IntersectFeatureOperation
 
     def _shape(self, actual, desired):
         _body(actual)
@@ -319,21 +358,26 @@ class PatternStore:
         current.isLightBulbOn = visible
 
     def _record(self, base, feature_id, target, tool_token, combines):
-        recipe = {"version": 1, "tool": self.tool_id, "feature_id": feature_id,
+        roles = CUT_ROLES if set(combines) == set(CUT_ROLES) else COMBINE_ROLES
+        recipe = {"version": 2 if roles == CUT_ROLES else 1, "tool": self.tool_id, "feature_id": feature_id,
                   "base_feature": _token(base), "target": _token(target),
-                  "result": _signature(target), "tool_token": tool_token,
-                  "combines": {role: _token(combines[role]) for role in COMBINE_ROLES}}
+                  "result": (_cut_signature(target) if roles == CUT_ROLES else _signature(target)), "tool_token": tool_token,
+                  "combines": {role: _token(combines[role]) for role in roles}}
         raw = json.dumps(recipe, separators=(",", ":"))
         self._parse(raw)
         self._stamp(target, feature_id, "target")
         self._stamp(base, feature_id)
         self._attribute(base, RECORD_NAME, raw)
 
-    def create(self, design, target, final, feature_id=None):
-        """Create exactly one tool and two Combines, preserving the target."""
+    def create(self, design, target, final, feature_id=None, *, cut_tool=None):
+        """Preserve the target using a full-shape tool or an explicit Cut tool."""
         self._require_design(design)
         target = _body(target, design.rootComponent)
         final = _body(final, temporary=True)
+        tool = final if cut_tool is None else _tool(cut_tool)
+        if not tool.isTemporary or tool == target:
+            raise ValueError("Provide a detached temporary pattern tool.")
+        roles = COMBINE_ROLES if cut_tool is None else CUT_ROLES
         if target == final:
             raise ValueError("Provide a detached final pattern shape.")
         feature_id = str(uuid.uuid4()) if feature_id is None else feature_id
@@ -352,7 +396,7 @@ class PatternStore:
                 raise ValueError("Fusion could not start the pattern BaseFeature.")
             editing = True
             base.name = "Partelier " + self.tool_id + " " + feature_id[:8]
-            source = _body(design.rootComponent.bRepBodies.add(final, base))
+            source = _tool(design.rootComponent.bRepBodies.add(tool, base))
             source.name = "Partelier pattern tool"
             if _items(base.bodies) != (source,):
                 raise ValueError("Fusion returned an unexpected editable pattern tool.")
@@ -364,7 +408,7 @@ class PatternStore:
                 raise ValueError("Fusion returned an unexpected pattern tool count.")
             tool_token = _token(tools[0])
             combines = {}
-            for role in COMBINE_ROLES:
+            for role in roles:
                 combines[role] = self._combine(design, _resolve(design, token),
                     _resolve(design, tool_token), role, feature_id, created)
             self._outputs(design, target, final, token, name, visible, count)
@@ -380,10 +424,13 @@ class PatternStore:
                 base.deleteMe()
             raise
 
-    def update(self, design, record, final):
+    def update(self, design, record, final, *, cut_tool=None):
         """Update the same one tool source; native body/history identities stay."""
         current = self._fresh(design, record)
         final = _body(final, temporary=True)
+        tool = final if current.recipe['version'] == 1 else _tool(cut_tool)
+        if not tool.isTemporary or tool == current.target:
+            raise ValueError("Provide a detached temporary pattern tool.")
         if final == current.target:
             raise ValueError("Provide a detached final pattern shape.")
         base, combines = self._feature_set(design, current.recipe)
@@ -402,7 +449,7 @@ class PatternStore:
                 sources = _items(base.bodies)
                 if len(sources) != 1:
                     raise ValueError("Fusion changed the editable pattern tool count.")
-                if not base.updateBody(sources[0], final):
+                if not base.updateBody(sources[0], tool):
                     raise ValueError("Fusion could not update the pattern tool.")
                 if not base.finishEdit():
                     raise ValueError("Fusion could not finish the rebuilt pattern tool.")

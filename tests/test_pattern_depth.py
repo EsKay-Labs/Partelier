@@ -54,9 +54,25 @@ class PatternDepthTests(unittest.TestCase):
         with patch.object(fusion,'_wall',side_effect=((3,float('inf')),(3.021,float('inf')),(3,float('inf')))):
             with self.assertRaisesRegex(ValueError,'constant-thickness'):
                 fusion._cell_depth(None,None,cell,settings)
+
         with patch.object(fusion,'_wall',return_value=(3,3.005)):
             with self.assertRaisesRegex(ValueError,'another wall'):
                 fusion._cell_depth(None,None,cell,settings)
+
+    def test_only_crossed_grid_density_errors_use_the_specialized_path(self):
+        from Partelier.partelier.tools.patterns import dense_grid
+        from Partelier.partelier.tools.patterns.planner import PatternDensityError
+        faces=(object(),);body=object();sentinel=object()
+        settings=PatternSettings(pattern='grille_cross',layout_mode='fill')
+        with patch.object(fusion,'_selection',return_value=(faces,body)),patch.object(fusion,'_signature',return_value=()),patch.object(fusion,'_tokens',return_value={}),patch.object(fusion,'_mapped_cells',side_effect=PatternDensityError('dense',None)),patch.object(dense_grid,'prepare',return_value=sentinel) as dense:
+            self.assertIs(fusion._prepare_pattern_impl(None,faces,settings),sentinel)
+            dense.assert_called_once()
+        for supplied,error in ((PatternSettings(),ValueError('bad surface')),
+                               (PatternSettings(),PatternDensityError('dense',None)),
+                               (settings,ValueError('bad surface'))):
+            with self.subTest(settings=supplied,error=error),patch.object(fusion,'_selection',return_value=(faces,body)),patch.object(fusion,'_signature',return_value=()),patch.object(fusion,'_tokens',return_value={}),patch.object(fusion,'_mapped_cells',side_effect=error),patch.object(dense_grid,'prepare') as dense:
+                with self.assertRaises(ValueError):fusion._prepare_pattern_impl(None,faces,supplied)
+                dense.assert_not_called()
 
 
 if __name__=='__main__':unittest.main()

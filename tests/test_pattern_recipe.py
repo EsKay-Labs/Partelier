@@ -64,7 +64,7 @@ class PatternRecipeTests(unittest.TestCase):
             return self.entities.get(token, [])
         self.design.findEntityByToken = Mock(side_effect=resolve)
         self.anchor = NS(attributes=Attributes(self.events))
-        self.record = NS(anchor=self.anchor, feature_id="a824b03c-044b-467b-8b12-19e85e6d3510")
+        self.record = NS(anchor=self.anchor, feature_id="a824b03c-044b-467b-8b12-19e85e6d3510", recipe={'version':1})
         self.settings = PatternSettings(pattern="circle", mode="engrave", layout_mode="balanced", pitch_mm=9,
             web_mm=1.5, depth_mm=.6, border_mm=0, rotation_deg=-30,
             offset_u_mm=-1.2, offset_v_mm=2.3, selection_scope="faces")
@@ -414,7 +414,7 @@ class PatternRecipeTests(unittest.TestCase):
             self.module.create_pattern(object(), self.prepared)
         target, prepared = self.edited()
         self.events.clear()
-        wrong_record = NS(anchor=self.anchor, feature_id="another-record")
+        wrong_record = NS(anchor=self.anchor, feature_id="another-record", recipe={'version':1})
         for design, invalid_target in ((object(), target), (self.design, object()),
                                       (self.design, replace(target, record=wrong_record)),
                                       (self.design, replace(target, recipe={**target.recipe, "tool": "another-tool"}))):

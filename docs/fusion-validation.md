@@ -6,6 +6,36 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.14.1 dense crossed grilles
+
+Native request **15df7954-633f-49a8-a56c-9d726e6b95cc** on Fusion 2705.1.30
+passes **17 focused cases**. Dense crossed grids retain 5 mm openings and 2 mm
+ribs beyond the general 200-cell limit, using one perforated solid construction
+per face and one consuming Cut for new grille history. Fixtures cover 225,
+961 and 3,025 openings, two perpendicular faces, material equivalence,
+whole-region wall guards, legacy Edit, all three family conversions and exact
+bulk-export fingerprints. Production async supersession, selection after preview,
+cached Create and disposable-document cleanup pass. The caller document, active
+component, camera, model snapshot and source references are preserved.
+
+Observed Create / complete Edit-and-Rebuild times are 1.4 / 4.5 seconds for 225
+openings, 6.3 / 20.8 seconds for 961, and 24.2 / 80.5 seconds for 3,025. The
+large fixture also takes 10.9 seconds preparation. These are fixture observations,
+not universal timing guarantees. Dense support requires rectangular chart-aligned
+planar, proven constant-thickness walls, clipped edges and Border >= 0.1 mm;
+limits are 4,096 openings per face and 8,192 total, with existing numeric/display
+budgets. Other Patterns retain their previous limits.
+
+Local checks pass **962 Python tests**, three Node DOM suites, compilation,
+whitespace checks and headless Edge layouts at 300/380/520 px. Source fingerprints,
+case measurements and unsuccessful prototypes are recorded in
+[dense-cross-grid-0.14.1.json](validation/dense-cross-grid-0.14.1.json).
+Interrupted prototypes do not count as successful validation. Native selections
+are programmatic; physical pointer/CEF acceptance, dense orbit performance,
+save/reopen, Undo/Redo and printing remain separate. Large legacy full-shape
+Rebuilds and the unchanged full polygon/surface matrices were not repeated.
+See [Grilles](grilles.md) for scope and history compatibility.
+
 ## 0.14.0 integrated grilles
 
 User acceptance confirmed the 0.13.4 multi-face selection, preview and Edit flow.

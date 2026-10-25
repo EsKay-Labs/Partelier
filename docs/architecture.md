@@ -611,3 +611,67 @@ containing the mapped inner border and across-rib vector once per used face.
 spread refusal, as well as the existing first/next-wall bounds. `louver_cutter`
 uses that context and measured depth without repeating maps or wall queries.
 No cache survives the preparation and no Fusion API work moves off the main thread.
+
+## Dense Crossed grid (0.14.1)
+
+Only a `PatternDensityError` from the generic Crossed grid mapping path enters
+`dense_grid.prepare`; other motifs and other failures keep their original path.
+The pure bounded planner matches the existing clipped square phase. Instead of
+mapping and cutting every opening independently, `perforated_prism` defines one
+closed solid with two cap faces containing multiple hole loops. Shared edges
+have opposing co-edge directions; convex loops must be separated and strictly
+inside the outer frame. Fusion fully heals the definition once, and its solid,
+shell count and analytic volume are checked. One wall mask is removed from an
+owned source copy and the perforated region is joined back. Layout cells remain
+numeric metadata. No per-opening native Boolean or persistent feature is added.
+
+One rectangular face validation and nine wall rays locate each candidate region.
+Its full constant-thickness mask must be contained in the original body by a
+volume check; a thin layer beyond the back must remain unchanged by Difference
+against the source. Pairwise mask Differences prove selected dense regions do not
+overlap. Final material volume must equal source volume minus the summed opening
+area times wall thickness, and the result must be one connected solid. All
+Boolean targets are owned temporary copies. The usual source-signature validation,
+rollback-only preview, STL display cache and in-place recipe persistence follow.
+No generic pattern limits, source identifiers or recipe fields are changed.
+
+`PatternStore._feature_set` inspects the original input, Join inputs and Intersect
+inputs in timeline order within one restoring history scope. Restoring the end
+between inspections unnecessarily recomputed dense Combines. This changes the
+number of recomputations, not the ownership, health or definition checks.
+
+New grille persistence uses solid record version 2: one owned BaseFeature feeds
+one native consuming Cut, with exact ownership, adjacency, operation and tool
+checks. `recipe._cut_tool` takes an owned copy of the original input minus the
+reviewed result. It checks validity, finite removed volume and solid cutter
+lumps; the source is never a Boolean target. For Edit the cutter is captured
+inside the historical input scope and persistence waits for history restoration.
+The same target and cutter source are retained on Rebuild, with exactly two
+owned features. Existing version 1 full-shape records still use their original
+Join/Intersect route. The settings recipe stays version 5. Cut records support
+the three subtractive grille families; they cannot be changed into an additive
+or colour tool. New generic Patterns continue to use full-shape persistence.
+
+Cut-record input scopes stop immediately before Cut, after the tool BaseFeature.
+That BaseFeature only adds the cutter and does not modify the original target.
+Keeping it active avoids repeatedly re-importing dense tool geometry when
+inspecting the original target. Exact input references, operation checks and
+the existing geometry fingerprint remain unchanged. Version 1 scopes continue
+to inspect before their BaseFeature.
+
+New Cut records obtain the same sorted, rounded vertex-coordinate digest via
+Fusion's native SMT export, avoiding individual SDK vertex lookups. The bounded
+reader follows vertex-to-point references and retains coordinate multiplicity;
+opaque length-prefixed attribute strings are skipped without interpretation.
+Current native counts, volume and bounds remain part of the digest. Only the
+observed ASM header, centimetre coordinates and identity body transforms are
+accepted, with limits of 64 MiB, 400,000 records and 100,000 vertices. Missing or
+unsupported exports/transforms use the original SDK digest. Version 1 records
+and generic Patterns keep their existing fingerprint path. No SAT export,
+persistent cache, database or extra model feature is required.
+
+The development pattern probe now opens an outer unsaved geometry document
+before starting its fixture command. Its existing runtime test document remains
+separate. Both are discarded without saving; the caller document is activated,
+its captured camera is reassigned, and its model snapshot, references and active
+component are checked afterward.

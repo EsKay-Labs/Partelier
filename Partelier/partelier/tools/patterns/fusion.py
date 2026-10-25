@@ -13,7 +13,7 @@ import time
 
 from ..hinge import fusion as hinge
 from ..hinge.support import _prism
-from .planner import MAX_CELLS, MAX_FACE_CELLS, build_cells, build_layout, density_error
+from .planner import MAX_CELLS, MAX_FACE_CELLS, PatternDensityError, build_cells, build_layout, density_error
 from .surfaces import SurfaceMap
 from .prism import prism as _direct_prism
 from .batch import try_through_difference
@@ -501,7 +501,12 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
     signature, tokens = _signature(body, faces), _tokens(body, faces)
     _trace_geometry("source_read.end",face_count=len(faces))
     _trace_geometry("mapping.begin",face_count=len(faces),layout_mode=settings.layout_mode)
-    mapped, layouts = _mapped_cells(faces, settings, _return_layouts=True)
+    try:
+        mapped, layouts = _mapped_cells(faces, settings, _return_layouts=True)
+    except PatternDensityError:
+        if settings.pattern!='grille_cross':raise
+        from .dense_grid import prepare
+        return prepare(design,faces,settings,body,signature,tokens,started,historical=_historical)
     planned = time.perf_counter()
     _trace_geometry("mapping.end",cell_count=len(mapped),
         layouts=[{"face":index,"cells":len(layout.cells),"pitch_mm":layout.effective_pitch_mm}

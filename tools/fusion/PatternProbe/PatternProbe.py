@@ -933,10 +933,11 @@ def _flat_grille_cases(design):
     _grille_cases(design)
 
 
-def _grille_cases(design):
+def _grille_cases(design,*,focused=False):
     Settings=STATE['settings_module'].PatternSettings
     adapter=STATE['adapter'];recipe=STATE['recipe']
     for shape,rotation,tilt in (('grille_parallel',0,45),('grille_parallel',30,45),('grille_cross',0,45),('grille_louver',0,0),('grille_louver',0,30),('grille_louver',0,45),('grille_louver',0,60)):
+        if focused and (shape,rotation,tilt) not in {('grille_parallel',0,45),('grille_cross',0,45),('grille_louver',0,45)}:continue
         def grille(shape=shape,rotation=rotation,tilt=tilt):
             _,body,faces=fixture(design,'plane')
             settings=Settings(pattern=shape,mode='through',layout_mode='fill',pitch_mm=7,web_mm=2,border_mm=2,rotation_deg=rotation,louver_angle_deg=tilt)
@@ -970,10 +971,180 @@ def _grille_cases(design):
             target=recipe.read_edit_target(design,body)
             changed=recipe.prepare_edit_pattern(design,target,replace(settings,pitch_mm=8))
             recipe.rebuild_pattern(design,target,changed)
-            if (design.rootComponent.bRepBodies.count,design.timeline.count)!=(before[0],before[1]+3):
+            fingerprint=importlib.import_module(adapter.__package__+'.fingerprint')
+            if fingerprint.signature(body)!=adapter.hinge._body_signature(body):raise RuntimeError('Bulk fingerprint differs from the existing SDK vertex digest.')
+            if (design.rootComponent.bRepBodies.count,design.timeline.count)!=(before[0],before[1]+2):
                 raise RuntimeError('Grille Rebuild duplicated its body or history.')
-            return {'openings':prepared.cell_count,'tilt_deg':tilt,'rotation_deg':rotation,'same_body':True,'owned_features':3,**counts,'face_setups':prepared.timings.get('louver_face_setups',0),'timings':prepared.timings}
+            return {'openings':prepared.cell_count,'tilt_deg':tilt,'rotation_deg':rotation,'same_body':True,'owned_features':2,**counts,'face_setups':prepared.timings.get('louver_face_setups',0),'timings':prepared.timings}
         _case('grille_'+shape+'_'+str(rotation)+'_'+str(tilt),grille)
+
+
+def _dense_grid_cases(design):
+    from unittest.mock import patch
+    dense=importlib.import_module(STATE['adapter'].__package__+'.dense_grid')
+    adapter=STATE['adapter'];Settings=STATE['settings_module'].PatternSettings
+    def equivalence():
+        _,body,faces=fixture(design,'plane')
+        settings=Settings(pattern='grille_cross',layout_mode='fill',pitch_mm=7,web_mm=2,border_mm=2,rotation_deg=30,offset_v_mm=1.3)
+        ordinary=adapter.prepare_pattern(design,faces,settings)
+        fast=dense.prepare(design,faces,settings,body,adapter._signature(body,faces),adapter._tokens(body,faces),time.perf_counter())
+        manager=adsk.fusion.TemporaryBRepManager.get()
+        common=manager.copy(fast.result_body)
+        if not manager.booleanOperation(common,ordinary.result_body,adsk.fusion.BooleanTypes.IntersectionBooleanType):raise RuntimeError('Cannot compare dense-grid material.')
+        if max(abs(float(common.volume)-float(value.volume)) for value in (fast.result_body,ordinary.result_body))>1e-7:
+            raise RuntimeError('Dense grid differs from individual openings: '+repr((float(common.volume),float(fast.result_body.volume),float(ordinary.result_body.volume))))
+        return {'same_complete_material':True,'cells':fast.cell_count,'rib_tools':fast.timings['grid_rib_tools']}
+    _case('dense_grid_small_exact_material',equivalence)
+    def large(half=60, persist=True):
+        stage_start=time.perf_counter();measurements={}
+        _progress("grid-"+str(half*2)+"mm","prepare.begin")
+        manager=adsk.fusion.TemporaryBRepManager.get()
+        _,body=_persist(design,_box(manager,-half,half,-half,half,-3,0),'dense-grid')
+        faces=tuple(face for face in _items(body.faces) if abs(face.pointOnFace.z)<1e-7)
+        settings=Settings(pattern='grille_cross',layout_mode='fill',pitch_mm=7,web_mm=2,border_mm=7)
+        prepared=adapter.prepare_pattern(design,faces,settings)
+        measurements['prepare_ms']=(time.perf_counter()-stage_start)*1000
+        _progress('grid-'+str(half*2)+'mm','witnesses.begin')
+        if prepared.cell_count<=200 or not prepared.timings.get('dense_grid'):raise RuntimeError('Dense grid did not bypass individual cell work.')
+        chart=adapter.SurfaceMap(faces[0])
+        checked=prepared.layouts[0].cells[::max(1,prepared.cell_count//16)]
+        for cell in checked:
+            p=chart.sample(*cell.center_mm)
+            if _inside(prepared.result_body,_add(p.point_mm,p.normal,-1.5)):raise RuntimeError('A dense grid opening is closed.')
+        _progress('grid-'+str(half*2)+'mm','display.begin')
+        prepared=adapter.display_export.prepare(prepared)
+        if not persist:
+            return {'cells':prepared.cell_count,'opening_mm':5,'rib_mm':2,'sampled_opening_centers':len(checked),'measurements':measurements,'display_triangles':len(prepared.display_mesh.coordinates)//9,'timings':prepared.timings,'persistence_tested':False}
+        _progress('grid-'+str(half*2)+'mm','create.begin')
+        stage_start=time.perf_counter()
+        before=(design.rootComponent.bRepBodies.count,design.timeline.count)
+        store=STATE['recipe'].STORE;combine=store._combine
+        def measured_combine(*args,**kwargs):
+            _progress('grid-'+str(half*2)+'mm','native_'+args[3]+'.begin')
+            operation_start=time.perf_counter()
+            value=combine(*args,**kwargs)
+            measurements['native_'+args[3]+'_ms']=(time.perf_counter()-operation_start)*1000
+            _progress('grid-'+str(half*2)+'mm','native_'+args[3]+'.end')
+            return value
+        from contextlib import ExitStack
+        profile={}
+        def measured(name,function):
+            def call(*args,**kwargs):
+                _progress('grid-'+str(half*2)+'mm',name+'.begin')
+                mark=time.perf_counter()
+                try:return function(*args,**kwargs)
+                finally:
+                    profile[name]=profile.get(name,0)+(time.perf_counter()-mark)*1000
+                    _progress('grid-'+str(half*2)+'mm',name+'.end')
+            return call
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(store,'_combine',side_effect=measured_combine))
+            for name in ('_outputs','_record','_feature_set','_shape'):
+                stack.enter_context(patch.object(store,name,side_effect=measured(name,getattr(store,name))))
+            store_module=importlib.import_module(adapter.__package__+'.store')
+            for name in ('_signature','_cut_signature'):
+                stack.enter_context(patch.object(store_module,name,side_effect=measured(name,getattr(store_module,name))))
+            STATE['recipe'].create_pattern(design,prepared)
+        measurements['create_ms']=(time.perf_counter()-stage_start)*1000
+        measurements['create_profile_ms']=profile
+        STATE['report']['staged_measurements']={'size_mm':half*2,**measurements}
+        if half>60 and measurements['create_ms']>(15000 if half<=116 else 60000):
+            raise RuntimeError('Dense-grid Create exceeded its staged validation time budget; larger tests and Rebuild were skipped.')
+        _progress('grid-'+str(half*2)+'mm','rebuild.begin')
+        stage_start=time.perf_counter()
+        target=STATE['recipe'].read_edit_target(design,body)
+        measurements['read_edit_ms']=(time.perf_counter()-stage_start)*1000
+        _progress('grid-'+str(half*2)+'mm','prepare_edit.begin')
+        edit_start=time.perf_counter()
+        changed=STATE['recipe'].prepare_edit_pattern(design,target,replace(settings,offset_v_mm=1))
+        measurements['prepare_edit_ms']=(time.perf_counter()-edit_start)*1000
+        _progress('grid-'+str(half*2)+'mm','update.begin')
+        update_start=time.perf_counter()
+        STATE['recipe'].rebuild_pattern(design,target,changed)
+        measurements['update_ms']=(time.perf_counter()-update_start)*1000
+        measurements['rebuild_ms']=(time.perf_counter()-stage_start)*1000
+        if (design.rootComponent.bRepBodies.count,design.timeline.count)!=(before[0],before[1]+2):raise RuntimeError('Dense grid Rebuild duplicated bodies/history.')
+        return {'cells':prepared.cell_count,'opening_mm':5,'rib_mm':2,'sampled_opening_centers':len(checked),'same_body':True,'measurements':measurements,'display_triangles':len(prepared.display_mesh.coordinates)//9,'timings':prepared.timings}
+    def guards():
+        manager=adsk.fusion.TemporaryBRepManager.get()
+        for kind in ('internal_void','back_rib'):
+            plate=_box(manager,-60,60,-60,60,-3,0)
+            extra=_box(manager,14,18,14,18,-2,-1) if kind=='internal_void' else _box(manager,14,18,14,18,-3.2,-3)
+            if kind=='internal_void':temporary=_boolean(manager,plate,extra)
+            else:
+                if not manager.booleanOperation(plate,extra,adsk.fusion.BooleanTypes.UnionBooleanType):raise RuntimeError('Could not construct the back-rib fixture.')
+                temporary=plate
+            _,body=_persist(design,temporary,'grid-proof-'+kind)
+            faces=tuple(face for face in _items(body.faces) if abs(face.pointOnFace.z)<1e-7)
+            settings=Settings(pattern='grille_cross',layout_mode='fill',pitch_mm=7,web_mm=2,border_mm=7)
+            before=adapter._signature(body,faces)
+            try:adapter.prepare_pattern(design,faces,settings)
+            except ValueError as error:
+                expected='internal void' if kind=='internal_void' else 'immediately behind'
+                if expected not in str(error):raise RuntimeError('Wrong grid proof refusal: '+str(error))
+            else:raise RuntimeError('Dense grid accepted an unproven wall: '+kind)
+            if adapter._signature(body,faces)!=before:raise RuntimeError('A rejected grid changed its source.')
+        return {'unsampled_cavity_refused':True,'unsampled_back_rib_refused':True,'sources_unchanged':True}
+    _case('dense_grid_full_region_guards',guards)
+    _case('dense_grid_over_200_create_rebuild',large)
+    def multiple():
+        manager=adsk.fusion.TemporaryBRepManager.get()
+        shell=_boolean(manager,_box(manager,-35,35,-35,35,-35,35),_box(manager,-32,32,-32,32,-32,32))
+        _,body=_persist(design,shell,'dense-grid-two-faces')
+        faces=tuple(face for face in _items(body.faces) if abs(face.pointOnFace.x-3.5)<1e-7 or abs(face.pointOnFace.y-3.5)<1e-7)
+        if len(faces)!=2:raise RuntimeError('Expected two outer rectangular grid faces.')
+        settings=Settings(pattern='grille_cross',layout_mode='fill',pitch_mm=7,web_mm=2,border_mm=7)
+        prepared=dense.prepare(design,faces,settings,body,adapter._signature(body,faces),adapter._tokens(body,faces),time.perf_counter())
+        if len(prepared.layouts)!=2 or any(not layout.cell_count for layout in prepared.layouts) or prepared.cell_count>225:raise RuntimeError('The small two-face dense-grid fixture has the wrong size.')
+        if not _inside(prepared.result_body,(-33.5,0,0)):raise RuntimeError('Dense grid changed the opposite unselected wall.')
+        before=(design.rootComponent.bRepBodies.count,design.timeline.count)
+        STATE['recipe'].create_pattern(design,prepared)
+        target=STATE['recipe'].read_edit_target(design,body)
+        if target.record.recipe['version']!=2 or (design.rootComponent.bRepBodies.count,design.timeline.count)!=(before[0],before[1]+2):raise RuntimeError('Two-face grid Cut duplicated its target or history.')
+        return {'selected_faces':2,'cells_per_face':[layout.cell_count for layout in prepared.layouts],'opposite_wall_intact':True,'wall_queries':prepared.timings['grid_wall_queries']}
+    _case('dense_grid_two_orthogonal_faces',multiple)
+    def legacy():
+        _,body,faces=fixture(design,'plane')
+        settings=Settings(pattern='grille_cross',layout_mode='fill',pitch_mm=7,web_mm=2,border_mm=2)
+        prepared=adapter.prepare_pattern(design,faces,settings)
+        with patch.object(STATE['recipe'],'_cut_tool',return_value=None):STATE['recipe'].create_pattern(design,prepared)
+        target=STATE['recipe'].read_edit_target(design,body)
+        if target.record.recipe['version']!=1:raise RuntimeError('Legacy grille fixture did not use full-shape history.')
+        changed=STATE['recipe'].prepare_edit_pattern(design,target,replace(settings,pitch_mm=8))
+        STATE['recipe'].rebuild_pattern(design,target,changed)
+        if STATE['recipe'].read_edit_target(design,body).record.recipe['version']!=1:raise RuntimeError('Legacy grille was silently migrated.')
+        return {'legacy_version':1,'create_edit_rebuild_passed':True,'same_body':True}
+    _case('grille_legacy_full_shape_edit',legacy)
+    def conversions():
+        _,body,faces=fixture(design,'plane')
+        settings=Settings(pattern='grille_cross',layout_mode='fill',pitch_mm=7,web_mm=2,border_mm=2)
+        before=(design.rootComponent.bRepBodies.count,design.timeline.count)
+        STATE['recipe'].create_pattern(design,adapter.prepare_pattern(design,faces,settings))
+        for kind in ('grille_parallel','grille_louver','grille_cross'):
+            target=STATE['recipe'].read_edit_target(design,body)
+            changed=STATE['recipe'].prepare_edit_pattern(design,target,replace(settings,pattern=kind))
+            STATE['recipe'].rebuild_pattern(design,target,changed)
+            if target.record.recipe['version']!=2 or (design.rootComponent.bRepBodies.count,design.timeline.count)!=(before[0],before[1]+2):raise RuntimeError('Grille type conversion duplicated its body/history.')
+        return {'types':3,'same_body':True,'owned_features':2}
+    _case('grille_cut_type_conversions',conversions)
+    def signature_export():
+        _,body,faces=fixture(design,'plane')
+        settings=Settings(pattern='grille_cross',layout_mode='fill',pitch_mm=7,web_mm=2,border_mm=2)
+        prepared=adapter.prepare_pattern(design,faces,settings)
+        path=STATE['root']/'output/dense-grid/signature.smt';path.parent.mkdir(parents=True,exist_ok=True)
+        manager=adsk.fusion.TemporaryBRepManager.get();mark=time.perf_counter()
+        if not manager.exportToFile([prepared.result_body],str(path)):raise RuntimeError('Could not export the fingerprint fixture.')
+        elapsed=(time.perf_counter()-mark)*1000
+        points=[adapter.hinge._xyz(vertex.geometry) for vertex in _items(prepared.result_body.vertices)]
+        fingerprint=importlib.import_module(adapter.__package__+'.fingerprint')
+        if fingerprint.signature(prepared.result_body)!=adapter.hinge._body_signature(prepared.result_body):raise RuntimeError('Temporary bulk fingerprint differs from the existing SDK digest.')
+        path.with_suffix('.json').write_text(json.dumps({'points_cm':points,'digest':adapter.hinge._body_signature(prepared.result_body)},indent=2))
+        return {'file_bytes':path.stat().st_size,'export_ms':elapsed,'vertices':len(points)}
+    _case('grille_signature_bulk_export_probe',signature_export)
+    if dense.MAX_NATIVE_OPENINGS>=1024:_case('dense_grid_staged_232mm_create_rebuild',lambda:large(116))
+    if dense.MAX_NATIVE_OPENINGS>=3025:_case('dense_grid_400mm_3025_openings',lambda:large(200))
+    STATE['report']['dense_native_face_limit']=dense.MAX_NATIVE_OPENINGS
+
 
 
 def _box_faces_cases(design):
@@ -1006,7 +1177,7 @@ def _box_faces_cases(design):
                 changed=STATE['recipe'].prepare_edit_pattern(design,target,replace(settings,rotation_deg=15))
                 STATE['recipe'].rebuild_pattern(design,target,changed)
                 if (target.record.target!=body or len(target.recipe['sources']['faces'])!=6
-                        or design.rootComponent.bRepBodies.count!=count or design.timeline.count!=history+3):
+                        or design.rootComponent.bRepBodies.count!=count or design.timeline.count!=history+(2 if shape.startswith('grille_') else 3)):
                     raise RuntimeError('Multi-face Create/Edit/Rebuild lost sources or duplicated the body.')
             return {'shape':shape,'mode':mode,'selected_faces':6,'cells_per_face':[layout.cell_count for layout in prepared.layouts],
                 'programmatic_native_face_list':True,'first_wall_only':mode=='through','source_identity_retained':True}
@@ -1017,9 +1188,10 @@ def cases(*, include_polygon_regressions=False, include_shared_regressions=False
     design = STATE["design"]
     Settings = _fixed_settings
     recipe = STATE["recipe"]
-    _box_faces_cases(design)
+    if include_shared_regressions or include_polygon_regressions:_box_faces_cases(design)
     if not include_shared_regressions and not include_polygon_regressions:
-        _grille_cases(design)
+        _grille_cases(design,focused=True)
+        _dense_grid_cases(design)
         # Focused grille maintenance does not need the unchanged, expensive
         # surface matrix. Keep a detached colour result for rollback lifetime
         # proof, then exercise real selection events in the disposable document.
@@ -1029,7 +1201,7 @@ def cases(*, include_polygon_regressions=False, include_shared_regressions=False
                 pitch_mm=10,web_mm=4,depth_mm=.5,border_mm=2))
             return {'cells':prepared.cell_count,'colour_lumps':prepared.colour_body.lumps.count}
         _case('flat_colour_rollback_lifetime',colour_lifetime)
-        STATE['report']['scope']='grilles, six-side box geometry and non-modal native face selection'
+        STATE['report']['scope']='dense crossed grids, grille regressions and non-modal native face selection'
         STATE['report']['polygon_regressions_included']=False
         STATE['report']['shared_regressions_included']=False
         STATE['report']['geometry_checks_passed']=all(case['passed'] for case in STATE['report']['cases'])
@@ -1736,6 +1908,18 @@ def finish_report():
                              and report.get("production_async_passed")
                              and not report.get("error") and not report.get("drive_error")
                              and not report.get("runtime_error") and not report.get("runtime_cleanup_error"))
+    caller=STATE.get('caller')
+    if caller:
+        try:
+            document=STATE['validation_document']
+            if document.isValid and document.close(False) is False:raise RuntimeError('Could not discard the validation document.')
+            caller['document'].activate()
+            if caller['design'].activeComponent!=caller['component']:raise RuntimeError('The caller active component did not restore.')
+            app=adsk.core.Application.get();app.activeViewport.camera=caller['camera']
+            report['caller_document_unchanged']=(snapshot(caller['design'])==caller['before'] and all(entity.isValid for entity in caller['references']))
+            if not report['caller_document_unchanged']:raise RuntimeError('The caller document did not restore exactly.')
+        except Exception:
+            report['caller_restore_error']=traceback.format_exc();report['success']=False
     context = STATE["context"]
     path = Path(context.get("report_path") or STATE["root"] / "output/native/pattern-probe.json")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -1760,7 +1944,7 @@ def finish_report():
         adsk.autoTerminate(True)
 
 
-def run(context):
+def _run_owned(context):
     app = adsk.core.Application.get()
     design = adsk.fusion.Design.cast(app.activeProduct)
     if design is None or design.designType != adsk.fusion.DesignTypes.ParametricDesignType:
@@ -1803,3 +1987,22 @@ def run(context):
         adsk.autoTerminate(False)
     if not definition.execute():
         raise RuntimeError("Fusion could not start the fixed pattern probe.")
+
+
+def run(context):
+    """Keep the caller model outside every native fixture transaction."""
+    app=adsk.core.Application.get();design=adsk.fusion.Design.cast(app.activeProduct)
+    if design is None:raise ValueError('Open a Fusion Design before validation.')
+    caller={'document':app.activeDocument,'design':design,'component':design.activeComponent,
+            'camera':app.activeViewport.camera,'before':snapshot(design),
+            'references':[entity for body in _items(design.rootComponent.bRepBodies) for entity in (body,*_items(body.faces),*_items(body.edges))]}
+    document=app.documents.add(adsk.core.DocumentTypes.FusionDesignDocumentType)
+    try:
+        owned=adsk.fusion.Design.cast(app.activeProduct)
+        if owned.designType!=adsk.fusion.DesignTypes.ParametricDesignType:owned.designType=adsk.fusion.DesignTypes.ParametricDesignType
+        _run_owned(context)
+        STATE.update(caller=caller,validation_document=document)
+    except Exception:
+        if document.isValid:document.close(False)
+        caller['document'].activate();app.activeViewport.camera=caller['camera']
+        raise

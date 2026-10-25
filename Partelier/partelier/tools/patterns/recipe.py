@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, replace
 import json
+import math
 
 from .settings import PatternSettings
 from .store import PatternStore
@@ -105,15 +106,34 @@ def prepare_edit_pattern(design,target,settings):
     return replace(prepared,record=target.record,saved_recipe=target.recipe)
 
 
-def validate_preview_sources(prepared):
+def _cut_tool(prepared):
+    if not prepared.settings.pattern.startswith('grille_') or prepared.settings.mode != 'through':
+        raise ValueError('This grille history supports grille types only. Preserve it before changing to another tool.')
+    _,native=fusion._api();manager=native.TemporaryBRepManager.get()
+    expected=float(prepared.body.volume)-float(prepared.result_body.volume)
+    if not math.isfinite(expected) or expected<=1e-10:
+        raise ValueError('The grille has no material to remove.')
+    cutter=manager.copy(prepared.body)
+    if (cutter is None or not cutter.isTemporary or
+            manager.booleanOperation(cutter,prepared.result_body,native.BooleanTypes.DifferenceBooleanType) is False
+            or not cutter.isValid or not cutter.isSolid or cutter.lumps.count<1
+            or not math.isfinite(float(cutter.volume))
+            or abs(float(cutter.volume)-expected)>max(1e-8,expected*1e-7)):
+        raise ValueError('Fusion could not isolate the grille cutting material.')
+    return cutter
+
+
+def validate_preview_sources(prepared, *, make_cut=False):
     if prepared.record is None:
         fusion.validate_sources(prepared)
+        return _cut_tool(prepared) if make_cut else None
     else:
         colour_store.read(prepared.design,STORE,prepared.record)
         if _read(prepared.record.anchor,prepared.record)[0]!=prepared.saved_recipe:
             raise ValueError("The saved pattern changed. Reopen Edit.")
         with STORE.input_scope(prepared.design,prepared.record):
             fusion.validate_sources(prepared,_historical=True)
+            return _cut_tool(prepared) if make_cut else None
 
 
 def _save(anchor,record,prepared):
@@ -126,10 +146,11 @@ def _save(anchor,record,prepared):
 
 
 def create_pattern(design,prepared):
-    validate_preview_sources(prepared)
+    cutter=validate_preview_sources(prepared,make_cut=prepared.settings.pattern.startswith('grille_'))
     if design!=prepared.design or prepared.record is not None:
         raise ValueError("Use Create on the current new-pattern preview.")
-    anchor=STORE.create(design,prepared.body,prepared.result_body)
+    anchor=(STORE.create(design,prepared.body,prepared.result_body) if cutter is None
+            else STORE.create(design,prepared.body,prepared.result_body,cut_tool=cutter))
     record=STORE.read(design,anchor)
     colour_store.apply(design,STORE,record,getattr(prepared,"colour_body",None))
     _save(anchor,record,prepared)
@@ -137,7 +158,7 @@ def create_pattern(design,prepared):
 
 
 def rebuild_pattern(design,target,prepared):
-    validate_preview_sources(prepared)
+    cutter=validate_preview_sources(prepared,make_cut=prepared.record is not None and prepared.record.recipe['version']==2)
     if (design!=prepared.design or not isinstance(target,EditTarget)
             or prepared.record!=target.record or prepared.saved_recipe!=target.recipe):
         raise ValueError("Reopen Edit to rebuild the current pattern.")
@@ -148,7 +169,8 @@ def rebuild_pattern(design,target,prepared):
     if previous is not None and getattr(prepared,"colour_body",None) is None:
         if previous[0].timelineObject.index!=design.timeline.count-1:
             raise ValueError("Move/remove later features before changing Flat colour to another mode.")
-    anchor=STORE.update(design,target.record,prepared.result_body)
+    anchor=(STORE.update(design,target.record,prepared.result_body) if cutter is None
+            else STORE.update(design,target.record,prepared.result_body,cut_tool=cutter))
     record=STORE.read(design,anchor)
     colour_store.apply(design,STORE,record,getattr(prepared,"colour_body",None),previous)
     _save(anchor,record,prepared)

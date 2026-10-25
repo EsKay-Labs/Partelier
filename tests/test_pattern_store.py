@@ -97,6 +97,27 @@ class PatternStoreTests(unittest.TestCase):
         self.assertEqual(self.host.timeline.markerPosition, marker)
         base.updateBody.assert_not_called()
 
+    def test_read_restores_the_timeline_once_after_all_definition_checks(self):
+        base, record = self.create()
+        self.host.events.clear()
+        current = self.store.read(self.host.design, base)
+        self.assertEqual(current.feature_id, record.feature_id)
+        self.assertEqual([event for event in self.host.events if event[0] == 'marker'],
+                         [('marker', self.host.timeline.count)])
+        self.assert_user_bodies_preserved()
+
+    def test_failed_second_combine_inspection_restores_history_without_editing(self):
+        base, record = self.create()
+        feature = self.host.combine_features[1]
+        feature.timelineObject.rollTo.side_effect = None
+        feature.timelineObject.rollTo.return_value = False
+        base.startEdit.reset_mock()
+        with self.assertRaisesRegex(ValueError, 'inspect'):
+            self.store.read(self.host.design, base)
+        self.assertEqual(self.host.timeline.markerPosition, self.host.timeline.count)
+        base.startEdit.assert_not_called()
+        self.assert_user_bodies_preserved()
+
     def test_refused_history_roll_does_not_enter_source_work(self):
         base, record = self.create()
         base.timelineObject.rollTo.side_effect = None
