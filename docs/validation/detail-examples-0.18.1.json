@@ -1,0 +1,62 @@
+{
+  "checks": [
+    {
+      "width": 300,
+      "threeHelpers": true,
+      "detailedGuides": true,
+      "sixSections": true,
+      "labelledFaceDiagrams": true,
+      "allLocalImagesDecoded": true,
+      "guidePreservedOnInput": true,
+      "selectionAndPreview": true,
+      "full19FieldSnapshots": true,
+      "invalidInputsBlocked": true,
+      "illustratedHelp": true,
+      "createUnlock": true,
+      "hardwarePocketsUntouched": true,
+      "noOverflow": true
+    },
+    {
+      "width": 380,
+      "threeHelpers": true,
+      "detailedGuides": true,
+      "sixSections": true,
+      "labelledFaceDiagrams": true,
+      "allLocalImagesDecoded": true,
+      "guidePreservedOnInput": true,
+      "selectionAndPreview": true,
+      "full19FieldSnapshots": true,
+      "invalidInputsBlocked": true,
+      "illustratedHelp": true,
+      "createUnlock": true,
+      "hardwarePocketsUntouched": true,
+      "noOverflow": true
+    },
+    {
+      "width": 520,
+      "threeHelpers": true,
+      "detailedGuides": true,
+      "sixSections": true,
+      "labelledFaceDiagrams": true,
+      "allLocalImagesDecoded": true,
+      "guidePreservedOnInput": true,
+      "selectionAndPreview": true,
+      "full19FieldSnapshots": true,
+      "invalidInputsBlocked": true,
+      "illustratedHelp": true,
+      "createUnlock": true,
+      "hardwarePocketsUntouched": true,
+      "noOverflow": true
+    }
+  ],
+  "errors": [],
+  "version": "0.18.1",
+  "scope": "Detailed local Small details examples; geometry unchanged",
+  "host": "Headless Edge with simulated Fusion bridge",
+  "nativeGeometryRerun": false,
+  "nodeSuites": [
+    "test_palette_ui.cjs",
+    "test_patterns_ui.cjs",
+    "test_snap_fit_ui.cjs"
+  ]
+}

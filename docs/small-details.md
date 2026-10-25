@@ -167,3 +167,11 @@ with source geometry and hardware. Physical printing, full CEF picking/orbit,
 save/reopen and Undo/Redo acceptance remain unproved.
 
 Evidence: [small-details-0.18.0.json](validation/small-details-0.18.0.json).
+
+## In-app examples (0.18.1)
+
+Each implemented Small details tool now has an expandable **Examples · προετοιμασία & βήματα** section. It explains the required existing geometry, face A/B selection with a labelled diagram, the exact UI steps, starting dimensions, clearance/depth calculations, actual Fusion result images and common selection/material errors. The lid/pin diagram is exploded only for readability: the actual lid must remain at its closing position. Rib examples require one joined inside corner.
+
+The detailed guide is local and rendered only when the tool changes, preserving its expanded questions while parameters update. Native result images reuse the 0.18.0 evidence above; this release changes documentation/UI only and does not rerun or extend native geometry claims.
+
+Browser checks at 300/380/520 px pass for all three guides: six sections, labelled support diagrams, five local images decoded, no horizontal overflow and stable guide/FAQ state through parameter edits. Existing three Node UI suites pass. Evidence: [detail-examples-0.18.1.json](validation/detail-examples-0.18.1.json).

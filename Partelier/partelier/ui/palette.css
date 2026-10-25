@@ -197,3 +197,24 @@ dialog p { color: var(--muted); font-size: 12px; line-height: 1.7; }
 
 .detail-selection-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 #detail-settings .parameter-list { grid-template-columns: repeat(2,minmax(0,1fr)); }
+
+/* Detailed local examples remain folded until requested. */
+.detail-example-guide { min-width: 0; color: var(--text); font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.detail-example-guide h3 { font-size: 16px; margin: 16px 0 12px; color: #194e92; }
+.detail-example-guide h4 { font-size: 13px; margin: 22px 0 9px; padding-top: 12px; border-top: 1px solid #c4d5eb; color: #194e92; }
+.detail-example-guide p { margin: 9px 0; }
+.detail-example-guide ul, .detail-example-guide ol { padding-left: 21px; margin: 9px 0; }
+.detail-example-guide li { padding-left: 2px; margin: 0 0 10px; }
+.detail-example-guide svg { display: block; width: 100%; height: auto; max-width: 380px; margin: 8px auto; border: 1px solid #c4d5eb; border-radius: 8px; background: #f4f8ff; }
+.detail-example-guide table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
+.detail-example-guide th, .detail-example-guide td { padding: 8px; vertical-align: top; text-align: left; border: 1px solid #c4d5eb; }
+.detail-example-guide th { width: 38%; color: #214c85; background: #eaf2ff; font-weight: 600; }
+.detail-example-guide td { background: #fff; }
+.detail-example-guide .example-diagram-note { padding: 9px; border-left: 3px solid #4783d9; background: #edf4ff; color: #2b4f7c; font-size: 11px; }
+.detail-example-gallery { display: grid; gap: 12px; }
+.detail-example-gallery figure { margin: 0; border: 1px solid #b7c9e2; border-radius: 8px; overflow: hidden; background: #fff; }
+.detail-example-gallery img { width: 100%; height: auto; display: block; }
+.detail-example-gallery figcaption { padding: 8px 10px; font-size: 11px; color: #2b4f7c; }
+.example-faq { margin: 7px 0; border: 1px solid #c4d5eb; border-radius: 6px; background: #f4f8ff; }
+.example-faq summary { padding: 9px; cursor: pointer; color: #194e92; font-weight: 600; }
+.example-faq p { padding: 0 10px 10px; margin: 0; }

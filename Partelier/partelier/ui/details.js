@@ -27,7 +27,7 @@
  };
  const groups={lid:["lip_height_mm","lip_width_mm","lip_inset_mm","lip_clearance_mm","lead_mm","axial_clearance_mm","socket_floor_mm"],alignment:["pin_count","pin_diameter_mm","pin_height_mm","pin_clearance_mm","pin_inset_mm","lead_mm","axial_clearance_mm","socket_floor_mm"],ribs:["rib_style","rib_width_mm","rib_height_a_mm","rib_height_b_mm","rib_count","rib_margin_mm"]};
  const state={selected:false,alias:null,settings:{...defaults},session:null,revision:0,connected:false,caps:new Set(),busy:false,expecting:false,error:false};
- let sequence=0,hostRevision=-1,timer,poll,previewFlight=false,queued=false,queue=Promise.resolve(),helpTrigger;
+ let sequence=0,hostRevision=-1,timer,poll,previewFlight=false,queued=false,queue=Promise.resolve(),helpTrigger,exampleKind;
  const active=()=>!!state.session?.sessionId&&!terminal.has(state.session.phase),identity=()=>active()?state.session.sessionId:null;
  const other=()=>!!window.PartelierHingeActive||!!window.PartelierSnap?.isActive()||!!window.PartelierSnap?.isBusy()||!!window.PartelierPatterns?.isActive()||!!window.PartelierPatterns?.isBusy();
  const ready=()=>!!identity()&&!!state.session?.selections?.surface?.selected;
@@ -112,7 +112,7 @@
   $("create-detail-button").textContent=state.session?.editing?"Rebuild detail":"Create detail";
   $("retry-detail-button").hidden=!ready()||current();$("retry-detail-button").disabled=!valid()||state.busy||opening;
   $("detail-status").textContent=`Live preview · ${!supported?"Fusion required":!valid()?"check inputs":opening?"creating":state.session?.phase==="computing"?"updating…":state.error?"needs attention":current()?"up to date":ready()?"waiting for update":"select supports"}`;
-  $("detail-example").innerHTML=window.PartelierIllustrations.render(kind);
+  if(exampleKind!==kind){$("detail-example").innerHTML=window.PartelierDetailExamples?.render(kind)||window.PartelierIllustrations.render(kind);exampleKind=kind;}
   $("tool-select").disabled=active()||state.busy||other();window.PartelierRefreshActions?.();
  }
  function helpArt(name){
