@@ -233,13 +233,15 @@
         const picked = state.session?.selections?.surface;
         const caption = editing() ? "Pattern result" : body ? "Body" : picked?.selected ? "Replace faces" : "Faces";
         const button = document.createElement("button"); button.id = "pattern-select-surface"; button.type = "button"; button.className = "selection-button";
-        button.disabled = !supported() || !identity() || state.busy || picking || state.session?.phase === "opening";
+        button.disabled = !supported() || state.busy || picking || state.session?.phase === "opening";
         const label = document.createElement("strong"); label.textContent = caption;
         const value = document.createElement("span"); value.textContent = picked?.selected ? picked.label || "Selected" : "Pick";
         button.setAttribute("aria-label", `${caption}: ${picked?.selected ? picked.label || "Selected" : "not selected"}`);
         button.classList.toggle("is-selected", !!picked?.selected); button.append(label, value);
-        button.addEventListener("click", () => { trace("click", { control:"surface",target }); cancelTimer(); run(async () => { await sessionAction("pattern_focus", { target }); await refresh(); },"pattern_focus"); });
+        button.addEventListener("click", () => { trace("click", { control:"surface",target }); cancelTimer(); run(async () => { if(!identity())await begin(false);else {await sessionAction("pattern_focus", { target });await refresh();} },"pattern_focus"); });
+        window.PartelierSelectionUI?.decorate(button,0,target,state.session,[target]);
         $("pattern-selections").replaceChildren(button);
+        window.PartelierSelectionUI?.resetControl($("pattern-selections"),"pattern",!!identity()&&!state.busy);
         if (picking) {
             const done = document.createElement("button"); done.id = "pattern-finish-faces"; done.type = "button"; done.className = "create-button"; done.textContent = "Done · update preview";
             done.disabled = state.busy || !state.session.canFinishFaces;
@@ -254,7 +256,7 @@
             add.addEventListener("click", () => { trace("click", { control:"add_face",target:"add_face" }); cancelTimer(); run(async () => { await sessionAction("pattern_focus", { target:"add_face" }); await refresh(); },"pattern_focus"); });
             $("pattern-selections").append(add);
         }
-        $("pattern-selection-help").textContent = picking ? "Click sides to add them. Selected faces stay blue. Done updates preview. Clear selection starts over." : editing() ? "Pick a saved Partelier pattern." : body ? "Pick one body. Preview updates automatically." : picked?.selected ? "Add faces keeps your selection. Click more sides, then Done to update preview." : "Select all the sides you need, then Done to preview.";
+        $("pattern-selection-help").textContent = picking ? "Click sides to add them. Selected faces stay blue. Done updates preview. Esc resets selections." : editing() ? "Pick a saved Partelier pattern." : body ? "Pick one body. Preview updates automatically." : picked?.selected ? "Add faces keeps your selection. Click more sides, then Done to update preview." : "Select all the sides you need, then Done to preview.";
         $("pattern-selection-help").hidden = (editing() || body) && !!identity() && selected() && !(state.busy && state.session?.phase === "selecting");
         if(grille() && (state.settings.grille_profile!=="flat" || state.settings.mount_mode!=="off") && !editing())
             $("pattern-selection-help").textContent="Select one rectangular plate face, then Done. The opposite flat back rests on the bed.";
@@ -492,6 +494,7 @@
     $("preview-pattern-button").addEventListener("click", () => { trace("click", { control:"refresh" }); if ($("pattern-settings").reportValidity()) { cancelTimer(); run(refresh,"pattern_preview"); } });
     $("create-pattern-button").addEventListener("click", () => { trace("click", { control:"commit" }); if ($("pattern-settings").reportValidity()) { cancelTimer(); run(() => sessionAction("pattern_commit"),"pattern_commit"); } });
     $("cancel-pattern-button").addEventListener("click", () => { trace("click", { control:"cancel" }); cancelTimer(); run(() => sessionAction("pattern_cancel"),"pattern_cancel"); });
+    window.PartelierSelectionUI?.register('pattern',{active,busy:()=>state.busy,reset:()=>{cancelTimer();run(()=>sessionAction('pattern_reset'),'pattern_reset');}});
     window.PartelierPatterns = Object.freeze({
         isActive() { return active(); },
         isBusy() { return state.busy || state.session?.phase === "opening"; },
@@ -514,5 +517,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.18.1" }); renderArt(); render();
+    trace("boot", { build:"0.19.0" }); renderArt(); render();
 })();

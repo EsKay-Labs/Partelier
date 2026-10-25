@@ -98,6 +98,8 @@ def _read(design,anchor,kind=None):
 
 
 def read(design,selected,kind):
+    from ... import operations
+    operations.expand(design)
     core,native=_api();anchor=selected
     if getattr(selected,'attributes',None) is not None:
         tag=selected.attributes.itemByName(GROUP,'owner')
@@ -178,7 +180,7 @@ def apply(prepared):
                 feature=root.features.combineFeatures.add(inputs)
                 if feature is None:raise ValueError('Fusion could not apply the detail.')
                 features.append(feature);_healthy(feature)
-                feature.name=base.name+(' · add' if i==0 else ' · receive')
+                feature.name='Partelier · '+({'lid':('Lip','Groove'),'alignment':('Pins','Pin holes'),'ribs':('Ribs',)}[prepared.settings.kind][i])+' · '+target.name
         except Exception:
             if editing:base.finishEdit()
             for feature in reversed(features):

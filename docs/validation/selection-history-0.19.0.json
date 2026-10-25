@@ -1,0 +1,192 @@
+{
+  "version": "0.19.0",
+  "python_tests": 1033,
+  "node_suites": 3,
+  "browser": {
+    "checks": [
+      {
+        "width": 300,
+        "eightToolSelectors": true,
+        "activeStepVisible": true,
+        "previewWaitsForReferences": true,
+        "allFourResetFlows": true,
+        "escapeClosesHelpFirst": true,
+        "dimensionsPreserved": true,
+        "wheelOverNumbersAndHeader": true,
+        "exactOperationEditAndToolSwitch": true,
+        "explicitOperationDeletion": true,
+        "noOverflow": true
+      },
+      {
+        "width": 380,
+        "eightToolSelectors": true,
+        "activeStepVisible": true,
+        "previewWaitsForReferences": true,
+        "allFourResetFlows": true,
+        "escapeClosesHelpFirst": true,
+        "dimensionsPreserved": true,
+        "wheelOverNumbersAndHeader": true,
+        "exactOperationEditAndToolSwitch": true,
+        "explicitOperationDeletion": true,
+        "noOverflow": true
+      },
+      {
+        "width": 520,
+        "eightToolSelectors": true,
+        "activeStepVisible": true,
+        "previewWaitsForReferences": true,
+        "allFourResetFlows": true,
+        "escapeClosesHelpFirst": true,
+        "dimensionsPreserved": true,
+        "wheelOverNumbersAndHeader": true,
+        "exactOperationEditAndToolSwitch": true,
+        "explicitOperationDeletion": true,
+        "noOverflow": true
+      }
+    ],
+    "errors": []
+  },
+  "native_cases": [
+    {
+      "success": true,
+      "version": "0.19.0",
+      "fusion_version": "2705.1.30",
+      "separate_features": [
+        "Partelier \u00b7 Lid lip & groove",
+        "Partelier \u00b7 Lip \u00b7 History base",
+        "Partelier \u00b7 Groove \u00b7 History lid"
+      ],
+      "group_name": "Partelier \u00b7 Lid lip & groove \u00b7 883082",
+      "collapsed_group_edit_rebuild": true,
+      "exact_operation_delete_and_source_preservation": true,
+      "later_feature_delete_refused": true,
+      "caller_unchanged": true
+    },
+    {
+      "success": true,
+      "version": "0.19.0",
+      "fusion_version": "2705.1.30",
+      "case": "alignment",
+      "group_edit_delete": true,
+      "owned_native_features": 3,
+      "source_bodies_preserved": true,
+      "caller_unchanged": true
+    },
+    {
+      "success": true,
+      "version": "0.19.0",
+      "fusion_version": "2705.1.30",
+      "case": "ribs",
+      "group_edit_delete": true,
+      "owned_native_features": 2,
+      "source_bodies_preserved": true,
+      "caller_unchanged": true
+    },
+    {
+      "success": true,
+      "version": "0.19.0",
+      "fusion_version": "2705.1.30",
+      "case": "hinge",
+      "group_edit_delete": true,
+      "owned_native_features": 5,
+      "source_bodies_preserved": true,
+      "caller_unchanged": true
+    },
+    {
+      "success": true,
+      "version": "0.19.0",
+      "fusion_version": "2705.1.30",
+      "case": "snap",
+      "group_edit_delete": true,
+      "owned_native_features": 5,
+      "source_bodies_preserved": true,
+      "caller_unchanged": true
+    },
+    {
+      "success": true,
+      "version": "0.19.0",
+      "fusion_version": "2705.1.30",
+      "case": "pattern",
+      "group_edit_delete": true,
+      "owned_native_features": 3,
+      "source_bodies_preserved": true,
+      "caller_unchanged": true
+    },
+    {
+      "success": true,
+      "version": "0.19.0",
+      "fusion_version": "2705.1.30",
+      "case": "colour_conversion",
+      "group_edit_delete": true,
+      "owned_native_features": 3,
+      "source_bodies_preserved": true,
+      "caller_unchanged": true
+    },
+    {
+      "success": true,
+      "version": "0.19.0",
+      "fusion_version": "2705.1.30",
+      "case": "grilles",
+      "group_edit_delete": true,
+      "owned_native_features": 2,
+      "source_bodies_preserved": true,
+      "caller_unchanged": true
+    },
+    {
+      "success": true,
+      "version": "0.19.0",
+      "fusion_version": "2705.1.30",
+      "case": "truss",
+      "group_edit_delete": true,
+      "owned_native_features": 2,
+      "source_bodies_preserved": true,
+      "caller_unchanged": true
+    },
+    {
+      "success": true,
+      "version": "0.19.0",
+      "fusion_version": "2705.1.30",
+      "case": "legacy_lid",
+      "group_edit_delete": true,
+      "owned_native_features": 3,
+      "source_bodies_preserved": true,
+      "caller_unchanged": true
+    },
+    {
+      "success": true,
+      "version": "0.19.0",
+      "fusion_version": "2705.1.30",
+      "case": "grille_promotion",
+      "group_edit_delete": true,
+      "owned_native_features": 3,
+      "source_bodies_preserved": true,
+      "caller_unchanged": true
+    },
+    {
+      "success": true,
+      "version": "0.19.0",
+      "fusion_version": "2705.1.30",
+      "case": "hinge_separate",
+      "group_edit_delete": true,
+      "owned_native_features": 2,
+      "source_bodies_preserved": true,
+      "caller_unchanged": true
+    }
+  ],
+  "installed_live_transaction": {
+    "version": "0.19.0",
+    "bridge_outer_transaction_bypassed": true,
+    "success": true,
+    "live_exact_operation_edit": true,
+    "delete_message": "Operation deleted. Undo restores it.",
+    "live_native_delete_transaction": true,
+    "source_bodies_preserved": true,
+    "after_undo_count": 5,
+    "after_undo_operations": 1,
+    "undo_restored_operation": true,
+    "redo_deleted_operation": true,
+    "caller_unchanged": true
+  },
+  "manual_cef_pointer_wheel_acceptance": false,
+  "save_reopen_acceptance": false
+}

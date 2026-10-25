@@ -76,33 +76,35 @@ class HingePaletteCommandTests(unittest.TestCase):
         self.adapter.prepare_hinge.assert_not_called()
         self.adapter.create_hinge.assert_not_called()
 
-    def test_escape_stops_sequence_and_retry_keeps_captured_references(self):
+    def test_escape_resets_all_references_and_retry_auto_advances(self):
         session = self.open_palette(picks=[SimpleNamespace(entity=self.entities["face_a"]), RuntimeError("aborted")])
         self.assertEqual(self.ui.selectEntity.call_count, 2)
-        self.assertIs(session.selection_entities["face_a"], self.entities["face_a"])
+        self.assertEqual(session.selection_entities,{})
         self.assertEqual(session.phase, "selecting")
-        self.ui.selectEntity.side_effect = [SimpleNamespace(entity=self.entities["face_b"]),
-                                           SimpleNamespace(entity=self.entities["axis_edge"])]
-        self.action(session, "hinge_focus", target="face_b")
-        self.assertEqual(self.action(session, "hinge_focus", target="axis_edge")["phase"], "ready")
+        self.ui.selectEntity.side_effect = [SimpleNamespace(entity=self.entities[name]) for name in ('face_a','face_b','axis_edge')]
+        self.assertEqual(self.action(session,"hinge_focus",target="face_a")["phase"],"ready")
+        self.assertIsNone(session.picking_target)
         self.ui.terminateActiveCommand.assert_not_called()
 
-    def test_escape_from_repick_retains_existing_selection_and_ready_state(self):
-        session = self.open_palette()
-        self.ui.selectEntity.side_effect = RuntimeError("aborted")
-        state = self.action(session, "hinge_focus", target="face_a")
-        self.assertEqual(state["phase"], "ready")
-        self.assertIs(session.selection_entities["face_a"], self.entities["face_a"])
-        self.assertIn("Previous selections were kept", state["message"])
+    def test_escape_from_repick_resets_existing_selection_and_preview(self):
+        session=self.open_palette()
+        self.action(session,'hinge_preview')
+        self.ui.selectEntity.side_effect=RuntimeError('aborted')
+        state=self.action(session,'hinge_focus',target='face_a')
+        self.assertEqual(state['phase'],'selecting')
+        self.assertEqual(session.selection_entities,{})
+        self.assertIsNone(session.preview)
+        self.assertIn('Selection reset',state['message'])
 
-    def test_different_face_clears_reference_edge_and_preview(self):
-        session = self.open_palette()
-        self.action(session, "hinge_preview")
-        self.ui.selectEntity.side_effect = [SimpleNamespace(entity=SimpleNamespace(isValid=True, name="new face"))]
-        state = self.action(session, "hinge_focus", target="face_b")
-        self.assertFalse(state["selections"]["axis_edge"]["selected"])
+    def test_different_face_automatically_asks_for_reference_edge(self):
+        session=self.open_palette();self.action(session,'hinge_preview')
+        replacement=SimpleNamespace(isValid=True,name='new face')
+        self.ui.selectEntity.side_effect=[SimpleNamespace(entity=replacement),SimpleNamespace(entity=self.entities['axis_edge'])]
+        state=self.action(session,'hinge_focus',target='face_b')
+        self.assertIs(session.selection_entities['face_b'],replacement)
+        self.assertTrue(state['selections']['axis_edge']['selected'])
         self.assertFalse(self.graphics[-1].isValid)
-        self.assertEqual(state["phase"], "selecting")
+        self.assertEqual(state['phase'],'ready')
 
     def test_full_snapshot_update_invalidates_preview_without_kernel_work(self):
         session = self.open_palette()
@@ -174,16 +176,15 @@ class HingePaletteCommandTests(unittest.TestCase):
         self.assertFalse(previous.isValid)
         self.adapter.create_hinge.assert_not_called()
 
-    def test_aborted_repick_keeps_graphics_and_subsequent_refresh_is_cached(self):
-        session = self.open_palette()
-        self.action(session, "hinge_preview")
-        previous = session.preview
-        self.ui.selectEntity.side_effect = RuntimeError("Esc")
-        self.action(session, "hinge_focus", target="axis_edge")
-        self.assertTrue(previous.isValid)
-        self.action(session, "hinge_preview")
-        self.assertIs(session.preview, previous)
-        self.adapter.prepare_hinge.assert_called_once()
+    def test_aborted_repick_discards_graphics_and_cannot_preview_without_reselection(self):
+        session=self.open_palette();self.action(session,'hinge_preview')
+        old=session.preview
+        self.ui.selectEntity.side_effect=RuntimeError('cancelled')
+        self.action(session,'hinge_focus',target='face_a')
+        self.assertFalse(old.isValid)
+        self.assertIsNone(session.preview)
+        self.assertEqual(session.selection_entities,{})
+
 
     def test_failed_old_graphics_retirement_cleans_candidate_and_cancel_retries(self):
         session = self.open_palette()
@@ -340,7 +341,7 @@ class HingePaletteCommandTests(unittest.TestCase):
         self.adapter.read_edit_target.return_value = SimpleNamespace(
             settings=saved, face_a=object(), face_b=object(), axis_edge=object())
         session = self.open_palette(editing=True)
-        self.assertEqual(self.ui.selectEntity.call_args.args[1], "Occurrences,SolidBodies")
+        self.assertEqual(self.ui.selectEntity.call_args.args[1], "Occurrences,SolidBodies,Features,Faces,Edges")
         self.assertEqual(self.owner.palette_state()["settings"], saved.to_dict())
         self.assertTrue(session.edit_target_loaded)
         result = self.action(session, "hinge_commit")
@@ -386,8 +387,9 @@ class HingePaletteCommandTests(unittest.TestCase):
         self.assertEqual(state["message"], message)
         self.ui.selectEntity.side_effect = RuntimeError("Esc")
         state = self.action(session, "hinge_focus", target="edit_target")
-        self.assertEqual(state["phase"], "error")
-        self.assertEqual(state["message"], message)
+        self.assertEqual(state["phase"], "selecting")
+        self.assertIn("Selection reset",state["message"])
+        self.assertEqual(session.selection_entities,{})
         self.adapter.read_edit_target.side_effect = None
         self.adapter.read_edit_target.return_value = SimpleNamespace(settings=HingeSettings(length_mm=29))
         self.ui.selectEntity.side_effect = [SimpleNamespace(entity=self.entities["edit_target"])]

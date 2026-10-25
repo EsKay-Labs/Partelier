@@ -122,7 +122,7 @@ class HingeCommands:
                 break
         return self._last_palette_state
 
-    def begin_palette(self, settings_dict, editing=False):
+    def begin_palette(self, settings_dict, editing=False, selected_entity=None):
         settings = _settings_from_launch(settings_dict)
         if type(editing) is not bool:
             raise ValueError("Edit mode must be true or false.")
@@ -140,12 +140,16 @@ class HingeCommands:
         self._palette_action_busy = True
         try:
             # selectEntity is supported from the palette's HTML callback, never
-            # from Command events. Esc stops this sequence and retains captures.
+            # from Command events. Esc resets the captured selection set.
+            if editing and selected_entity is not None:
+                session.selection_entities['edit_target']=selected_entity;session.changed('edit_target')
+                return self._publish_palette(session)
             if editing and self._capture_preselected_edit(session):
                 return self._publish_palette(session)
             for target in (("edit_target",) if editing else ("face_a", "face_b", "axis_edge")):
                 if not self._pick_palette_entity(session, target):
                     break
+            session.picking_target=None
             return self._publish_palette(session)
         except Exception:
             session.close()
@@ -171,11 +175,12 @@ class HingeCommands:
             raise ValueError("Choose a supported geometry selection.")
         session._ensure_design()
         session.preview_error = None
+        session.picking_target=target
         prompts = {
-            "face_a": ("Select face A in the model. Esc to stop picking.", "PlanarFaces"),
-            "face_b": ("Select coplanar face B on the other body. Esc to stop picking.", "PlanarFaces"),
-            "axis_edge": ("Select the straight reference edge. Esc to stop picking.", "Edges"),
-            "edit_target": ("Select a hinge body, pin, or a Part containing one hinge. Esc to stop picking.", "Occurrences,SolidBodies"),
+            "face_a": ("Select face A in the model. Esc resets all selections.", "PlanarFaces"),
+            "face_b": ("Select coplanar face B on the other body. Esc resets all selections.", "PlanarFaces"),
+            "axis_edge": ("Select the straight reference edge. Esc resets all selections.", "Edges"),
+            "edit_target": ("Select a hinge body, pin, or a Part containing one hinge. Esc resets all selections.", "Occurrences,SolidBodies,Features,Faces,Edges"),
         }
         prompt, selection_filter = prompts[target]
         session.phase = "selecting"
@@ -202,9 +207,7 @@ class HingeCommands:
             raise ValueError("This hinge session ended while picking. Start again.")
         entity = selected.entity if selected is not None else None
         if entity is None or not entity.isValid:
-            session.phase = "ready" if session.validate() else ("error" if session.edit_target_error else "selecting")
-            if not session.edit_target_error:
-                session._status("No new selection captured. Previous selections were kept.")
+            self._reset_palette_selection(session)
             return False
         if target in {"face_a", "face_b"} and session.selection_entities.get(target) != entity:
             session.selection_entities.pop("axis_edge", None)
@@ -268,7 +271,13 @@ class HingeCommands:
                             self._opening = False
                             raise
             elif action == "hinge_focus":
-                self._pick_palette_entity(session, target)
+                targets=('edit_target',) if session.editing else ('face_a','face_b','axis_edge')
+                if target not in targets:raise ValueError('Choose a supported geometry selection.')
+                for current in targets[targets.index(target):]:
+                    if not self._pick_palette_entity(session,current):break
+                session.picking_target=None
+            elif action == 'hinge_reset':
+                self._reset_palette_selection(session)
             elif action == "hinge_cancel":
                 # Do not claim Cancel succeeded if temporary graphics remain.
                 session.clear_preview()
@@ -280,11 +289,19 @@ class HingeCommands:
             return self._publish_palette(session)
         except Exception as error:
             if not session.closed:
+                session.picking_target=None
                 session.phase = "error"
                 session._status(str(error))
             raise
         finally:
             self._palette_action_busy = False
+
+    def _reset_palette_selection(self,session):
+        session.revision=min(session.revision+1,1_000_000_000);session.generation+=1
+        self._cancel_native_preview(session);session.clear_preview()
+        session.selection_entities.clear();session.picking_target=None
+        session.edit_target_loaded=False;session.edit_target_error=None;session.preview_error=None
+        session.phase='selecting';session._status('Selection reset. Pick face A to start again. Dimensions kept.')
 
     def _cancel_native_preview(self, session):
         if self._native_preview is not None:
@@ -470,6 +487,7 @@ class _Session:
         self.commit_requested = False
         self._palette_selections = {}
         self.selection_entities = {}
+        self.picking_target=None
 
     def open(self, settings):
         self.launch_settings = settings
@@ -579,7 +597,7 @@ class _Session:
                 selections[identity] = {"selected": bool(selected), "label": str(label)[:120]}
             self._palette_selections = selections
         return {"sessionId": None if self.closed else self.session_id,
-                "revision": self.revision, "phase": self.phase, "editing": self.editing,
+                "revision": self.revision, "phase": self.phase, "editing": self.editing,"pickingTarget":self.picking_target,
                 "settings": self.palette_settings.to_dict(), "selections": self._palette_selections.copy(),
                 "previewCurrent": bool(not self.closed and self.preview is not None and self.preview.isValid
                                        and self.preview_generation == self.generation and self.preview_error is None),
@@ -965,10 +983,13 @@ class _Session:
             prepared, target = self._prepare()
             self.clear_preview()
             persistence_started = time.perf_counter()
+            from ... import operations
+            start=self.design.timeline.count
             if self.editing:
-                rebuild_hinge(self.design, target, prepared)
+                anchor=rebuild_hinge(self.design, target, prepared)
             else:
-                create_hinge(self.design, prepared)
+                anchor=create_hinge(self.design, prepared)
+            operations.capture(self.design,anchor,'hinge',prepared.settings.to_dict(),start,editing=self.editing)
             persistence_ms = (time.perf_counter() - persistence_started) * 1000.0
             self._record_timings(
                 "rebuild" if self.editing else "create", prepared,

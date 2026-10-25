@@ -101,7 +101,7 @@ class PatternCommands:
         self._pending=None
         if errors:raise RuntimeError("Pattern cleanup needs another Stop attempt. "+str(errors[0]))
 
-    def begin_palette(self,settings_dict,editing=False):
+    def begin_palette(self,settings_dict,editing=False,selected_entity=None):
         emit('pattern.begin',editing=editing,busy=self.busy,existing_session=self._session is not None,
              active_command=_active_command(),settings=settings_dict)
         if self._registration is None:raise ValueError("Run Partelier to enable patterns.")
@@ -116,7 +116,8 @@ class PatternCommands:
             selections=core.Application.get().userInterface.activeSelections
             entities=[selections.item(i).entity for i in range(selections.count)]
             emit('pattern.preselection',session_id=session.session_id,count=len(entities))
-            if editing and len(entities)==1:
+            if editing and selected_entity is not None:session.select_target(selected_entity)
+            elif editing and len(entities)==1:
                 session.select_target(entities[0])
             elif not editing and values.selection_scope=='faces' and entities and all(native.BRepFace.cast(e) is not None for e in entities):
                 if len(entities)>100:raise ValueError('Select at most 100 faces.')
@@ -136,7 +137,7 @@ class PatternCommands:
         try:
             selected=ui.activeSelections
             entity=(selected.item(0).entity if selected.count==1 else
-                    ui.selectEntity('Select the base or colour body of a Flat colour pattern.','SolidBodies,Faces,Edges').entity)
+                    ui.selectEntity('Select the base or colour body of a Flat colour pattern.','SolidBodies,Faces,Edges,Features').entity)
             target=recipe.read_edit_target(design,entity)
             if target.settings.mode!='inlay':raise ValueError('Select a created Flat colour pattern to export.')
             dialog=ui.createFileDialog()
@@ -171,14 +172,14 @@ class PatternCommands:
         ui=core.Application.get().userInterface
         if session.editing:
             if target!='edit_target':raise ValueError("Select an existing Partelier pattern result.")
-            prompt,filters='Select an existing Partelier pattern result. Esc cancels picking.','SolidBodies,Faces,Edges'
+            prompt,filters='Select an existing Partelier pattern result. Esc cancels picking.','SolidBodies,Faces,Edges,Features'
         elif target=='body' and session.settings.selection_scope=='body':
             prompt,filters='Select the solid to pattern on all its faces. Esc cancels picking.','SolidBodies'
         elif target in {'faces','add_face'} and session.settings.selection_scope=='faces':
             prompt,filters=('Select more faces on this body. Esc finishes the selection.' if target=='add_face'
                             else 'Select the first face. Use Add faces for more sides. Esc cancels picking.'),'Faces'
         else:raise ValueError("Use the current pattern selection scope.")
-        session.phase='selecting';session.message=prompt;self.publish(session)
+        session.picking_target='edit_target' if session.editing else 'body';session.phase='selecting';session.message=prompt;self.publish(session)
         faces=[]
         emit('pattern.pick.wait',session_id=session.session_id,target=target,filters=filters,count=len(faces),
              active_command=_active_command())
@@ -190,7 +191,8 @@ class PatternCommands:
             emit('pattern.pick.return',session_id=session.session_id,target=target,
                  has_entity=selected is not None and selected.entity is not None)
             session.ensure_design()
-            if selected is None or selected.entity is None:break
+            if selected is None or selected.entity is None:
+                self.reset(session);break
             if session.editing:
                 session.select_target(selected.entity)
             elif target=='body':
@@ -207,8 +209,16 @@ class PatternCommands:
                 session.set_faces(faces)
             self.publish(session)
             break
-        session.validate()
+        session.picking_target=None
+        if 'Selection reset' not in session.message:session.validate()
         emit('pattern.pick.end',session_id=session.session_id,target=target,count=len(session.faces),phase=session.phase)
+
+    def reset(self,session):
+        session.revision=min(session.revision+1,1_000_000_000);self.runner.cancel(session)
+        session.clear_preview();session.edit_target=None;session.picking_target=None
+        if session.face_picker is not None:session.face_picker.clear()
+        else:session.faces=();session.phase='selecting'
+        session.message='Selection reset. Pick the surfaces again. Dimensions kept.'
 
     def palette_action(self,action,session_id,revision=None,settings_dict=None,target=None):
         emit('pattern.action',action=action,session_id=session_id,revision=revision,target=target,
@@ -219,7 +229,7 @@ class PatternCommands:
         if session is None or session.closed or session.session_id!=session_id:
             raise ValueError("This pattern session has ended. Start a new pattern.")
         session.ensure_design()
-        if session.face_picker is not None and action not in {'pattern_finish_faces','pattern_clear_faces','pattern_cancel'}:
+        if session.face_picker is not None and action not in {'pattern_finish_faces','pattern_clear_faces','pattern_cancel','pattern_reset'}:
             raise ValueError('Finish face selection with Done, or Cancel the pattern.')
         try:
             if action in {'pattern_update','pattern_preview','pattern_commit'}:
@@ -239,6 +249,7 @@ class PatternCommands:
                 self._busy=True
                 try:self.pick(session,target)
                 finally:self._busy=False
+            elif action=='pattern_reset':self.reset(session)
             elif action=='pattern_cancel':session.close()
             elif action=='pattern_finish_faces':session.finish_faces()
             elif action=='pattern_clear_faces':
@@ -248,6 +259,7 @@ class PatternCommands:
             return self.publish(session)
         except Exception as error:
             if not session.closed:
+                session.picking_target=None
                 session.phase='error';session.message=str(error);self.publish(session)
             raise
 
@@ -260,7 +272,7 @@ class _Session:
         self.faces=();self.edit_target=None;self.closed=False
         self.preview=None;self.prepared=None;self.preview_revision=None
         self.visibility=BodyVisibilityLease();self.command=None;self.handlers=[]
-        self.face_picker=None
+        self.face_picker=None;self.picking_target=None
 
     @property
     def preview_current(self):
@@ -274,7 +286,7 @@ class _Session:
         return {'sessionId':self.session_id,'revision':self.revision,'phase':self.phase,'editing':self.editing,
                 'settings':self.settings.to_dict(),'selections':{'surface':{'selected':bool(valid),'label':label}},
                 'previewCurrent':self.preview_current,'message':self.message,
-                'pickingFaces':self.face_picker is not None,
+                'pickingFaces':self.face_picker is not None,'pickingTarget':'faces' if self.face_picker is not None else self.picking_target,
                 'canFinishFaces':bool(self.face_picker is not None and self.face_picker.ready and valid and not self.face_picker.error),
                 'suggestedSizeMm':min(sizes) if sizes else None}
 
@@ -422,8 +434,11 @@ class _Session:
             if prepared is None or self.preview_revision!=self.revision:raise ValueError("Refresh the pattern preview before Create.")
             recipe.validate_preview_sources(prepared)
             self.clear_preview()
-            if self.editing:recipe.rebuild_pattern(self.design,self.edit_target,prepared)
-            else:recipe.create_pattern(self.design,prepared)
+            from ... import operations
+            start=self.design.timeline.count
+            if self.editing:anchor=recipe.rebuild_pattern(self.design,self.edit_target,prepared)
+            else:anchor=recipe.create_pattern(self.design,prepared)
+            operations.capture(self.design,anchor,'pattern',self.settings.to_dict(),start,editing=self.editing)
             self.phase='created';self.message='Pattern rebuilt successfully.' if self.editing else 'Pattern created on the selected body.'
             emit('pattern.commit.end',session_id=self.session_id,revision=self.revision)
         except Exception as error:

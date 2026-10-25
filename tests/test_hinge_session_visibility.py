@@ -40,7 +40,7 @@ class SessionVisibilityTests(unittest.TestCase):
         self.assertFalse(new.editing)
         self.assertNotEqual(new.session_id,session.session_id)
 
-    def test_repick_reveals_selectable_bodies_then_escape_restores_current_view(self):
+    def test_repick_reveals_selectable_bodies_then_escape_clears_preview(self):
         sources=(body("sourceA"),body("sourceB"))
         self.adapter.preview_hide_bodies.return_value=sources
         session=self.open_palette()
@@ -52,10 +52,10 @@ class SessionVisibilityTests(unittest.TestCase):
             raise RuntimeError("User pressed Esc")
         self.ui.selectEntity.side_effect=pick
         self.action(session,"hinge_focus",target="face_a")
-        self.assertIs(session.preview,previous)
-        self.assertTrue(previous.isVisible)
-        self.assertTrue(all(not b.isLightBulbOn for b in sources))
-        self.assertTrue(self.owner.palette_state()["previewCurrent"])
+        self.assertIsNone(session.preview)
+        self.assertFalse(previous.isValid)
+        self.assertTrue(all(b.isLightBulbOn for b in sources))
+        self.assertFalse(self.owner.palette_state()["previewCurrent"])
 
     def test_switching_output_mode_releases_and_reacquires_source_visibility(self):
         sources=(body("sourceA"),body("sourceB"))

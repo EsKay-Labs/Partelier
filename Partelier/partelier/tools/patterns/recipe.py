@@ -108,6 +108,8 @@ def _faces(design,sources,body):
 
 
 def read_edit_target(design,selected):
+    from ... import operations
+    operations.expand(design)
     record=STORE.read(design,colour_store.selection_anchor(selected,GROUP))
     colour_store.read(design,STORE,record)
     recipe,settings=_read(record.anchor,record)

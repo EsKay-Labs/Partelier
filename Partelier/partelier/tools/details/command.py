@@ -53,7 +53,7 @@ class DetailCommands(lifecycle.PatternCommands):
         if ui.activeCommand==COMMIT_ID:ui.terminateActiveCommand()
         return super().stop()
 
-    def begin_palette(self,settings_dict,editing=False):
+    def begin_palette(self,settings_dict,editing=False,selected_entity=None):
         if self._registration is None or self._session or self.busy:raise ValueError('Finish or Cancel the active detail first.')
         if type(editing) is not bool:raise ValueError('Edit mode must be true or false.')
         settings=DetailSettings.from_dict({**DetailSettings().to_dict(),**settings_dict})
@@ -62,7 +62,8 @@ class DetailCommands(lifecycle.PatternCommands):
         self.publish(session)
         self._busy=True
         try:
-            if editing and len(entities)==1:session.select_target(entities[0])
+            if editing and selected_entity is not None:session.select_target(selected_entity)
+            elif editing and len(entities)==1:session.select_target(entities[0])
             elif not editing and len(entities)==2 and all(native.BRepFace.cast(e) is not None and e.isValid for e in entities):
                 session.faces=tuple(entities);session.validate()
             else:self.pick(session,'edit_target' if editing else 'face_a')
@@ -71,21 +72,35 @@ class DetailCommands(lifecycle.PatternCommands):
         finally:self._busy=False
         return self.publish(session)
 
+    def reset(self,session):
+        session.revision=min(session.revision+1,1_000_000_000);self.runner.cancel(session)
+        session.clear_preview();session.faces=(None,None);session.edit_target=None;session.picking_target=None
+        session.phase='selecting';session.message='Selection reset. Pick face A to start again. Dimensions kept.'
+
     def pick(self,session,target):
+        targets=('edit_target',) if session.editing else ('face_a','face_b')
+        if target not in targets:raise ValueError('Choose a supported detail reference.')
+        for current in targets[targets.index(target):]:
+            if not self._pick_one(session,current):break
+        session.picking_target=None
+        self.publish(session)
+
+    def _pick_one(self,session,target):
         if target not in (('edit_target',) if session.editing else ('face_a','face_b')):raise ValueError('Choose a supported detail reference.')
         session.ensure_design();session.clear_preview()
         prompt=('Select the generated detail or its timeline feature.' if target=='edit_target' else
             'Select support face A.' if target=='face_a' else 'Select support face B on the same body.' if session.settings.kind=='ribs' else 'Select the lid inside face facing A.')
         filters='Features,SolidBodies,Faces' if target=='edit_target' else 'PlanarFaces'
-        session.phase='selecting';session.message=prompt;self.publish(session)
-        try:choice=core.Application.get().userInterface.selectEntity(prompt+' Esc to stop picking.',filters)
+        session.picking_target=target;session.phase='selecting';session.message=prompt;self.publish(session)
+        try:choice=core.Application.get().userInterface.selectEntity(prompt+' Esc resets all selections.',filters)
         except RuntimeError:choice=None
         session.ensure_design()
         if choice is not None and choice.entity is not None:
             if target=='edit_target':session.select_target(choice.entity)
             else:
                 faces=list(session.faces);faces[0 if target=='face_a' else 1]=choice.entity;session.faces=tuple(faces)
-        session.validate()
+            session.validate();return True
+        self.reset(session);return False
 
     def palette_action(self,action,session_id,revision=None,settings_dict=None,target=None):
         session=self._session
@@ -107,17 +122,18 @@ class DetailCommands(lifecycle.PatternCommands):
                 self._busy=True
                 try:self.pick(session,target)
                 finally:self._busy=False
+            elif action=='detail_reset':self.reset(session)
             elif action=='detail_cancel':session.close()
             else:raise ValueError('This detail action is unavailable.')
             return self.publish(session)
         except Exception as error:
-            if not session.closed:session.phase='error';session.message=str(error);self.publish(session)
+            if not session.closed:session.picking_target=None;session.phase='error';session.message=str(error);self.publish(session)
             raise
 
 
 class _Session(lifecycle._Session):
     def __init__(self,owner,design,settings,editing):
-        super().__init__(owner,design,settings,editing);self.faces=(None,None)
+        super().__init__(owner,design,settings,editing);self.faces=(None,None);self.picking_target=None
 
     def snapshot(self):
         valid=self.edit_target is not None if self.editing else all(f is not None and f.isValid for f in self.faces)
@@ -126,7 +142,7 @@ class _Session(lifecycle._Session):
             for key,face in zip(('face_a','face_b'),self.faces)}
         selections['surface']={'selected':bool(valid),'label':'Supports selected' if valid else 'Pick'}
         return {'sessionId':None if self.closed else self.session_id,'revision':self.revision,'phase':self.phase,'editing':self.editing,
-            'endedSessionId':self.session_id if self.closed else None,
+            'endedSessionId':self.session_id if self.closed else None,'pickingTarget':self.picking_target,
             'settings':self.settings.to_dict(),'selections':selections,'previewCurrent':self.preview_current,'message':self.message}
 
     def select_target(self,entity):
@@ -184,7 +200,11 @@ class _Session(lifecycle._Session):
         try:
             if not self.preview_current:raise ValueError('Refresh the detail preview before Create.')
             self.clear_preview_for_commit()
-            store.apply(self.prepared);self.phase='created';self.message='Detail rebuilt.' if self.editing else 'Detail created.'
+            from ... import operations
+            start=self.design.timeline.count
+            anchor=store.apply(self.prepared)
+            operations.capture(self.design,anchor,'detail',self.settings.to_dict(),start,editing=self.editing)
+            self.phase='created';self.message='Detail rebuilt.' if self.editing else 'Detail created.'
         except Exception as error:
             args.executeFailed=True;args.executeFailedMessage=str(error);self.phase='error';self.message=str(error)
             self.owner.log('Partelier could not apply the Small detail')

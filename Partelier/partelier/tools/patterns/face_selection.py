@@ -40,6 +40,7 @@ class FaceSelection:
             raise RuntimeError('Fusion could not listen for face selection.')
         self.bound = True
         try:
+            self.bind_activation(self.ui.commandTerminated,_Terminated(self))
             self.seed_event_id='sktech_partelier_faces_seed_'+uuid.uuid4().hex
             event=self.app.registerCustomEvent(self.seed_event_id)
             if event is None:raise RuntimeError('Fusion could not queue face selection activation.')
@@ -205,3 +206,14 @@ class _Changed(core.ActiveSelectionEventHandler):
             emit('pattern.faces.error', error=str(error))
             self.picker.error = str(error)
             self.picker.publish()
+
+
+class _Terminated(core.ApplicationCommandEventHandler):
+    def __init__(self,picker):super().__init__();self.picker=picker
+    def notify(self,args):
+        try:
+            if (args.commandId=='SelectCommand' and self.picker.bound and self.picker.ready
+                    and args.terminationReason==core.CommandTerminationReason.CancelledTerminationReason):
+                self.picker.clear()
+        except Exception as error:
+            self.picker.error=str(error);self.picker.publish()

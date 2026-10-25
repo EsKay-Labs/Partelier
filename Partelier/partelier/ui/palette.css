@@ -218,3 +218,26 @@ dialog p { color: var(--muted); font-size: 12px; line-height: 1.7; }
 .example-faq { margin: 7px 0; border: 1px solid #c4d5eb; border-radius: 6px; background: #f4f8ff; }
 .example-faq summary { padding: 9px; cursor: pointer; color: #194e92; font-weight: 600; }
 .example-faq p { padding: 0 10px 10px; margin: 0; }
+
+/* Reference selection is a visible sequence, including while Fusion owns focus. */
+.selection-grid, .detail-selection-grid { grid-template-columns: minmax(0,1fr); }
+.selection-step { position: relative; min-height: 46px; padding: 9px 10px 9px 42px; font-size: 12px; background: #fff; border: 1px solid #8baddb; color: #214876; flex-wrap: wrap; }
+.selection-step::before { content: attr(data-step); position: absolute; left: 10px; top: 11px; display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; color: #fff; background: #245fcc; font-size: 12px; font-weight: 700; }
+.selection-step[data-reference="face_b"]::before { background: #ad5119; }
+.selection-step[data-reference="axis_edge"]::before { background: #6650b1; }
+.selection-step span { white-space: normal; color: #41628c; }
+.selection-step.is-next { border: 2px solid #245fcc; background: #e9f1ff; color: #163f7e; }
+.selection-step.is-picking, .selection-step.is-picking:disabled { color: #fff; background: #245fcc; border-color: #174aab; opacity: 1; }
+.selection-step.is-picking span { color: #fff; }
+.selection-step.is-selected, .selection-step.is-selected:disabled { color: #194d8c; background: #dfeeff; border-color: #74a3e0; }
+.selection-step.is-picking.is-selected { color: #fff; background: #245fcc; }
+.selection-reset { display: block; margin: 9px 0 0 auto; }
+.operations-browser { padding: 10px 12px; margin-bottom: 12px; border: 1px solid #91b1dc; border-radius: 8px; background: #f7faff; }
+.operations-browser > summary { cursor: pointer; color: #194d8c; font-size: 12px; font-weight: 650; }
+.operations-browser[open] > summary { margin-bottom: 12px; }
+.operation-row { padding: 10px 0; border-top: 1px solid #c7d7ed; overflow-wrap: anywhere; }
+.operation-row > strong { display: block; font-size: 12px; line-height: 1.5; }
+.operation-row p { font-size: 11px; line-height: 1.5; }
+.operation-actions { display: flex; align-items: center; gap: 15px; margin-top: 6px; }
+.workspace { overscroll-behavior-y: contain; touch-action: pan-y; }
+@media (max-width: 359px) { .selection-step { padding-left: 42px; } }

@@ -49,6 +49,9 @@ class Lease:
 
 class SnapCommandTests(unittest.TestCase):
     def setUp(self):
+        from unittest.mock import patch
+        capture_patch=patch('Partelier.partelier.operations.capture')
+        self.capture_operation=capture_patch.start();self.addCleanup(capture_patch.stop)
         self.definitions = {}
         def add(identity, *args):
             definition = NS(id=identity, isValid=True, commandCreated=Event(), execute=Mock(return_value=True))
@@ -59,7 +62,7 @@ class SnapCommandTests(unittest.TestCase):
         self.ui = NS(commandDefinitions=NS(itemById=self.definitions.get, addButtonDefinition=add),
                      activeCommand="SelectCommand", commandTerminated=Event(), terminateActiveCommand=Mock(),
                      activeSelections=NS(count=0), selectEntity=Mock(side_effect=lambda *args: self.selection_values.pop(0)))
-        self.design = NS(isValid=True)
+        self.design = NS(isValid=True,timeline=NS(count=0))
         self.app = NS(userInterface=self.ui, activeProduct=self.design, documentDeactivating=Event(), log=Mock())
         core, fusion, adsk = ModuleType("adsk.core"), ModuleType("adsk.fusion"), ModuleType("adsk")
         core.Application = NS(get=lambda: self.app)
@@ -198,12 +201,12 @@ class SnapCommandTests(unittest.TestCase):
         self.assertEqual(session.settings.snap_family, "hook")
         self.assertEqual(session.revision, 0)
 
-    def test_esc_retains_partial_picks_and_update_is_accepted(self):
+    def test_esc_resets_partial_picks_and_keeps_dimensions_editable(self):
         self.selection_values[:] = [NS(entity=self.a), None]
         self.manager.begin_palette(SnapFitSettings().to_dict())
         session = self.manager._session
-        self.assertEqual(set(session.selections), {"face_a"})
-        self.action(session, "snap_update", revision=1, settings=SnapFitSettings(width_mm=9))
+        self.assertEqual(set(session.selections), set())
+        self.action(session, "snap_update", revision=session.revision+1, settings=SnapFitSettings(width_mm=9))
         self.assertEqual(session.phase, "selecting")
         self.assertEqual(session.settings.width_mm, 9)
 

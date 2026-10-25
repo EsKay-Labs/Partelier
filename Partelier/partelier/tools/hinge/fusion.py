@@ -1297,6 +1297,8 @@ def _guard_root_result(design, feature, recipe, attribute_group, selected_body=N
 
 
 def read_edit_target(design, selected_entity):
+    from ... import operations
+    operations.expand(design)
     """Read one owned result and resolve every source uniquely through Fusion."""
     _require_main_thread()
     _, fusion = _api()

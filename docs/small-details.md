@@ -175,3 +175,7 @@ Each implemented Small details tool now has an expandable **Examples · προε
 The detailed guide is local and rendered only when the tool changes, preserving its expanded questions while parameters update. Native result images reuse the 0.18.0 evidence above; this release changes documentation/UI only and does not rerun or extend native geometry claims.
 
 Browser checks at 300/380/520 px pass for all three guides: six sections, labelled support diagrams, five local images decoded, no horizontal overflow and stable guide/FAQ state through parameter edits. Existing three Node UI suites pass. Evidence: [detail-examples-0.18.1.json](validation/detail-examples-0.18.1.json).
+
+## Selection and saved operations (0.19.0)
+
+Support selection now advances A → B automatically and Esc clears references/preview while keeping dimensions. The **In this design** list opens a specific saved operation; **Pick from model** is the alternate selection path. New operations have named native timeline groups and distinct Lip/Groove or Pins/Pin holes children. See [selection-history.md](selection-history.md) for Edit, deletion, legacy adoption, dependency limits, scrolling and scoped validation.

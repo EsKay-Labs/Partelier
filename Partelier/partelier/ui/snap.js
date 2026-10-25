@@ -118,17 +118,19 @@
         for (const [target, caption] of labels) {
             const picked = state.session?.selections?.[target];
             const button = document.createElement("button"); button.type = "button"; button.id = `snap-select-${target}`; button.className = "selection-button";
-            button.disabled = !supported() || !identity() || state.busy || state.session?.phase === "opening";
+            button.disabled = !supported() || state.busy || state.session?.phase === "opening";
             const label = document.createElement("strong"); label.textContent = caption;
-            const value = document.createElement("span"); value.textContent = picked?.selected ? "✓" : "Pick";
+            const value = document.createElement("span"); value.textContent = target===state.session?.pickingTarget?"Select in Fusion now":picked?.selected ? "✓ "+(picked.label||"Selected") : "Click to select";
             button.setAttribute("title", picked?.selected ? picked.label || "Selected" : caption);
             button.setAttribute("aria-label", `${caption}: ${picked?.selected ? picked.label || "Selected" : "not selected"}`);
             button.classList.toggle("is-selected", !!picked?.selected); button.append(label, value);
-            button.addEventListener("click", () => { cancelTimer(); run(async () => { await sessionAction("snap_focus", { target }); await refresh(); }); });
+            button.addEventListener("click", () => { cancelTimer(); run(async () => { if(!identity())await begin(false);else {await sessionAction("snap_focus", { target });await refresh();} }); });
+            window.PartelierSelectionUI?.decorate(button,labels.findIndex(([name])=>name===target),target,state.session,labels.map(([name])=>name));
             $("snap-selections").append(button);
         }
-        $("snap-selection-help").textContent = editing ? "Pick an existing snap-fit. Esc stops picking." : annular() ? "Pick the outer cylinder A, inner cylinder B, then a circular rim." : "Pick the base wall, lid wall, then their straight seam edge.";
-        $("snap-selection-help").hidden = !!identity() && selected();
+        $("snap-selection-help").textContent = editing ? "Choose a saved operation above, or pick its generated feature." : annular() ? "1 · Outer cylinder A → 2 · Inner cylinder B → 3 · Circular rim. Esc resets selections." : "1 · Base wall A → 2 · Lid wall B → 3 · Seam edge. Next step opens automatically. Esc resets selections.";
+        $("snap-selection-help").hidden = false;
+        window.PartelierSelectionUI?.resetControl($("snap-selections"),"snap",!!identity()&&!state.busy&&state.session?.phase!=="opening");
     }
     function render() {
         const committing = state.session?.phase === "opening", busy = state.busy || committing, hasSession = active(), ready = !!identity() && selected();
@@ -204,13 +206,13 @@
         return send(action, payload);
     }
     async function refresh() {
-        if (supported() && identity() && selected() && valid() && state.session?.phase !== "opening") {
+        if (supported() && identity() && !state.session?.pickingTarget && selected() && valid() && state.session?.phase !== "opening") {
             state.liveError = false; await sessionAction("snap_preview");
         }
     }
     function schedule() {
         cancelTimer();
-        if (!supported() || !identity() || !valid() || state.session?.phase === "opening") return;
+        if (!supported() || !identity() || state.session?.pickingTarget || !valid() || state.session?.phase === "opening") return;
         timer = window.setTimeout(() => {
             timer = undefined;
             if (queued) return;
@@ -282,6 +284,7 @@
     $("preview-snap-button").addEventListener("click", () => { if ($("snap-settings").reportValidity()) { cancelTimer(); run(refresh); } });
     $("create-snap-button").addEventListener("click", () => { if ($("snap-settings").reportValidity()) { cancelTimer(); run(() => sessionAction("snap_commit")); } });
     $("cancel-snap-button").addEventListener("click", () => { cancelTimer(); run(() => sessionAction("snap_cancel")); });
+    window.PartelierSelectionUI?.register('snap',{active,busy:()=>state.busy,reset:()=>{cancelTimer();run(()=>sessionAction('snap_reset'));}});
     window.PartelierSnap = Object.freeze({
         isActive() { return active(); },
         isBusy() { return state.busy || state.session?.phase === 'opening'; },

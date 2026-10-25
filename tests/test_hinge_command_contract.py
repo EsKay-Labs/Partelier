@@ -132,7 +132,10 @@ class Definitions:
 
 class HingeCommandContractTests(unittest.TestCase):
     def setUp(self):
-        self.design = SimpleNamespace(isValid=True)
+        from unittest.mock import patch
+        capture_patch=patch('Partelier.partelier.operations.capture')
+        self.capture_operation=capture_patch.start();self.addCleanup(capture_patch.stop)
+        self.design = SimpleNamespace(isValid=True,timeline=SimpleNamespace(count=0))
         self.ui = SimpleNamespace(commandDefinitions=Definitions(), activeCommand="unrelated", commandStarting=Event(), commandTerminated=Event())
         self.ui.terminateActiveCommand = Mock()
         self.logs = []

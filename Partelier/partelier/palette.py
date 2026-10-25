@@ -13,6 +13,7 @@ from .tools.hinge.settings import HingeSettings
 from .tools.snap_fit.settings import SnapFitSettings
 from .tools.patterns.settings import PatternSettings
 from .diagnostics import emit
+from . import operations
 
 
 COMMAND_ID = "sktech_partelier_library_b520ea78"
@@ -34,6 +35,7 @@ class ToolLibrary:
         self._snap_commands = None
         self._pattern_commands = None
         self._detail_commands = None
+        self._operation_delete = None
 
     def start(self, workspace_id, panel_id, input_check_id, report_error, hinge_commands=None, snap_commands=None, pattern_commands=None, detail_commands=None):
         if self._created_handler is not None:
@@ -58,6 +60,8 @@ class ToolLibrary:
                 "Partelier: Tool library",
                 "Configure pin hinges and snap-fits, or explore the planned CAD helpers.",
             )
+        self._operation_delete=operations.DeleteCommand(self._operations_changed)
+        self._operation_delete.start(adsk.core)
         self._created_handler = _LauncherCreated(self)
         definition.commandCreated.add(self._created_handler)
         if panel.controls.itemById(COMMAND_ID) is None:
@@ -84,6 +88,11 @@ class ToolLibrary:
 
     def _has_palette_pattern(self):
         return self._has_palette_manager(self._pattern_commands)
+
+    def _operations_changed(self,message):
+        import adsk.fusion
+        design=adsk.fusion.Design.cast(adsk.core.Application.get().activeProduct)
+        self._publish_state('operations_state',{'items':operations.snapshot(design),'message':message})
 
     def _require_idle_other_tool(self, manager, name):
         """One palette selection/preview owner at a time, including error recovery."""
@@ -162,6 +171,29 @@ class ToolLibrary:
         if self._created_handler is None:
             raise RuntimeError("The tool library has stopped. Run the add-in again.")
         request = read_request(action, raw_data)
+        if self._operation_delete is not None and self._operation_delete.busy and action not in ('operations_list','diagnostic_log'):
+            raise ValueError('Wait for operation deletion to finish.')
+        operation_alias=None
+        operation_items=None
+        if action in ('operations_list','operation_edit','operation_delete'):
+            from adsk import fusion as native_api
+            design=native_api.Design.cast(adsk.core.Application.get().activeProduct)
+            if design is None:raise ValueError('Open a Fusion Design to view its operations.')
+            if action!='operations_list':
+                for manager,label in ((self._hinge_commands,'hinge'),(self._snap_commands,'snap-fit'),(self._pattern_commands,'pattern'),(self._detail_commands,'Small detail')):
+                    self._require_idle_other_tool(manager,label)
+                operations.expand(design)
+                record=operations.resolve(design,request.operation_id)
+                if action=='operation_delete':self._operation_delete.launch(design,request.operation_id)
+                else:
+                    from .tools.details.settings import DetailSettings
+                    managers={'hinge':(self._hinge_commands,HingeSettings()),'snap':(self._snap_commands,SnapFitSettings()),
+                              'pattern':(self._pattern_commands,PatternSettings()),'detail':(self._detail_commands,DetailSettings(kind=record['alias']) if record['tool']=='detail' else DetailSettings())}
+                    manager,defaults=managers[record['tool']]
+                    if not self._has_palette_manager(manager):raise ValueError('Run Partelier to edit this operation.')
+                    manager.begin_palette(defaults.to_dict(),editing=True,selected_entity=record['anchor'])
+                    operation_alias=record['alias']
+            operation_items=operations.snapshot(design)
         if action.startswith(('hinge_','snap_','pattern_')) and not action.endswith('_status'):
             self._require_idle_other_tool(self._detail_commands,'Small detail')
         if action=='diagnostic_log':
@@ -252,6 +284,7 @@ class ToolLibrary:
             else:
                 self._hinge_commands.launch_edit()
         capabilities = ["input-check"]
+        if self._operation_delete is not None:capabilities.append("operation-history")
         if self._has_palette_manager(self._detail_commands):
             capabilities.extend(['detail-palette','detail-edit'])
             if detail_snapshot is None:detail_snapshot=self._detail_commands.palette_state()
@@ -275,6 +308,8 @@ class ToolLibrary:
             "requestId": request.request_id,
             "ok": True,
             "capabilities": capabilities,
+            "operations":operation_items,"operationAlias":operation_alias,
+            "operationPending":bool(self._operation_delete and self._operation_delete.busy),
             "hingeDefaults": HingeSettings().to_dict(),
             "hingeState": snapshot,
             "snapDefaults": SnapFitSettings().to_dict(),
@@ -304,6 +339,8 @@ class ToolLibrary:
         if self._has_palette_pattern():
             attempt(lambda:self._pattern_commands.set_state_callback(None))
         if self._has_palette_manager(self._detail_commands):attempt(lambda:self._detail_commands.set_state_callback(None))
+        if self._operation_delete is not None:attempt(self._operation_delete.stop)
+        self._operation_delete=None
         attempt(self._release_palette)
         panel = self._panel(ui) if self._workspace_id else None
         control = panel.controls.itemById(COMMAND_ID) if panel else None

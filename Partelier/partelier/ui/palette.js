@@ -164,19 +164,21 @@
         for (const [target, caption] of labels) {
             const picked = state.session?.selections?.[target];
             const button = document.createElement("button"); button.type = "button"; button.className = "selection-button"; button.id = `select-${target}`;
-            button.disabled = !paletteMode() || !sessionId() || state.busy || state.session?.phase === "opening";
+            button.disabled = !paletteMode() || state.busy || state.session?.phase === "opening";
             const label = document.createElement("strong"); label.textContent = caption;
-            const value = document.createElement("span"); value.textContent = picked?.selected ? "✓" : "Pick";
+            const value = document.createElement("span"); value.textContent = target===state.session?.pickingTarget?"Select in Fusion now":picked?.selected ? "✓ "+(picked.label||"Selected") : "Click to select";
             button.setAttribute("title", picked?.selected ? picked.label || "Selected" : caption);
             button.setAttribute("aria-label", caption + ": " + (picked?.selected ? picked.label || "Selected" : "not selected"));
             button.classList.toggle("is-selected", !!picked?.selected); button.append(label, value);
             button.addEventListener("click", () => runAction(async () => {
-                cancelPendingUpdate(); await sessionAction("hinge_focus", { target }); await refreshLivePreview();
+                cancelPendingUpdate(); if(!sessionId())await beginHinge(false);else {await sessionAction("hinge_focus", { target });await refreshLivePreview();}
             }));
+            window.PartelierSelectionUI?.decorate(button,labels.findIndex(([name])=>name===target),target,state.session,labels.map(([name])=>name));
             $("hinge-selections").append(button);
         }
-        $("selection-help").textContent = editing ? "Pick the existing hinge. Esc stops picking." : "Pick Face A, Face B, then the straight edge.";
-        $("selection-help").hidden = selectionsReady();
+        $("selection-help").textContent = editing ? "Choose a saved operation above, or pick its generated feature." : "1 · Face A → 2 · Face B → 3 · Axis edge. Next step opens automatically. Esc resets selections.";
+        $("selection-help").hidden = false;
+        window.PartelierSelectionUI?.resetControl($("hinge-selections"),"hinge",!!sessionId()&&!state.busy);
     }
     function selectionsReady() {
         const names = state.session?.editing ? ["edit_target"] : ["face_a", "face_b", "axis_edge"];
@@ -249,7 +251,7 @@
         updateActions();
         return true;
     }
-    window.fusionJavaScriptHandler = { handle(action, data) { try { if (action === "hinge_state" && applyHingeState(JSON.parse(data))) pushedStateVersion++; else { window.PartelierSnap?.handle(action, data); window.PartelierPatterns?.handle(action, data); window.PartelierDetails?.handle(action, data); } return "OK"; } catch (_) { return "FAILED"; } } };
+    window.fusionJavaScriptHandler = { handle(action, data) { try { if(window.PartelierOperations?.handle(action,data))return "OK"; if (action === "hinge_state" && applyHingeState(JSON.parse(data))) pushedStateVersion++; else { window.PartelierSnap?.handle(action, data); window.PartelierPatterns?.handle(action, data); window.PartelierDetails?.handle(action, data); } return "OK"; } catch (_) { return "FAILED"; } } };
 
     function renderFavorite() {
         const favorite = state.favorites.has(state.selected); $("favorite-button").textContent = favorite ? "★" : "☆";
@@ -317,7 +319,7 @@
         updateTimer = undefined;
     }
     async function refreshLivePreview() {
-        if (paletteMode() && sessionId() && selectionsReady() && $("hinge-settings").checkValidity()
+        if (paletteMode() && sessionId() && !state.session?.pickingTarget && selectionsReady() && $("hinge-settings").checkValidity()
                 && state.session?.phase !== "opening") {
             state.liveError = false;
             await sessionAction("hinge_preview");
@@ -326,14 +328,14 @@
     function scheduleUpdate() {
         cancelPendingUpdate();
         if (!paletteMode() || !sessionId() || !$("hinge-settings").checkValidity()
-                || state.session?.phase === "opening") return;
+                || state.session?.pickingTarget || state.session?.phase === "opening") return;
         updateTimer = window.setTimeout(() => {
             updateTimer = undefined;
             if (updateQueued) return;
             updateQueued = true;
             runAction(async () => {
                 updateQueued = false;
-                if (!sessionId() || !$("hinge-settings").checkValidity() || state.session?.phase === "opening") return;
+                if (!sessionId() || !$("hinge-settings").checkValidity() || state.session?.pickingTarget || state.session?.phase === "opening") return;
                 if (selectionsReady()) await refreshLivePreview();
                 else await sessionAction("hinge_update");
             });
@@ -353,7 +355,7 @@
             const result = await send("ready"); state.connected = true; state.capabilities = new Set(Array.isArray(result.capabilities) ? result.capabilities : []);
             if (!state.dirty && result.hingeDefaults && !result.hingeState?.settings) { state.hingeSettings = { ...hingeDefaults, ...result.hingeDefaults }; syncHingeFields(); }
             $("connection-status").classList.add("connected"); $("connection-status").replaceChildren(); $("connection-status").append(document.createElement("i"), "Fusion connected");
-            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.18.1";
+            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.19.0";
             if (window.PartelierSnap?.connect(result)) { state.selected = "snap"; renderToolMenu(); renderDetail(); }
             const patternAlias = window.PartelierPatterns?.connect(result);
             if (patternAlias) { state.selected = patternAlias; renderToolMenu(); renderDetail(); }
@@ -397,5 +399,12 @@
     $("about-button").addEventListener("click", () => $("about-dialog").showModal());
     $("input-check-button").addEventListener("click", async () => { $("input-check-button").disabled = true; try { await send("open_input_check"); $("about-dialog").close(); } catch (error) { $("bridge-message").textContent = error.message; } finally { $("input-check-button").disabled = !state.connected; } });
     document.addEventListener("keydown", event => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); $("tool-select").focus(); } });
+    window.PartelierSelectionUI?.register('hinge',{active:()=>!!sessionId()&&state.selected==='hinge',busy:()=>state.busy,reset:()=>runAction(async()=>{cancelPendingUpdate();await sessionAction('hinge_reset');})});
+    window.PartelierOpenOperation=(response,alias)=>{
+        if(response.hingeState)applyHingeState(response.hingeState);
+        window.PartelierSnap?.connect(response);window.PartelierPatterns?.connect(response);window.PartelierDetails?.connect(response);
+        state.selected=alias;renderToolMenu();renderDetail();
+        if(sessionId()&&selectionsReady())scheduleUpdate();
+    };
     renderHingeFields(); renderToolMenu(); renderDetail(); connect();
 })();

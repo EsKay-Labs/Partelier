@@ -162,3 +162,8 @@ has been exercised in Fusion; check its fresh running status before each request
 Do not substitute Windows input automation for these tests. The watcher may only
 perform file I/O and fireCustomEvent; all Fusion access stays on the main thread.
 See docs/fusion-validation.md. Local mocks remain distinct from native evidence.
+
+## Selection and operation history (0.19.0)
+- `partelier/operations.py` lists recipe metadata only, captures native timeline groups inside commit transactions and owns guarded suffix deletion. Group children have exact per-operation ownership; preserve original source bodies. Stable timeline groups are used; no preview Custom Features API.
+- `ui/selection-ui.js` owns shared step styling, palette Esc/reset and wheel routing. Esc resets references/preview but keeps dimensions; pattern faces still require Done. Late preview work must be cancelled/retired.
+- `ui/operations.js` opens exact saved anchors through In this design; Pick from model remains an alternative. Earlier-feature geometry guards remain. Explicit successful Rebuild may adopt exact legacy history; listing never migrates it. See docs/selection-history.md and its native/browser evidence.

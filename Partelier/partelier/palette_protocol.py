@@ -13,17 +13,17 @@ from .diagnostics import validate_ui_entries
 
 PROTOCOL_VERSION = 1
 SESSION_SETTINGS_ACTIONS = frozenset({"hinge_update", "hinge_preview", "hinge_commit"})
-SESSION_ACTIONS = SESSION_SETTINGS_ACTIONS | {"hinge_cancel", "hinge_focus"}
+SESSION_ACTIONS = SESSION_SETTINGS_ACTIONS | {"hinge_cancel", "hinge_focus", "hinge_reset"}
 SNAP_SESSION_SETTINGS_ACTIONS = frozenset({"snap_update", "snap_preview", "snap_commit"})
-SNAP_SESSION_ACTIONS = SNAP_SESSION_SETTINGS_ACTIONS | {"snap_cancel", "snap_focus"}
+SNAP_SESSION_ACTIONS = SNAP_SESSION_SETTINGS_ACTIONS | {"snap_cancel", "snap_focus", "snap_reset"}
 PATTERN_SETTINGS_ACTIONS=frozenset({"pattern_update","pattern_preview","pattern_commit"})
-PATTERN_SESSION_ACTIONS=PATTERN_SETTINGS_ACTIONS|{"pattern_cancel","pattern_focus","pattern_finish_faces","pattern_clear_faces"}
+PATTERN_SESSION_ACTIONS=PATTERN_SETTINGS_ACTIONS|{"pattern_cancel","pattern_focus","pattern_finish_faces","pattern_clear_faces","pattern_reset"}
 DETAIL_SETTINGS_ACTIONS=frozenset({'detail_update','detail_preview','detail_commit'})
-DETAIL_SESSION_ACTIONS=DETAIL_SETTINGS_ACTIONS|{'detail_cancel','detail_focus'}
+DETAIL_SESSION_ACTIONS=DETAIL_SETTINGS_ACTIONS|{'detail_cancel','detail_focus','detail_reset'}
 ALLOWED_ACTIONS = frozenset({
     "ready", "open_input_check", "hinge_create", "hinge_edit", "hinge_begin", "hinge_status",
     "snap_begin", "snap_status", "pattern_begin", "pattern_status", "pattern_export", "diagnostic_log",
-    'detail_begin','detail_status',
+    'detail_begin','detail_status','operations_list','operation_edit','operation_delete',
 }) | SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS | DETAIL_SESSION_ACTIONS
 
 
@@ -36,6 +36,7 @@ class PaletteRequest:
     editing: bool = False
     target: str | None = None
     diagnostics: tuple = ()
+    operation_id: str | None = None
 
 
 def read_request(action, raw_data):
@@ -59,6 +60,16 @@ def read_request(action, raw_data):
         if set(request)!={'protocol','requestId','entries'}:
             raise ValueError('Unexpected diagnostic message data.')
         return PaletteRequest(request_id,diagnostics=validate_ui_entries(request['entries']))
+    if action in {'operations_list','operation_edit','operation_delete'}:
+        expected={'protocol','requestId'} | ({'operationId'} if action!='operations_list' else set())
+        if set(request)!=expected:raise ValueError('Unexpected operation request data.')
+        identity=request.get('operationId')
+        if identity is not None:
+            try:
+                if not isinstance(identity,str) or str(uuid.UUID(identity))!=identity:raise ValueError()
+            except (ValueError,AttributeError,TypeError):raise ValueError('Choose a saved Partelier operation.')
+        elif action!='operations_list':raise ValueError('Choose a saved Partelier operation.')
+        return PaletteRequest(request_id,operation_id=identity)
     snap = action.startswith("snap_")
     pattern = action.startswith("pattern_")
     tool_name = "pattern" if pattern else "snap-fit" if snap else "hinge"

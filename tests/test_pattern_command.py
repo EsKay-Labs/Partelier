@@ -142,6 +142,9 @@ class Runner:
 
 class PatternCommandTests(unittest.TestCase):
     def setUp(self):
+        from unittest.mock import patch
+        capture_patch=patch('Partelier.partelier.operations.capture')
+        self.capture_operation=capture_patch.start();self.addCleanup(capture_patch.stop)
         self.definitions = {}
         def add(identity, *arguments):
             value = NS(id=identity, isValid=True, commandCreated=Event(), execute=Mock(return_value=True))
@@ -167,7 +170,7 @@ class PatternCommandTests(unittest.TestCase):
             return True
         self.select_definition.execute=Mock(side_effect=activate_select)
         self.ui.commandDefinitions.itemById=lambda identity:self.select_definition if identity=='SelectCommand' else self.definitions.get(identity)
-        self.design = NS(isValid=True)
+        self.design = NS(isValid=True,timeline=NS(count=0))
         self.app = NS(userInterface=self.ui, activeProduct=self.design, documentDeactivating=Event(), log=Mock())
         self.app.registerCustomEvent=lambda identity:self.custom_events.setdefault(identity,Event())
         self.app.unregisterCustomEvent=lambda identity:self.custom_events.pop(identity,None)
@@ -439,6 +442,29 @@ class PatternCommandTests(unittest.TestCase):
         self.action(session,'pattern_cancel')
         self.assertFalse(self.custom_events)
         self.assertFalse(self.ui.activeSelectionChanged.handlers)
+
+    def test_escape_resets_native_face_set_without_finishing_or_computing(self):
+        session=self.begin();self.action(session,'pattern_focus',target='add_face')
+        picker=session.face_picker
+        reason=NS(CancelledTerminationReason='cancel',PreEmptedTerminationReason='preempt')
+        # Handler-bound module owns the fake core reference.
+        handler=next(h for h in self.ui.commandTerminated.handlers if hasattr(h,'picker'))
+        handler.notify.__globals__['core'].CommandTerminationReason=reason
+        handler.notify(NS(commandId='SelectCommand',terminationReason='preempt'))
+        self.assertTrue(session.faces)
+        handler.notify(NS(commandId='SelectCommand',terminationReason='cancel'))
+        self.drain_native()
+        self.assertEqual(session.faces,());self.assertIs(session.face_picker,picker)
+        self.assertFalse(session.snapshot()['canFinishFaces'])
+        self.fusion.prepare_pattern.assert_not_called()
+
+    def test_reset_invalidates_queued_preview_and_keeps_dimensions(self):
+        session=self.begin();settings=session.settings
+        self.action(session,'pattern_preview')
+        self.action(session,'pattern_reset')
+        self.assertEqual(session.faces,());self.assertEqual(session.settings,settings)
+        self.manager.runner.finish()
+        self.assertIsNone(session.preview);self.assertFalse(session.preview_current)
 
     def test_duplicate_native_picks_do_not_duplicate_sources(self):
         session=self.begin()

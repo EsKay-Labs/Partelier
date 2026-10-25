@@ -134,7 +134,7 @@ class SnapCommands:
         if errors:
             raise RuntimeError("Snap-fit cleanup needs another Stop attempt. " + str(errors[0]))
 
-    def begin_palette(self, settings_dict, editing=False):
+    def begin_palette(self, settings_dict, editing=False, selected_entity=None):
         if type(editing) is not bool:
             raise ValueError("Edit mode must be true or false.")
         settings = _launch_settings(settings_dict)
@@ -148,6 +148,9 @@ class SnapCommands:
         try:
             self._publish(session)
             selections = adsk.core.Application.get().userInterface.activeSelections
+            if editing and selected_entity is not None:
+                session.set_selection('edit_target',selected_entity)
+                return self._publish(session)
             if editing and selections.count == 1:
                 entity = selections.item(0).entity
                 if entity is not None and entity.isValid:
@@ -156,6 +159,7 @@ class SnapCommands:
             for target in (("edit_target",) if editing else SELECTIONS):
                 if not self._pick(session, target):
                     break
+            session.picking_target=None
             return self._publish(session)
         except Exception:
             session.close()
@@ -169,18 +173,19 @@ class SnapCommands:
         session.ensure_design()
         session.clear_preview()
         prompts = {
-            "face_a": ("Select the exterior base wall for the hook. Esc to stop picking.", "PlanarFaces"),
-            "face_b": ("Select the coplanar lid wall for the recess. Esc to stop picking.", "PlanarFaces"),
-            "axis_edge": ("Select the facing rim on the base or lid wall. A gap is supported. Esc to stop picking.", "Edges"),
-            "edit_target": ("Select a snap-fit body or a Part containing one snap-fit. Esc to stop picking.", "Occurrences,SolidBodies"),
+            "face_a": ("Select the exterior base wall for the hook. Esc resets all selections.", "PlanarFaces"),
+            "face_b": ("Select the coplanar lid wall for the recess. Esc resets all selections.", "PlanarFaces"),
+            "axis_edge": ("Select the facing rim on the base or lid wall. A gap is supported. Esc resets all selections.", "Edges"),
+            "edit_target": ("Select a snap-fit body or a Part containing one snap-fit. Esc resets all selections.", "Occurrences,SolidBodies,Features,Faces,Edges"),
         }
         if session.settings.snap_family == "annular":
             prompts.update({
-                "face_a": ("Select the outer cylinder on body A. Esc to stop picking.", "CylindricalFaces"),
-                "face_b": ("Select the matching inner cylinder on body B. Esc to stop picking.", "CylindricalFaces"),
-                "axis_edge": ("Select the complete circular rim on the outer cylinder A. Esc to stop picking.", "Edges"),
+                "face_a": ("Select the outer cylinder on body A. Esc resets all selections.", "CylindricalFaces"),
+                "face_b": ("Select the matching inner cylinder on body B. Esc resets all selections.", "CylindricalFaces"),
+                "axis_edge": ("Select the complete circular rim on the outer cylinder A. Esc resets all selections.", "Edges"),
             })
         prompt, filters = prompts[target]
+        session.picking_target=target
         session.phase = "selecting"
         session.message = prompt
         self._publish(session)
@@ -190,10 +195,16 @@ class SnapCommands:
             selection = None  # Fusion raises when the user presses Esc.
         session.ensure_design()
         if selection is None or selection.entity is None:
-            session.validate()
+            self._reset(session)
             return False
         session.set_selection(target, selection.entity)
         return True
+
+    def _reset(self,session):
+        session.revision=min(session.revision+1,1_000_000_000)
+        session.clear_preview();session.selections.clear();session.edit_target=None;session.edit_error=None
+        session.picking_target=None;session.phase='selecting'
+        session.message='Selection reset. Pick face A to start again. Dimensions kept.'
 
     def palette_action(self, action, session_id, revision=None, settings_dict=None, target=None):
         session = self._session
@@ -229,7 +240,12 @@ class SnapCommands:
                         self._pending = None
                         raise
             elif action == "snap_focus":
-                self._pick(session, target)
+                targets=('edit_target',) if session.editing else SELECTIONS
+                if target not in targets:raise ValueError('Choose a supported snap-fit selection.')
+                for current in targets[targets.index(target):]:
+                    if not self._pick(session,current):break
+                session.picking_target=None
+            elif action=='snap_reset':self._reset(session)
             elif action == "snap_cancel":
                 session.close()
             else:
@@ -237,6 +253,7 @@ class SnapCommands:
             return self._publish(session)
         except Exception as error:
             if not session.closed:
+                session.picking_target=None
                 session.phase = "error"
                 session.message = str(error)
                 self._publish(session)
@@ -253,6 +270,7 @@ class _Session:
         self.phase = "selecting"
         self.message = "Select snap-fit geometry."
         self.selections = {}
+        self.picking_target=None
         self.edit_target = None
         self.edit_error = None
         self.preview = None
@@ -278,7 +296,7 @@ class _Session:
             selections[key] = {"selected": bool(valid), "label": str(label)[:120]}
         return {"sessionId": self.session_id, "revision": self.revision, "phase": self.phase,
                 "editing": self.editing, "settings": self.settings.to_dict(),
-                "selections": selections, "message": self.message,
+                "selections": selections, "message": self.message,"pickingTarget":self.picking_target,
                 "previewCurrent": self.preview_current}
 
     def ensure_design(self):
@@ -404,10 +422,13 @@ class _Session:
             prepared, target = self.prepare()
             self.clear_preview()  # Restore source visibility before persistence snapshots.
             persist = time.perf_counter()
+            from ... import operations
+            start=self.design.timeline.count
             if self.editing:
-                rebuild_snap_fit(self.design, target, prepared)
+                anchor=rebuild_snap_fit(self.design, target, prepared)
             else:
-                create_snap_fit(self.design, prepared)
+                anchor=create_snap_fit(self.design, prepared)
+            operations.capture(self.design,anchor,'snap',self.settings.to_dict(),start,editing=self.editing)
             self._timings("rebuild" if self.editing else "create", prepared,
                           persistence_ms=(time.perf_counter() - persist) * 1000,
                           total_ms=(time.perf_counter() - started) * 1000)

@@ -30,7 +30,7 @@
  let sequence=0,hostRevision=-1,timer,poll,previewFlight=false,queued=false,queue=Promise.resolve(),helpTrigger,exampleKind;
  const active=()=>!!state.session?.sessionId&&!terminal.has(state.session.phase),identity=()=>active()?state.session.sessionId:null;
  const other=()=>!!window.PartelierHingeActive||!!window.PartelierSnap?.isActive()||!!window.PartelierSnap?.isBusy()||!!window.PartelierPatterns?.isActive()||!!window.PartelierPatterns?.isBusy();
- const ready=()=>!!identity()&&!!state.session?.selections?.surface?.selected;
+ const ready=()=>!state.session?.pickingTarget&&!!identity()&&!!state.session?.selections?.surface?.selected;
  const valid=()=>$("detail-settings").checkValidity();
  const current=()=>active()&&state.session.phase==="preview"&&state.session.revision===state.revision&&state.session.previewCurrent&&!state.error;
  const message=(text,error=false)=>{$("detail-message").textContent=text;$("detail-message").classList.toggle("error",error);};
@@ -99,11 +99,13 @@
   const targets=state.session?.editing?[["edit_target","Existing detail"]]:labels;
   $("detail-selections").replaceChildren(...targets.map(([target,caption])=>{
    const button=document.createElement("button");button.type="button";button.id="detail-pick-"+target;button.className="selection-button";
-   const picked=state.session?.selections?.[target];button.textContent=`${caption} · ${picked?.selected?"✓ "+(picked.label||"Selected"):"Pick"}`;
-   button.classList.toggle("is-selected",!!picked?.selected);button.disabled=!supported||!identity()||state.busy||opening;
-   button.addEventListener("click",()=>run(async()=>{await action("detail_focus",{target});schedule();}));return button;
+   const picked=state.session?.selections?.[target];button.textContent=`${caption} · ${target===state.session?.pickingTarget?"Select in Fusion now":picked?.selected?"✓ "+(picked.label||"Selected"):"Click to select"}`;
+   button.classList.toggle("is-selected",!!picked?.selected);button.disabled=!supported||state.busy||opening;
+   window.PartelierSelectionUI?.decorate(button,targets.findIndex(([name])=>name===target),target,state.session,targets.map(([name])=>name));
+   button.addEventListener("click",()=>run(async()=>{if(!identity())await begin(false);else await action("detail_focus",{target});schedule();}));return button;
   }));
-  $("detail-selection-help").textContent=kind==="ribs"?"Select two perpendicular faces sharing a straight inside-corner edge on one body.":"Select the base rim/face and the lid inside face on two separate bodies, facing each other.";
+  $("detail-selection-help").textContent=state.session?.editing?"Saved operation loaded. Change dimensions, then Rebuild detail. Reset clears only this temporary selection.":kind==="ribs"?"1 · Inside wall A → 2 · Floor B. One body, inside corner 90°. Next step opens automatically. Esc resets selections.":"1 · Base rim A → 2 · Lid underside B. Two bodies, facing each other. Next step opens automatically. Esc resets selections.";
+  window.PartelierSelectionUI?.resetControl($("detail-selections"),"detail",!!identity()&&!state.busy);
   $("detail-availability").hidden=supported;$("detail-availability").textContent=state.connected?"Stop and Run Partelier to enable Small details.":"Open Partelier in Fusion to select geometry.";
   $("begin-detail-button").hidden=active();$("begin-detail-button").disabled=!supported||!valid()||state.busy||active()||other();
   $("edit-detail-button").disabled=!supported||!state.caps.has("detail-edit")||state.busy||active()||other();
@@ -148,17 +150,19 @@
   state.settings[input.name]=input.name==="rib_style"?input.value:Number(input.value);
   state.revision++;state.error=false;render();message(valid()?"Updating live preview…":"Check the highlighted dimensions. Showing the previous valid preview.",!valid());schedule();
  });
- $("begin-detail-button").addEventListener("click",()=>run(async()=>{state.expecting=true;try{hostRevision=-1;await send("detail_begin",{settings:clone(state.settings),editing:false});}finally{state.expecting=false;}schedule();}));
- $("edit-detail-button").addEventListener("click",()=>run(async()=>{state.expecting=true;try{hostRevision=-1;await send("detail_begin",{settings:{...defaults,kind:state.settings.kind},editing:true});}finally{state.expecting=false;}schedule();}));
+ async function begin(editing){state.expecting=true;try{hostRevision=-1;await send("detail_begin",{settings:editing?{...defaults,kind:state.settings.kind}:clone(state.settings),editing});}finally{state.expecting=false;}schedule();}
+ $("begin-detail-button").addEventListener("click",()=>run(()=>begin(false)));
+ $("edit-detail-button").addEventListener("click",()=>run(()=>begin(true)));
  $("retry-detail-button").addEventListener("click",()=>refresh());
  $("cancel-detail-button").addEventListener("click",()=>run(async()=>{clearTimeout(timer);queued=false;await action("detail_cancel");}));
  $("create-detail-button").addEventListener("click",()=>run(()=>action("detail_commit")));
  $("detail-help-close").addEventListener("click",()=>$("detail-help-dialog").close());
  $("detail-help-dialog").addEventListener("close",()=>helpTrigger?.focus());
+ window.PartelierSelectionUI?.register('detail',{active,busy:()=>state.busy,reset:()=>run(async()=>{clearTimeout(timer);queued=false;await action('detail_reset');})});
  window.PartelierDetails=Object.freeze({
   matches:id=>Object.hasOwn(titles,id),isActive:active,isBusy:()=>state.busy,
   select(id){const selected=Object.hasOwn(titles,id);if(selected&&!active()&&state.alias!==id){state.settings={...defaults,kind:id};state.revision=0;sync();}state.selected=selected;state.alias=selected?id:null;render();},
-  connect(response){state.connected=true;state.caps=new Set(response.capabilities||[]);if(response.detailState)apply(response.detailState);render();return active()?state.settings.kind:null;},
+  connect(response){state.connected=true;state.caps=new Set(response.capabilities||[]);if(response.detailState)apply(response.detailState);render();if(ready()&&state.session.phase==="ready")schedule();return active()?state.settings.kind:null;},
   handle(actionName,raw){if(actionName!=="detail_state")return false;const accepted=apply(JSON.parse(raw));if(accepted&&ready()&&state.session.phase==="ready")schedule();return true;}
  });
  render();

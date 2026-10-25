@@ -87,6 +87,7 @@ class PaletteLifecycleTests(unittest.TestCase):
         application = SimpleNamespace(userInterface=self.ui, log=self.logs.append)
         core = ModuleType("adsk.core")
         core.CommandCreatedEventHandler = object
+        core.CommandEventHandler = object
         core.HTMLEventHandler = object
         core.Application = SimpleNamespace(get=lambda: application)
         core.PaletteDockingStates = SimpleNamespace(PaletteDockStateRight="right")
@@ -141,7 +142,7 @@ class PaletteLifecycleTests(unittest.TestCase):
     def test_ready_is_read_only_and_only_explicit_diagnostic_request_launches(self):
         reply = json.loads(self.library.handle_message("ready", self.request))
         self.assertEqual(reply["requestId"], "ui-7")
-        self.assertEqual(reply["capabilities"], ["input-check"])
+        self.assertEqual(reply["capabilities"], ["input-check","operation-history"])
         self.assertEqual(self.diagnostic.execution_count, 0)
         self.library.handle_message("open_input_check", self.request)
         self.assertEqual(self.diagnostic.execution_count, 1)
@@ -505,6 +506,26 @@ class PaletteLifecycleTests(unittest.TestCase):
         self.assertEqual(manager.palette_action.call_args.args,('detail_update',sid))
         self.assertEqual(manager.palette_action.call_args.kwargs['settings_dict'],values)
         self.assertEqual(manager.palette_action.call_args.kwargs['revision'],3)
+
+
+    def test_saved_operation_opens_exact_anchor_without_model_picking(self):
+        manager=self.detail_manager();anchor=object();identity='2283a222-c522-4261-bb52-6a84ea612565'
+        design=object();fake_native=SimpleNamespace(Design=SimpleNamespace(cast=lambda value:design))
+        fake_adsk=ModuleType('adsk');fake_adsk.core=self.module.adsk.core;fake_adsk.fusion=fake_native
+        self.module.adsk.core.Application.get().activeProduct=design
+        record={'id':identity,'tool':'detail','alias':'lid','anchor':anchor}
+        with patch.dict('sys.modules',{'adsk':fake_adsk,'adsk.fusion':fake_native}),patch.object(self.module.operations,'resolve',return_value=record),patch.object(self.module.operations,'snapshot',return_value=[]),patch.object(self.module.operations,'expand'):
+            result=json.loads(self.library.handle_message('operation_edit',json.dumps({'protocol':1,'requestId':'open','operationId':identity})))
+        self.assertEqual(result['operationAlias'],'lid')
+        self.assertEqual(manager.begin_palette.call_args.kwargs,{'editing':True,'selected_entity':anchor})
+
+    def test_operation_edit_respects_other_preview_owner(self):
+        self.detail_manager({'sessionId':'active','phase':'preview'})
+        identity='2283a222-c522-4261-bb52-6a84ea612565';fake_native=SimpleNamespace(Design=SimpleNamespace(cast=lambda value:object()))
+        fake_adsk=ModuleType('adsk');fake_adsk.core=self.module.adsk.core;fake_adsk.fusion=fake_native
+        self.module.adsk.core.Application.get().activeProduct=object()
+        with patch.dict('sys.modules',{'adsk':fake_adsk,'adsk.fusion':fake_native}),self.assertRaisesRegex(ValueError,'current Small detail'):
+            self.library.handle_message('operation_edit',json.dumps({'protocol':1,'requestId':'open','operationId':identity}))
 
 
 if __name__ == "__main__":

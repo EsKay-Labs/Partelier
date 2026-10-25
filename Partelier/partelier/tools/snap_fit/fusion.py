@@ -477,6 +477,8 @@ def _read_recipe(anchor, record):
 
 
 def read_edit_target(design, selected_entity):
+    from ... import operations
+    operations.expand(design)
     _main_thread()
     record = STORE.read(design, selected_entity)
     recipe, settings = _read_recipe(record.anchor, record)
