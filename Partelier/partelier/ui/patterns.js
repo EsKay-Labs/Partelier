@@ -3,7 +3,7 @@
 // One pattern session serves the honeycomb, perforation and texture presets.
 (() => {
     const $ = id => document.getElementById(id);
-    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3 });
+    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3, mount_mode: "off", mount_screw: "M4", mount_clearance_mm: .3, mount_head_extra_percent: 10, mount_head_mm: 0, mount_inset_mm: 0 });
     const presets = { honeycomb: { pattern: "hexagon", mode: "through" }, perforation: { pattern: "circle", mode: "through" }, knurl: { pattern: "diamond", mode: "emboss" }, grilles: { pattern: "grille_parallel", mode: "through", layout_mode: "fill", pitch_mm: 7, web_mm: 2, border_mm: 7, edge_mode: "clip", rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0 } };
     const choices = {
         pattern: [["hexagon", "Hexagons"], ["rounded_hexagon", "Rounded hexagons"], ["elongated_hexagon", "Elongated hexagons"],
@@ -16,6 +16,8 @@
         density: [["sparse", "Sparse"], ["balanced", "Balanced"], ["dense", "Dense"]],
         size_locked: [["false", "Automatic"], ["true", "Custom size"]],
         grille_profile: [["flat", "Flat · within the wall"], ["raised", "Raised · back to bed"], ["chamfer", "Raised + chamfer · back to bed"]],
+        mount_mode: [["off", "Off"], ["plain", "4 plain holes"], ["countersink", "4 countersunk holes · 90°"]],
+        mount_screw: [["M3","M3"],["M4","M4"],["M5","M5"],["M6","M6"]],
         selection_scope: [["faces", "Selected faces"], ["body", "Whole body"]],
         edge_mode: [["clip", "Clip at border"], ["whole", "Whole cells only"]]
     };
@@ -149,6 +151,20 @@
         }
         for (const name of ["mode","layout_mode","edge_mode"]) { const input=$("pattern-"+name); input.parentElement.hidden=isGrille; }
         const raised=isGrille && state.settings.grille_profile!=="flat";
+        const mounting=isGrille && state.settings.mount_mode!=="off";
+        $("pattern-mounting").hidden=!isGrille;
+        $("pattern-mount_mode").parentElement.classList.toggle("full-width-parameter",true);
+        $("pattern-mount_screw").parentElement.hidden=!mounting;
+        $("pattern-mount-options").hidden=!mounting;
+        $("pattern-mount-summary").hidden=!mounting;
+        if(mounting) {
+            const sizes={M3:[3,6.72],M4:[4,8.96],M5:[5,11.2],M6:[6,13.44]},size=sizes[state.settings.mount_screw];
+            const hole=size?.[0]+state.settings.mount_clearance_mm,head=(state.settings.mount_head_mm || size?.[1])*(1+state.settings.mount_head_extra_percent/100);
+            const inset=state.settings.mount_inset_mm || head/2+1.7,fmt=value=>Number(value.toFixed(2));
+            $("pattern-mount-summary").textContent=Number.isFinite(hole+head+inset)
+                ? `4 corners · Ø${fmt(hole)} mm`+(state.settings.mount_mode==="countersink"?` · 90° seat Ø${fmt(head)} mm · depth ${fmt((head-hole)/2)} mm`:"")+` · centre inset ${fmt(inset)} mm. Preview checks the plate thickness and frame.`
+                : "Check the mounting settings.";
+        }
         $("pattern-grille_profile").parentElement.hidden=!isGrille;
         $("pattern-grille_profile").parentElement.classList.toggle("full-width-parameter",isGrille);
         $("pattern-grille_height_mm").parentElement.hidden=!raised;
@@ -161,7 +177,7 @@
             state.settings.depth_mm = defaults.depth_mm; depth.value = defaults.depth_mm; depth.setCustomValidity("");
         }
         $("pattern-selection_scope").disabled = committing || editing();
-        if(raised) $("pattern-selection_scope").disabled=true;
+        if(raised || mounting) $("pattern-selection_scope").disabled=true;
         $("pattern-scope-note").hidden = !editing();
         for (const name of ["density", "size_locked"]) {
             const control = $("pattern-"+name); control.parentElement.hidden = state.settings.layout_mode !== "auto";
@@ -214,6 +230,8 @@
         }
         $("pattern-selection-help").textContent = picking ? "Click sides to add them. Selected faces stay blue. Done updates preview. Clear selection starts over." : editing() ? "Pick a saved Partelier pattern." : body ? "Pick one body. Preview updates automatically." : picked?.selected ? "Add faces keeps your selection. Click more sides, then Done to update preview." : "Select all the sides you need, then Done to preview.";
         $("pattern-selection-help").hidden = (editing() || body) && !!identity() && selected() && !(state.busy && state.session?.phase === "selecting");
+        if(grille() && (state.settings.grille_profile!=="flat" || state.settings.mount_mode!=="off") && !editing())
+            $("pattern-selection-help").textContent="Select one rectangular plate face, then Done. The opposite flat back rests on the bed.";
         $("begin-pattern-button").textContent = body ? "Select body" : "Select faces";
     }
     function render() {
@@ -363,14 +381,14 @@
         const rect = event.target.getBoundingClientRect();
         if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.target.close();
     });
-    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["grille_profile", "Profile", "pattern-design-fields"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Layout", "pattern-size-fields"], ["density", "Density", "pattern-size-fields"], ["size_locked", "Size", "pattern-size-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"], ["edge_mode", "Edge cells", "pattern-scope-fields"]]) {
+    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["grille_profile", "Profile", "pattern-design-fields"], ["mount_mode", "Mounting holes", "pattern-mount-controls"], ["mount_screw", "Screw size", "pattern-mount-controls"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Layout", "pattern-size-fields"], ["density", "Density", "pattern-size-fields"], ["size_locked", "Size", "pattern-size-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"], ["edge_mode", "Edge cells", "pattern-scope-fields"]]) {
         const item = document.createElement("div"); item.className = "parameter-item";
         const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
         const input = document.createElement("select"); input.id = `pattern-${name}`; input.name = name; input.required = true;
         for (const [value, text] of choices[name]) { const option = document.createElement("option"); option.value = value; option.textContent = text; input.append(option); }
         input.value = defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
     }
-    for (const [container, fields] of [["pattern-size-fields", [["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Border"], ["depth_mm", "Relief height"], ["louver_angle_deg", "Louver tilt (°)"], ["grille_height_mm", "Height above face (mm)"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
+    for (const [container, fields] of [["pattern-size-fields", [["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Border"], ["depth_mm", "Relief height"], ["louver_angle_deg", "Louver tilt (°)"], ["grille_height_mm", "Height above face (mm)"]]], ["pattern-mount-fields", [["mount_clearance_mm","Hole allowance (mm)"],["mount_head_extra_percent","Head allowance (%)"],["mount_head_mm","Head Ø · 0 = Auto (mm)"],["mount_inset_mm","Edge to centre · 0 = Auto (mm)"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
         for (const [name, caption] of fields) {
             const item = document.createElement("div"); item.className = "parameter-item";
             const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
@@ -378,6 +396,7 @@
             if (!signed.has(name)) input.min = "0";
             if (name === "louver_angle_deg") input.max="60";
             if (name === "grille_height_mm") {input.min="0.2";input.max="20";}
+            if (name.startsWith("mount_")) input.max=({mount_clearance_mm:2,mount_head_extra_percent:30,mount_head_mm:40,mount_inset_mm:1000})[name];
             input.value = name === "cell_size_mm" ? defaults.pitch_mm-defaults.web_mm : defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
             if(name==="rotation_deg") {
                 const presets=document.createElement("div");presets.id="grille-direction-presets";presets.className="grille-direction-presets";presets.setAttribute("role","group");presets.setAttribute("aria-label","Grille direction presets");
@@ -405,7 +424,7 @@
         if (input.name === "selection_scope" && editing()) { input.value = state.settings.selection_scope; message("Create a new pattern to change between selected faces and a whole body.", true); return; }
         if (input.id === "pattern-cell_size_mm") { /* Derived locally; the host retains its strict snapshot contract. */ }
         else if (input.type === "number") {
-            const value = Number(input.value), zeroAllowed = ["border_mm","louver_angle_deg"].includes(input.name);
+            const value = Number(input.value), zeroAllowed = ["border_mm","louver_angle_deg","mount_clearance_mm","mount_head_extra_percent","mount_head_mm","mount_inset_mm"].includes(input.name);
             const okay = input.value.trim() !== "" && Number.isFinite(value) && (signed.has(input.name) || (zeroAllowed ? value >= 0 : value > 0));
             if (input.name === "web_mm" && sized && okay && $("pattern-cell_size_mm").checkValidity()) {
                 state.settings.pitch_mm = Number((Number($("pattern-cell_size_mm").value)+value).toFixed(6));
@@ -429,7 +448,7 @@
                 $("pattern-pitch_mm").value = state.settings.pitch_mm;
             }
             state.settings[input.name] = input.name === "size_locked" ? input.value === "true" : input.value;
-            if(input.name==="grille_profile" && input.value!=="flat" && !editing()) {
+            if((input.name==="grille_profile" && input.value!=="flat" || input.name==="mount_mode" && input.value!=="off") && !editing()) {
                 state.settings.selection_scope="faces"; $("pattern-selection_scope").value="faces";
             }
         }
@@ -467,5 +486,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.15.0" }); renderArt(); render();
+    trace("boot", { build:"0.16.0" }); renderArt(); render();
 })();

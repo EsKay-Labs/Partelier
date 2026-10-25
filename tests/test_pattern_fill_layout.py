@@ -107,4 +107,4 @@ class PatternFillLayoutTests(unittest.TestCase):
         for mode in ('balanced','fill','fit','fixed'):
             settings = PatternSettings(layout_mode=mode)
             self.assertEqual(PatternSettings.from_dict(settings.to_dict()), settings)
-            self.assertEqual(len(settings.to_dict()),17)
+            self.assertEqual(len(settings.to_dict()),23)

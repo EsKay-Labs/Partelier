@@ -6,6 +6,42 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.16.0 optional grille mounting
+
+Fusion MCP checks on Fusion 2705.1.30 pass **19 isolated cases**: M4 Plain and
+90-degree countersinks on Flat/Raised/Chamfered bar, grid and louver outputs;
+M3/M5 countersinks, M6 Plain, a measured 8 mm head with +10%, and the
+Off -> Plain -> Countersunk -> Off Edit cycle. Both the generic 196-opening grid
+and the specialized **225-opening dense grid** pass mounting Create/Edit/Rebuild.
+Thin plates, undersized plates and invalid edge insets are explicitly refused
+without changing the fixture. Two unmounted raised cases check the shared plate
+inspection extraction. Every call discards its own unsaved document and verifies
+the caller document, active component and model snapshot are unchanged; the camera
+is restored. The same original body/name and owned history counts are retained.
+
+Independent radial material samples check all four back bores and, for countersinks,
+both sides of the conical wall at half depth. The product also checks complete
+analytic per-hole removed volumes. Cached STL preview upload/cleanup passes on
+plain, countersunk and raised-louver cases. A native image of the final chamfered
+louver with countersunk corner mounts was inspected. Initial circular support
+regions left thin fin remnants, so final mounting uses solid corner blocks;
+the full passing matrix uses that final geometry. An internal square-layout
+settings conflict was also corrected before the final matrix.
+
+Local checks pass **984 Python tests**, three Node UI suites, compilation and
+whitespace checks. Headless Edge at 300/380/520 px checks nine type/profile
+combinations, four-corner diagrams, dimension summaries, custom heads, all six
+illustrated help controls, optional-field visibility and horizontal overflow.
+Source fingerprints and measurements:
+[grille-mounting-0.16.0.json](validation/grille-mounting-0.16.0.json).
+
+Mounting is limited to four corners of one rectangular uniform plate, Border
+>=1 mm and separated support blocks. Countersinks keep at least 0.2 mm straight
+bore beneath the cone. The head allowance is applied to a named catalogue preset
+or measured head diameter, independently of hole clearance. Printing, actual screw
+fit, strength, full async selection/orbit, save/reopen and Undo/Redo were not tested.
+Dense grids larger than 225 openings were not repeated for this increment.
+
 ## 0.15.0 raised grilles, back to bed
 
 The opt-in Fusion MCP add-in at localhost:9100 was inspected and used through

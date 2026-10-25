@@ -15,7 +15,9 @@ def build_layout(settings,bounds,period_u_mm,max_cells,accept):
     if type(max_cells) is not int or not 1<=max_cells<=200:
         raise ValueError('The grille face budget must be between 1 and 200 openings.')
     if settings.pattern=='grille_cross':
-        return common(replace(settings,pattern='square'),bounds,None,max_cells=max_cells,accept=accept)
+        # Mounting is applied once to the finished grille, not to its internal
+        # square-layout settings (which intentionally are not a grille type).
+        return common(replace(settings,pattern='square',mount_mode='off'),bounds,None,max_cells=max_cells,accept=accept)
     if (len(bounds)!=4 or not all(math.isfinite(value) for value in bounds)
             or bounds[1]<=bounds[0] or bounds[3]<=bounds[2]):
         raise ValueError('Select a finite planar grille region.')

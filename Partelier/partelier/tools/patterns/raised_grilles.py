@@ -8,37 +8,24 @@ from . import profile_loft
 from .planner import Cell,PatternDensityError,build_layout
 
 
-def prepare(design,faces,settings,body,signature,tokens,started,*,historical=False):
+def prepare(design,faces,settings,body,signature,tokens,started,*,historical=False,plate=None):
     from . import fusion as a
-    from .grilles import prepare_louver_face
-    from .prism import prism
+    from .flat_plate import inspect
     if len(faces)!=1 or settings.selection_scope!='faces' or settings.border_mm<.5:
         raise ValueError('Raised grilles need one rectangular plate face and Border at least 0.5 mm. Its back prints on the bed.')
-    face=faces[0]
     flat=replace(settings,grille_profile='flat',pattern='grille_parallel' if settings.pattern=='grille_louver' else settings.pattern)
-    context=prepare_louver_face(face,flat)
-    chart=a.SurfaceMap(face)
+    plate=plate or inspect(design,faces,flat,body)
+    chart=plate.chart
     lo,hi,bottom,top=chart.bounds
     origin=chart.sample((lo+hi)/2,(bottom+top)/2)
-    frame=a.hinge.HingeFrame(origin.point_mm,origin.tangent_u,origin.normal,a.hinge._cross(origin.tangent_u,origin.normal))
-    def local(point):
-        delta=a._sub(point,frame.origin_mm)
-        return (a._dot(delta,frame.x_axis),a._dot(delta,frame.z_axis))
+    frame=plate.frame
+    local=plate.local
     def ccw(polygon):
         polygon=tuple(polygon)
         return polygon if sum(p[0]*q[1]-q[0]*p[1] for p,q in zip(polygon,polygon[1:]+polygon[:1]))>0 else tuple(reversed(polygon))
-    outer=ccw(local(chart.sample(u,v).point_mm) for u,v in ((lo,bottom),(hi,bottom),(hi,top),(lo,top)))
+    outer=plate.outer
     _,native=a._api();manager=native.TemporaryBRepManager.get()
-    thickness=a._wall(design,body,origin.point_mm,origin.normal)[0]
-    plate=prism(frame,outer,-thickness,0)
-    material=a._copy(manager,plate)
-    a._boolean(manager,material,body,native.BooleanTypes.IntersectionBooleanType,'Select a solid flat-backed rectangular plate.')
-    expected=float(plate.volume)
-    # Full-volume equality rules out holes, stepped backs, internal ribs and
-    # other solids below/above the selected plate, not just sampled ray misses.
-    if (abs(float(material.volume)-expected)>max(1e-8,expected*1e-7)
-            or abs(float(body.volume)-expected)>max(1e-8,expected*1e-7)):
-        raise ValueError('Raised profiles require a rectangular plate of uniform thickness with a flat back. Use Flat for other bodies.')
+    thickness=plate.thickness_mm
     inner=(lo+settings.border_mm,hi-settings.border_mm,bottom+settings.border_mm,top-settings.border_mm)
     if inner[1]<=inner[0] or inner[3]<=inner[2]:
         raise ValueError('Border leaves no grille region. Reduce Border.')
@@ -70,7 +57,7 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
                                 'first_exit_mm':thickness,'next_entry_mm':None})
     layout=replace(layout,cells=tuple(cells))
     height=settings.grille_height_mm
-    slope=(a._dot(context.across,frame.x_axis),a._dot(context.across,frame.z_axis)) if settings.pattern=='grille_louver' else (0.,0.)
+    slope=(a._dot(plate.across,frame.x_axis),a._dot(plate.across,frame.z_axis)) if settings.pattern=='grille_louver' else (0.,0.)
     cap=min(.6,height/2,settings.web_mm/4,settings.border_mm/4) if settings.grille_profile=='chamfer' else 0.
     # Retain a flat reveal around the raised frame. Angled fins need extra
     # room in the frame for their sideways rise; never enlarge the footprint.

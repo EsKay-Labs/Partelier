@@ -719,3 +719,37 @@ The opt-in Fusion MCP at localhost:9100 is available at
 discards its own unsaved fixture document, and restores the caller document,
 component and camera. It does not control the mouse or modify the MCP add-in.
 The existing validation bridge remains available for its broader async scenarios.
+
+## Optional grille mounting (0.16.0)
+
+`mounting.plan` is a pure bounded four-corner layout. It separates diametral bore
+allowance from percentage head allowance, supports a measured head override,
+and proves head clearance, corner-block separation, frame connection and remaining straight
+bore before native pattern work. Default M4 is 4.3 mm bore and an ISO 10642
+catalogue head envelope enlarged by 10%, retaining the 90-degree seat angle.
+The source catalogue and exact interpretation are recorded in `docs/grilles.md`.
+
+`flat_plate.inspect` now supplies the shared rectangular plate/frame/material
+proof for Raised and optional mounting. `fusion.prepare_pattern` preflights this
+once when mounting is enabled and passes it into Raised; Off takes its original
+dispatch path. Crossed grid's temporary square-layout settings explicitly disable
+mounting, which is applied only once to the complete grille. No Fusion API moves
+off the main thread and no persistent cache is introduced.
+
+`mounting.apply` owns a result copy. Four rectangular corner blocks intersect only the
+original plate and restore solid material where vent openings would conflict
+with fasteners. Their complete analytic volumes are checked before union. For
+raised output, four vertical tools clear material above the seating lands to the
+original front face. Four through cylinders and optional 90-degree conical tools
+remove exact bores/seats. Independent per-hole volume checks verify the complete
+expected cylinder/frustum subtraction; intermediate and final results must remain
+one connected solid. Original sources are never Boolean targets. Vent diagnostics
+inside filled lands are discarded. Work is constant in the four-hole count;
+kernel cost still depends on the grille topology.
+
+Flat mounting remains within the original source and uses existing Cut history.
+Raised mounting uses the existing full-shape history. Settings recipe 7 preserves
+the exact schemas of versions 1–6 and injects mounting Off without rewriting on
+read. New controls are restricted to the grille tool, with additional settings
+collapsed by default. The illustrative four-corner overlay is independent of
+the live CAD preview and is not a measurement view.

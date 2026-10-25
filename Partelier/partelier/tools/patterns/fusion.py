@@ -6,7 +6,7 @@ to the first wall using parallel ray witnesses and a single-lump intersection.
 The caller owns command rollback, persistence, and preview visibility leases.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import math
 import threading
 import time
@@ -492,7 +492,7 @@ def _band(design, face, sample, settings):
             raise RuntimeError("Could not clean the temporary depth band; roll back this command. " + "; ".join(cleanup_errors))
 
 
-def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
+def _prepare_pattern_impl(design, faces, settings, *, _historical=False, _plate=None):
     """Prepare the full result, inside the caller's owned native transaction."""
     settings.validate()
     started = time.perf_counter()
@@ -502,7 +502,7 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False):
     _trace_geometry("source_read.end",face_count=len(faces))
     if settings.pattern.startswith('grille_') and settings.grille_profile!='flat':
         from .raised_grilles import prepare
-        return prepare(design,faces,settings,body,signature,tokens,started,historical=_historical)
+        return prepare(design,faces,settings,body,signature,tokens,started,historical=_historical,plate=_plate)
     _trace_geometry("mapping.begin",face_count=len(faces),layout_mode=settings.layout_mode)
     try:
         mapped, layouts = _mapped_cells(faces, settings, _return_layouts=True)
@@ -650,7 +650,22 @@ def prepare_pattern(design, faces, settings, *, _historical=False):
         mode=getattr(settings,"mode",None),pattern=getattr(settings,"pattern",None),
         pitch_mm=getattr(settings,"pitch_mm",None),layout_mode=getattr(settings,"layout_mode",None),historical=_historical)
     try:
-        prepared=_prepare_pattern_impl(design,faces,settings,_historical=_historical)
+        if settings.mount_mode!='off':
+            from . import mounting,flat_plate
+            mount_started=time.perf_counter()
+            settings.validate()
+            sources,body=_selection(design,faces,_historical)
+            plate=flat_plate.inspect(design,sources,settings,body)
+            bounds=tuple(value for axis in (0,1) for value in (min(p[axis] for p in plate.outer),max(p[axis] for p in plate.outer)))
+            mount=mounting.plan(settings,bounds,plate.thickness_mm)
+            preflight_ms=(time.perf_counter()-mount_started)*1000
+            prepared=_prepare_pattern_impl(design,sources,settings,_historical=_historical,_plate=plate)
+            prepared=mounting.apply(prepared,plate,mount)
+            validate_sources(prepared,_historical=_historical)
+            prepared=replace(prepared,timings={**prepared.timings,'mount_preflight_ms':preflight_ms,
+                'total_ms':(time.perf_counter()-mount_started)*1000})
+        else:
+            prepared=_prepare_pattern_impl(design,faces,settings,_historical=_historical)
     except Exception as error:
         _trace_geometry("prepare.error",error_type=type(error).__name__,error=_trace_error(error))
         raise

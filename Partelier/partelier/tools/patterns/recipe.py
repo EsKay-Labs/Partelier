@@ -36,7 +36,7 @@ def _parse(raw,record):
     except (ValueError,TypeError) as error:
         raise ValueError("The saved pattern recipe is damaged.") from error
     if (not isinstance(value,dict) or set(value)!={"version","tool","feature_id","settings","sources"}
-            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5,6)
+            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5,6,7)
             or value['tool']!='surface_pattern' or value['feature_id']!=record.feature_id):
         raise ValueError("The saved pattern recipe has an unsupported structure.")
     sources=value['sources']
@@ -46,30 +46,21 @@ def _parse(raw,record):
             or not all(isinstance(token,str) and 0<len(token)<=16384 for token in sources['faces'])
             or len(set(sources['faces']))!=len(sources['faces'])):
         raise ValueError("The saved pattern face references are damaged.")
-    supplied=value['settings']
-    if value['version'] in (1,2,3):
-        legacy_fields=set(PatternSettings().to_dict())-{'density','size_locked','louver_angle_deg','grille_profile','grille_height_mm'}
-        if value['version']<3:legacy_fields-={'edge_mode'}
-        if value['version']==1:legacy_fields-={'layout_mode'}
-        if not isinstance(supplied,dict) or set(supplied)!=legacy_fields:
-            raise ValueError("The saved legacy pattern settings are damaged.")
-        if supplied.get('layout_mode') not in (None,'fixed','fit','fill','balanced'):
-            raise ValueError('The saved legacy layout is unsupported.')
-        settings=PatternSettings.from_dict({**supplied,**({'layout_mode':'fixed'} if value['version']==1 else {}),
-            **({'edge_mode':'whole'} if value['version']<3 else {}),'density':'balanced','size_locked':False,'louver_angle_deg':45,
-            'grille_profile':'flat','grille_height_mm':3})
-    elif value['version']==4:
-        expected=set(PatternSettings().to_dict())-{'louver_angle_deg','grille_profile','grille_height_mm'}
-        if not isinstance(supplied,dict) or set(supplied)!=expected:
-            raise ValueError('The saved pattern settings are damaged.')
-        settings=PatternSettings.from_dict({**supplied,'louver_angle_deg':45,'grille_profile':'flat','grille_height_mm':3})
-    elif value['version']==5:
-        expected=set(PatternSettings().to_dict())-{'grille_profile','grille_height_mm'}
-        if not isinstance(supplied,dict) or set(supplied)!=expected:
-            raise ValueError('The saved pattern settings are damaged.')
-        settings=PatternSettings.from_dict({**supplied,'grille_profile':'flat','grille_height_mm':3})
-    else:
-        settings=PatternSettings.from_dict(supplied)
+    supplied=value['settings'];defaults=PatternSettings().to_dict();injected={}
+    # Exact schemas remain distinct. Inject only fields absent in that version;
+    # a legacy recipe carrying a newer field is damaged, not a partial upgrade.
+    introduced={2:{'layout_mode':'fixed'},3:{'edge_mode':'whole'},
+        4:{'density':'balanced','size_locked':False},5:{'louver_angle_deg':45},
+        6:{'grille_profile':'flat','grille_height_mm':3},
+        7:{name:defaults[name] for name in ('mount_mode','mount_screw','mount_clearance_mm',
+            'mount_head_extra_percent','mount_head_mm','mount_inset_mm')}}
+    for version,fields in introduced.items():
+        if value['version']<version:injected.update(fields)
+    if not isinstance(supplied,dict) or set(supplied)!=set(defaults)-set(injected):
+        raise ValueError('The saved pattern settings are damaged.')
+    if value['version']<=3 and supplied.get('layout_mode') not in (None,'fixed','fit','fill','balanced'):
+        raise ValueError('The saved legacy layout is unsupported.')
+    settings=PatternSettings.from_dict({**injected,**supplied})
     if value['version']<5 and (settings.mode=='inlay' or settings.pattern.startswith('grille_')):
         raise ValueError('The saved legacy pattern mode is unsupported.')
     return value,settings
@@ -143,7 +134,7 @@ def validate_preview_sources(prepared, *, make_cut=False):
 
 
 def _save(anchor,record,prepared):
-    value={'version':6,'tool':'surface_pattern','feature_id':record.feature_id,
+    value={'version':7,'tool':'surface_pattern','feature_id':record.feature_id,
            'settings':prepared.settings.to_dict(),'sources':prepared.source_tokens}
     raw=json.dumps(value,separators=(',',':'))
     _parse(raw,record)

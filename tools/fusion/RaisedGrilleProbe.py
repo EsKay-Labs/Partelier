@@ -24,6 +24,22 @@ def snapshot(design):
                   for b in design.rootComponent.bRepBodies]}
 
 
+def mounting_witnesses(adapter,body,settings,width,depth,thickness,timings):
+    """Independent radial samples at the back bore and half-depth cone."""
+    inset=timings['mount_inset_mm'];radius=timings['mount_hole_diameter_mm']/2
+    sink=timings['mount_countersink_depth_mm'];head=timings['mount_head_diameter_mm']/2
+    for x in (-width/2+inset,width/2-inset):
+        for y in (-depth/2+inset,depth/2-inset):
+            assert not adapter._containment(body,(x+radius-.04,y,.08))
+            assert adapter._containment(body,(x+radius+.04,y,.08))
+            if sink:
+                at=thickness-sink/2;edge=(radius+head)/2
+                assert not adapter._containment(body,(x+edge-.04,y,at))
+                assert adapter._containment(body,(x+edge+.04,y,at))
+                # The seat lies on the original face even below raised fins.
+                assert not adapter._containment(body,(x,y,thickness+.05))
+
+
 def run(context):
     context=context or {}
     root=Path(__file__).resolve().parents[2]
@@ -35,7 +51,7 @@ def run(context):
     app=core.Application.get();caller=app.activeDocument;original=native.Design.cast(app.activeProduct)
     before=snapshot(original);camera=app.activeViewport.camera
     original_component=original.activeComponent if original else None
-    report={'version':'0.15.0','fusion_version':app.version,'context':context,'success':False}
+    report={'version':'0.16.0','fusion_version':app.version,'context':context,'success':False}
     owned=None
     try:
         if app.userInterface.activeCommand not in ('','SelectCommand'):
@@ -45,7 +61,7 @@ def run(context):
         if design.designType!=native.DesignTypes.ParametricDesignType:
             design.designType=native.DesignTypes.ParametricDesignType
         manager=native.TemporaryBRepManager.get()
-        width=float(context.get('width_mm',60));depth=float(context.get('depth_mm',50));thickness=3.
+        width=float(context.get('width_mm',60));depth=float(context.get('depth_mm',50));thickness=float(context.get('thickness_mm',3))
         shape=manager.createBox(core.OrientedBoundingBox3D.create(core.Point3D.create(0,0,thickness/20),
             core.Vector3D.create(1,0,0),core.Vector3D.create(0,1,0),width/10,depth/10,thickness/10))
         if context.get('stepped_back'):
@@ -60,6 +76,7 @@ def run(context):
         settings=settings_module.PatternSettings(pattern=context.get('pattern','grille_parallel'),layout_mode='fill',
             pitch_mm=7,web_mm=2,border_mm=7,rotation_deg=context.get('rotation_deg',0),
             grille_profile=context.get('profile','raised'),grille_height_mm=context.get('height_mm',3))
+        settings=replace(settings,**{key:value for key,value in context.items() if key.startswith('mount_') and key in settings.to_dict()})
         if context.get('expect_refusal'):
             clean=snapshot(design)
             try:adapter.prepare_pattern(design,(face,),settings)
@@ -84,12 +101,18 @@ def run(context):
         report['openings']=prepared.cell_count;report['timings']=prepared.timings
         assert body==design.findEntityByToken(token)[0] and design.rootComponent.bRepBodies.count==1
         assert abs(prepared.result_body.boundingBox.minPoint.z)<1e-7
-        assert abs(prepared.result_body.boundingBox.maxPoint.z-(thickness+settings.grille_height_mm)/10)<1e-7
+        raised=settings.grille_profile!='flat'
+        top_height=thickness+(settings.grille_height_mm if raised else 0)
+        assert abs(prepared.result_body.boundingBox.maxPoint.z-top_height/10)<1e-7
         # Saved face references are historical during Edit; witnesses retained
         # by preparation already carry world coordinates after restoring history.
         for sample in prepared.accepted_samples[:3]:
-            assert not adapter._containment(prepared.result_body,adapter._add(sample['point_mm'],sample['normal'],-thickness/2))
-        report['through_opening_witnesses']=min(3,len(prepared.layouts[0].cells))
+            point=adapter._add(sample['point_mm'],sample['normal'],-thickness/2)
+            if settings.mount_mode=='off':assert not adapter._containment(prepared.result_body,point)
+        if settings.mount_mode!='off':
+            mounting_witnesses(adapter,prepared.result_body,settings,width,depth,thickness,prepared.timings)
+            report['mount_bore_and_seat_witnesses']=4
+        report['through_opening_witnesses']=min(3,len(prepared.accepted_samples)) if settings.mount_mode=='off' else 0
         if context.get('preview'):
             clean=snapshot(design);graphics=design.rootComponent.customGraphicsGroups.count
             prepared=adapter.display_export.prepare(prepared)
@@ -103,10 +126,10 @@ def run(context):
         anchor=recipe.rebuild_pattern(design,prior,prepared) if prior else recipe.create_pattern(design,prepared)
         report['create_ms']=(time.perf_counter()-start)*1000
         assert design.rootComponent.bRepBodies.count==1 and design.findEntityByToken(token)[0]==body
-        features=1 if prior else 3
+        features=1 if prior else 3 if raised else 2
         assert design.timeline.count==history+features
         target=recipe.read_edit_target(design,body)
-        assert target.settings==settings and target.record.recipe['version']==1
+        assert target.settings==settings and target.record.recipe['version']==(1 if raised or prior else 2)
         if prior:
             assert target.anchor==original_base and target.record.feature_id==prior.record.feature_id
             assert not original_cut.isValid
@@ -119,7 +142,20 @@ def run(context):
         assert design.timeline.count==history+features and body.name=='Raised grille fixture'
         assert recipe.read_edit_target(design,body).settings==settings
         assert abs(body.boundingBox.minPoint.z)<1e-7
-        assert abs(body.boundingBox.maxPoint.z-(thickness+settings.grille_height_mm)/10)<1e-7
+        assert abs(body.boundingBox.maxPoint.z-(thickness+(settings.grille_height_mm if raised else 0))/10)<1e-7
+        if settings.mount_mode!='off':
+            mounting_witnesses(adapter,body,settings,width,depth,thickness,changed.timings)
+        if context.get('mount_edit_cycle'):
+            unchanged_volume=float(body.volume)
+            for mode in ('plain','countersink','off'):
+                target=recipe.read_edit_target(design,body)
+                revised=replace(settings,mount_mode=mode)
+                staged=recipe.prepare_edit_pattern(design,target,revised)
+                recipe.rebuild_pattern(design,target,staged)
+                if mode!='off':mounting_witnesses(adapter,body,revised,width,depth,thickness,staged.timings)
+                assert design.rootComponent.bRepBodies.count==1 and design.timeline.count==history+features
+            assert abs(body.volume-unchanged_volume)<1e-8
+            report['mount_edit_cycle']=['off','plain','countersink','off']
         if context.get('conversion'):
             # Return to flat and then convert a separately created Cut record.
             target=recipe.read_edit_target(design,body)
@@ -133,7 +169,7 @@ def run(context):
             camera_fixture=app.activeViewport.camera;camera_fixture.viewOrientation=core.ViewOrientations.IsoTopRightViewOrientation
             camera_fixture.isFitView=True;app.activeViewport.camera=camera_fixture
             assert app.activeViewport.saveAsImageFile(str(picture),900,650)
-        report.update(success=True,same_body=True,flat_back=True,owned_features=3)
+        report.update(success=True,same_body=True,flat_back=True,owned_features=3 if raised or prior else 2)
     finally:
         if owned is not None and owned.isValid:owned.close(False)
         if caller is not None and caller.isValid:caller.activate();app.activeViewport.camera=camera

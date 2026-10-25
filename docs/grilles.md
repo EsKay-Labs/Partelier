@@ -1,4 +1,4 @@
-# Grilles on existing bodies — 0.15.0
+# Grilles on existing bodies — 0.16.0
 
 The user selected integrated openings in the existing body. Grilles remains the
 third entry under Patterns. It shares the user-accepted 0.13.4 additive face
@@ -64,7 +64,7 @@ the original target, BaseFeature and ownership UUID are retained; only the last
 owned Cut is replaced by owned Join/Intersect. The enclosing native command owns
 rollback on failure. Later features must first be preserved. Subsequent height,
 profile and raised-to-flat Rebuilds retain that full-shape history. No user body
-is replaced, renamed or duplicated. Settings recipe 6 reads versions 1–5 with
+is replaced, renamed or duplicated. Settings recipe 7 reads versions 1–6 with
 Flat/3 mm defaults, without rewriting a saved recipe until Rebuild.
 
 Fusion 2705.1.30 passes ten isolated MCP cases: all six raised/profile combinations,
@@ -73,6 +73,49 @@ checked for bars and external louvers. Original caller documents are unchanged.
 Local checks pass 974 Python tests, three Node UI suites and headless Edge layouts
 at 300/380/520 px. Source hashes and case measurements:
 [raised-grilles-0.15.0.json](validation/raised-grilles-0.15.0.json).
+
+## Optional mounting holes
+
+**Mounting · optional** defaults to Off. Choose **4 plain holes** or **4
+countersunk holes · 90°**, then M3/M4/M5/M6. Hole allowance defaults to **0.3 mm
+added to the diameter**, so M4 creates a 4.3 mm through hole. This is a chosen
+modelling allowance, not a claim to a particular ISO 273 fit or printed fit.
+
+The initial countersink head envelope uses the maximum catalogue diameters
+6.72 / 8.96 / 11.20 / 13.44 mm for M3 / M4 / M5 / M6 from the
+[Böllhoff ISO 10642 data sheet](https://eshop.boellhoff.de/out/media/pdf/ISO_10642_Stahl_10.9___en.pdf).
+Head allowance defaults to **+10% on diameter**, independently of bore clearance.
+For M4 this gives head seat diameter 9.856 mm and 90-degree depth
+`(9.856 - 4.3) / 2 = 2.778 mm`. The plate must retain at least 0.2 mm of straight
+bore below the cone; this geometrical margin is not a strength rating.
+
+In the closed **Mounting settings**, **Head Ø = 0** uses the catalogue preset.
+Enter a measured head diameter for another screw before applying the percentage:
+8 mm with +10% gives an 8.8 mm seat. An M-size alone does not identify every head
+shape. Countersunk here means a flat 90-degree head; cylindrical heads use Plain,
+without a counterbore. **Edge to centre = 0** calculates symmetric corner insets;
+an explicit value is measured from both outer edges to each hole centre.
+Every control has illustrated help and the summary shows resulting dimensions.
+
+Both mounting modes reserve four solid corner blocks within the original plate,
+with at least 1.2 mm material beyond the selected head envelope. Hole positions
+leave an additional 0.5 mm to the exterior; the blocks reach the exterior corners
+and join a frame with Border >=1 mm. Blocks must be separated from one another.
+Pattern openings are locally filled with original plate material in these
+regions. Raised fins/frame above the blocks are cleared
+to the original front face, so the head has access and a flat seating plane.
+Neither the plate footprint nor its back is enlarged. Four analytic cylinders
+and optional conical seats cut the holes; no feature is created per hole.
+
+Mounting requires one rectangular uniform solid plate face. Too little border,
+an inadequate plate size, invalid insets or excessive countersink depth are
+refused before pattern construction. Plain holes also work on thinner plates.
+Mounting works with Flat, Raised and Chamfered profiles, including the dense
+Flat Crossed grid path. Off adds no plate inspection or mounting geometry work.
+All changes share the existing preview/Create/Edit/Rebuild transaction. Editing
+between Off/Plain/Countersunk reconstructs from the original plate, leaving no
+old holes or duplicate bodies. Settings recipe 7 reads versions 1–6 with mounting
+Off and rewrites only on successful Rebuild.
 
 The type dropdown and Direction occupy full rows. Direction presets are disabled
 while selecting faces or creating geometry. Local illustrated help explains the
@@ -138,7 +181,7 @@ All three grille types can be interchanged through Edit.
 Existing version 1 records retain their full-shape Join/Intersect history and
 remain editable. They are not automatically migrated to Cut history; large dense
 Rebuilds of legacy records have not been revalidated. The pattern settings recipe
-is now version 6, and generic Patterns keep their existing persistence route.
+is now version 7, and generic Patterns keep their existing persistence route.
 
 Create modifies the selected body instead of adding a replacement copy. The
 existing single-owned-pattern-per-body and timeline-end Edit contract remains;

@@ -2,7 +2,7 @@
 // Exercise all three actual controllers through one native-message fixture.
 const assert = require("node:assert/strict"), fs = require("node:fs"), vm = require("node:vm"), path = require("node:path");
 const ui = path.join(__dirname, "..", "Partelier", "partelier", "ui"), html = fs.readFileSync(path.join(ui, "palette.html"), "utf8");
-const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3 };
+const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3, mount_mode: "off", mount_screw: "M4", mount_clearance_mm: .3, mount_head_extra_percent: 10, mount_head_mm: 0, mount_inset_mm: 0 };
 const idle = () => ({ sessionId: null, revision: 0, phase: "idle", editing: false, settings: null, selections: {}, message: "" });
 function fixture(options = {}) {
     const ids = new Map();
@@ -24,7 +24,7 @@ function fixture(options = {}) {
     const $=id=>{assert(ids.has(id),`Missing ${id}`);return ids.get(id);};
     for(const id of ["hinge-layout-fields","hinge-fields","hinge-fit-fields","hinge-advanced-fields","hinge-mode","hinge-output-fields","hinge-hole-fields","hinge-hole-toggle","hinge-finish-fields","hinge-finish-choice","hinge-fillet-fields","hinge-design-fields"]) $("hinge-settings").append($(id));
     for(const id of ["snap-family-fields","snap-style-fields","snap-size-fields","snap-fit-fields","snap-layout-fields","snap-construction-fields","snap-finish-toggle","snap-finish-fields","snap-ball-fields","snap-torsion-fields","snap-annular-fields"]) $("snap-settings").append($(id));
-    for(const id of ["pattern-design-fields","pattern-size-fields","pattern-scope-fields","pattern-placement-fields"]) $("pattern-settings").append($(id));
+    for(const id of ["pattern-design-fields","pattern-size-fields","pattern-scope-fields","pattern-placement-fields","pattern-mount-controls","pattern-mount-fields"]) $("pattern-settings").append($(id));
     const documentListeners=new Map();
     const document={getElementById:$,createElement:tag=>new Element(tag),querySelector:()=>new Element("a"),querySelectorAll:()=>[],addEventListener(name,handler){(documentListeners.get(name)||documentListeners.set(name,[]).get(name)).push(handler);}};
     const requests=[],timers=new Map(),storage=new Map(Object.entries(options.storageSeed||{})),listeners=new Map(),config={...options,holdPick:false,holdPreview:false,queuedPreview:false,holdCommit:false,holdStatus:false,statusReleases:[],release:null,failPreview:false,failDiagnostic:false,holdDiagnostic:false,delayedPush:null,saved:null};
@@ -90,6 +90,9 @@ function fixture(options = {}) {
     assert.equal(grilleUI.$("pattern-web_mm").parentElement.children[0].textContent,"Rib width · on face");
     assert.equal(grilleUI.$("pattern-mode").parentElement.hidden,true);
     assert.equal(grilleUI.$("pattern-louver_angle_deg").parentElement.hidden,true);
+    assert.equal(grilleUI.$("pattern-mounting").hidden,false);
+    assert.equal(grilleUI.$("pattern-mount_mode").value,"off");
+    assert.equal(grilleUI.$("pattern-mount-options").hidden,true);
     await grilleUI.click("pattern-help-pattern");assert(grilleUI.$("pattern-help-title").textContent.includes("Grille type"));await grilleUI.click("pattern-help-close");
     assert.equal(grilleUI.$("pattern-rotation_deg").parentElement.parentElement.id,"pattern-design-fields");
     assert.equal(grilleUI.$("pattern-rotation_deg").parentElement.children[0].textContent,"Direction (°)");
@@ -133,7 +136,25 @@ function fixture(options = {}) {
     await grilleUI.input("grille_profile","flat");
     assert.equal(grilleUI.$("pattern-grille_height_mm").parentElement.hidden,true);
     assert.equal(grilleUI.$("pattern-louver_angle_deg").parentElement.hidden,false);
+    await grilleUI.input("mount_mode","countersink");
+    assert.equal(grilleUI.$("pattern-mount-options").hidden,false);
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Ø4.3 mm"));
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Ø9.86 mm"));
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("2.78 mm"));
+    assert.equal((grilleUI.$("pattern-illustration").innerHTML.match(/data-mounting-hole=/g)||[]).length,4);
+    await grilleUI.input("mount_head_mm",8);
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Ø8.8 mm"));
+    await grilleUI.input("mount_inset_mm",0);
+    assert.equal(grilleUI.$("pattern-settings").checkValidity(),true,"Auto inset and Auto head permit zero");
+    await grilleUI.click("pattern-help-mount_head_mm");
+    assert(grilleUI.$("pattern-help-image").innerHTML.includes('data-help-image="mount_head_mm"'));
+    await grilleUI.click("pattern-help-close");
+    await grilleUI.input("mount_mode","plain");
+    assert(!grilleUI.$("pattern-mount-summary").textContent.includes("90° seat"));
+    await grilleUI.input("mount_mode","off");
+    assert.equal(grilleUI.$("pattern-mount-options").hidden,true);
     await grilleUI.click("cancel-pattern-button");await grilleUI.select("honeycomb");
+    assert.equal(grilleUI.$("pattern-mounting").hidden,true);
     assert.equal(grilleUI.$("pattern-grille_profile").parentElement.hidden,true);
     assert.equal(grilleUI.$("pattern-rotation_deg").parentElement.parentElement.id,"pattern-placement-fields");
     assert.equal(grilleUI.$("grille-direction-presets").hidden,true);
@@ -369,9 +390,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.15.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.16.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.15.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.16.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.begin();await logged.click("pattern-select-surface");await logged.click("pattern-finish-faces");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.begin();const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));
