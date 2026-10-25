@@ -33,6 +33,21 @@ def adapt_unit(unit, settings):
                     unit.receiver, unit.arms, unit.root_support, unit.root_cover, geometry)
 
 
+def free_space(unit, settings):
+    """Conservative wall-side envelope for the nose/arm and outward deflection.
+
+    The embedded root and intended socket lie behind the selected wall plane.
+    The free arm needs empty space in front of it, including the nose engagement
+    needed to pass the wall. Other walls of an enclosure may lie farther away.
+    This is a clearance guard, not a strain or force calculation.
+    """
+    ball=unit.ball_geometry
+    half=max(settings.width_mm/2,ball.radius_mm)+settings.clearance_mm
+    front=max(unit.beam.x_max_mm,ball.center_mm[0]+ball.radius_mm)
+    return BoxBounds(0,front+settings.hook_depth_mm+settings.clearance_mm,
+                     unit.center_y_mm-half,unit.center_y_mm+half,0,settings.reach_mm+settings.clearance_mm)
+
+
 def nose_body(manager, frame, unit):
     from ..hinge import fusion as adapter
     ball = unit.ball_geometry

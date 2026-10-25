@@ -184,6 +184,11 @@ class SnapCommands:
                 "face_b": ("Select the matching inner cylinder on body B. Esc resets all selections.", "CylindricalFaces"),
                 "axis_edge": ("Select the complete circular rim on the outer cylinder A. Esc resets all selections.", "Edges"),
             })
+        elif session.settings.snap_family=='ball_detent':
+            prompts.update({
+                'face_a':('Select the base wall for the rounded push-fit. Choose an inner wall to conceal it, or an outer wall. Esc resets all selections.','PlanarFaces'),
+                'face_b':('Select the matching lid wall in the same plane and facing the same way. Use both inner walls or both outer walls. Esc resets all selections.','PlanarFaces'),
+            })
         prompt, filters = prompts[target]
         session.picking_target=target
         session.phase = "selecting"

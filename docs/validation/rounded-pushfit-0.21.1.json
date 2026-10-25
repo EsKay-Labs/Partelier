@@ -1,0 +1,97 @@
+{
+  "release": "0.21.1",
+  "date": "2026-10-25",
+  "python_tests": 1043,
+  "node_suites": [
+    "test_palette_ui.cjs",
+    "test_patterns_ui.cjs",
+    "test_snap_fit_ui.cjs",
+    "test_details_ui.cjs"
+  ],
+  "native": {
+    "version": "0.21.1",
+    "fusion_version": "2705.1.30",
+    "cases": [
+      {
+        "location": "inside",
+        "rotated": false,
+        "material_witnesses": 40,
+        "create_rebuild_ms": 1542.7,
+        "same_bodies": true,
+        "same_native_history": true,
+        "preview_cleanup": true
+      },
+      {
+        "location": "outside",
+        "rotated": false,
+        "material_witnesses": 40,
+        "create_rebuild_ms": 1677.12,
+        "same_bodies": true,
+        "same_native_history": true,
+        "preview_cleanup": true
+      },
+      {
+        "location": "inside",
+        "rotated": true,
+        "material_witnesses": 40,
+        "create_rebuild_ms": 1823.6,
+        "same_bodies": true,
+        "same_native_history": true,
+        "preview_cleanup": true
+      },
+      {
+        "location": "outside",
+        "rotated": true,
+        "material_witnesses": 40,
+        "create_rebuild_ms": 2028.11,
+        "same_bodies": true,
+        "same_native_history": true,
+        "preview_cleanup": true
+      },
+      {
+        "refused": "blocked_flex_space",
+        "message": "The rounded push-fit needs empty space in front of its arm to flex. Move it, reduce size/engagement or choose another wall."
+      },
+      {
+        "refused": "thin_root",
+        "message": "Face A must contain the full root width, length and attachment overlap. Move the rim or reduce those dimensions."
+      }
+    ],
+    "success": true,
+    "caller_unchanged": true
+  },
+  "browser": {
+    "checks": [
+      {
+        "width": 320,
+        "presetOnlyOnClick": true,
+        "localPreset": true,
+        "examplesCollapsed": true,
+        "twoWallDiagrams": true,
+        "noDiagramOverflow": true
+      },
+      {
+        "width": 380,
+        "presetOnlyOnClick": true,
+        "localPreset": true,
+        "examplesCollapsed": true,
+        "twoWallDiagrams": true,
+        "noDiagramOverflow": true
+      },
+      {
+        "width": 440,
+        "presetOnlyOnClick": true,
+        "localPreset": true,
+        "examplesCollapsed": true,
+        "twoWallDiagrams": true,
+        "noDiagramOverflow": true
+      }
+    ],
+    "errors": []
+  },
+  "limits": [
+    "Programmatic native selections, not manual pointer acceptance",
+    "Coplanar sidewalls with complete root/socket material",
+    "Opening force, printing and fatigue not tested"
+  ]
+}

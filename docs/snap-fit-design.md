@@ -11,7 +11,7 @@ do not establish assembly force, strain, fatigue life or a printer-specific fit.
 | Family | Generated mechanism | Sources |
 | --- | --- | --- |
 | Hook latch | An exterior cantilever with a flat retaining shoulder and inclined lead-in | Coplanar exterior walls and a straight seam |
-| Ball detent | A rounded spherical nose on an exterior flexible beam and a matching bounded spherical socket | Coplanar exterior walls and a straight seam |
+| Rounded push-fit (ball detent) | A rounded spherical nose on a flexible beam and a matching bounded spherical socket | Coplanar inner or outer walls and a straight seam |
 | Torsion latch | Two fixed posts, a round cross-bar and a central lever carrying a hook | Coplanar exterior walls and a straight seam |
 | Annular ring | A continuous triangular bead around a cylindrical neck and a matching circumferential groove | Coaxial outside neck and inside socket faces, plus A's complete circular rim |
 
@@ -26,6 +26,46 @@ clearance for its socket. Engagement places part of the sphere behind the wall
 plane, while another part overlaps its beam. It is a rounded detent, not a
 material simulation or an automatic force-controlled release mechanism.
 
+### Rounded push-fit for removable lids (0.21.1)
+
+Choose **Snap-fit → Rounded push-fit**. The **Compact lid preset** explicitly
+applies width6mm, thickness1.2mm, reach12mm, nose radius1.25mm, engagement.45mm,
+clearance.25mm, two snaps and5mm end margins. Root length is3mm, attachment
+overlap.5mm, chamfer.2mm and print ramps are enabled. The button never applies
+automatically when changing families or opening saved dimensions; after applying
+it, parameters remain editable and a fresh preview is required. The existing
+21-field snap contract and recipe3 remain unchanged (`ball_detent` internally).
+
+For a concealed closure, select matching **inner sidewalls** on base A and lid B.
+For an exterior closure, select matching **outer sidewalls**. The selected walls
+must be coplanar and face the same way; then choose a complete facing seam edge.
+Horizontal rims/undersides use the separate locating Lip & groove tool. The
+push-fit requires a lid skirt/wall deep enough for the complete blind recess,
+roof and remaining material. A flat lid with no sidewall is insufficient.
+
+A holds the flexible arm and rounded bump; B receives its recess. Rounded contact
+lets the nose cam in/out as the lid is pushed/pulled, provided the printed arm
+can deflect. Engagement and radius set CAD dimensions, not a guaranteed opening
+force. A small print in the actual material is needed to tune flex and fit.
+
+The old whole-body exterior halfspace guard remains for hooks/torsion. Rounded
+push-fit instead checks a bounded local empty-space envelope against **both**
+sources. That envelope includes arm/nose width, mating gap and outward travel
+equal to engagement, plus clearance. Remote enclosure walls/floors can lie in
+front of the selected inner wall; nearby blocking material cannot. Exact full
+root support, receiver envelope/back wall, free nose and final pair overlap
+guards remain active. No wall is automatically thinned or cut away for flex.
+
+Collapsed Examples contains inner/outer face diagrams and the compact dimensions.
+Native Fusion2705.1.30 tests cover inside/outside actual enclosure shells, both
+axis-aligned and arbitrarily rotated, with160 material witnesses, preview cleanup,
+Create/Edit/Rebuild, unchanged body identity/counts/history, and explicit blocked
+space/thin-root refusals. The fixture is discarded and the caller is unchanged.
+1043 Python tests and four Node suites pass; simulated-host browser checks at
+320/380/440px show no overflow and verify explicit-only presets. These are geometry
+and software checks, not manual pointer, printing, assembly-force or fatigue
+acceptance. See [rounded-pushfit-0.21.1.json](validation/rounded-pushfit-0.21.1.json).
+
 Torsion latch supports its Y-axis round bar in two posts attached to the root.
 The central lever joins the bar rather than extending directly down to the
 fixed root. The bar has an air gap above the root between its posts. Width,
@@ -35,16 +75,17 @@ catch above the bar; invalid combinations are refused.
 ## Planar-wall selection
 
 Use a parametric Design, with the root active and history marker at the end.
-For Hook latch, Ball detent or Torsion latch, select the exterior wall of A, a
+For Hook latch or Torsion latch, select the exterior wall of A, a
 coplanar wall of B with the same outward normal, and a complete straight facing
 rim on either wall. A gap between the rims is supported. A pick on B maps to A's
 real edge only when both complete projected spans match and the facing
 boundaries are unambiguous. Partial, shifted, diagonal and far-side picks are
 refused; A's actual edge is stored for Edit/Rebuild.
 
-Local X points out of the wall, Y follows the rim and Z points from A toward B.
+Rounded push-fit also supports inner walls as described above.
+Local X points out of the selected wall into free space, Y follows the rim and Z points from A toward B.
 The adapter transforms detached copies before checking exterior-plane bounds,
-so rotating the model does not change the source checks. Both bodies remain
+so rotating the model does not change the source checks. Hook/torsion source bodies remain
 behind the common exterior wall plane. Internal tongue-and-groove lips may cross
 the seam when the actual sources and generated halves do not interfere.
 

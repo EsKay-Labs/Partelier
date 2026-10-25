@@ -66,6 +66,32 @@ class BallDetentTests(unittest.TestCase):
         self.assertAlmostEqual(centres[1]-centres[0], centres[2]-centres[1])
         self.assertEqual(centres[1], 0)
 
+    def test_local_free_space_covers_nose_deflection_without_requiring_an_exterior_body(self):
+        for radius,width,engagement in ((1.25,6,.45),(3,2,1),(2,12,.5)):
+            settings,unit=self.unit(ball_radius_mm=radius,width_mm=width,hook_depth_mm=engagement,chamfer_edges=False)
+            bounds=ball_detent.free_space(unit,settings)
+            ball=unit.ball_geometry
+            self.assertEqual(bounds.x_min_mm,0)
+            self.assertGreaterEqual(bounds.x_max_mm,ball.center_mm[0]+radius+engagement+settings.clearance_mm)
+            self.assertGreaterEqual(bounds.x_max_mm,unit.beam.x_max_mm+engagement+settings.clearance_mm)
+            self.assertLessEqual(bounds.y_min_mm,unit.center_y_mm-max(width/2,radius)-settings.clearance_mm)
+            self.assertGreaterEqual(bounds.y_max_mm,unit.center_y_mm+max(width/2,radius)+settings.clearance_mm)
+            self.assertEqual(bounds.z_min_mm,0);self.assertEqual(bounds.z_max_mm,settings.reach_mm+settings.clearance_mm)
+
+    def test_local_space_refuses_either_obstructing_body_or_unproven_boolean(self):
+        from Partelier.partelier.tools.snap_fit import fusion
+        settings,unit=self.unit();manager,frame,a,b,envelope=(object() for _ in range(5))
+        for failure in (None,0,1):
+            calls=[None,None]
+            if failure is not None:calls[failure]=fusion.SnapFitGeometryError('collision or failed boolean')
+            with patch.object(hinge,'_box',return_value=envelope),patch.object(fusion,'_no_positive_overlap',side_effect=calls) as check:
+                if failure is None:
+                    fusion._detent_clearance(manager,frame,unit,settings,a,b)
+                    self.assertEqual([call.args[2] for call in check.call_args_list],[a,b])
+                else:
+                    with self.assertRaisesRegex(ValueError,'empty space'):fusion._detent_clearance(manager,frame,unit,settings,a,b)
+                    self.assertIs(check.call_args_list[-1].args[2],(a,b)[failure])
+
 
 if __name__ == "__main__":
     unittest.main()

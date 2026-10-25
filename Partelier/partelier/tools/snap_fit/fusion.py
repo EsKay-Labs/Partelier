@@ -151,14 +151,14 @@ def _canonical_rim(face_a, face_b, selected):
         raise SnapFitGeometryError("Pick the facing rim on wall A or B. The edge must bound the selected wall, not another face or body.")
     chosen = hinge._straight_endpoints(selected)
     if chosen is None:
-        raise SnapFitGeometryError("Pick a complete straight rim on the selected outside wall.")
+        raise SnapFitGeometryError("Pick a complete straight rim on the selected wall.")
     normal = hinge._plane_normal(face_a)
     if hinge._dot(normal, hinge._plane_normal(face_b)) < 1 - ANGLE_TOLERANCE:
-        raise SnapFitGeometryError("The outside wall faces must have matching outward normals.")
+        raise SnapFitGeometryError("The selected wall faces must have matching outward normals.")
     plane_point = hinge._xyz(face_a.pointOnFace)
     if any(abs(hinge._dot(hinge._subtract(point, plane_point), normal)) > POSITION_TOLERANCE_CM
            for point in chosen):
-        raise SnapFitGeometryError("Pick the rim in the same plane as the selected outside walls.")
+        raise SnapFitGeometryError("Pick the rim in the same plane as the selected walls.")
     matches = []
     for edge in hinge._items(face_a.edges):
         points = hinge._straight_endpoints(edge)
@@ -208,7 +208,7 @@ def _selection(design, face_a, face_b, edge, *, historical=False, family="hook")
     faces = (fusion.BRepFace.cast(face_a), fusion.BRepFace.cast(face_b))
     edge = fusion.BRepEdge.cast(edge)
     if not all(hinge._valid(face) for face in faces) or not hinge._valid(edge):
-        raise SnapFitGeometryError("Select two planar outside wall faces and a straight rim edge on face A.")
+        raise SnapFitGeometryError("Select two planar wall faces and a straight rim edge on face A.")
     face_a, face_b = faces
     for face in faces:
         body = face.body
@@ -232,14 +232,14 @@ def _selection(design, face_a, face_b, edge, *, historical=False, family="hook")
     if endpoints is None:
         raise SnapFitGeometryError("Select a straight finite rim edge on face A.")
     if hinge._dot(x_axis, b_normal) < 1 - ANGLE_TOLERANCE:
-        raise SnapFitGeometryError("The outside wall faces must have matching outward normals.")
+        raise SnapFitGeometryError("The selected wall faces must have matching outward normals.")
     delta_plane = hinge._subtract(hinge._xyz(face_b.pointOnFace), hinge._xyz(face_a.pointOnFace))
     if abs(hinge._dot(delta_plane, x_axis)) > POSITION_TOLERANCE_CM:
-        raise SnapFitGeometryError("The selected outside wall faces must lie in the same plane.")
+        raise SnapFitGeometryError("The selected wall faces must lie in the same plane.")
     start, end = endpoints
     y_axis = hinge._unit(hinge._subtract(end, start))
     if abs(hinge._dot(x_axis, y_axis)) > ANGLE_TOLERANCE:
-        raise SnapFitGeometryError("The rim edge must lie in the selected outside wall plane.")
+        raise SnapFitGeometryError("The rim edge must lie in the selected wall plane.")
     midpoint = tuple(a / 2.0 + b / 2.0 for a, b in zip(start, end))
     z_axis = hinge._unit(hinge._cross(x_axis, y_axis))
     toward_b = hinge._dot(hinge._subtract(hinge._xyz(face_b.pointOnFace), midpoint), z_axis)
@@ -318,6 +318,15 @@ def _coverage(manager, frame, source, bounds, message):
         raise SnapFitGeometryError(message)
 
 
+def _detent_clearance(manager,frame,unit,settings,a,b):
+    from .ball_detent import free_space
+    envelope=hinge._box(manager,frame,free_space(unit,settings))
+    for source in (a,b):
+        try:_no_positive_overlap(manager,envelope,source)
+        except SnapFitGeometryError as error:
+            raise SnapFitGeometryError('The rounded push-fit needs empty space in front of its arm to flex. Move it, reduce size/engagement or choose another wall.') from error
+
+
 def _no_positive_overlap(manager, a, b):
     """Prove no material is lost by subtracting B from a detached copy of A.
 
@@ -367,10 +376,15 @@ def prepare_snap_fit(design, face_a, face_b, axis_edge, settings, *, _historical
                                {"source_read_ms": (read_done-started)*1000,
                                 "planning_ms": (planned-read_done)*1000,
                                 "temporary_geometry_ms": (ended-planned)*1000}, tokens)
-    _halfspaces(manager, frame, face_a.body, face_b.body)
+    # An inside enclosure wall is not a whole-body supporting plane: its far
+    # walls and floor can extend in front of it. Detents instead prove empty
+    # local arm/deflection space below, retaining exact root/socket coverage.
+    if settings.snap_family!='ball_detent':_halfspaces(manager, frame, face_a.body, face_b.body)
     results = {"A": _copy(manager, face_a.body), "B": _copy(manager, face_b.body)}
     chamfer_edges = []
     for unit in plan.units:
+        if settings.snap_family=='ball_detent':
+            _detent_clearance(manager,frame,unit,settings,face_a.body,face_b.body)
         _coverage(manager, frame, face_a.body, unit.root_cover,
                   "Face A must contain the full root width, length and attachment overlap. Move the rim or reduce those dimensions.")
         root = hinge._box(manager, frame, unit.root)

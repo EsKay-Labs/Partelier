@@ -180,3 +180,8 @@ See docs/fusion-validation.md. Local mocks remain distinct from native evidence.
 - Selected runs use a unified contour before the 45° tip, with receiving clearance around run ends too. Never chamfer separate strips and join them afterward. Preview stays gated until the additive native edge picker finishes with Done; Esc clears pending sides. Restore handlers, native selections and visibility on Cancel/Stop.
 - Exact 19-field recipe1 records upgrade to closed/15 only in memory; explicit Create/Rebuild writes recipe2 with21 fields. Active snapshots remain strict. Side masks are host-owned, changed by model picking and Done.
 - Ribs show Height on A and Width on B together; Thickness is separate. Internal dimension names retain their existing meanings. See docs/small-details.md and selected-lip-0.21.0 validation evidence.
+
+## Rounded push-fit (0.21.1)
+- Existing ball_detent is labelled Rounded push-fit. Compact lid preset is explicit-only, not automatic on family selection/Edit. Preserve the21-field snap settings and recipe3.
+- Rounded push-fit accepts coplanar inner or outer sidewalls. Use local arm/nose/engagement free-space checks on both source bodies, plus existing exact root/socket/overlap guards. Whole-body exterior-plane checks remain on hook/torsion. Do not remove walls or create duplicate source bodies to enable an interior mechanism.
+- This is a flexible-arm rounded detent, not a rigid bump fit or force solver. Show inner/outer sidewall diagrams in collapsed Examples; horizontal lid/rim faces belong to locating lip/groove. Native geometry evidence and limits are in docs/snap-fit-design.md and rounded-pushfit-0.21.1.json.

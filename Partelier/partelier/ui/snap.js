@@ -4,7 +4,8 @@
 (() => {
     const $ = id => document.getElementById(id);
     const defaults = Object.freeze({ width_mm: 8, thickness_mm: 1.5, reach_mm: 16, clearance_mm: .3, hook_depth_mm: 1, lead_in_mm: 3, snap_count: 1, start_margin_mm: 5, end_margin_mm: 5, root_length_mm: 4, attachment_overlap_mm: .5, snap_style: "standard", chamfer_edges: true, chamfer_size_mm: .3, print_support: true, snap_family: "hook", ball_radius_mm: 2, torsion_radius_mm: .8, annular_bead_width_mm: 2, annular_bead_height_mm: .5, annular_offset_mm: 3 });
-    const families = [["hook", "Hook latch"], ["ball_detent", "Ball detent"], ["torsion", "Torsion latch"], ["annular", "Annular ring"]];
+    const families = [["hook", "Hook latch"], ["ball_detent", "Rounded push-fit"], ["torsion", "Torsion latch"], ["annular", "Annular ring"]];
+    const compactLid = Object.freeze({ width_mm: 6, thickness_mm: 1.2, reach_mm: 12, clearance_mm: .25, hook_depth_mm: .45, lead_in_mm: 3, snap_count: 2, start_margin_mm: 5, end_margin_mm: 5, root_length_mm: 3, attachment_overlap_mm: .5, ball_radius_mm: 1.25, chamfer_edges: true, chamfer_size_mm: .2, print_support: true, snap_style: "standard" });
     const styles = [["standard", "Straight hook"], ["tapered", "Tapered hook"], ["twin", "Twin hook"]];
     const terminal = new Set(["idle", "created", "cancelled"]), retired = new Set();
     const nonnegative = new Set(["start_margin_mm", "end_margin_mm"]);
@@ -14,7 +15,7 @@
         ["snap-layout-fields", [["snap_count", "Count"], ["start_margin_mm", "Start margin"], ["end_margin_mm", "End margin"]]],
         ["snap-construction-fields", [["root_length_mm", "Root length"], ["lead_in_mm", "Lead-in length"], ["attachment_overlap_mm", "Attachment overlap"]]],
         ["snap-finish-fields", [["chamfer_size_mm", "Chamfer size"]]],
-        ["snap-ball-fields", [["ball_radius_mm", "Ball radius"]]],
+        ["snap-ball-fields", [["ball_radius_mm", "Nose radius"]]],
         ["snap-torsion-fields", [["torsion_radius_mm", "Torsion bar radius"]]],
         ["snap-annular-fields", [["annular_bead_width_mm", "Bead width"], ["annular_bead_height_mm", "Bead height"], ["annular_offset_mm", "Offset from rim"]]]
     ];
@@ -90,11 +91,11 @@
         $("snap-width_mm").parentElement.children[0].textContent = state.settings.snap_family === "torsion" ? "Mount width" : "Tab width";
         $("snap-thickness_mm").parentElement.children[0].textContent = state.settings.snap_family === "torsion" ? "Lever thickness" : "Tab thickness";
         $("snap-reach_mm").parentElement.children[0].textContent = state.settings.snap_family === "torsion" ? "Lever reach" : "Tab reach";
-        $("snap-hook_depth_mm").parentElement.children[0].textContent = state.settings.snap_family === "ball_detent" ? "Nose engagement" : "Hook engagement";
+        $("snap-hook_depth_mm").parentElement.children[0].textContent = state.settings.snap_family === "ball_detent" ? "Bump engagement" : "Hook engagement";
         $("snap-print_support").parentElement.replaceChildren($("snap-print_support"), ring ? "45° groove roof" : "45° print ramps");
-        $("snap-family-guidance").textContent = ring ? "A bead and groove on two coaxial cylinder necks." : state.settings.snap_family === "ball_detent" ? "A rounded detent nose and matching pocket on two walls." : state.settings.snap_family === "torsion" ? "A center lever on a transverse torsion bar, with a matching catch." : "A retaining hook and matching recess on two walls.";
-        $("snap-help-placement").textContent = ring ? "Pick the outer cylinder of neck A, the inner cylinder of sleeve B, then a circular rim. Both cylindrical faces must be coaxial. Offset is measured from that rim along the selected axis." : "Select two coplanar exterior wall faces facing the same way: A on the base, B on the lid. Pick either facing straight rim; a gap between them is supported. The mechanism sits outside the walls and reaches from A toward B.";
-        $("snap-help-mechanism").textContent = ring ? "Annular adds a continuous raised bead to A and a matching internal groove in B. Bead width, height and offset control the ring profile." : state.settings.snap_family === "ball_detent" ? "The flexible arm carries a rounded nose. Ball radius and nose engagement control the cam into and out of its matching pocket." : state.settings.snap_family === "torsion" ? "Two fixed end posts hold a transverse torsion bar. The center lever turns that bar to release its retaining hook." : "Straight uses one arm; Tapered reduces its thickness toward the catch. Twin uses two parallel arms on a shared root, with two matching recesses separated by a wall.";
+        $("snap-family-guidance").textContent = ring ? "A bead and groove on two coaxial cylinder necks." : state.settings.snap_family === "ball_detent" ? "Push to close, pull to open: a rounded bump, matching recess and flexible arm." : state.settings.snap_family === "torsion" ? "A center lever on a transverse torsion bar, with a matching catch." : "A retaining hook and matching recess on two walls.";
+        $("snap-help-placement").textContent = ring ? "Pick the outer cylinder of neck A, the inner cylinder of sleeve B, then a circular rim. Both cylindrical faces must be coaxial. Offset is measured from that rim along the selected axis." : state.settings.snap_family === "ball_detent" ? "Concealed: select both inner vertical WALL faces, A on the base and B on the lid. Outside: select both outer WALL faces. Use the same side, facing the same way, then the straight seam edge. Do not select the horizontal rim or lid underside." : "Select two coplanar exterior wall faces facing the same way: A on the base, B on the lid. Pick either facing straight rim; a gap between them is supported. The mechanism sits outside the walls and reaches from A toward B.";
+        $("snap-help-mechanism").textContent = ring ? "Annular adds a continuous raised bead to A and a matching internal groove in B. Bead width, height and offset control the ring profile." : state.settings.snap_family === "ball_detent" ? "A flexible arm carries the rounded lobe. The lobe rides into its matching recess when pushed closed and cams out when pulled open. Nose radius controls the round profile; Bump engagement controls how far it engages. Flexibility is necessary: dimensions, material and print orientation determine the actual opening force." : state.settings.snap_family === "torsion" ? "Two fixed end posts hold a transverse torsion bar. The center lever turns that bar to release its retaining hook." : "Straight uses one arm; Tapered reduces its thickness toward the catch. Twin uses two parallel arms on a shared root, with two matching recesses separated by a wall.";
         $("snap-help-print").textContent = ring ? "The optional 45° groove roof follows the ring axis. Review your chosen print orientation in the slicer. General edge chamfers are unavailable for this ring profile." : "45° print ramps add a root ramp and sloped receiver roof for printing in the shown +Z direction. Review your chosen orientation in the slicer.";
         $("begin-snap-button").textContent = ring ? "Select cylinders & rim" : "Select faces & edge";
         for (const [id, className, caption] of [["snap-legend-a", "part-a", ring ? "Neck A" : "Mechanism A"], ["snap-legend-b", "part-b", ring ? "Sleeve B" : "Receiver B"]]) {
@@ -114,7 +115,7 @@
     function renderSelections() {
         $("snap-selections").replaceChildren();
         const editing = active() && !!state.session?.editing;
-        const labels = editing ? [["edit_target", "Snap result"]] : annular() ? [["face_a", "Outer cylinder A"], ["face_b", "Inner cylinder B"], ["axis_edge", "Circular rim"]] : [["face_a", "Mechanism A"], ["face_b", "Receiver B"], ["axis_edge", "Seam edge"]];
+        const labels = editing ? [["edit_target", "Snap result"]] : annular() ? [["face_a", "Outer cylinder A"], ["face_b", "Inner cylinder B"], ["axis_edge", "Circular rim"]] : state.settings.snap_family === "ball_detent" ? [["face_a", "Base WALL A"], ["face_b", "Lid WALL B"], ["axis_edge", "Seam edge"]] : [["face_a", "Mechanism A"], ["face_b", "Receiver B"], ["axis_edge", "Seam edge"]];
         for (const [target, caption] of labels) {
             const picked = active()?state.session?.selections?.[target]:null;
             const button = document.createElement("button"); button.type = "button"; button.id = `snap-select-${target}`; button.className = "selection-button";
@@ -128,7 +129,7 @@
             window.PartelierSelectionUI?.decorate(button,labels.findIndex(([name])=>name===target),target,state.session,labels.map(([name])=>name));
             $("snap-selections").append(button);
         }
-        $("snap-selection-help").textContent = editing ? "Choose a saved operation above, or pick its generated feature." : annular() ? "1 · Outer cylinder A → 2 · Inner cylinder B → 3 · Circular rim. Esc resets selections." : "1 · Base wall A → 2 · Lid wall B → 3 · Seam edge. Next step opens automatically. Esc resets selections.";
+        $("snap-selection-help").textContent = editing ? "Choose a saved operation above, or pick its generated feature." : annular() ? "1 · Outer cylinder A → 2 · Inner cylinder B → 3 · Circular rim. Esc resets selections." : state.settings.snap_family === "ball_detent" ? "1 · Base WALL A → 2 · Lid WALL B → 3 · Seam edge. Pick both inner walls for concealed mounting, or both outer walls for outside. Esc resets selections." : "1 · Base wall A → 2 · Lid wall B → 3 · Seam edge. Next step opens automatically. Esc resets selections.";
         window.PartelierWorkspace?.update("snap",state.session);
         $("snap-selection-help").hidden = false;
         window.PartelierSelectionUI?.resetControl($("snap-selections"),"snap",!!identity()&&!state.busy&&state.session?.phase!=="opening");
@@ -143,6 +144,9 @@
         updateFamilyAvailability(committing);
         updateFinishAvailability(committing);
         $("snap-settings").setAttribute("aria-busy", String(committing));
+        $("snap-compact-lid-preset").hidden = state.settings.snap_family !== "ball_detent";
+        $("snap-compact-lid-preset").disabled = busy || !!state.session?.pickingTarget;
+        $("snap-pushfit-examples").hidden = state.settings.snap_family !== "ball_detent";
         $("begin-snap-button").hidden = hasSession;
         $("begin-snap-button").disabled = !state.selected || !supported() || !valid() || busy || hasSession || state.hingeActive || !!window.PartelierDetails?.isActive() || !!window.PartelierDetails?.isBusy();
         $("edit-snap-button").disabled = !state.selected || !supported() || !state.capabilities.has("snap-edit") || busy || hasSession || state.hingeActive || !!window.PartelierDetails?.isActive() || !!window.PartelierDetails?.isBusy();
@@ -279,6 +283,14 @@
         updateFamilyAvailability(false); updateFinishAvailability(false); renderArt();
         if (active()) message(valid() ? "Updating live preview…" : "Check the highlighted input. Showing the previous valid preview.", !valid());
         render(); schedule();
+    });
+    $("snap-compact-lid-preset").addEventListener("click", () => {
+        if (state.settings.snap_family !== "ball_detent" || state.busy || state.session?.phase === "opening" || state.session?.pickingTarget) return;
+        cancelTimer(); state.settings = { ...state.settings, ...compactLid };
+        state.revision++; state.dirty = true; state.liveError = false;
+        syncFields(); render();
+        if (active()) message("Compact lid dimensions applied. Updating live preview…");
+        schedule();
     });
     $("begin-snap-button").addEventListener("click", () => run(() => begin(false)));
     $("edit-snap-button").addEventListener("click", () => run(() => begin(true)));

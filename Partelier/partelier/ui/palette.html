@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
     <title>Partelier · CAD details</title>
-    <link rel="stylesheet" href="palette.css?v=0.21.0">
-    <script src="catalog.js?v=0.21.0" defer></script>
-    <script src="illustrations.js?v=0.21.0" defer></script>
-    <script src="pattern-help.js?v=0.21.0" defer></script>
-    <script src="selection-ui.js?v=0.21.0" defer></script>
-    <script src="workspace-flow.js?v=0.21.0" defer></script>
-    <script src="snap.js?v=0.21.0" defer></script>
-    <script src="patterns.js?v=0.21.0" defer></script>
-    <script src="detail-examples.js?v=0.21.0" defer></script>
-    <script src="details.js?v=0.21.0" defer></script>
-    <script src="palette.js?v=0.21.0" defer></script>
-    <script src="operations.js?v=0.21.0" defer></script>
+    <link rel="stylesheet" href="palette.css?v=0.21.1">
+    <script src="catalog.js?v=0.21.1" defer></script>
+    <script src="illustrations.js?v=0.21.1" defer></script>
+    <script src="pattern-help.js?v=0.21.1" defer></script>
+    <script src="selection-ui.js?v=0.21.1" defer></script>
+    <script src="workspace-flow.js?v=0.21.1" defer></script>
+    <script src="snap.js?v=0.21.1" defer></script>
+    <script src="patterns.js?v=0.21.1" defer></script>
+    <script src="detail-examples.js?v=0.21.1" defer></script>
+    <script src="details.js?v=0.21.1" defer></script>
+    <script src="palette.js?v=0.21.1" defer></script>
+    <script src="operations.js?v=0.21.1" defer></script>
 </head>
 <body>
     <header class="app-header">
@@ -69,6 +69,7 @@
                 <section class="hinge-input-group" aria-label="Snap configuration"><div class="section-heading"><h2>2. Configure</h2><span class="unit-label">mm</span></div>
                     <div id="snap-family-fields" class="parameter-item"></div>
                     <p id="snap-family-guidance" class="helper-copy"></p>
+                    <button id="snap-compact-lid-preset" class="secondary-button" type="button" hidden>Compact lid preset</button>
                     <p id="snap-family-edit-note" class="helper-copy" hidden>To change between wall and cylinder geometry, cancel and create a new snap-fit.</p>
 
                 <div class="configuration-dimensions" id="snap-planar-section" aria-labelledby="snap-size-title">
@@ -97,6 +98,14 @@
             <details class="guide-disclosure" id="snap-help">
                 <summary>Examples &amp; help</summary>
                 <p id="snap-help-placement"></p>
+                <div id="snap-pushfit-examples" class="detail-example-guide" hidden>
+                    <h3>Rounded push-fit · inside or outside</h3>
+                    <p>Start with a base and lid as separate bodies in their closed positions. Choose two matching vertical walls, then their straight seam edge. The rounded bump and recess are added together; a flexible arm allows push-on, pull-off closure.</p>
+                    <div class="detail-example-gallery"><figure><svg viewBox="0 0 320 200" role="img" aria-label="Concealed push-fit: select both inner vertical wall faces, A on base and B on lid"><rect x="80" y="26" width="50" height="63" fill="#d5deea" stroke="#526278"/><rect x="80" y="106" width="50" height="68" fill="#d5deea" stroke="#526278"/><path d="M130 26V89M130 106V174" stroke="#355f8d" stroke-width="6"/><path d="M153 58H177M153 140H177" stroke="#355f8d" stroke-width="2"/><text x="143" y="62" fill="#26486e" font-size="14">B</text><text x="143" y="145" fill="#26486e" font-size="14">A</text><text x="24" y="100" fill="#526278" font-size="12">Outside</text><text x="199" y="62" fill="#26486e" font-size="12">Box interior</text><path d="M130 97H214" stroke="#526278" stroke-dasharray="4 3"/><text x="217" y="101" fill="#526278" font-size="11">Seam</text><text x="160" y="195" text-anchor="middle" fill="#223247" font-size="12">Concealed · select both inner WALL faces</text></svg><figcaption>Inside mounting keeps the mechanism within the enclosure. Leave room for the arm to flex.</figcaption></figure>
+                    <figure><svg viewBox="0 0 320 200" role="img" aria-label="External push-fit: select both outer vertical wall faces, A on base and B on lid"><rect x="80" y="26" width="50" height="63" fill="#d5deea" stroke="#526278"/><rect x="80" y="106" width="50" height="68" fill="#d5deea" stroke="#526278"/><path d="M80 26V89M80 106V174" stroke="#355f8d" stroke-width="6"/><text x="57" y="62" fill="#26486e" font-size="14">B</text><text x="57" y="145" fill="#26486e" font-size="14">A</text><text x="15" y="100" fill="#26486e" font-size="12">Outside</text><text x="199" y="62" fill="#526278" font-size="12">Box interior</text><path d="M80 97H214" stroke="#526278" stroke-dasharray="4 3"/><text x="217" y="101" fill="#526278" font-size="11">Seam</text><text x="160" y="195" text-anchor="middle" fill="#223247" font-size="12">External · select both outer WALL faces</text></svg><figcaption>Outside mounting puts the mechanism on the exterior. Select both walls on that same side.</figcaption></figure></div>
+                    <p><strong>Compact lid preset:</strong> 6 mm wide, 1.2 mm thick, 12 mm reach, 0.45 mm bump engagement and 1.25 mm nose radius; two equally spaced snaps. It only applies when you press the button. These are starting dimensions, not a guarantee of fit or opening force. Test a small sample in your material.</p>
+                    <p><strong>Do not select:</strong> the horizontal box rim, lid underside, or one inner wall and one outer wall. The blue faces in the diagrams are the vertical faces to select.</p>
+                </div>
                 <div class="illustration-stage"><div class="stage-heading"><span>ILLUSTRATION · NOT MODEL PREVIEW</span></div><div id="snap-illustration"></div><div class="stage-key"><span id="snap-legend-a"><i class="part-a"></i>Mechanism A</span><span id="snap-legend-b"><i class="part-b"></i>Receiver B</span></div></div>
                 <p id="snap-help-mechanism"></p>
                 <p id="snap-help-print"></p>
@@ -181,7 +190,7 @@
         <div class="action-buttons"><button id="cancel-detail-button" type="button" class="secondary-button">Cancel</button><button id="retry-detail-button" type="button" class="secondary-button" hidden>Retry preview</button><button id="create-detail-button" type="button" class="create-button">Create detail</button></div>
     </section>
     <dialog id="detail-help-dialog" class="pattern-help-dialog" aria-labelledby="detail-help-title"><button id="detail-help-close" type="button" class="dialog-close icon-button" aria-label="Close help">×</button><h2 id="detail-help-title"></h2><p id="detail-help-description"></p><div id="detail-help-image" class="parameter-help-illustration"></div></dialog>
-    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.21.0</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure hinges, snap-fits and surface patterns here, then select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached details become part of your selected bodies. Optional hinge pins and Flat colour material regions add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
+    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.21.1</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure hinges, snap-fits and surface patterns here, then select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached details become part of your selected bodies. Optional hinge pins and Flat colour material regions add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
     <dialog id="pattern-parameter-help" class="pattern-help-dialog" aria-labelledby="pattern-help-title" aria-describedby="pattern-help-description">
         <button id="pattern-help-close" type="button" class="dialog-close icon-button" aria-label="Κλείσιμο βοήθειας" autofocus>×</button>
         <p class="eyebrow">PATTERNS · ΟΔΗΓΟΣ ΡΥΘΜΙΣΗΣ</p>
