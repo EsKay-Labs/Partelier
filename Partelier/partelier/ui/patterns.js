@@ -37,7 +37,7 @@
     const active = () => !!state.session && !terminal.has(state.session.phase) && !!(state.session.sessionId || state.session.phase === "opening");
     const identity = () => active() ? state.session.sessionId : null;
     const supported = () => state.connected && state.capabilities.has("pattern-palette");
-    const otherActive = () => state.others.hinge || state.others.snap;
+    const otherActive = () => state.others.hinge || state.others.snap || !!window.PartelierDetails?.isActive() || !!window.PartelierDetails?.isBusy();
     const selected = () => !!state.session?.selections?.surface?.selected;
     const current = () => !state.liveError && state.session?.phase === "preview" && state.session.revision === state.revision && state.session.previewCurrent !== false;
     const valid = () => $("pattern-settings").checkValidity();
@@ -514,5 +514,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.17.0" }); renderArt(); render();
+    trace("boot", { build:"0.18.0" }); renderArt(); render();
 })();

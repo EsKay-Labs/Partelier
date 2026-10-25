@@ -134,15 +134,15 @@
         const committing = state.session?.phase === "opening", busy = state.busy || committing, hasSession = active(), ready = !!identity() && selected();
         $("snap-tool").hidden = !state.selected;
         $("snap-action-dock").hidden = !state.selected;
-        $("tool-select").disabled = state.hingeActive || hasSession || busy || !!window.PartelierPatterns?.isActive() || !!window.PartelierPatterns?.isBusy();
+        $("tool-select").disabled = state.hingeActive || hasSession || busy || !!window.PartelierPatterns?.isActive() || !!window.PartelierPatterns?.isBusy() || !!window.PartelierDetails?.isActive() || !!window.PartelierDetails?.isBusy();
         window.PartelierPatterns?.setOtherActive({ snap: hasSession || busy, hinge: state.hingeActive });
         for (const input of $("snap-settings").querySelectorAll("[name]")) input.disabled = committing;
         updateFamilyAvailability(committing);
         updateFinishAvailability(committing);
         $("snap-settings").setAttribute("aria-busy", String(committing));
         $("begin-snap-button").hidden = hasSession;
-        $("begin-snap-button").disabled = !state.selected || !supported() || !valid() || busy || hasSession || state.hingeActive;
-        $("edit-snap-button").disabled = !state.selected || !supported() || !state.capabilities.has("snap-edit") || busy || hasSession || state.hingeActive;
+        $("begin-snap-button").disabled = !state.selected || !supported() || !valid() || busy || hasSession || state.hingeActive || !!window.PartelierDetails?.isActive() || !!window.PartelierDetails?.isBusy();
+        $("edit-snap-button").disabled = !state.selected || !supported() || !state.capabilities.has("snap-edit") || busy || hasSession || state.hingeActive || !!window.PartelierDetails?.isActive() || !!window.PartelierDetails?.isBusy();
         $("preview-snap-button").hidden = !ready || (!state.liveError && current());
         $("preview-snap-button").disabled = !ready || !valid() || busy;
         $("cancel-snap-button").disabled = !identity() || busy;
@@ -283,6 +283,8 @@
     $("create-snap-button").addEventListener("click", () => { if ($("snap-settings").reportValidity()) { cancelTimer(); run(() => sessionAction("snap_commit")); } });
     $("cancel-snap-button").addEventListener("click", () => { cancelTimer(); run(() => sessionAction("snap_cancel")); });
     window.PartelierSnap = Object.freeze({
+        isActive() { return active(); },
+        isBusy() { return state.busy || state.session?.phase === 'opening'; },
         select(toolId) { state.selected = toolId === "snap"; render(); },
         setHingeActive(value) { state.hingeActive = !!value; render(); },
         connect(result) {

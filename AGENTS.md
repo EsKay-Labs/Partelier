@@ -62,6 +62,10 @@ Edit/Rebuild before adding the other first-release helpers.
   Current recipe v9 adds attached in-place persistence; v8 added movement relief; v1-v6 retain flat webs/no relief, v7 retains taper/no relief. See docs/hinge-design.md for scope.
 - `tools/fusion/HingeFixture/`: standalone disposable fixture script, not runtime.
 - `tests/`: standard-library tests runnable outside Fusion.
+- `Partelier/partelier/tools/details/`: 0.18.0 rectangular mating lid lip/groove,
+  alignment pins and same-body 90-degree ribs/gussets. Hardware pockets excluded.
+  Separate 19-field settings and version-1 delta-tool records; same target bodies,
+  two/three native features, guarded timeline-end Edit. See docs/small-details.md.
 - `Partelier/partelier/tools/truss/`: pure bounded triangular-window planning and
   one-solid Fusion adaptation. Shares the HTML pattern session, plate inspector,
   cached mesh and same-body Cut persistence. See docs/planar-truss.md for scope;

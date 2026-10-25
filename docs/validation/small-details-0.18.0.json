@@ -1,0 +1,846 @@
+{
+  "version": "0.18.0",
+  "client_date": "2026-10-25",
+  "local": {
+    "python_tests": 1016,
+    "existing_node_ui_suites": 3,
+    "compilation_passed": true,
+    "whitespace_passed": true,
+    "headless_edge_simulated_host": {
+      "checks": [
+        {
+          "width": 300,
+          "threeHelpers": true,
+          "selectionAndPreview": true,
+          "full19FieldSnapshots": true,
+          "invalidInputsBlocked": true,
+          "illustratedHelp": true,
+          "createUnlock": true,
+          "hardwarePocketsUntouched": true,
+          "noOverflow": true
+        },
+        {
+          "width": 380,
+          "threeHelpers": true,
+          "selectionAndPreview": true,
+          "full19FieldSnapshots": true,
+          "invalidInputsBlocked": true,
+          "illustratedHelp": true,
+          "createUnlock": true,
+          "hardwarePocketsUntouched": true,
+          "noOverflow": true
+        },
+        {
+          "width": 520,
+          "threeHelpers": true,
+          "selectionAndPreview": true,
+          "full19FieldSnapshots": true,
+          "invalidInputsBlocked": true,
+          "illustratedHelp": true,
+          "createUnlock": true,
+          "hardwarePocketsUntouched": true,
+          "noOverflow": true
+        }
+      ],
+      "errors": []
+    }
+  },
+  "native": {
+    "transport": "Opt-in Fusion MCP execute_api_script, localhost:9100",
+    "fusion_version": "2705.1.30",
+    "case_count": 20,
+    "functional_cases": 18,
+    "additional_visual_cases": 2,
+    "all_passed": true,
+    "cases": [
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 139.73589999659453,
+        "timings": {
+          "gap_mm": 0.2500000000000002,
+          "socket_depth_mm": 2.55,
+          "lip_perimeter": true,
+          "prepare_ms": 139.66050000453833
+        },
+        "material_witnesses": 20,
+        "preview_cleanup": true,
+        "create_ms": 124.05479999870295,
+        "edit_rebuild_ms": 225.226799993834,
+        "rebuilt_material_witnesses": 20,
+        "native_registration_cleanup": true,
+        "same_targets": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "lid",
+        "inputs": {
+          "kind": "lid",
+          "preview": true,
+          "registration": true
+        },
+        "report_sha256": "510973a1b948c9ad0e892db4472033edb50be2a45b48b6ee40b14c159999b65f"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 32.1713000012096,
+        "timings": {
+          "gap_mm": 0.2500000000000002,
+          "socket_depth_mm": 2.55,
+          "lip_perimeter": true,
+          "prepare_ms": 32.13070000492735
+        },
+        "material_witnesses": 20,
+        "create_ms": 109.34660000202712,
+        "edit_rebuild_ms": 202.4082999996608,
+        "rebuilt_material_witnesses": 20,
+        "same_targets": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "lid-no-lead",
+        "inputs": {
+          "kind": "lid",
+          "lead_mm": 0
+        },
+        "report_sha256": "5a2a0ae3f09683d683efe9837e1cc365928194840f74fb0e0b17523d8127d821"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 42.20720000012079,
+        "timings": {
+          "gap_mm": 0.2500000000000002,
+          "socket_depth_mm": 2.55,
+          "lip_perimeter": true,
+          "prepare_ms": 42.157800002314616
+        },
+        "material_witnesses": 20,
+        "create_ms": 86.81570000044303,
+        "edit_rebuild_ms": 217.684699993697,
+        "rebuilt_material_witnesses": 20,
+        "same_targets": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "lid-tight",
+        "inputs": {
+          "kind": "lid",
+          "lip_clearance_mm": 0.1
+        },
+        "report_sha256": "7ee620760aa41f82b86697704f42c6319865407c53a116cbb605119ae7b7639e"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "The lid needs room for the complete groove and protected floor. Reduce height/clearance or use a thicker/wider lid.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "lip-floor-refusal",
+        "inputs": {
+          "kind": "lid",
+          "lip_height_mm": 8,
+          "expect_refusal": "complete groove and protected floor"
+        },
+        "report_sha256": "c38ad79a051673d48d6b1b8434b13aa0691e62c0b2cee47334ee10c89f29b7f8"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "The complete lip root must be supported by face A. Reduce inset/width or choose a wider rim.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "lip-support-refusal",
+        "inputs": {
+          "kind": "lid",
+          "lip_inset_mm": 6,
+          "expect_refusal": "lip root"
+        },
+        "report_sha256": "5a056965bc1130beaf9ef17a876e512d49f388e9bbd7e6c7d73d9c3be4b016cf"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 27.51169999828562,
+        "timings": {
+          "gap_mm": 0.2500000000000002,
+          "socket_depth_mm": 4.05,
+          "pin_count": 2,
+          "pin_positions_mm": [
+            [
+              -27.9,
+              -17.9
+            ],
+            [
+              27.9,
+              17.9
+            ]
+          ],
+          "prepare_ms": 27.464800004963763
+        },
+        "material_witnesses": 10,
+        "preview_cleanup": true,
+        "create_ms": 87.78590000292752,
+        "edit_rebuild_ms": 214.03840000130003,
+        "rebuilt_material_witnesses": 20,
+        "same_targets": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "alignment",
+        "inputs": {
+          "kind": "alignment",
+          "preview": true
+        },
+        "report_sha256": "2cef64113c749f015b39441a67c9042aef909ff28afb97481fe99df3da0b0a06"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 48.185200001171324,
+        "timings": {
+          "gap_mm": 0.2500000000000002,
+          "socket_depth_mm": 4.05,
+          "pin_count": 4,
+          "pin_positions_mm": [
+            [
+              -27.9,
+              -17.9
+            ],
+            [
+              27.9,
+              17.9
+            ],
+            [
+              -27.9,
+              17.9
+            ],
+            [
+              27.9,
+              -17.9
+            ]
+          ],
+          "prepare_ms": 48.10389999329345
+        },
+        "material_witnesses": 20,
+        "create_ms": 96.51060000032885,
+        "edit_rebuild_ms": 199.56130000355188,
+        "rebuilt_material_witnesses": 20,
+        "same_targets": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "four-pins",
+        "inputs": {
+          "kind": "alignment",
+          "pin_count": 4
+        },
+        "report_sha256": "648b1d301d5ce063ad63bded54017fb74ce0dc2a78f5fa448a35dc33deeb6f58"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 18.103700000210665,
+        "timings": {
+          "gap_mm": 0.2500000000000002,
+          "socket_depth_mm": 4.05,
+          "pin_count": 2,
+          "pin_positions_mm": [
+            [
+              -28.1,
+              -18.1
+            ],
+            [
+              28.1,
+              18.1
+            ]
+          ],
+          "prepare_ms": 18.060800000966992
+        },
+        "material_witnesses": 10,
+        "create_ms": 74.10130000062054,
+        "edit_rebuild_ms": 169.8367999997572,
+        "rebuilt_material_witnesses": 20,
+        "same_targets": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "pins-no-lead",
+        "inputs": {
+          "kind": "alignment",
+          "lead_mm": 0
+        },
+        "report_sha256": "1352a37314f7aeec3baa09cd7f3997dc27a5fea933b0acba35cb2b2a7e14c124"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "Each receiving hole needs complete material and a protected floor. Reduce height/inset/diameter or choose a thicker lid.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "pins-floor-refusal",
+        "inputs": {
+          "kind": "alignment",
+          "pin_height_mm": 8,
+          "expect_refusal": "protected floor"
+        },
+        "report_sha256": "cd3290b1cfe2316af6c0db74567652c022f5726f7677784110f29d0b8b826144"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "Each pin root needs full material on face A. Adjust inset/diameter or choose a wider rim.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "pins-support-refusal",
+        "inputs": {
+          "kind": "alignment",
+          "pin_inset_mm": 6,
+          "expect_refusal": "pin root"
+        },
+        "report_sha256": "e52ff102443110c2e1758bd301471a86c01c238a11c30aef2f7234de62affad8"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 36.65080000064336,
+        "timings": {
+          "rib_count": 3,
+          "rib_centers_mm": [
+            6.0,
+            30.0,
+            54.0
+          ],
+          "support_length_mm": 60.0,
+          "prepare_ms": 36.63000000233296
+        },
+        "material_witnesses": 12,
+        "preview_cleanup": true,
+        "create_ms": 64.29429999843705,
+        "edit_rebuild_ms": 179.53319999651285,
+        "rebuilt_material_witnesses": 16,
+        "same_targets": true,
+        "owned_features": 2,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "ribs",
+        "inputs": {
+          "kind": "ribs",
+          "preview": true
+        },
+        "report_sha256": "96b7fb2ccc87d6821c5d9eb3d18dab2c9da68272bb4531e0a60fbc91187a4180"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 39.596000002347864,
+        "timings": {
+          "rib_count": 3,
+          "rib_centers_mm": [
+            6.0,
+            30.0,
+            54.0
+          ],
+          "support_length_mm": 60.0,
+          "prepare_ms": 39.57520000403747
+        },
+        "material_witnesses": 12,
+        "preview_cleanup": true,
+        "create_ms": 63.05389999761246,
+        "edit_rebuild_ms": 157.44270000141114,
+        "rebuilt_material_witnesses": 16,
+        "same_targets": true,
+        "owned_features": 2,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "full-ribs",
+        "inputs": {
+          "kind": "ribs",
+          "rib_style": "full",
+          "preview": true
+        },
+        "report_sha256": "2810c8482e88ae94bc407df4f9f6118980b952689713b5116bcc032bc4a5ec67"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 14.024700001755264,
+        "timings": {
+          "rib_count": 1,
+          "rib_centers_mm": [
+            30.0
+          ],
+          "support_length_mm": 60.0,
+          "prepare_ms": 14.002700001583435
+        },
+        "material_witnesses": 4,
+        "create_ms": 55.77650000486756,
+        "edit_rebuild_ms": 154.8257000031299,
+        "rebuilt_material_witnesses": 16,
+        "same_targets": true,
+        "owned_features": 2,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "one-rib",
+        "inputs": {
+          "kind": "ribs",
+          "rib_count": 1
+        },
+        "report_sha256": "b69e812608c7b78e1ebb682e8d01f24e709561b61150461c28fdb240f405374a"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 328.0471000034595,
+        "timings": {
+          "rib_count": 32,
+          "rib_centers_mm": [
+            1.2,
+            3.0580645161290323,
+            4.916129032258064,
+            6.774193548387097,
+            8.63225806451613,
+            10.490322580645161,
+            12.348387096774193,
+            14.206451612903226,
+            16.06451612903226,
+            17.92258064516129,
+            19.780645161290323,
+            21.638709677419357,
+            23.496774193548386,
+            25.35483870967742,
+            27.212903225806453,
+            29.070967741935483,
+            30.929032258064517,
+            32.78709677419355,
+            34.645161290322584,
+            36.50322580645162,
+            38.36129032258065,
+            40.219354838709684,
+            42.07741935483872,
+            43.935483870967744,
+            45.79354838709678,
+            47.65161290322581,
+            49.509677419354844,
+            51.36774193548388,
+            53.22580645161291,
+            55.08387096774194,
+            56.94193548387097,
+            58.800000000000004
+          ],
+          "support_length_mm": 60.0,
+          "prepare_ms": 328.02609999635024
+        },
+        "material_witnesses": 128,
+        "create_ms": 131.97620000573806,
+        "edit_rebuild_ms": 242.28890000085812,
+        "rebuilt_material_witnesses": 16,
+        "same_targets": true,
+        "owned_features": 2,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "maximum-ribs",
+        "inputs": {
+          "kind": "ribs",
+          "rib_count": 32,
+          "rib_width_mm": 0.4,
+          "rib_margin_mm": 1
+        },
+        "report_sha256": "825e27dc279746ba8eda269eb97cbfb0bbb6af3fe2abbecafbd543947dcaf0a1"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "Face A does not support the complete rib leg. Choose an inside corner or reduce its height.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "rib-support-refusal",
+        "inputs": {
+          "kind": "ribs",
+          "rib_height_b_mm": 40,
+          "expect_refusal": "Face A does not support"
+        },
+        "report_sha256": "be66377a2409351ed727b0abbf1ec4b1a11e6e233d458350a81e60fb6893ccb5"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "Ribs overlap. Reduce count/width/end margins or choose a longer edge.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "rib-overlap-refusal",
+        "inputs": {
+          "kind": "ribs",
+          "rib_count": 32,
+          "expect_refusal": "Ribs overlap"
+        },
+        "report_sha256": "23298783c6351afae35afe2c83fe19483834fc77f2a8daf28861e5503dae5efc"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "expected_refusal": "Use 1–32 ribs.",
+        "model_unchanged_before_cleanup": true,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "rib-count-refusal",
+        "inputs": {
+          "kind": "ribs",
+          "rib_count": 33,
+          "expect_refusal": "1"
+        },
+        "report_sha256": "20214f8d31bb7daf8e964155747c72d7039c5bfc9833347efdea1d644c2b7694"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 28.805800000554882,
+        "timings": {
+          "gap_mm": 0.2500000000000002,
+          "socket_depth_mm": 4.05,
+          "pin_count": 2,
+          "pin_positions_mm": [
+            [
+              -26.0,
+              -16.0
+            ],
+            [
+              26.0,
+              16.0
+            ]
+          ],
+          "prepare_ms": 28.751400001056027
+        },
+        "material_witnesses": 10,
+        "preview_cleanup": true,
+        "create_ms": 83.50000000064028,
+        "stacked_delta_tools_and_earlier_edit_guard": true,
+        "edit_rebuild_ms": 205.71779999590944,
+        "rebuilt_material_witnesses": 20,
+        "same_targets": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "stack-lip-and-pins",
+        "inputs": {
+          "kind": "alignment",
+          "wall_mm": 6,
+          "pin_inset_mm": 4,
+          "stack": true,
+          "preview": true
+        },
+        "report_sha256": "a2d017a79cca87fffaa5847e396a938b693d8e4db014985f1bd76253c49420a6"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 37.210000002232846,
+        "timings": {
+          "gap_mm": 0.2500000000000002,
+          "socket_depth_mm": 2.55,
+          "lip_perimeter": true,
+          "prepare_ms": 37.159600004088134
+        },
+        "material_witnesses": 20,
+        "preview_cleanup": true,
+        "create_ms": 81.61610000388464,
+        "edit_rebuild_ms": 201.03159999416675,
+        "rebuilt_material_witnesses": 20,
+        "same_targets": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "visual-lid",
+        "inputs": {
+          "kind": "lid",
+          "preview": true
+        },
+        "report_sha256": "d5b145c853020c6c5cda188df2f69e7894685428f89b459ff29fe0cc6b7d10bd"
+      },
+      {
+        "version": "0.18.0",
+        "fusion_version": "2705.1.30",
+        "success": true,
+        "prepare_ms": 22.395699998014607,
+        "timings": {
+          "gap_mm": 0.2500000000000002,
+          "socket_depth_mm": 4.05,
+          "pin_count": 2,
+          "pin_positions_mm": [
+            [
+              -27.9,
+              -17.9
+            ],
+            [
+              27.9,
+              17.9
+            ]
+          ],
+          "prepare_ms": 22.355100001732353
+        },
+        "material_witnesses": 10,
+        "preview_cleanup": true,
+        "create_ms": 72.39929999923334,
+        "edit_rebuild_ms": 179.77909999899566,
+        "rebuilt_material_witnesses": 20,
+        "same_targets": true,
+        "owned_features": 3,
+        "caller_document_unchanged": true,
+        "discarded_without_saving": true,
+        "name": "visual-alignment",
+        "inputs": {
+          "kind": "alignment",
+          "preview": true
+        },
+        "report_sha256": "3a76799e408ca219eaf9182896628e78d53e260ccb5aae32166bca34cde5367b"
+      }
+    ],
+    "probe_sha256": "53fcc013322890c757c7f4c89b3626e85c6260e56135ffdfca02a9c84f772d08"
+  },
+  "native_source_sha256": {
+    "Partelier/partelier/addin.py": "c45c5b791cc6dcbb6b7d3ce3c84bc276104a6b04531f2f1f2bb921e6ac9698cc",
+    "Partelier/partelier/diagnostics.py": "764c4bb817a1e1f537a8f7791c4de1307dbbd5a58cbe74c9a779f4a4b0fdfddd",
+    "Partelier/partelier/palette.py": "b2daaae0c1c139d4c49aa2852752a2a8a2c7fcfc7e0c80d9b47fb195f24ae142",
+    "Partelier/partelier/palette_protocol.py": "d2c5fa0b6db17b4cee98f070ad715a339c00ce9c2527143c410f53d241a33d76",
+    "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+    "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+    "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+    "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+    "Partelier/partelier/tools/details/command.py": "e9d9b806276acb3faece1699e382d780ebaf1eae8fb1fd578c70d56cc4022c09",
+    "Partelier/partelier/tools/details/fusion.py": "e163011756825f32775065805d6544dd091ce8ccbf669a1e0ad657bae46af13c",
+    "Partelier/partelier/tools/details/planner.py": "3a856656462a3e07c392db32e7a8b9acbf70cd762e2a2668618746a340fd05c7",
+    "Partelier/partelier/tools/details/settings.py": "6237508874e10bd122ba166198b32decef9d78c1751e81270510bbe189ac82cd",
+    "Partelier/partelier/tools/details/store.py": "1f46c7b05fc21c0ba83484bb488d3e118ca643ffe9b1e6982d85f6e82db504fc",
+    "Partelier/partelier/tools/details/__init__.py": "cfc00ff1b67ad09582c79f387a8399a8dcc23311ec309b3a789c6377ecaf37ac",
+    "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+    "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+    "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+    "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+    "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+    "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+    "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+    "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+    "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+    "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+    "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+    "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+    "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+    "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+    "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+    "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+    "Partelier/partelier/tools/patterns/auto_fit.py": "5be4178c056629c6486ae2558653ad1eaf7f6fcaa10820309ed74ceea4345289",
+    "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+    "Partelier/partelier/tools/patterns/clipping.py": "1d5583190a77e6b164e000353c9237aa446fe762bd6c4d20f72703ddb7968822",
+    "Partelier/partelier/tools/patterns/colour_export.py": "5bde50f0d872fc57b30bc88d5a73e7d3460f80c06529cebe10f846a2348bb5ff",
+    "Partelier/partelier/tools/patterns/colour_store.py": "cf2f2ff1ecb6e28397a57373bc8e68b6ce6319a84423db8c2ca4ffc5c66b84dd",
+    "Partelier/partelier/tools/patterns/command.py": "b0e53070b96ff4ef79cdf847400eda6076870e8dc6a8f68c3ea41b76b66086e5",
+    "Partelier/partelier/tools/patterns/dense_grid.py": "81652510eaf37bf981f2c56d608519d8d99e215f07b90d8de448dc76187d84de",
+    "Partelier/partelier/tools/patterns/display_export.py": "aa5f683d270129781249d40d7d7f6e8eeacf93e8cb391af581f2e69dbbde0c5f",
+    "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+    "Partelier/partelier/tools/patterns/face_selection.py": "809ad6728c9273bd9dd35e5674e415257b71863e443387841b926713c33dcec3",
+    "Partelier/partelier/tools/patterns/fingerprint.py": "2741a20d00bd5ed65b3491f0e03fdb9899f7c61b94b39d49f98ba091f3e6ad20",
+    "Partelier/partelier/tools/patterns/flat_plate.py": "f590d33ef2bd07a5c5bbae693e127f90d2a8b035e000ed174e72ddbe18e7a1c8",
+    "Partelier/partelier/tools/patterns/fusion.py": "e2a1faae47012a9aa427dc1749c9932c96fad557463af5541aa7432f5c5dfb35",
+    "Partelier/partelier/tools/patterns/grilles.py": "434b0d78e59f0734f3e5b9a44376055d5a43ea0b7708ce56330b5811298d39d1",
+    "Partelier/partelier/tools/patterns/inlay.py": "2fbc2ce692013442910062306cc6938caf464dde43e4dce54b32b30612608a1a",
+    "Partelier/partelier/tools/patterns/mounting.py": "e225e461f9c4db8394847cfc29bb029fcc2556d6f63b0af1b51b853c47cbd938",
+    "Partelier/partelier/tools/patterns/perforated_prism.py": "ed5aed934b3c9d4bc013b183f079689358929a16cd4ed1d5c67f6320cdde969b",
+    "Partelier/partelier/tools/patterns/planner.py": "70f66da217988ec0031a9671df987a53b106e05fe05a82f073f52200094d83be",
+    "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+    "Partelier/partelier/tools/patterns/prism.py": "cb1ada026a5ef1964b68b0e749c45e6ae03d19ece19a518938ef4e7c444f58a5",
+    "Partelier/partelier/tools/patterns/profile_loft.py": "da702b356ae686edfcb274c567a7a4e46729fc980734d86882c0316c2daf90c4",
+    "Partelier/partelier/tools/patterns/raised_grilles.py": "5e253c373058725d6ac163c8d7821fb0dbe1a3dbddcaa7e18eec884cd6c49eb9",
+    "Partelier/partelier/tools/patterns/recipe.py": "af62151f4ec95764709d67bc59eb42df98e2546db51fa539d70743c75a637f6b",
+    "Partelier/partelier/tools/patterns/settings.py": "605b152ce8dfc5b9ae07f6c19aa8c33b10941710671cc436b726b29907b9ccb0",
+    "Partelier/partelier/tools/patterns/store.py": "e0f422fd30b349e37ac5a998b7851cd9d2f4849d9d854929654ddf130b3eea11",
+    "Partelier/partelier/tools/patterns/surfaces.py": "8a4e392b38e22f8c3579271b11499b0b7480f3e0abf829785a9f9be9761da74f",
+    "Partelier/partelier/tools/patterns/tiled_layout.py": "fd39879c2540ddb1924728783f288a5704a656263bfc9ae896c81fb70d8ed4da",
+    "Partelier/partelier/tools/patterns/tiles.py": "7d7c94fd7e897ee82b4ec5de5a8a33da5f962157cc82bd27746a9917fd931fd1",
+    "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+    "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+    "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+    "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+    "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+    "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+    "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+    "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+    "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+    "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80",
+    "Partelier/partelier/tools/truss/fusion.py": "f2b806c2b132b7d7dcca50c8c482efae8eadb97b41b6d810c6f8119bc9a98e9b",
+    "Partelier/partelier/tools/truss/planner.py": "2f8888d59b33d079d7e7c4663d192fc1571182908bb04928b53c42a24158cf4f",
+    "Partelier/partelier/tools/truss/__init__.py": "428300e3cc349f372952610ee2fd58541c3d642f3704d7e7e2a319809bf75692"
+  },
+  "ui_source_sha256": {
+    "Partelier/partelier/ui/catalog.js": "8193bc8d8fa3499e5b205c0f21e91147b13f5039c052355b9fc1ca591f8599a8",
+    "Partelier/partelier/ui/details.js": "427da5f8bf09282e845000c827ecac8d59a9a0c75f1f759329cb590ce922c4dd",
+    "Partelier/partelier/ui/illustrations.js": "aa269446fc30fe62df61edd2f0e34137fd65ea68a9c362d4308ae8bc12b1ef2c",
+    "Partelier/partelier/ui/palette.css": "2469a2c0626f8ddaa5952cc943705e9343a322b51eb85851abc5885aa0c6d46b",
+    "Partelier/partelier/ui/palette.html": "8c250893e9f60507f9dd6f6b47d2c4acccdad664b6903557fdd7aa2566757c73",
+    "Partelier/partelier/ui/palette.js": "6676e340b94f9f08042399931c02eb4735dc3c05145460fb29bbc4594e96291f",
+    "Partelier/partelier/ui/pattern-help.js": "52303491735c0b4b622f95d36c4307316cde64ffef37faed1d5f39fb78322551",
+    "Partelier/partelier/ui/patterns.js": "23ba2071cccb2c23a4d8b19c521d8680e53100f36be2637f60974e5cdd2b026f",
+    "Partelier/partelier/ui/snap.js": "81ffca3b81f6effc0b4daaf420684f8bdde9ddf20a34ff6eefa5a091530d0b79",
+    "Partelier/partelier/ui/pattern-previews/cairo.svg": "62b61fafaa82d48f38e556bbe1171a300f67718e4551fbbd3205091c7d02ccc0",
+    "Partelier/partelier/ui/pattern-previews/elongated_hexagon.svg": "7db784fb5b6c3c25e3c839ca0444f10f022569e9fc09b31eb8f8f0ebef2439e9",
+    "Partelier/partelier/ui/pattern-previews/octagon.svg": "780bde96fbdd424212d89ac63253ed61605a80aeb930c8886a89e0e129e541c7",
+    "Partelier/partelier/ui/pattern-previews/octagon_square.svg": "b6d30d19271015390c5f69474c335c09c113e8701dc2d31d197b2750cd9ca0fa",
+    "Partelier/partelier/ui/pattern-previews/pentagon.svg": "360322d0a82041063823db1cc90217f3289dc62d6fdb4710afb32574f49aa522",
+    "Partelier/partelier/ui/pattern-previews/rhombille.svg": "cf3f4dfccee06f77df5359c66e8937aaa770a26a292cd9d396ce9adc9c3f8468",
+    "Partelier/partelier/ui/pattern-previews/rounded_hexagon.svg": "6b72e822e36c215d791ffeb77fccff5e70dd56df71db34c0f74c4fad4eceb506",
+    "Partelier/partelier/ui/pattern-previews/rounded_triangle.svg": "dbc97b47ceecb4fc6d2691f433a7d739346f441e556a9900e05300725333d462",
+    "Partelier/partelier/ui/pattern-previews/triangle.svg": "d4905b8f6ab2203020cdb75569225dd42dfbbf0dd9eb83d91794da3375ac44cc",
+    "Partelier/partelier/ui/pattern-previews/trihex.svg": "a216a27473d0249b6594e340c4ebf24c25b1ac7c9b06aff6b7f196c3196cd07f"
+  },
+  "git_blob_sha256": {
+    "Partelier/partelier/addin.py": "c45c5b791cc6dcbb6b7d3ce3c84bc276104a6b04531f2f1f2bb921e6ac9698cc",
+    "Partelier/partelier/diagnostics.py": "7f65bd85c039761d7e90bfb03ec310e3908c695c3849fcf08dfbc8d183edc221",
+    "Partelier/partelier/palette.py": "2fc2e0dc1c4085910b6e8839a675fcd3ea09ddb310c330d1ae4ad5f4059c7311",
+    "Partelier/partelier/palette_protocol.py": "2fb43944682f4f721d5ea8d5956efe8a3ccf9b82a5d60315022fa192645b57f1",
+    "Partelier/partelier/settings.py": "174524a0a89802f7354871f9a5e31b3fef040f683fe3a9f713e8513cb64b898e",
+    "Partelier/partelier/__init__.py": "db25cf3abc6dcadb353dcc82169b41061d4baf51f6e6a310062369002a44f5c5",
+    "Partelier/partelier/tools/solid_pair.py": "721f251a689c96d66a9cbbbb736e47aff7c5ce856cf104985ed7909f96f370d9",
+    "Partelier/partelier/tools/__init__.py": "9b16bc0ad927afce6885d7f9a142826629a71c213e62d69ef4c0098422c54ce7",
+    "Partelier/partelier/tools/details/command.py": "e9d9b806276acb3faece1699e382d780ebaf1eae8fb1fd578c70d56cc4022c09",
+    "Partelier/partelier/tools/details/fusion.py": "e163011756825f32775065805d6544dd091ce8ccbf669a1e0ad657bae46af13c",
+    "Partelier/partelier/tools/details/planner.py": "3a856656462a3e07c392db32e7a8b9acbf70cd762e2a2668618746a340fd05c7",
+    "Partelier/partelier/tools/details/settings.py": "6237508874e10bd122ba166198b32decef9d78c1751e81270510bbe189ac82cd",
+    "Partelier/partelier/tools/details/store.py": "1f46c7b05fc21c0ba83484bb488d3e118ca643ffe9b1e6982d85f6e82db504fc",
+    "Partelier/partelier/tools/details/__init__.py": "cfc00ff1b67ad09582c79f387a8399a8dcc23311ec309b3a789c6377ecaf37ac",
+    "Partelier/partelier/tools/hinge/command.py": "a14701c644cd6df0e3de133285f46a3505fecb71d595a8a9e5e10d552dc819e1",
+    "Partelier/partelier/tools/hinge/finish.py": "3b6f2b72356d828a0673ecb6fa3bc4707cfa3b264539d937f3885f3979959d57",
+    "Partelier/partelier/tools/hinge/fusion.py": "749e4ca2f15430284b92ac3cb6b576b4200a615d23c4c3cdb29537ca9e1a679b",
+    "Partelier/partelier/tools/hinge/inplace.py": "68fcc6572f6ed5782362859b1922e993c2f3d9fc7ae355b9145266676db82835",
+    "Partelier/partelier/tools/hinge/layout.py": "5810e0265d0af3a6e799bb0b6e0a48c973ce0e344e4702a3e1e0dcbf84fc94ea",
+    "Partelier/partelier/tools/hinge/native_finish.py": "0859911db7fdc36f6ce547258b9afb22b773f1690131b57610a316b241548423",
+    "Partelier/partelier/tools/hinge/native_preview.py": "76b7bb25efd90861aa08a018c643074a80595806ed8cd02a34f9f08d72999d55",
+    "Partelier/partelier/tools/hinge/planner.py": "12785e4c69c46dc42e8985f669bbef9cafcf37bc847d26baa7b3fb3a7b0c651a",
+    "Partelier/partelier/tools/hinge/relief.py": "3c72a44e4cb8da15b5456fa9d14dcf51954c3e803d6deb151ffcec52988b9a14",
+    "Partelier/partelier/tools/hinge/roof_finish.py": "1d0616bb9a750052100310bce2e16e17c55150f6ce29738ba8cebf582931d253",
+    "Partelier/partelier/tools/hinge/rounding.py": "51637c95574f6d59bb6f066d25777f760d4f7c673fd05435fafbdf1752cf2373",
+    "Partelier/partelier/tools/hinge/seam.py": "552040638161c133bed426e6642ccfface51910106a1ad1bccd8aecda67fbe94",
+    "Partelier/partelier/tools/hinge/settings.py": "ed562b108d2184dde40ed1ed56cfee4e3f62afb0734393486d79ce30f4e85b86",
+    "Partelier/partelier/tools/hinge/support.py": "7e9cc713f126a69766f748b19fa3ca69ae7ebe8ce2f768c01bb210aa8b56a66c",
+    "Partelier/partelier/tools/hinge/visibility.py": "d35df3e99c223726215c83e0432cd91b32798db693b574e00a7ddc6da4b4081e",
+    "Partelier/partelier/tools/hinge/__init__.py": "8f5e10d074b150320d157766ea03bc988ba7e097f575b94f27074bfb38830337",
+    "Partelier/partelier/tools/patterns/auto_fit.py": "5be4178c056629c6486ae2558653ad1eaf7f6fcaa10820309ed74ceea4345289",
+    "Partelier/partelier/tools/patterns/batch.py": "6f516d384ace5fe2bcf0dd4a671e60d627830bfcd05dec02344c7f02f308de01",
+    "Partelier/partelier/tools/patterns/clipping.py": "1d5583190a77e6b164e000353c9237aa446fe762bd6c4d20f72703ddb7968822",
+    "Partelier/partelier/tools/patterns/colour_export.py": "dc9404373256ce66d4fc934c11cfa7917885318a804fe1d066bebf13db98079e",
+    "Partelier/partelier/tools/patterns/colour_store.py": "cf2f2ff1ecb6e28397a57373bc8e68b6ce6319a84423db8c2ca4ffc5c66b84dd",
+    "Partelier/partelier/tools/patterns/command.py": "b0e53070b96ff4ef79cdf847400eda6076870e8dc6a8f68c3ea41b76b66086e5",
+    "Partelier/partelier/tools/patterns/dense_grid.py": "9adb25ce64ba02c1d614fbafcac4057995dd471f0ce2f2740f8edf97d96add70",
+    "Partelier/partelier/tools/patterns/display_export.py": "3cfdc6031090dbe8c52422b41926f35d04c9e2e153131572b79711af094f19ff",
+    "Partelier/partelier/tools/patterns/display_mesh.py": "af771bfa0d990a17e85d1b0c76f3164e34a1c83878073dcf3ab0f5136542684c",
+    "Partelier/partelier/tools/patterns/face_selection.py": "809ad6728c9273bd9dd35e5674e415257b71863e443387841b926713c33dcec3",
+    "Partelier/partelier/tools/patterns/fingerprint.py": "2741a20d00bd5ed65b3491f0e03fdb9899f7c61b94b39d49f98ba091f3e6ad20",
+    "Partelier/partelier/tools/patterns/flat_plate.py": "f590d33ef2bd07a5c5bbae693e127f90d2a8b035e000ed174e72ddbe18e7a1c8",
+    "Partelier/partelier/tools/patterns/fusion.py": "9d2136f25313bbd9b433da428edbc9c67d7b0b410e8cc4088d5fa20b51b6751a",
+    "Partelier/partelier/tools/patterns/grilles.py": "e33d0d72eff03168fe39c4a8b3a7e7dbc5b0e45068ccf3be750ada94a5e947da",
+    "Partelier/partelier/tools/patterns/inlay.py": "1e3bb0c9396636cfec62182f437d0bfffb14489d9d116ff40b1aa9151b074218",
+    "Partelier/partelier/tools/patterns/mounting.py": "e225e461f9c4db8394847cfc29bb029fcc2556d6f63b0af1b51b853c47cbd938",
+    "Partelier/partelier/tools/patterns/perforated_prism.py": "ed5aed934b3c9d4bc013b183f079689358929a16cd4ed1d5c67f6320cdde969b",
+    "Partelier/partelier/tools/patterns/planner.py": "49e86fc8874f31a8b98d0b12dc201b7ec697495bc369fe50c7d33e68c72fa51e",
+    "Partelier/partelier/tools/patterns/preview.py": "1f8ac854057f40bf7960f701a1d5c438302a89b0c4dbd8641d97e78c57430590",
+    "Partelier/partelier/tools/patterns/prism.py": "615e236e5d104a31a201028f28c596baf28f398f781b8e97731a19cbeb3a5950",
+    "Partelier/partelier/tools/patterns/profile_loft.py": "da702b356ae686edfcb274c567a7a4e46729fc980734d86882c0316c2daf90c4",
+    "Partelier/partelier/tools/patterns/raised_grilles.py": "5e253c373058725d6ac163c8d7821fb0dbe1a3dbddcaa7e18eec884cd6c49eb9",
+    "Partelier/partelier/tools/patterns/recipe.py": "10794d0f1797c1fd4917087a90ba85192a41cc9a426104f251d870137a711a16",
+    "Partelier/partelier/tools/patterns/settings.py": "aa5a3a9b4e2a6969d8e7760a53807fe6fdf7722982d43ee369225dbaecb451f4",
+    "Partelier/partelier/tools/patterns/store.py": "e0f422fd30b349e37ac5a998b7851cd9d2f4849d9d854929654ddf130b3eea11",
+    "Partelier/partelier/tools/patterns/surfaces.py": "8a4e392b38e22f8c3579271b11499b0b7480f3e0abf829785a9f9be9761da74f",
+    "Partelier/partelier/tools/patterns/tiled_layout.py": "fd39879c2540ddb1924728783f288a5704a656263bfc9ae896c81fb70d8ed4da",
+    "Partelier/partelier/tools/patterns/tiles.py": "7d7c94fd7e897ee82b4ec5de5a8a33da5f962157cc82bd27746a9917fd931fd1",
+    "Partelier/partelier/tools/patterns/__init__.py": "1c12c7bae742c81a5d83e0c8ab2c84d655b9879e8a50e2a7c4a88a097ed73117",
+    "Partelier/partelier/tools/snap_fit/annular.py": "36a8e3af040d44e7e76fab0f8a2adbe0e05ea2db32b0cede146fe5af4a67d65b",
+    "Partelier/partelier/tools/snap_fit/ball_detent.py": "eb4b9a8492f91c9a062e37a5d1adedfadb5230d287db41063e4f50df4cc85910",
+    "Partelier/partelier/tools/snap_fit/command.py": "63f22b389347c42d7115994489a0e800f6688dbea2b9e7ce0553baeb03f8ccb0",
+    "Partelier/partelier/tools/snap_fit/finish.py": "952b5925f5459e1549594544ee2befbee7c651a8f4f9ae680db4a73119cf54b5",
+    "Partelier/partelier/tools/snap_fit/fusion.py": "922f40238d14847c0de73fc3017cc539d557cfd972ec4148aed47db247abb532",
+    "Partelier/partelier/tools/snap_fit/planner.py": "c5cb6f8e8c77580f2e1f53f50eb2387b2f2f484dfaf437e6568f96f2a7187afb",
+    "Partelier/partelier/tools/snap_fit/settings.py": "1df7501810f23a5bcb13da1157b43a88b68f92840c898b1685ebe9cfdea925c7",
+    "Partelier/partelier/tools/snap_fit/torsion.py": "717e0536d47f88b5416809498659b20f7c387f96df8dd2a9339a8a69b73d4061",
+    "Partelier/partelier/tools/snap_fit/__init__.py": "e4556834b0e02a94174950f244da3453339a58dc977fbcaae3ae401d83d7ba80",
+    "Partelier/partelier/tools/truss/fusion.py": "f2b806c2b132b7d7dcca50c8c482efae8eadb97b41b6d810c6f8119bc9a98e9b",
+    "Partelier/partelier/tools/truss/planner.py": "2f8888d59b33d079d7e7c4663d192fc1571182908bb04928b53c42a24158cf4f",
+    "Partelier/partelier/tools/truss/__init__.py": "428300e3cc349f372952610ee2fd58541c3d642f3704d7e7e2a319809bf75692",
+    "Partelier/partelier/ui/catalog.js": "4a2c9436e89eda6af73076499df3c579ae4963a56b644ad3ab009fdd7c038a48",
+    "Partelier/partelier/ui/details.js": "427da5f8bf09282e845000c827ecac8d59a9a0c75f1f759329cb590ce922c4dd",
+    "Partelier/partelier/ui/illustrations.js": "be900f85c46924adeead0353e71560892c1260bfe7721736f642d708ab7ddf1e",
+    "Partelier/partelier/ui/palette.css": "a7d7600561208125ad929286c7ad7ada5b1b60a84b142dc0d3d56237375c9fa7",
+    "Partelier/partelier/ui/palette.html": "ce3d3dc7450b48159056f70fa11f95fa5ea43995fe4e33d5b85c45011fad64f9",
+    "Partelier/partelier/ui/palette.js": "d464c4b42d44731961ac65422de70ef05773a0eff41688e5fce197cea01d50ee",
+    "Partelier/partelier/ui/pattern-help.js": "a5d18c80b30ea36221204eaa9d9586fb9de69ae549bdf38a11083bfef6769e45",
+    "Partelier/partelier/ui/patterns.js": "eebf86eb94f7c080a8a717564aaa29b9025a0a9d3c0dd16e668c50f74773c476",
+    "Partelier/partelier/ui/snap.js": "c703ffa608d8bd1cce41bbc5e5e3dd5f9d04af23ad38c115a1ee9a189fee9a0a",
+    "Partelier/partelier/ui/pattern-previews/cairo.svg": "62b61fafaa82d48f38e556bbe1171a300f67718e4551fbbd3205091c7d02ccc0",
+    "Partelier/partelier/ui/pattern-previews/elongated_hexagon.svg": "7db784fb5b6c3c25e3c839ca0444f10f022569e9fc09b31eb8f8f0ebef2439e9",
+    "Partelier/partelier/ui/pattern-previews/octagon.svg": "780bde96fbdd424212d89ac63253ed61605a80aeb930c8886a89e0e129e541c7",
+    "Partelier/partelier/ui/pattern-previews/octagon_square.svg": "b6d30d19271015390c5f69474c335c09c113e8701dc2d31d197b2750cd9ca0fa",
+    "Partelier/partelier/ui/pattern-previews/pentagon.svg": "360322d0a82041063823db1cc90217f3289dc62d6fdb4710afb32574f49aa522",
+    "Partelier/partelier/ui/pattern-previews/rhombille.svg": "cf3f4dfccee06f77df5359c66e8937aaa770a26a292cd9d396ce9adc9c3f8468",
+    "Partelier/partelier/ui/pattern-previews/rounded_hexagon.svg": "6b72e822e36c215d791ffeb77fccff5e70dd56df71db34c0f74c4fad4eceb506",
+    "Partelier/partelier/ui/pattern-previews/rounded_triangle.svg": "dbc97b47ceecb4fc6d2691f433a7d739346f441e556a9900e05300725333d462",
+    "Partelier/partelier/ui/pattern-previews/triangle.svg": "d4905b8f6ab2203020cdb75569225dd42dfbbf0dd9eb83d91794da3375ac44cc",
+    "Partelier/partelier/ui/pattern-previews/trihex.svg": "a216a27473d0249b6594e340c4ebf24c25b1ac7c9b06aff6b7f196c3196cd07f",
+    "tools/fusion/SmallDetailsProbe.py": "53fcc013322890c757c7f4c89b3626e85c6260e56135ffdfca02a9c84f772d08",
+    "docs/validation/images/detail-lid-base-0.18.0.png": "40aba3e908d01345e47046903d4afe81d7fe1de371721f37012df1358b067041",
+    "docs/validation/images/detail-lid-receiver-0.18.0.png": "24df56b3031768af1401174793d17040d9cab064affaeacfc5ac43ed609db4f4",
+    "docs/validation/images/detail-alignment-base-0.18.0.png": "0c4194679aeadeecb4a3b22af225af48e31ec202a11f7ea1399089e458053f9d",
+    "docs/validation/images/detail-alignment-receiver-0.18.0.png": "38062c6bb6c3c610c9c35fee2fe0d6b3c7e7abcdf91be205944f1fc185eda5d7",
+    "docs/validation/images/detail-ribs-0.18.0.png": "7f7337552b6f8193c43d563138f8e33fa1db9d0b4b5424688abe1f42865d1c31"
+  },
+  "inspected_native_images": {
+    "docs/validation/images/detail-lid-base-0.18.0.png": "40aba3e908d01345e47046903d4afe81d7fe1de371721f37012df1358b067041",
+    "docs/validation/images/detail-lid-receiver-0.18.0.png": "24df56b3031768af1401174793d17040d9cab064affaeacfc5ac43ed609db4f4",
+    "docs/validation/images/detail-alignment-base-0.18.0.png": "0c4194679aeadeecb4a3b22af225af48e31ec202a11f7ea1399089e458053f9d",
+    "docs/validation/images/detail-alignment-receiver-0.18.0.png": "38062c6bb6c3c610c9c35fee2fe0d6b3c7e7abcdf91be205944f1fc185eda5d7",
+    "docs/validation/images/detail-ribs-0.18.0.png": "7f7337552b6f8193c43d563138f8e33fa1db9d0b4b5424688abe1f42865d1c31"
+  },
+  "normalization": "All final native working-source digests match. Staged sources match working bytes after CRLF/LF normalization; images match exactly.",
+  "scope": [
+    "Lid lip and matching groove; 2/4 integrated pins with blind receiving holes; triangular/full repeated same-body ribs.",
+    "Full material checks for lip/pin roots, receiving envelopes and protected floors; full clipped rib support legs, not sampled portions.",
+    "Optional 45-degree lip/pin-tip and pin-entry leads; per-side lip gap and diametral pin allowance remain distinct.",
+    "Independent native material/void witnesses for engagement, receiving floors, actual pin/hole diameters and rib width/style in previews and persistent rebuilt bodies.",
+    "Consumed additive/cutting delta tools retain target tokens/names/visibility and body counts; fixed two/three-feature owned histories.",
+    "Stacked lip/pins preserve the previous detail; editing an earlier feature is guarded; current-last-detail Edit uses historical input references.",
+    "Cached mesh draw/cleanup, native command/event registration and cleanup, actual Create/Edit/Rebuild and original caller restoration.",
+    "Strict 19-field sessions, host mutual exclusion, browser full-snapshot actions, input guards, Edit/Cancel and late/retired state rejection.",
+    "Hardware pockets remains unimplemented and unavailable. All temporary fixture documents are discarded without saving."
+  ],
+  "limits": [
+    "Rectangular mating outer faces on two root-component solids, parallel and facing one another; complete root/receiver material must fit.",
+    "Ribs require two perpendicular planar faces on the same body sharing one complete straight inside-corner edge.",
+    "1–32 ribs, 2/4 corner pins; current pin positions are not user-picked points. Protected sockets are blind.",
+    "Edit requires the detail at the end of the timeline; multiple same-kind details on one body require explicit feature selection.",
+    "Failed persistent writes require the enclosing native Fusion transaction to roll back.",
+    "No circular/arbitrary lips, non-90-degree ribs, fillet families, hardware pockets, physical printing/fit/strength, full CEF pointer/orbit, save/reopen or Undo/Redo proof.",
+    "Browser interaction checks use a simulated host; native geometry/lifecycle checks are separate evidence."
+  ]
+}

@@ -469,5 +469,43 @@ class PaletteLifecycleTests(unittest.TestCase):
         self.assertEqual(len(palette.sent_messages), 1)
 
 
+    def detail_manager(self,state=None):
+        state=state or {'sessionId':None,'phase':'idle','revision':0,'settings':None}
+        manager=SimpleNamespace(set_state_callback=Mock(),begin_palette=Mock(return_value=state),
+            palette_action=Mock(return_value=state),palette_state=Mock(return_value=state),busy=False)
+        self.library._detail_commands=manager
+        return manager
+
+    def test_small_details_begin_routes_typed_defaults_and_advertises_capabilities(self):
+        manager=self.detail_manager()
+        reply=json.loads(self.library.handle_message('detail_begin',json.dumps({
+            'protocol':1,'requestId':'details','settings':{'kind':'ribs'},'editing':False})))
+        self.assertIn('detail-palette',reply['capabilities']);self.assertIn('detail-edit',reply['capabilities'])
+        self.assertEqual(len(reply['detailDefaults']),19)
+        values=manager.begin_palette.call_args.args[0];self.assertEqual(values['kind'],'ribs');self.assertEqual(values['rib_count'],3)
+
+    def test_detail_and_existing_tool_owners_are_mutually_exclusive(self):
+        manager=self.detail_manager({'sessionId':'active-detail','phase':'preview','revision':0,'settings':None})
+        with self.assertRaisesRegex(ValueError,'Small detail'):
+            self.library.handle_message('hinge_begin',json.dumps({'protocol':1,'requestId':'hinge','settings':{},'editing':False}))
+        manager.palette_state.return_value={'sessionId':None,'phase':'idle'}
+        self.library._hinge_commands=SimpleNamespace(set_state_callback=Mock(),begin_palette=Mock(),palette_action=Mock(),
+            palette_state=Mock(return_value={'sessionId':'hinge','phase':'preview'}),busy=False)
+        with self.assertRaisesRegex(ValueError,'hinge'):
+            self.library.handle_message('detail_begin',json.dumps({'protocol':1,'requestId':'details','settings':{},'editing':False}))
+        manager.begin_palette.assert_not_called()
+
+    def test_detail_status_is_read_only_and_active_updates_keep_full_snapshots(self):
+        import uuid
+        from Partelier.partelier.tools.details.settings import DetailSettings
+        manager=self.detail_manager()
+        self.library.handle_message('detail_status',self.request);manager.begin_palette.assert_not_called();manager.palette_action.assert_not_called()
+        sid=str(uuid.uuid4());values=DetailSettings(kind='alignment').to_dict()
+        self.library.handle_message('detail_update',json.dumps({'protocol':1,'requestId':'details','sessionId':sid,'revision':3,'settings':values}))
+        self.assertEqual(manager.palette_action.call_args.args,('detail_update',sid))
+        self.assertEqual(manager.palette_action.call_args.kwargs['settings_dict'],values)
+        self.assertEqual(manager.palette_action.call_args.kwargs['revision'],3)
+
+
 if __name__ == "__main__":
     unittest.main()

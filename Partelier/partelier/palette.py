@@ -33,8 +33,9 @@ class ToolLibrary:
         self._hinge_commands = None
         self._snap_commands = None
         self._pattern_commands = None
+        self._detail_commands = None
 
-    def start(self, workspace_id, panel_id, input_check_id, report_error, hinge_commands=None, snap_commands=None, pattern_commands=None):
+    def start(self, workspace_id, panel_id, input_check_id, report_error, hinge_commands=None, snap_commands=None, pattern_commands=None, detail_commands=None):
         if self._created_handler is not None:
             return
         self._workspace_id = workspace_id
@@ -44,6 +45,8 @@ class ToolLibrary:
         self._hinge_commands = hinge_commands
         self._snap_commands = snap_commands
         self._pattern_commands = pattern_commands
+        self._detail_commands = detail_commands
+        if self._has_palette_manager(detail_commands):detail_commands.set_state_callback(lambda state:self._publish_state('detail_state',state))
         ui = adsk.core.Application.get().userInterface
         panel = self._panel(ui)
         if panel is None:
@@ -159,6 +162,8 @@ class ToolLibrary:
         if self._created_handler is None:
             raise RuntimeError("The tool library has stopped. Run the add-in again.")
         request = read_request(action, raw_data)
+        if action.startswith(('hinge_','snap_','pattern_')) and not action.endswith('_status'):
+            self._require_idle_other_tool(self._detail_commands,'Small detail')
         if action=='diagnostic_log':
             for entry in request.diagnostics:
                 emit('ui.'+entry['event'],ui_at=entry['at'],context=entry['context'])
@@ -166,7 +171,20 @@ class ToolLibrary:
         snapshot = None
         snap_snapshot = None
         pattern_snapshot = None
-        if action == "open_input_check":
+        detail_snapshot = None
+        if action=='detail_begin' or action.startswith('detail_') and action!='detail_status':
+            if not self._has_palette_manager(self._detail_commands):raise RuntimeError('Run Partelier to enable Small details.')
+            if action=='detail_begin':
+                for manager,label in ((self._hinge_commands,'hinge'),(self._snap_commands,'snap-fit'),(self._pattern_commands,'pattern')):
+                    self._require_idle_other_tool(manager,label)
+                detail_snapshot=self._detail_commands.begin_palette(request.settings.to_dict(),editing=request.editing)
+            else:
+                detail_snapshot=self._detail_commands.palette_action(action,request.session_id,revision=request.revision,
+                    settings_dict=request.settings.to_dict() if request.settings else None,target=request.target)
+        elif action=='detail_status':
+            if not self._has_palette_manager(self._detail_commands):raise RuntimeError('Run Partelier to enable Small details.')
+            detail_snapshot=self._detail_commands.palette_state()
+        elif action == "open_input_check":
             ui = adsk.core.Application.get().userInterface
             command = ui.commandDefinitions.itemById(self._input_check_id)
             if command is None or not command.isValid or not command.execute():
@@ -234,6 +252,9 @@ class ToolLibrary:
             else:
                 self._hinge_commands.launch_edit()
         capabilities = ["input-check"]
+        if self._has_palette_manager(self._detail_commands):
+            capabilities.extend(['detail-palette','detail-edit'])
+            if detail_snapshot is None:detail_snapshot=self._detail_commands.palette_state()
         if self._hinge_commands is not None:
             capabilities.extend(["hinge-create", "hinge-edit"])
         if self._has_palette_hinge():
@@ -248,6 +269,7 @@ class ToolLibrary:
             capabilities.extend(["pattern-palette","pattern-edit"])
             if callable(getattr(self._pattern_commands,"export_colour",None)):capabilities.append("pattern-colour-export")
             if pattern_snapshot is None:pattern_snapshot=self._pattern_commands.palette_state()
+        from .tools.details.settings import DetailSettings
         return json.dumps({
             "protocol": PROTOCOL_VERSION,
             "requestId": request.request_id,
@@ -259,6 +281,8 @@ class ToolLibrary:
             "snapState": snap_snapshot,
             "patternDefaults": PatternSettings().to_dict(),
             "patternState": pattern_snapshot,
+            'detailDefaults':DetailSettings().to_dict(),
+            'detailState':detail_snapshot,
         })
 
     def stop(self):
@@ -279,6 +303,7 @@ class ToolLibrary:
             attempt(lambda: self._snap_commands.set_state_callback(None))
         if self._has_palette_pattern():
             attempt(lambda:self._pattern_commands.set_state_callback(None))
+        if self._has_palette_manager(self._detail_commands):attempt(lambda:self._detail_commands.set_state_callback(None))
         attempt(self._release_palette)
         panel = self._panel(ui) if self._workspace_id else None
         control = panel.controls.itemById(COMMAND_ID) if panel else None
@@ -293,6 +318,7 @@ class ToolLibrary:
         self._hinge_commands = None
         self._snap_commands = None
         self._pattern_commands = None
+        self._detail_commands = None
         for error in errors:
             adsk.core.Application.get().log(f"Partelier UI cleanup failed:\n{error}")
 

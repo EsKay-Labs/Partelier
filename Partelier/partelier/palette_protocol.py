@@ -7,6 +7,7 @@ import uuid
 from .tools.hinge.settings import HingeSettings
 from .tools.snap_fit.settings import SnapFitSettings
 from .tools.patterns.settings import PatternSettings
+from .tools.details.settings import DetailSettings
 from .diagnostics import validate_ui_entries
 
 
@@ -17,10 +18,13 @@ SNAP_SESSION_SETTINGS_ACTIONS = frozenset({"snap_update", "snap_preview", "snap_
 SNAP_SESSION_ACTIONS = SNAP_SESSION_SETTINGS_ACTIONS | {"snap_cancel", "snap_focus"}
 PATTERN_SETTINGS_ACTIONS=frozenset({"pattern_update","pattern_preview","pattern_commit"})
 PATTERN_SESSION_ACTIONS=PATTERN_SETTINGS_ACTIONS|{"pattern_cancel","pattern_focus","pattern_finish_faces","pattern_clear_faces"}
+DETAIL_SETTINGS_ACTIONS=frozenset({'detail_update','detail_preview','detail_commit'})
+DETAIL_SESSION_ACTIONS=DETAIL_SETTINGS_ACTIONS|{'detail_cancel','detail_focus'}
 ALLOWED_ACTIONS = frozenset({
     "ready", "open_input_check", "hinge_create", "hinge_edit", "hinge_begin", "hinge_status",
     "snap_begin", "snap_status", "pattern_begin", "pattern_status", "pattern_export", "diagnostic_log",
-}) | SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS
+    'detail_begin','detail_status',
+}) | SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS | DETAIL_SESSION_ACTIONS
 
 
 @dataclass(frozen=True)
@@ -58,11 +62,13 @@ def read_request(action, raw_data):
     snap = action.startswith("snap_")
     pattern = action.startswith("pattern_")
     tool_name = "pattern" if pattern else "snap-fit" if snap else "hinge"
-    settings_type = PatternSettings if pattern else SnapFitSettings if snap else HingeSettings
-    settings_actions = SESSION_SETTINGS_ACTIONS | SNAP_SESSION_SETTINGS_ACTIONS | PATTERN_SETTINGS_ACTIONS
-    session_actions = SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS
-    begin_actions = {"hinge_begin", "snap_begin", "pattern_begin"}
-    focus_actions = {"hinge_focus", "snap_focus", "pattern_focus"}
+    detail=action.startswith('detail_')
+    if detail:tool_name='Small detail'
+    settings_type = DetailSettings if detail else PatternSettings if pattern else SnapFitSettings if snap else HingeSettings
+    settings_actions = SESSION_SETTINGS_ACTIONS | SNAP_SESSION_SETTINGS_ACTIONS | PATTERN_SETTINGS_ACTIONS | DETAIL_SETTINGS_ACTIONS
+    session_actions = SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS | DETAIL_SESSION_ACTIONS
+    begin_actions = {"hinge_begin", "snap_begin", "pattern_begin",'detail_begin'}
+    focus_actions = {"hinge_focus", "snap_focus", "pattern_focus",'detail_focus'}
     expected = {"protocol", "requestId"}
     if action in {"hinge_create"} | begin_actions | settings_actions:
         expected.add("settings")
@@ -90,7 +96,7 @@ def read_request(action, raw_data):
     if action in begin_actions and type(editing) is not bool:
         raise ValueError(f"{tool_name.capitalize()} editing mode must be true or false.")
     target = request.get("target")
-    targets={"faces","add_face","body","edit_target"} if pattern else {"face_a", "face_b", "axis_edge", "edit_target"}
+    targets={'face_a','face_b','edit_target'} if detail else {"faces","add_face","body","edit_target"} if pattern else {"face_a", "face_b", "axis_edge", "edit_target"}
     if action in focus_actions and (not isinstance(target, str) or target not in targets):
         raise ValueError(f"Select a supported {tool_name} geometry target.")
     settings = None
