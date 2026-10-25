@@ -20,7 +20,7 @@ const root = path.join(__dirname, "..", "Partelier", "partelier", "ui");
 const html = fs.readFileSync(path.join(root, "palette.html"), "utf8");
 for (const match of html.matchAll(/<([a-z]+)[^>]*\bid="([^"]+)"/g)) { const element = new Element(match[1]); element.id = match[2]; element.open = /\sopen(?:\s|>)/.test(match[0]); }
 const byId = id => { assert(ids.has(id), `Missing ${id}`); return ids.get(id); };
-for (const id of ["hinge-layout-fields", "hinge-fields", "hinge-fit-fields", "hinge-advanced-fields", "hinge-mode", "hinge-output-fields", "hinge-hole-fields", "hinge-hole-toggle", "hinge-finish-fields", "hinge-finish-choice", "hinge-fillet-fields", "hinge-design-fields"]) byId("hinge-settings").append(byId(id));
+for (const id of ["hinge-layout-fields", "hinge-margin-fields", "hinge-fields", "hinge-fit-fields", "hinge-advanced-fields", "hinge-mode", "hinge-output-fields", "hinge-hole-fields", "hinge-hole-toggle", "hinge-finish-fields", "hinge-finish-choice", "hinge-fillet-fields", "hinge-design-fields"]) byId("hinge-settings").append(byId(id));
 const document = { getElementById: byId, createElement: tag => new Element(tag), querySelector: () => new Element("a"), querySelectorAll: () => [], addEventListener() {} };
 const requests = [], identity = "caf51e65-f35b-44fc-b748-56ee3e879ae6";
 let host = { sessionId: null, revision: 0, phase: "idle", editing: false, settings: null, selections: {}, message: "" }, releasePreview, releaseCommit, holdPreview = false, holdCommit = false, holdPick = false, releasePick, queuedCommit = false, completePick = false, failNextPreview = false;
@@ -337,5 +337,11 @@ const input = async (name, value, settle = true) => { const control = byId(`hing
     assert.equal(recoveryById("create-hinge-button").disabled, false, "a fresh palette can reconnect to the host's active session");
     assert.equal(recoveryById("hinge-length_mm").value, String(retiredEditPreview.settings.length_mm));
     assert.equal(window.fusionJavaScriptHandler.handle("hinge_state", "broken json"), "FAILED");
+    // Saved-operation revision zero belongs to its own session, not prior edits.
+    await input('length_mm',66);
+    const exactOperation={...host,sessionId:'8c0a3454-c910-40cf-9cfb-2e48df314098',revision:0,phase:'preview',editing:true,previewCurrent:true,settings:{...host.settings,length_mm:77},selections:{edit_target:{selected:true,label:'Saved hinge'}}};
+    window.PartelierOpenOperation({hingeState:exactOperation},'hinge');
+    assert.equal(byId('hinge-length_mm').value,'77','opening another operation replaces the previous session dimensions');
+    assert.equal(byId('create-hinge-button').textContent,'Rebuild hinge');
     process.stdout.write("Palette UI session contract passed: Edit/Cancel/New, early pushes, stale/retired sessions, delayed acknowledgments, fresh Connect recovery and queued native commit.\n");
 })().catch(error => { console.error(error); process.exitCode = 1; });

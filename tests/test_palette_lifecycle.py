@@ -115,6 +115,7 @@ class PaletteLifecycleTests(unittest.TestCase):
         bundle = Path(__file__).parents[1] / "Partelier"
         version = json.loads((bundle / "Partelier.manifest").read_text(encoding="utf-8"))["version"]
         self.assertEqual(self.ui.palettes.last_arguments[1], (bundle / "partelier/ui/palette.html").resolve().as_uri() + "?v=" + version)
+        self.assertEqual(self.ui.palettes.last_arguments[5:7], (380,760))
         self.assertEqual(len(palette.incomingFromHTML.handlers), 1)
 
     def test_workspace_invalidated_palette_can_be_recreated(self):

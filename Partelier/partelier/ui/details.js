@@ -44,7 +44,7 @@
   if(id===old&&snapshot.revision<hostRevision)return false;
   if(old&&(id!==old||terminal.has(snapshot.phase)))retired.add(old);
   state.session=snapshot;hostRevision=snapshot.revision;
-  if(snapshot.settings&&(snapshot.revision>=state.revision||state.expecting)){
+  if(snapshot.settings&&(snapshot.revision>=state.revision||state.expecting||(id&&id!==old))){
    state.settings={...defaults,...snapshot.settings};state.revision=snapshot.revision;sync();
   }
   state.error=snapshot.phase==="error";
@@ -99,11 +99,12 @@
   const targets=state.session?.editing?[["edit_target","Existing detail"]]:labels;
   $("detail-selections").replaceChildren(...targets.map(([target,caption])=>{
    const button=document.createElement("button");button.type="button";button.id="detail-pick-"+target;button.className="selection-button";
-   const picked=state.session?.selections?.[target];button.textContent=`${caption} · ${target===state.session?.pickingTarget?"Select in Fusion now":picked?.selected?"✓ "+(picked.label||"Selected"):"Click to select"}`;
+   const picked=active()?state.session?.selections?.[target]:null;button.textContent=`${caption} · ${target===state.session?.pickingTarget?"Select in Fusion now":picked?.selected?"✓ "+(picked.label||"Selected"):"Click to select"}`;
    button.classList.toggle("is-selected",!!picked?.selected);button.disabled=!supported||state.busy||opening;
    window.PartelierSelectionUI?.decorate(button,targets.findIndex(([name])=>name===target),target,state.session,targets.map(([name])=>name));
    button.addEventListener("click",()=>run(async()=>{if(!identity())await begin(false);else await action("detail_focus",{target});schedule();}));return button;
   }));
+  window.PartelierWorkspace?.update("detail",state.session);
   $("detail-selection-help").textContent=state.session?.editing?"Saved operation loaded. Change dimensions, then Rebuild detail. Reset clears only this temporary selection.":kind==="ribs"?"1 · Inside wall A → 2 · Floor B. One body, inside corner 90°. Next step opens automatically. Esc resets selections.":"1 · Base rim A → 2 · Lid underside B. Two bodies, facing each other. Next step opens automatically. Esc resets selections.";
   window.PartelierSelectionUI?.resetControl($("detail-selections"),"detail",!!identity()&&!state.busy);
   $("detail-availability").hidden=supported;$("detail-availability").textContent=state.connected?"Stop and Run Partelier to enable Small details.":"Open Partelier in Fusion to select geometry.";
@@ -133,7 +134,7 @@
   return `<svg viewBox="0 0 320 225" role="img" aria-label="${fields[name][0]} section diagram" data-detail-help="${name}"><defs><marker id="detail-arrow" viewBox="0 0 6 6" refX="3" refY="3" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L6 3L0 6" fill="none" stroke="#bd501c"/></marker></defs>${geometry}${dimension}<text x="160" y="214" text-anchor="middle" font-size="12" fill="#365f88">${fields[name][0]} · ${value}</text></svg>`;
  }
  for(const [name,[caption]] of Object.entries(fields)){
-  const item=document.createElement("div");item.className="parameter-item has-parameter-help";
+  const item=document.createElement("div");item.className="parameter-item has-parameter-help";if(name==="rib_style")item.classList.add("detail-style-choice");
   const label=document.createElement("label");label.htmlFor="detail-"+name;label.textContent=caption;
   const input=document.createElement(["pin_count","rib_style"].includes(name)?"select":"input");input.id="detail-"+name;input.name=name;input.required=true;
   if(input.tagName.toLowerCase()==="select")for(const [value,text] of name==="pin_count"?[[2,"2 diagonal corners"],[4,"4 corners"]]:[["triangle","Triangular gusset"],["full","Full rectangular rib"]]){

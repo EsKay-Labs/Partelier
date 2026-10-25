@@ -23,7 +23,7 @@ function fixture(options = {}) {
     }
     for (const match of html.matchAll(/<([a-z]+)[^>]*\bid="([^"]+)"/g)) { const element = new Element(match[1]); element.id = match[2]; element.open = /\sopen(?:\s|>)/.test(match[0]); }
     const $ = id => { assert(ids.has(id), `Missing ${id}`); return ids.get(id); };
-    for (const id of ["hinge-layout-fields", "hinge-fields", "hinge-fit-fields", "hinge-advanced-fields", "hinge-mode", "hinge-output-fields", "hinge-hole-fields", "hinge-hole-toggle", "hinge-finish-fields", "hinge-finish-choice", "hinge-fillet-fields", "hinge-design-fields"]) $("hinge-settings").append($(id));
+    for (const id of ["hinge-layout-fields", "hinge-margin-fields", "hinge-fields", "hinge-fit-fields", "hinge-advanced-fields", "hinge-mode", "hinge-output-fields", "hinge-hole-fields", "hinge-hole-toggle", "hinge-finish-fields", "hinge-finish-choice", "hinge-fillet-fields", "hinge-design-fields"]) $("hinge-settings").append($(id));
     for (const id of ["snap-family-fields", "snap-style-fields", "snap-size-fields", "snap-fit-fields", "snap-layout-fields", "snap-construction-fields", "snap-finish-toggle", "snap-finish-fields", "snap-ball-fields", "snap-torsion-fields", "snap-annular-fields"]) $("snap-settings").append($(id));
     const document = { getElementById: $, createElement: tag => new Element(tag), querySelector: () => new Element("a"), querySelectorAll: () => [], addEventListener() {} };
     let snap = options.snap || idle(), hinge = options.hinge || idle(), sessionSequence = 0, timeouts = 0, timerSequence = 0;
@@ -89,7 +89,7 @@ function fixture(options = {}) {
     assert.equal(f.$("snap-style-fields").children[0].textContent, "Hook style");
     assert.deepEqual(f.$("snap-snap_family").children.map(option => option.textContent), ["Hook latch", "Ball detent", "Torsion latch", "Annular ring"]);
     assert.deepEqual(f.$("snap-snap_style").children.map(option => option.textContent), ["Straight hook", "Tapered hook", "Twin hook"]);
-    const sizeSection = html.match(/<section[^>]+aria-labelledby="snap-size-title">([\s\S]*?)<\/section>/)[1];
+    const sizeSection = html.match(/id="snap-planar-section"[^>]*>([\s\S]*?)id="snap-annular-section"/)[1];
     const sizeHeading = sizeSection.match(/<div class="section-heading">([\s\S]*?)<\/div>/)[1];
     assert(!sizeHeading.includes("snap-style-fields"), "snap type is a separate row outside the size heading");
     assert(sizeSection.indexOf('id="snap-style-fields"') < sizeSection.indexOf('id="snap-size-fields"'), "snap type precedes dimensions");
@@ -339,5 +339,9 @@ function fixture(options = {}) {
     await g.click("cancel-snap-button");
     const bundleVersion = JSON.parse(fs.readFileSync(path.join(__dirname, "../Partelier/Partelier.manifest"), "utf8")).version;
     assert(html.includes(`snap.js?v=${bundleVersion}`), "snap controller cache tag matches the installed bundle");
+    const external=fixture();await external.flush();await external.select('snap');await external.input('width_mm',17);
+    external.push({sessionId:'8c0a3454-c910-40cf-9cfb-2e48df314098',revision:0,phase:'preview',editing:true,previewCurrent:true,settings:{...defaults,width_mm:6},selections:{edit_target:{selected:true,label:'Saved snap'}}});
+    assert.equal(external.$('snap-width_mm').value,'6','saved snap dimensions replace higher revisions from another session');
+    assert.equal(external.$('create-snap-button').textContent,'Rebuild snap-fit');
     console.log("Snap-fit UI contract passed: shared library, atomic snapshots, live preview, Edit/Rebuild, tool ownership, stale/retired states, early pushes and delayed native acknowledgments.");
 })().catch(error => { console.error(error); process.exitCode = 1; });

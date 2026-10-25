@@ -1,5 +1,8 @@
 # Selection and saved operations — 0.19.0
 
+In 0.20, **Saved** in the header opens this operation browser; geometry selection
+also folds once complete. See [compact-ui.md](compact-ui.md) for the new layout.
+
 Reference buttons are numbered, full-width rows. The current native pick is solid
 blue, captured references show their body names, and the next missing reference
 has a strong outline. A/B/edge reference sequences continue automatically after

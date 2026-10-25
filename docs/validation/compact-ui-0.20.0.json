@@ -1,0 +1,70 @@
+{
+  "version": "0.20.0",
+  "palette_lifecycle_tests": 29,
+  "node_session_suites": 3,
+  "browser": {
+    "checks": [
+      {
+        "width": 320,
+        "tenImplementedTools": true,
+        "neutralCompactLayout": true,
+        "noRedundantHeadings": true,
+        "savedOnDemand": true,
+        "geometryFoldsWhenComplete": true,
+        "changePersists": true,
+        "resetReopensGeometry": true,
+        "multifaceWaitsForDone": true,
+        "dimensionsPreserved": true,
+        "savedEditLoadsCorrectTool": true,
+        "escapeClosesSavedFirst": true,
+        "noOverflow": true
+      },
+      {
+        "width": 380,
+        "tenImplementedTools": true,
+        "neutralCompactLayout": true,
+        "noRedundantHeadings": true,
+        "savedOnDemand": true,
+        "geometryFoldsWhenComplete": true,
+        "changePersists": true,
+        "resetReopensGeometry": true,
+        "multifaceWaitsForDone": true,
+        "dimensionsPreserved": true,
+        "savedEditLoadsCorrectTool": true,
+        "escapeClosesSavedFirst": true,
+        "noOverflow": true
+      },
+      {
+        "width": 440,
+        "tenImplementedTools": true,
+        "neutralCompactLayout": true,
+        "noRedundantHeadings": true,
+        "savedOnDemand": true,
+        "geometryFoldsWhenComplete": true,
+        "changePersists": true,
+        "resetReopensGeometry": true,
+        "multifaceWaitsForDone": true,
+        "dimensionsPreserved": true,
+        "savedEditLoadsCorrectTool": true,
+        "escapeClosesSavedFirst": true,
+        "noOverflow": true
+      }
+    ],
+    "errors": []
+  },
+  "native_ui": {
+    "version": "0.20.0",
+    "requested_startup_size": [
+      380,
+      760
+    ],
+    "native_palette_width": 380,
+    "native_palette_height": 691,
+    "latest_html_refreshed": true,
+    "caller_unchanged": true,
+    "native_geometry_tests_rerun": false
+  },
+  "manual_cef_pointer_wheel_acceptance": false,
+  "geometry_algorithms_changed": false,
+  "settings_defaults_changed": false
+}

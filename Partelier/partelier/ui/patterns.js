@@ -15,7 +15,7 @@
         layout_mode: [["auto", "Auto fit · visual balance"], ["balanced", "Balanced · fewer cells"], ["fill", "Fill face · fixed size"], ["fit", "Automatic size"], ["fixed", "Exact pitch"]],
         density: [["sparse", "Sparse"], ["balanced", "Balanced"], ["dense", "Dense"]],
         size_locked: [["false", "Automatic"], ["true", "Custom size"]],
-        grille_profile: [["flat", "Flat · within the wall"], ["raised", "Raised · back to bed"], ["chamfer", "Raised + chamfer · back to bed"]],
+        grille_profile: [["flat", "Flat"], ["raised", "Raised"], ["chamfer", "Raised + chamfer"]],
         mount_mode: [["off", "Off"], ["plain", "4 plain holes"], ["countersink", "4 countersunk holes · 90°"]],
         mount_screw: [["M3","M3"],["M4","M4"],["M5","M5"],["M6","M6"]],
         truss_axis: [["long","Along long side"],["short","Along short side"]],
@@ -156,7 +156,7 @@
         const direction=$("pattern-rotation_deg").parentElement, directionHome=$(isGrille?"pattern-design-fields":"pattern-placement-fields");
         if(direction.parentElement!==directionHome)directionHome.append(direction);
         direction.children[0].textContent=isGrille?"Direction (°)":"Rotation (°)";
-        direction.classList.toggle("full-width-parameter",isGrille);
+        direction.classList.remove("full-width-parameter");
         $("grille-direction-presets").hidden=!isGrille;
         for(const angle of [0,45,90]) {
             const button=$("grille-direction-"+angle), selected=Number.isFinite(state.settings.rotation_deg)&&Math.abs(((state.settings.rotation_deg%360)+360)%360-angle)<1e-8;
@@ -179,7 +179,7 @@
                 : "Check the mounting settings.";
         }
         $("pattern-grille_profile").parentElement.hidden=!isGrille;
-        $("pattern-grille_profile").parentElement.classList.toggle("full-width-parameter",isGrille);
+        $("pattern-grille_profile").parentElement.classList.remove("full-width-parameter");
         $("pattern-grille_height_mm").parentElement.hidden=!raised;
         $("pattern-louver_angle_deg").parentElement.hidden=state.settings.pattern!=="grille_louver";
         $("pattern-offset_u_mm").parentElement.hidden=isGrille||isTruss;
@@ -230,7 +230,7 @@
     function renderSelection() {
         const picking = !!state.session?.pickingFaces;
         const body = state.settings.selection_scope === "body", target = editing() ? "edit_target" : body ? "body" : "faces";
-        const picked = state.session?.selections?.surface;
+        const picked = active()?state.session?.selections?.surface:null;
         const caption = editing() ? "Pattern result" : body ? "Body" : picked?.selected ? "Replace faces" : "Faces";
         const button = document.createElement("button"); button.id = "pattern-select-surface"; button.type = "button"; button.className = "selection-button";
         button.disabled = !supported() || state.busy || picking || state.session?.phase === "opening";
@@ -256,6 +256,7 @@
             add.addEventListener("click", () => { trace("click", { control:"add_face",target:"add_face" }); cancelTimer(); run(async () => { await sessionAction("pattern_focus", { target:"add_face" }); await refresh(); },"pattern_focus"); });
             $("pattern-selections").append(add);
         }
+        window.PartelierWorkspace?.update("pattern",state.session);
         $("pattern-selection-help").textContent = picking ? "Click sides to add them. Selected faces stay blue. Done updates preview. Esc resets selections." : editing() ? "Pick a saved Partelier pattern." : body ? "Pick one body. Preview updates automatically." : picked?.selected ? "Add faces keeps your selection. Click more sides, then Done to update preview." : "Select all the sides you need, then Done to preview.";
         $("pattern-selection-help").hidden = (editing() || body) && !!identity() && selected() && !(state.busy && state.session?.phase === "selecting");
         if(grille() && (state.settings.grille_profile!=="flat" || state.settings.mount_mode!=="off") && !editing())
@@ -301,7 +302,7 @@
             if (["preview", "error"].includes(previous.phase) && ["computing", "ready", "selecting"].includes(snapshot.phase)) return reject("completed_revision");
             if (previous.phase === "opening" && !["opening", "created", "error", "cancelled"].includes(snapshot.phase)) return reject("commit_in_progress");
         }
-        const newerEdits = snapshot.revision < state.revision;
+        const newerEdits = !(snapshot.sessionId && snapshot.sessionId !== previous?.sessionId) && snapshot.revision < state.revision;
         if (!snapshot.sessionId || terminal.has(snapshot.phase)) { if (previous?.sessionId) retired.add(previous.sessionId); if (snapshot.sessionId) retired.add(snapshot.sessionId); }
         state.session = snapshot; state.connectionError = false;
         trace("state_applied", traceSnapshot(snapshot),true);
@@ -410,7 +411,7 @@
         const rect = event.target.getBoundingClientRect();
         if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.target.close();
     });
-    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["truss_axis", "Span direction", "pattern-design-fields"], ["grille_profile", "Profile", "pattern-design-fields"], ["mount_mode", "Mounting holes", "pattern-mount-controls"], ["mount_screw", "Screw size", "pattern-mount-controls"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Layout", "pattern-size-fields"], ["density", "Density", "pattern-size-fields"], ["size_locked", "Size", "pattern-size-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"], ["edge_mode", "Edge cells", "pattern-scope-fields"]]) {
+    for (const [name, caption, container] of [["pattern", "Pattern", "pattern-design-fields"], ["truss_axis", "Span direction", "pattern-design-fields"], ["grille_profile", "Profile", "pattern-design-fields"], ["mount_mode", "Mounting holes", "pattern-mount-controls"], ["mount_screw", "Screw size", "pattern-mount-controls"], ["mode", "Action", "pattern-design-fields"], ["layout_mode", "Layout", "pattern-size-fields"], ["density", "Density", "pattern-layout-fields"], ["size_locked", "Size", "pattern-layout-fields"], ["selection_scope", "Apply to", "pattern-scope-fields"], ["edge_mode", "Edge cells", "pattern-scope-fields"]]) {
         const item = document.createElement("div"); item.className = "parameter-item";
         const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
         const input = document.createElement("select"); input.id = `pattern-${name}`; input.name = name; input.required = true;
@@ -517,5 +518,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.19.0" }); renderArt(); render();
+    trace("boot", { build:"0.20.0" }); renderArt(); render();
 })();

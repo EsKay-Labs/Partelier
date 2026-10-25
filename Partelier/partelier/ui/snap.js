@@ -116,7 +116,7 @@
         const editing = active() && !!state.session?.editing;
         const labels = editing ? [["edit_target", "Snap result"]] : annular() ? [["face_a", "Outer cylinder A"], ["face_b", "Inner cylinder B"], ["axis_edge", "Circular rim"]] : [["face_a", "Mechanism A"], ["face_b", "Receiver B"], ["axis_edge", "Seam edge"]];
         for (const [target, caption] of labels) {
-            const picked = state.session?.selections?.[target];
+            const picked = active()?state.session?.selections?.[target]:null;
             const button = document.createElement("button"); button.type = "button"; button.id = `snap-select-${target}`; button.className = "selection-button";
             button.disabled = !supported() || state.busy || state.session?.phase === "opening";
             const label = document.createElement("strong"); label.textContent = caption;
@@ -129,6 +129,7 @@
             $("snap-selections").append(button);
         }
         $("snap-selection-help").textContent = editing ? "Choose a saved operation above, or pick its generated feature." : annular() ? "1 · Outer cylinder A → 2 · Inner cylinder B → 3 · Circular rim. Esc resets selections." : "1 · Base wall A → 2 · Lid wall B → 3 · Seam edge. Next step opens automatically. Esc resets selections.";
+        window.PartelierWorkspace?.update("snap",state.session);
         $("snap-selection-help").hidden = false;
         window.PartelierSelectionUI?.resetControl($("snap-selections"),"snap",!!identity()&&!state.busy&&state.session?.phase!=="opening");
     }
@@ -164,7 +165,7 @@
         if (snapshot.sessionId && retired.has(snapshot.sessionId)) return false;
         if (snapshot.sessionId && previous?.sessionId && snapshot.sessionId !== previous.sessionId && active() && !state.expecting) return false;
         if (snapshot.sessionId && snapshot.sessionId === previous?.sessionId && snapshot.revision < previous.revision) return false;
-        const newerEdits = snapshot.revision < state.revision;
+        const newerEdits = !(snapshot.sessionId && snapshot.sessionId !== previous?.sessionId) && snapshot.revision < state.revision;
         if (!snapshot.sessionId || terminal.has(snapshot.phase)) {
             if (previous?.sessionId) retired.add(previous.sessionId);
             if (snapshot.sessionId) retired.add(snapshot.sessionId);

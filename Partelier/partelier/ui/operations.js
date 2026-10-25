@@ -32,7 +32,7 @@
   if(busy)return;
   if(!window.adsk?.fusionSendData){message("Open Partelier in Fusion to see operations in this design.");return;}
   busy=true;render();
-  try{const response=await request("operations_list");items=response.operations||[];message(items.length?"Choose an operation to load its tool and dimensions. Expand its named timeline group to see individual features.":"No saved Partelier operations in this design.");}
+  try{const response=await request("operations_list");items=response.operations||[];message(locked()?"Create or Cancel the current preview before editing a saved operation.":items.length?"Choose an operation to load its dimensions.":"No saved Partelier operations in this design.");}
   catch(error){message(error.message);}
   finally{busy=false;render();}
  }
@@ -53,7 +53,9 @@
   finally{busy=false;render();}
  }
  $("operations-refresh").addEventListener("click",refresh);
- $("operations-browser").addEventListener("toggle",()=>{if($("operations-browser").open)refresh();});
+ $("saved-operations-button").addEventListener("click",()=>{const browser=$("operations-browser");browser.hidden=false;browser.open=!browser.open;if(browser.open)browser.scrollIntoView({block:"start"});});
+ $("operation-pick-model").addEventListener("click",()=>{if(locked()){message("Create or Cancel the current preview first.");return;}$("operations-browser").open=false;window.PartelierPickFromModel?.();});
+ $("operations-browser").addEventListener("toggle",()=>{const open=$("operations-browser").open;$("operations-browser").hidden=!open;$("saved-operations-button").setAttribute("aria-expanded",String(open));if(open)refresh();});
  window.PartelierOperations=Object.freeze({
   refresh,
   handle(action,raw){

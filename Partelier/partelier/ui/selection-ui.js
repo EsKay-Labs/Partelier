@@ -22,6 +22,8 @@ window.PartelierSelectionUI=(()=>{
  }
  document.addEventListener("keydown",event=>{
   if(event.key!=="Escape"||document.querySelector("dialog[open]")||event.defaultPrevented)return;
+  const saved=document.getElementById("operations-browser");
+  if(saved?.open){event.preventDefault();saved.open=false;return;}
   const entry=[...resets.values()].find(item=>item.active()&&!item.busy());
   if(entry){event.preventDefault();entry.reset();}
  });

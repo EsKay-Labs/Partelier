@@ -157,7 +157,7 @@ class ToolLibrary:
             html_uri = (Path(__file__).parent / "ui" / "palette.html").resolve().as_uri() + "?v=" + quote(str(version), safe="")
             palette = ui.palettes.add(
                 PALETTE_ID, "Partelier · Tool library", html_uri,
-                False, True, True, 540, 840, True,
+                False, True, True, 380, 760, True,
             )
             if palette is None:
                 raise RuntimeError("Fusion could not open the tool library.")

@@ -24,7 +24,7 @@ function fixture(options = {}) {
     const $=id=>{assert(ids.has(id),`Missing ${id}`);return ids.get(id);};
     for(const id of ["hinge-layout-fields","hinge-fields","hinge-fit-fields","hinge-advanced-fields","hinge-mode","hinge-output-fields","hinge-hole-fields","hinge-hole-toggle","hinge-finish-fields","hinge-finish-choice","hinge-fillet-fields","hinge-design-fields"]) $("hinge-settings").append($(id));
     for(const id of ["snap-family-fields","snap-style-fields","snap-size-fields","snap-fit-fields","snap-layout-fields","snap-construction-fields","snap-finish-toggle","snap-finish-fields","snap-ball-fields","snap-torsion-fields","snap-annular-fields"]) $("snap-settings").append($(id));
-    for(const id of ["pattern-design-fields","pattern-size-fields","pattern-scope-fields","pattern-placement-fields","pattern-mount-controls","pattern-mount-fields"]) $("pattern-settings").append($(id));
+    for(const id of ["pattern-design-fields","pattern-size-fields","pattern-layout-fields","pattern-scope-fields","pattern-placement-fields","pattern-mount-controls","pattern-mount-fields"]) $("pattern-settings").append($(id));
     const documentListeners=new Map();
     const document={getElementById:$,createElement:tag=>new Element(tag),querySelector:()=>new Element("a"),querySelectorAll:()=>[],addEventListener(name,handler){(documentListeners.get(name)||documentListeners.set(name,[]).get(name)).push(handler);}};
     const requests=[],timers=new Map(),storage=new Map(Object.entries(options.storageSeed||{})),listeners=new Map(),config={...options,holdPick:false,holdPreview:false,queuedPreview:false,holdCommit:false,holdStatus:false,statusReleases:[],release:null,failPreview:false,failDiagnostic:false,holdDiagnostic:false,delayedPush:null,saved:null};
@@ -443,9 +443,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.19.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.20.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.19.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.20.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.begin();await logged.click("pattern-select-surface");await logged.click("pattern-finish-faces");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.begin();const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));
@@ -467,5 +467,9 @@ function fixture(options = {}) {
     assert.equal(polledTrace.requests.filter(([action])=>action==="pattern_status").length,5);assert(entries(polledTrace).filter(entry=>["send_start","send_ack"].includes(entry.event)&&entry.context.action==="pattern_status").length<=2,"unchanged recovery polls are deduplicated in the trace");
     polledTrace.config.holdStatus=true;await polledTrace.advance(2000);await polledTrace.advance(5000);await drainTrace(polledTrace);assert(entries(polledTrace).some(entry=>entry.event==="send_timeout"&&entry.context.action==="pattern_status"));await polledTrace.click("cancel-pattern-button");
     const version=JSON.parse(fs.readFileSync(path.join(__dirname,"../Partelier/Partelier.manifest"),"utf8")).version;assert(html.includes(`patterns.js?v=${version}`));
+    const external=fixture();await external.flush();await external.select('honeycomb');await external.input('pitch_mm',31);
+    external.push({sessionId:'8c0a3454-c910-40cf-9cfb-2e48df314098',revision:0,phase:'preview',editing:true,previewCurrent:true,settings:{...defaults,pitch_mm:22},selections:{surface:{selected:true,label:'Saved pattern'}}});
+    assert.equal(external.$('pattern-pitch_mm').value,'22','saved pattern dimensions replace higher revisions from another session');
+    assert.equal(external.$('create-pattern-button').textContent,'Rebuild pattern');
     console.log("Pattern UI contract passed: presets, typed full snapshots, surface scopes, modes, live preview, Edit/Rebuild, three-tool locks, stale sessions and native acknowledgment ordering.");
 })().catch(error=>{console.error(error);process.exitCode=1;});

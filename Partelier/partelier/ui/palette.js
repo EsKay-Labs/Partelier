@@ -12,9 +12,9 @@
         { id: "compact", name: "Compact · 3 knuckles", note: "Three wider round knuckles with filleted edges. Overall dimensions remain yours to set.", values: { knuckle_profile: "round", knuckle_count: 3, chamfer_edges: false, fillet_edges: true, fillet_radius_mm: .6, leaf_profile: "rectangular" } },
         { id: "piano", name: "Piano · 11 knuckles", note: "Eleven alternating round knuckles with chamfered ends. Adjust the overall length for your design.", values: { knuckle_profile: "round", knuckle_count: 11, chamfer_edges: true, chamfer_size_mm: .3, fillet_edges: false, leaf_profile: "rectangular" } }
     ];
-    const placementFields = [["hinge_count", "Count"], ["start_margin_mm", "Start margin"], ["end_margin_mm", "End margin"]];
-    const primaryFields = [["length_mm", "Length per hinge"], ["barrel_diameter_mm", "Barrel diameter"], ["pin_diameter_mm", "Pin diameter"]];
-    const fitFields = [["rotation_clearance_mm", "Movement clearance"], ["diametral_clearance_mm", "Bore clearance (diameter)"], ["axial_gap_mm", "Axial gap"], ["pin_overhang_mm", "Pin overhang / end"]];
+    const placementFields = [["hinge_count", "Number of hinges"], ["start_margin_mm", "Start margin"], ["end_margin_mm", "End margin"]];
+    const primaryFields = [["length_mm", "Length per hinge"], ["barrel_diameter_mm", "Barrel diameter"]];
+    const fitFields = [["pin_diameter_mm", "Pin diameter"], ["rotation_clearance_mm", "Movement clearance"], ["diametral_clearance_mm", "Bore clearance (diameter)"], ["axial_gap_mm", "Axial gap"], ["pin_overhang_mm", "Pin overhang / end"]];
     const attachmentFields = [["leaf_reach_mm", "Leaf reach"], ["leaf_thickness_mm", "Leaf thickness"], ["attachment_overlap_mm", "Attachment overlap"], ["axis_offset_mm", "Axis offset toward part B"], ["seam_clearance_mm", "Split seam clearance"], ["leaf_barrel_clearance_mm", "Leaf to barrel clearance"]];
     const holeFields = [["screw_diameter_mm", "Hole diameter"], ["screw_end_margin_mm", "Hole end margin"]];
     const nonnegativeFields = new Set(["start_margin_mm", "end_margin_mm", "rotation_clearance_mm"]);
@@ -41,10 +41,10 @@
             }
             groups.push(group);
         };
-        append("Favorites", tools.filter(tool => state.favorites.has(tool.id)));
-        for (const [id, label] of categories) append(label, tools.filter(tool => tool.category === id && !state.favorites.has(tool.id)));
+        const implemented=new Set(["hinge","snap","lid","alignment","ribs","honeycomb","perforation","knurl","truss","grilles"]);
+        for (const [id,label] of categories)append(label,tools.filter(tool=>tool.category===id&&implemented.has(tool.id)));
         $("tool-select").replaceChildren(...groups); $("tool-select").value = state.selected;
-        $("tool-count").textContent = `${tools.length} tools`;
+        $("tool-count").textContent = `${implemented.size} tools`;
     }
 
     function renderArt() {
@@ -91,8 +91,8 @@
         select.value = state.hingeSettings[name]; item.append(label, select); $(container).append(item);
     }
     function renderHingeFields() {
-        for (const id of ["hinge-layout-fields", "hinge-fields", "hinge-fit-fields", "hinge-advanced-fields", "hinge-mode", "hinge-output-fields", "hinge-hole-fields", "hinge-hole-toggle", "hinge-finish-fields", "hinge-finish-choice", "hinge-fillet-fields", "hinge-design-fields"]) $(id).replaceChildren();
-        addNumbers("hinge-layout-fields", placementFields); addNumbers("hinge-fields", primaryFields);
+        for (const id of ["hinge-layout-fields", "hinge-margin-fields", "hinge-fields", "hinge-fit-fields", "hinge-advanced-fields", "hinge-mode", "hinge-output-fields", "hinge-hole-fields", "hinge-hole-toggle", "hinge-finish-fields", "hinge-finish-choice", "hinge-fillet-fields", "hinge-design-fields"]) $(id).replaceChildren();
+        addNumbers("hinge-layout-fields", placementFields.slice(0,1)); addNumbers("hinge-margin-fields",placementFields.slice(1)); addNumbers("hinge-fields", primaryFields);
         addChoice("hinge-advanced-fields", "web_profile", "Attachment shape", [["tangent", "Tapered support"], ["flat", "Flat web"]]);
         addNumbers("hinge-fit-fields", fitFields); addNumbers("hinge-advanced-fields", attachmentFields); addNumbers("hinge-hole-fields", holeFields);
         addCheckbox("hinge-fit-fields", "include_pin", "Create separate pins");
@@ -162,7 +162,7 @@
         const labels = editing ? [["edit_target", "Hinge result"]] : [["face_a", "Face A"], ["face_b", "Face B"], ["axis_edge", "Axis edge"]];
         $("hinge-selections").replaceChildren();
         for (const [target, caption] of labels) {
-            const picked = state.session?.selections?.[target];
+            const picked = activeSession()?state.session?.selections?.[target]:null;
             const button = document.createElement("button"); button.type = "button"; button.className = "selection-button"; button.id = `select-${target}`;
             button.disabled = !paletteMode() || state.busy || state.session?.phase === "opening";
             const label = document.createElement("strong"); label.textContent = caption;
@@ -222,6 +222,7 @@
         $("live-preview-status").classList.toggle("is-current", !!ready && currentPreview());
         $("live-preview-status").classList.toggle("needs-attention", !!ready && (!valid || state.liveError || (state.session?.phase === "error" && state.session.revision === state.revision)));
         renderSelections();
+        window.PartelierWorkspace?.update("hinge",state.session);
         window.PartelierSnap?.setHingeActive(active || busy);
         window.PartelierPatterns?.setOtherActive({ hinge: active || busy });
     }
@@ -237,7 +238,7 @@
         if (snapshot.sessionId && retiredSessionIds.has(snapshot.sessionId)) return false;
         if (snapshot.sessionId && previous?.sessionId && snapshot.sessionId !== previous.sessionId && activeSession() && !state.expectingSession) return false;
         if (snapshot.sessionId && snapshot.sessionId === previous?.sessionId && snapshot.revision < previous.revision) return false;
-        const newerEdits = snapshot.revision < state.revision;
+        const newerEdits = !(snapshot.sessionId && snapshot.sessionId !== previous?.sessionId) && snapshot.revision < state.revision;
         if (!snapshot.sessionId || terminalPhases.has(snapshot.phase)) {
             if (previous?.sessionId) retiredSessionIds.add(previous.sessionId);
             if (snapshot.sessionId) retiredSessionIds.add(snapshot.sessionId);
@@ -354,8 +355,8 @@
         try {
             const result = await send("ready"); state.connected = true; state.capabilities = new Set(Array.isArray(result.capabilities) ? result.capabilities : []);
             if (!state.dirty && result.hingeDefaults && !result.hingeState?.settings) { state.hingeSettings = { ...hingeDefaults, ...result.hingeDefaults }; syncHingeFields(); }
-            $("connection-status").classList.add("connected"); $("connection-status").replaceChildren(); $("connection-status").append(document.createElement("i"), "Fusion connected");
-            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.19.0";
+            $("connection-status").classList.add("connected"); $("connection-status").setAttribute("aria-label","Fusion connected"); $("connection-status").setAttribute("title","Fusion connected"); $("connection-status").replaceChildren(); $("connection-status").append(document.createElement("i"), "Fusion connected");
+            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.20.0";
             if (window.PartelierSnap?.connect(result)) { state.selected = "snap"; renderToolMenu(); renderDetail(); }
             const patternAlias = window.PartelierPatterns?.connect(result);
             if (patternAlias) { state.selected = patternAlias; renderToolMenu(); renderDetail(); }
@@ -400,6 +401,7 @@
     $("input-check-button").addEventListener("click", async () => { $("input-check-button").disabled = true; try { await send("open_input_check"); $("about-dialog").close(); } catch (error) { $("bridge-message").textContent = error.message; } finally { $("input-check-button").disabled = !state.connected; } });
     document.addEventListener("keydown", event => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); $("tool-select").focus(); } });
     window.PartelierSelectionUI?.register('hinge',{active:()=>!!sessionId()&&state.selected==='hinge',busy:()=>state.busy,reset:()=>runAction(async()=>{cancelPendingUpdate();await sessionAction('hinge_reset');})});
+    window.PartelierPickFromModel=()=>{const key=state.selected==='hinge'?'hinge':state.selected==='snap'?'snap':window.PartelierDetails?.matches(state.selected)?'detail':'pattern';$("edit-"+key+"-button").click();};
     window.PartelierOpenOperation=(response,alias)=>{
         if(response.hingeState)applyHingeState(response.hingeState);
         window.PartelierSnap?.connect(response);window.PartelierPatterns?.connect(response);window.PartelierDetails?.connect(response);

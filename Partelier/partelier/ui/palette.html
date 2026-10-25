@@ -5,17 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
     <title>Partelier · CAD details</title>
-    <link rel="stylesheet" href="palette.css?v=0.19.0">
-    <script src="catalog.js?v=0.19.0" defer></script>
-    <script src="illustrations.js?v=0.19.0" defer></script>
-    <script src="pattern-help.js?v=0.19.0" defer></script>
-    <script src="selection-ui.js?v=0.19.0" defer></script>
-    <script src="snap.js?v=0.19.0" defer></script>
-    <script src="patterns.js?v=0.19.0" defer></script>
-    <script src="detail-examples.js?v=0.19.0" defer></script>
-    <script src="details.js?v=0.19.0" defer></script>
-    <script src="palette.js?v=0.19.0" defer></script>
-    <script src="operations.js?v=0.19.0" defer></script>
+    <link rel="stylesheet" href="palette.css?v=0.20.0">
+    <script src="catalog.js?v=0.20.0" defer></script>
+    <script src="illustrations.js?v=0.20.0" defer></script>
+    <script src="pattern-help.js?v=0.20.0" defer></script>
+    <script src="selection-ui.js?v=0.20.0" defer></script>
+    <script src="workspace-flow.js?v=0.20.0" defer></script>
+    <script src="snap.js?v=0.20.0" defer></script>
+    <script src="patterns.js?v=0.20.0" defer></script>
+    <script src="detail-examples.js?v=0.20.0" defer></script>
+    <script src="details.js?v=0.20.0" defer></script>
+    <script src="palette.js?v=0.20.0" defer></script>
+    <script src="operations.js?v=0.20.0" defer></script>
 </head>
 <body>
     <header class="app-header">
@@ -23,33 +24,34 @@
             <svg class="brand-mark" viewBox="0 0 36 36" aria-hidden="true"><path fill-rule="evenodd" d="M6 4h14c7 0 11 4 11 11S27 26 20 26h-7v6H6Zm7 7v8h7c3 0 4-1 4-4s-1-4-4-4Z" fill="currentColor"/></svg>
             <span class="brand-name">partelier</span>
         </a>
-        <div class="header-meta"><span id="connection-status"><i></i>Browser preview</span><button class="icon-button" id="about-button" aria-label="About Partelier">?</button></div>
+        <div class="header-meta"><button id="saved-operations-button" class="header-button" type="button" aria-controls="operations-browser" aria-expanded="false">Saved</button><span id="connection-status"><i></i>Browser preview</span><button class="icon-button" id="about-button" aria-label="About Partelier">?</button></div>
     </header>
     <section class="tool-picker" aria-label="Tool selection">
         <label for="tool-select">Tool</label>
-        <div class="picker-row"><div class="select-wrap"><select id="tool-select" aria-keyshortcuts="Control+k Meta+k"></select></div><button id="favorite-button" class="icon-button favorite-button" aria-label="Add to favorites" aria-pressed="false">☆</button></div>
+        <div class="picker-row"><div class="select-wrap"><select id="tool-select" aria-keyshortcuts="Control+k Meta+k"></select></div><button id="favorite-button" hidden class="icon-button favorite-button" aria-label="Add to favorites" aria-pressed="false">☆</button></div>
         <span id="tool-count" hidden></span>
     </section>
     <main id="tool-workspace" class="workspace" tabindex="0" aria-label="Tool settings and examples">
-        <details id="operations-browser" class="operations-browser"><summary>In this design · <span id="operations-count">0</span> operations</summary><div class="section-heading"><p class="helper-copy">Saved Partelier operations</p><button id="operations-refresh" class="text-button" type="button">Refresh</button></div><p id="operations-message" class="helper-copy" role="status">Open to load saved operations.</p><div id="operations-list"></div></details>
+        <details id="operations-browser" class="operations-browser" hidden><summary>Saved operations <span id="operations-count">0</span></summary><div class="section-heading"><p class="helper-copy">Saved Partelier operations</p><button id="operations-refresh" class="text-button" type="button">Refresh</button></div><p id="operations-message" class="helper-copy" role="status">Open to load saved operations.</p><div id="operations-list"></div><button id="operation-pick-model" class="text-button" type="button">Select an existing result from the model</button></details>
         <div class="tool-heading"><div><p id="detail-category" class="eyebrow"></p><h1 id="detail-title"></h1></div><span id="detail-stage" class="stage-badge"></span></div>
         <form id="hinge-settings" novalidate>
-            <section class="hinge-input-group" id="hinge-selection-section" aria-labelledby="geometry-title">
+            <details class="hinge-input-group geometry-card" id="hinge-selection-section" aria-labelledby="geometry-title" data-geometry="hinge" open><summary class="geometry-summary"><span>1. Geometry</span><span id="hinge-geometry-state" class="geometry-state">Choose faces</span><span class="geometry-change">Select</span></summary>
                 <div class="section-heading"><h2 id="geometry-title">Geometry</h2><button id="edit-hinge-button" class="text-button" type="button" disabled>Pick from model</button></div>
                 <div class="geometry-start"><button id="begin-hinge-button" class="secondary-button" type="button" disabled>Select faces &amp; edge</button><p id="selection-help" class="helper-copy">Pick Face A, Face B, then the shared edge.</p></div>
                 <div class="selection-grid" id="hinge-selections"></div>
-            </section>
+            </details>
             <section class="hinge-input-group" id="hinge-design-section" aria-labelledby="design-title">
-                <div class="section-heading"><h2 id="design-title">Design</h2></div>
+                <div class="section-heading"><h2 id="design-title">2. Configure</h2></div>
                 <div class="design-row"><div id="hinge-design-fields" class="parameter-list"></div><div id="hinge-output-fields" class="parameter-list"></div></div>
-            </section>
-            <section class="hinge-input-group" id="hinge-basic-section" aria-labelledby="size-title">
+                <div id="hinge-basic-section" class="configuration-dimensions" aria-labelledby="size-title">
                 <div class="section-heading"><h2 id="size-title">Size &amp; placement</h2><span class="unit-label">mm</span></div>
                 <div id="hinge-fields" class="parameter-list basic-grid"></div>
                 <div id="hinge-layout-fields" class="parameter-list basic-grid"></div>
+                </div>
             </section>
             <details class="guide-disclosure" id="hinge-options">
-                <summary>Advanced settings</summary>
+                <summary>Advanced</summary>
+                <details class="guide-disclosure"><summary>Placement &amp; spacing</summary><div id="hinge-margin-fields" class="parameter-list"></div></details>
                 <details class="guide-disclosure" id="hinge-fit"><summary>Fit &amp; pin</summary><div id="hinge-fit-fields" class="parameter-list"></div><p class="helper-copy">Movement clearance separates the rotating housing from nearby material. Bore clearance is the hole diameter minus pin diameter.</p></details>
                 <details class="guide-disclosure" id="hinge-finish"><summary>Housing &amp; edges</summary><div id="hinge-finish-choice" class="parameter-list"></div><div id="hinge-finish-fields" class="parameter-list"></div><div id="hinge-fillet-fields" class="parameter-list"></div></details>
                 <details class="guide-disclosure" id="hinge-advanced"><summary id="hinge-advanced-title">Attachment &amp; seam</summary><div id="hinge-mode" class="hinge-mode"></div><div id="hinge-advanced-fields" class="parameter-list"></div></details>
@@ -58,41 +60,42 @@
         </form>
         <div id="snap-tool" hidden>
             <form id="snap-settings" novalidate>
-                <section class="hinge-input-group" aria-label="Snap type">
-                    <div id="snap-family-fields" class="parameter-item"></div>
-                    <p id="snap-family-guidance" class="helper-copy"></p>
-                    <p id="snap-family-edit-note" class="helper-copy" hidden>To change between wall and cylinder geometry, cancel and create a new snap-fit.</p>
-                </section>
-                <section class="hinge-input-group" aria-labelledby="snap-geometry-title">
+                <details class="hinge-input-group geometry-card" aria-labelledby="snap-geometry-title" data-geometry="snap" open><summary class="geometry-summary"><span>1. Geometry</span><span id="snap-geometry-state" class="geometry-state">Choose faces</span><span class="geometry-change">Select</span></summary>
                     <div class="section-heading"><h2 id="snap-geometry-title">Geometry</h2><button id="edit-snap-button" class="text-button" type="button" disabled>Pick from model</button></div>
                     <div class="geometry-start"><button id="begin-snap-button" class="secondary-button" type="button" disabled>Select faces &amp; edge</button><p id="snap-selection-help" class="helper-copy">Pick the base wall, lid wall, then their straight seam edge.</p></div>
                     <div class="selection-grid" id="snap-selections"></div>
                     <p id="snap-availability" class="helper-copy">Open Partelier in Fusion to select geometry.</p>
-                </section>
-                <section class="hinge-input-group" id="snap-planar-section" aria-labelledby="snap-size-title">
+                </details>
+                <section class="hinge-input-group" aria-label="Snap configuration"><div class="section-heading"><h2>2. Configure</h2><span class="unit-label">mm</span></div>
+                    <div id="snap-family-fields" class="parameter-item"></div>
+                    <p id="snap-family-guidance" class="helper-copy"></p>
+                    <p id="snap-family-edit-note" class="helper-copy" hidden>To change between wall and cylinder geometry, cancel and create a new snap-fit.</p>
+
+                <div class="configuration-dimensions" id="snap-planar-section" aria-labelledby="snap-size-title">
                     <div class="section-heading"><h2 id="snap-size-title">Tab size</h2><span class="unit-label">mm</span></div>
                     <div id="snap-style-fields" class="parameter-item"></div>
                     <div id="snap-size-fields" class="parameter-list basic-grid"></div>
                     <div id="snap-ball-fields" class="parameter-list"></div>
                     <div id="snap-torsion-fields" class="parameter-list"></div>
-                </section>
-                <section class="hinge-input-group" id="snap-annular-section" aria-labelledby="snap-annular-title" hidden>
+                </div>
+                <div class="configuration-dimensions" id="snap-annular-section" aria-labelledby="snap-annular-title" hidden>
                     <div class="section-heading"><h2 id="snap-annular-title">Ring size</h2><span class="unit-label">mm</span></div>
                     <div id="snap-annular-fields" class="parameter-list basic-grid"></div>
-                </section>
-                <section class="hinge-input-group" aria-labelledby="snap-fit-title">
+                </div>
+                <div class="configuration-dimensions" aria-labelledby="snap-fit-title">
                     <div class="section-heading"><h2 id="snap-fit-title">Fit &amp; engagement</h2><span class="unit-label">mm</span></div>
                     <div id="snap-fit-fields" class="parameter-list"></div>
+                </div>
                 </section>
                 <details class="guide-disclosure" id="snap-options">
-                    <summary>Advanced settings</summary>
+                    <summary>Advanced</summary>
                     <details class="guide-disclosure" id="snap-layout-options"><summary>Count &amp; placement</summary><div id="snap-layout-fields" class="parameter-list basic-grid"></div><p class="helper-copy">One snap is centered. Multiple snaps use the end margins and equal gaps.</p></details>
                     <details class="guide-disclosure"><summary id="snap-construction-summary">Root &amp; lead-in</summary><div id="snap-construction-fields" class="parameter-list basic-grid"></div></details>
                     <details class="guide-disclosure" id="snap-edge-options"><summary>Edge finish</summary><div id="snap-finish-toggle"></div><div id="snap-finish-fields" class="parameter-list"></div><p class="helper-copy">Chamfers follow exposed edges, including the fork slot. Mating faces, receiver pockets and retaining shoulders stay protected.</p></details>
                 </details>
             </form>
             <details class="guide-disclosure" id="snap-help">
-                <summary>Help &amp; example</summary>
+                <summary>Examples &amp; help</summary>
                 <p id="snap-help-placement"></p>
                 <div class="illustration-stage"><div class="stage-heading"><span>ILLUSTRATION · NOT MODEL PREVIEW</span></div><div id="snap-illustration"></div><div class="stage-key"><span id="snap-legend-a"><i class="part-a"></i>Mechanism A</span><span id="snap-legend-b"><i class="part-b"></i>Receiver B</span></div></div>
                 <p id="snap-help-mechanism"></p>
@@ -102,27 +105,28 @@
         </div>
         <div id="pattern-tool" hidden>
             <form id="pattern-settings" novalidate>
-                <section class="hinge-input-group" aria-label="Pattern and action"><div id="pattern-design-fields" class="parameter-list"></div></section>
-                <section class="hinge-input-group" aria-labelledby="pattern-geometry-title">
+                <details class="hinge-input-group geometry-card" aria-labelledby="pattern-geometry-title" data-geometry="pattern" open><summary class="geometry-summary"><span>1. Geometry</span><span id="pattern-geometry-state" class="geometry-state">Choose faces</span><span class="geometry-change">Select</span></summary>
                     <div class="section-heading"><h2 id="pattern-geometry-title">Surfaces</h2><button id="edit-pattern-button" class="text-button" type="button" disabled>Pick from model</button></div>
                     <div class="geometry-start"><button id="begin-pattern-button" class="secondary-button" type="button" disabled>Select faces</button><p id="pattern-selection-help" class="helper-copy">Select all the sides you need, then Done to preview.</p></div>
                     <div id="pattern-selections" class="selection-grid"></div><p id="pattern-availability" class="helper-copy">Open Partelier in Fusion to select geometry.</p>
-                </section>
-                <section class="hinge-input-group" aria-labelledby="pattern-size-title">
+                </details>
+                <section class="hinge-input-group" aria-label="Pattern configuration"><div class="section-heading"><h2>2. Configure</h2></div><div id="pattern-design-fields" class="parameter-list"></div>
+
+                <div class="configuration-dimensions" aria-labelledby="pattern-size-title">
                     <div class="section-heading"><h2 id="pattern-size-title">Size &amp; border</h2><span class="unit-label">mm</span></div>
                     <div id="pattern-size-fields" class="parameter-list"></div>
                     <p id="pattern-layout-note" class="helper-copy"></p>
-                </section>
-                <section class="hinge-input-group" id="pattern-mounting" aria-labelledby="pattern-mounting-title" hidden>
-                    <div class="section-heading"><h2 id="pattern-mounting-title">Mounting · optional</h2></div>
+                </div></section>
+
+                <details class="guide-disclosure" id="pattern-options"><summary>Advanced</summary><details class="guide-disclosure" id="pattern-mounting" aria-labelledby="pattern-mounting-title" hidden>
+                    <summary id="pattern-mounting-title">Mounting holes</summary>
                     <div id="pattern-mount-controls" class="parameter-list"></div>
                     <p id="pattern-mount-summary" class="helper-copy" hidden></p>
                     <details class="guide-disclosure" id="pattern-mount-options" hidden><summary>Mounting settings</summary><div id="pattern-mount-fields" class="parameter-list"></div></details>
-                </section>
-                <details class="guide-disclosure" id="pattern-options"><summary>Advanced settings</summary><div id="pattern-scope-fields" class="parameter-list"></div><p id="pattern-scope-note" class="helper-copy" hidden>Create a new pattern to change between selected faces and a whole body.</p><div id="pattern-placement-fields" class="parameter-list basic-grid"></div></details>
+                </details><div id="pattern-layout-fields" class="parameter-list"></div><div id="pattern-scope-fields" class="parameter-list"></div><p id="pattern-scope-note" class="helper-copy" hidden>Create a new pattern to change between selected faces and a whole body.</p><div id="pattern-placement-fields" class="parameter-list basic-grid"></div></details>
             </form>
-            <details class="guide-disclosure" id="pattern-help"><summary>Help &amp; example</summary>
-                <p id="pattern-truss-guide" hidden>Select one rectangular face of a uniform solid plate, then Done. Choose Warren, Pratt or Howe, Bays, Member width, Frame width and Long/Short side direction. The preview removes triangular windows through the original thickness. Create truss confirms the same body; Edit existing loads its saved settings. This is a geometry helper, not a strength calculation.</p>
+            <details class="guide-disclosure" id="pattern-help"><summary>Examples &amp; help</summary>
+                <p id="pattern-truss-guide" hidden>Select one rectangular face of a uniform solid plate, then Done. Choose Warren, Pratt or Howe, Bays, Member width, Frame width and Long/Short side direction. The preview removes triangular windows through the original thickness. Create truss confirms the same body; Saved → Edit loads its saved settings. This is a geometry helper, not a strength calculation.</p>
                 <p id="pattern-guide-summary">Through holes cut the selected wall. Engrave removes a shallow pattern; Emboss adds raised details. Flat colour fills separate material regions flush with the original surface. Export its two parts as 3MF and assign filaments in Bambu Studio. Grilles provide planar parallel, crossed or inclined openings. Fill face repeats your Cell size with the chosen Minimum gap and Border. Partial cells are clipped at the border by default. Tap ? beside any setting for an illustrated explanation.</p>
                 <div class="illustration-stage"><div class="stage-heading"><span>ILLUSTRATION · NOT MODEL PREVIEW</span><span>PATTERN SAMPLE</span></div><div id="pattern-illustration"></div></div>
                 <p id="pattern-guide-scope">Select several faces for a faceted body, or choose Whole body in Advanced settings. Flat faces and supported curved surfaces use their own surface mapping. Unsupported surfaces and unsuitable dimensions are refused.</p>
@@ -130,14 +134,14 @@
             </details>
         </div>
         <div id="detail-tool" hidden>
-            <section class="hinge-input-group"><div class="section-heading"><h2>Supports</h2><button id="edit-detail-button" class="text-button" type="button">Pick from model</button></div>
+            <details class="hinge-input-group geometry-card" data-geometry="detail" open><summary class="geometry-summary"><span>1. Geometry</span><span id="detail-geometry-state" class="geometry-state">Choose geometry</span><span class="geometry-change">Select</span></summary><div class="section-heading"><h2>Supports</h2><button id="edit-detail-button" class="text-button" type="button">Pick from model</button></div>
                 <button id="begin-detail-button" type="button" class="selection-button">Select supports</button>
                 <div id="detail-selections" class="selection-grid detail-selection-grid"></div><p id="detail-selection-help" class="helper-copy"></p><p id="detail-availability" class="helper-copy"></p>
-            </section>
-            <form id="detail-settings"><section class="hinge-input-group"><div class="section-heading"><h2>Dimensions</h2><span class="unit-label">mm</span></div><div id="detail-fields" class="parameter-list"></div></section>
-                <details id="detail-options" class="guide-disclosure"><summary>Advanced settings</summary><div id="detail-advanced-fields" class="parameter-list basic-grid"></div></details>
+            </details>
+            <form id="detail-settings"><section class="hinge-input-group"><div class="section-heading"><h2>2. Dimensions</h2><span class="unit-label">mm</span></div><div id="detail-fields" class="parameter-list"></div></section>
+                <details id="detail-options" class="guide-disclosure"><summary>Advanced</summary><div id="detail-advanced-fields" class="parameter-list basic-grid"></div></details>
             </form>
-            <details class="guide-disclosure" id="detail-examples"><summary>Examples · προετοιμασία &amp; βήματα</summary><div id="detail-example"></div></details>
+            <details class="guide-disclosure" id="detail-examples"><summary>Examples &amp; help</summary><div id="detail-example"></div></details>
         </div>
         <div id="planned-tool"><div id="parameter-list" class="parameter-list"></div><p id="inputs-note" class="helper-copy">Planned tool · creation is not available yet.</p></div>
         <details class="guide-disclosure" id="hinge-help">
@@ -177,7 +181,7 @@
         <div class="action-buttons"><button id="cancel-detail-button" type="button" class="secondary-button">Cancel</button><button id="retry-detail-button" type="button" class="secondary-button" hidden>Retry preview</button><button id="create-detail-button" type="button" class="create-button">Create detail</button></div>
     </section>
     <dialog id="detail-help-dialog" class="pattern-help-dialog" aria-labelledby="detail-help-title"><button id="detail-help-close" type="button" class="dialog-close icon-button" aria-label="Close help">×</button><h2 id="detail-help-title"></h2><p id="detail-help-description"></p><div id="detail-help-image" class="parameter-help-illustration"></div></dialog>
-    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.19.0</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure hinges, snap-fits and surface patterns here, then select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached details become part of your selected bodies. Optional hinge pins and Flat colour material regions add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
+    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.20.0</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure hinges, snap-fits and surface patterns here, then select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached details become part of your selected bodies. Optional hinge pins and Flat colour material regions add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
     <dialog id="pattern-parameter-help" class="pattern-help-dialog" aria-labelledby="pattern-help-title" aria-describedby="pattern-help-description">
         <button id="pattern-help-close" type="button" class="dialog-close icon-button" aria-label="Κλείσιμο βοήθειας" autofocus>×</button>
         <p class="eyebrow">PATTERNS · ΟΔΗΓΟΣ ΡΥΘΜΙΣΗΣ</p>
