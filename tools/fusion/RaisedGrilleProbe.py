@@ -49,7 +49,10 @@ def louver_angles(body,settings,thickness):
     for face in body.faces:
         if face.geometry.surfaceType!=core.SurfaceTypes.PlaneSurfaceType:continue
         bounds=face.boundingBox
-        if raised and (bounds.minPoint.z<thickness/10-1e-7 or
+        # At zero tilt the fin wall heals into the original through opening.
+        # It may start below the selected face; it must extend ABOVE that face
+        # and end below the cap, distinguishing it from the external ramp.
+        if raised and (bounds.maxPoint.z<=thickness/10+1e-7 or
                 bounds.maxPoint.z>(thickness+settings.grille_height_mm-cap)/10+1e-7):continue
         ok,normal=face.evaluator.getNormalAtPoint(face.pointOnFace);assert ok
         angle=math.degrees(math.asin(min(1,abs(normal.z))))
@@ -80,6 +83,30 @@ def bevel_angles(body,settings,thickness):
         angles.append(angle)
     assert len(angles)>=4,'No bevel planes measured'
     return {'measured_planes':len(angles),'min_deg':min(angles),'max_deg':max(angles),'full_height_mounting_walls':mounting_walls}
+
+
+def frame_ramp_witnesses(adapter,body,settings,width,depth,thickness,timings):
+    """Probe both sides of the perimeter at three elevations, not just its cap."""
+    base=timings['frame_base_inset_mm'];height=settings.grille_height_mm;checked=0
+    for fraction in (.1,.5,.9):
+        level=height*fraction;inset=base+level
+        for axis,extent in ((0,width),(1,depth)):
+            for sign in (-1,1):
+                for delta,expected in ((-.03,False),(.03,True)):
+                    point=[0.,0.,thickness+level];point[axis]=sign*(extent/2-inset-delta)
+                    assert bool(adapter._containment(body,tuple(point)))==expected,(point,expected)
+                    checked+=1
+    full_height=0
+    for face in body.faces:
+        if face.geometry.surfaceType!=core.SurfaceTypes.PlaneSurfaceType:continue
+        bounds=face.boundingBox
+        if abs(bounds.minPoint.z-thickness/10)>1e-7 or abs(bounds.maxPoint.z-(thickness+height)/10)>1e-7:continue
+        ok,normal=face.evaluator.getNormalAtPoint(face.pointOnFace);assert ok
+        angle=math.degrees(math.asin(min(1,abs(normal.z))))
+        if abs(angle-45)<1e-4:full_height+=1
+    assert full_height>=4,full_height
+    return {'inside_outside_samples':checked,'full_height_slope_faces':full_height,'height_mm':height,
+        'base_inset_mm':base,'top_inset_mm':timings['frame_top_inset_mm']}
 
 
 def border_witnesses(adapter,body,settings,width,depth,thickness,timings):
@@ -186,6 +213,7 @@ def run(context):
         report['prepare_ms']=(time.perf_counter()-start)*1000
         report['openings']=prepared.cell_count;report['timings']=prepared.timings
         if settings.grille_profile=='chamfer':report['analytic_bevel_angles']=bevel_angles(prepared.result_body,settings,thickness)
+        if settings.grille_profile=='chamfer':report['frame_ramp_witnesses']=frame_ramp_witnesses(adapter,prepared.result_body,settings,width,depth,thickness,prepared.timings)
         if settings.pattern in ('grille_louver','grille_deflection','grille_diffuser'):
             report['analytic_wall_angles']=louver_angles(prepared.result_body,settings,thickness)
         assert body==design.findEntityByToken(token)[0] and design.rootComponent.bRepBodies.count==1
@@ -257,6 +285,7 @@ def run(context):
         assert design.timeline.count==history+features and body.name=='Raised grille fixture'
         assert recipe.read_edit_target(design,body).settings==settings
         if settings.grille_profile=='chamfer':report['rebuilt_bevel_angles']=bevel_angles(body,settings,thickness)
+        if settings.grille_profile=='chamfer':report['rebuilt_frame_ramp_witnesses']=frame_ramp_witnesses(adapter,body,settings,width,depth,thickness,changed.timings)
         assert abs(body.boundingBox.minPoint.z)<1e-7
         assert abs(body.boundingBox.maxPoint.z-(thickness+(settings.grille_height_mm if raised else 0))/10)<1e-7
         if settings.mount_mode!='off':

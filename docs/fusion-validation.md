@@ -6,6 +6,22 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.26.1 full-height external grille frame
+
+The clarified requirement is a continuous sloped external frame from its root
+to its raised top. The previous cap-angle-only test was insufficient for that
+shape. Six isolated MCP cases now cover all five styles and one refusal, with
+full-height plane bounds plus24 inside/outside samples at10/50/90% elevation.
+Mounted recesses use expanding clearance frustums and expose no vertical raised
+clearance walls in these fixtures. Fin-top bevels remain independent. A native
+0/20/45° tilt measurement now includes vertical fin faces healed into the base
+opening, rather than relying on unrelated vertical mounting walls at0°.
+Create/Rebuild/Delete retain the body/history and restore the caller. Local
+checks pass1110 Python tests, five Node suites, compilation and whitespace;
+headless UI/help covers300/380/520px plus a513px height. Release0.26.1 reloads
+without changing the caller's model. See
+[report](validation/grille-ramp-0.26.1.json) and [controls](grilles.md).
+
 ## 0.26.0 raised bevels and screw inset
 
 Six isolated MCP cases pass on Fusion2705.1.30: five grille families plus an

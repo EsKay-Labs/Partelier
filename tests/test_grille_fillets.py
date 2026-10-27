@@ -71,7 +71,7 @@ class GrilleFilletTests(unittest.TestCase):
         self.assertAlmostEqual(prepared.result_body.volume,source.volume-sum(p.area_mm2 for p in profiles)*3/1000)
         self.assertEqual(source.volume,1.2);self.assertEqual(prepared.timings['grid_body_creations'],1)
 
-    def prepare_raised(self,profile='raised',pattern='grille_cross',radius=.4,created=None,angle=20,chamfer=0):
+    def prepare_raised(self,profile='raised',pattern='grille_cross',radius=.4,created=None,angle=20,chamfer=0,height=2):
         source=N(volume=3.6);chart=Chart();face=object()
         plate=Plate(face,source,chart,FRAME,((-20,-15),(20,-15),(20,15),(-20,15)),3,(0,0,1))
         hole=((-4,-2),(4,-2),(4,2),(-4,2));cell=Cell((0.,0.),hole)
@@ -85,7 +85,7 @@ class GrilleFilletTests(unittest.TestCase):
         original_plan=profile_loft.plan
         def plan(*args):plans.append(args);return original_plan(*args)
         def union(manager,target,tool,operation,message):target.volume+=tool.volume
-        settings=self.settings(pattern=pattern,grille_profile=profile,grille_height_mm=2,louver_angle_deg=angle,pattern_fillet_mm=radius,grille_chamfer_mm=chamfer)
+        settings=self.settings(pattern=pattern,grille_profile=profile,grille_height_mm=height,louver_angle_deg=angle,pattern_fillet_mm=radius,grille_chamfer_mm=chamfer)
         with patch.object(fusion,'_api',return_value=(None,native)),patch.object(raised_grilles,'build_layout',return_value=layout),\
                 patch.object(perforated_prism,'create',side_effect=base) as create,\
                 patch.object(perforated_prism,'create_plan',side_effect=lambda plan:N(volume=plan.volume_mm3/1000)),\
@@ -110,10 +110,27 @@ class GrilleFilletTests(unittest.TestCase):
                             self.assertAlmostEqual(vertical/horizontal,1,places=7)
                         self.assertEqual(result.timings['raised_body_creations'],3)
 
+    def test_external_frame_slopes_from_root_to_top_with_no_vertical_step(self):
+        for shape in ('grille_parallel','grille_cross','grille_louver','grille_deflection','grille_diffuser'):
+            for height in (.8,3,5):
+                result,_,_,segments=self.prepare_raised('chamfer',shape,height=height,angle=45)
+                start=result.timings['frame_base_inset_mm']
+                self.assertGreaterEqual(start,0)
+                self.assertAlmostEqual(result.timings['frame_top_inset_mm']-start,height)
+                for args in segments:
+                    lower,upper=args[1],args[3];low,high=args[-2:]
+                    for i in (0,1):
+                        left=min(p[i] for p in lower);right=max(p[i] for p in lower)
+                        self.assertAlmostEqual(min(p[i] for p in upper)-left,high-low)
+                        self.assertAlmostEqual(right-max(p[i] for p in upper),high-low)
+                    self.assertEqual(lower,clipping.offset_convex(((-20,-15),(20,-15),(20,15),(-20,15)),start+low) if start+low else ((-20,-15),(20,-15),(20,15),(-20,15)))
+                _,_,_,plain=self.prepare_raised('raised',shape,height=height)
+                self.assertEqual(plain[0][1],plain[0][3])
+
     def test_chamfer_size_never_silently_shrinks_or_creates_shapes_before_refusal(self):
         for size in (1,1.5,2):
             created=[]
-            with self.subTest(size=size),self.assertRaisesRegex(ValueError,'Chamfer size'):
+            with self.subTest(size=size),self.assertRaisesRegex(ValueError,'Rib top bevel'):
                 self.prepare_raised('chamfer',chamfer=size,created=created)
             self.assertEqual(created,[])
         settings=self.settings(grille_profile='chamfer',grille_height_mm=2)

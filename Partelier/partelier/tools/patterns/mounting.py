@@ -114,7 +114,17 @@ def apply(prepared,plate,mount):
         # Seats stay on the original front plane. Clear fins/frame above the
         # reserved lands so the head can reach that plane from the outside.
         for bounds in mount.land_bounds_mm:
-            clear=block(bounds,0,prepared.settings.grille_height_mm+.02)
+            if prepared.settings.grille_profile=='chamfer':
+                # Expanding clearance through the full rise leaves sloped
+                # recess walls, instead of cutting new vertical frame steps.
+                from . import profile_loft
+                lo,hi,bottom,top=bounds
+                loop=((lo,bottom),(hi,bottom),(hi,top),(lo,top))
+                height=prepared.settings.grille_height_mm+.02
+                expanded=tuple((x+(-height if x==lo else height),z+(-height if z==bottom else height)) for x,z in loop)
+                clear=profile_loft.create(plate.frame,loop,(),expanded,(),0,height)
+            else:
+                clear=block(bounds,0,prepared.settings.grille_height_mm+.02)
             boolean(result,clear,operations.DifferenceBooleanType)
     radius=mount.hole_diameter_mm/2
     for center in mount.centers_mm:

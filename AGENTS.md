@@ -69,7 +69,7 @@ Edit/Rebuild before adding the other first-release helpers.
 - `Partelier/partelier/tools/truss/`: pure bounded triangular-window planning and
   one-solid Fusion adaptation. Shares the HTML pattern session, plate inspector,
   cached mesh and same-body Cut persistence. See docs/planar-truss.md for scope;
-  shared settings recipe14 retains28 fields and reads exact versions1–13.
+  shared settings recipe15 retains28 fields and reads exact versions1–14.
 - `docs/`: product plan, architecture, development and AI workflow guidance.
 - `.ai/templates/`: manually selected task prompts, not auto-loaded instructions.
 Use docs/architecture.md for module boundaries and docs/development.md for setup
@@ -213,3 +213,8 @@ See docs/fusion-validation.md. Local mocks remain distinct from native evidence.
 - `grille_chamfer_mm=0` means Auto (min0.6,height/2,rib/4,border/4). Positive size is exact and must be below Height and half Rib width; refuse collapsed/overlapping geometry without clamping. It is independent of cell fillets and louver tilt.
 - Auto screw centres move0.8mm inward; custom `mount_inset_mm` remains an exact edge-to-centre distance with its original safety minimum. Reserve effective border before pattern planning. Screw inset is beside Screw size under Advanced → Mounting holes.
 - Recipe14 has28 strict fields. Exactv1–13 inject only the absent bevel field in memory; saved bodies/recipes change only on explicit Rebuild. Explain corrected bevel/Auto mounting changes when editing older grilles. See docs/grilles.md and validation/grille-chamfer-0.26.0.json.
+
+## Full-height external grille frame (0.26.1)
+- User clarified that Raised + chamfer must slope to the root of the EXTERNAL frame, not just its top edge. This supersedes the external-cap-only0.26.0 behavior. The rim has a continuous45° taper through the whole Height; retain the previous top footprint when possible, widening the root only within the plate. Refuse collisions instead of leaving a vertical wall or changing openings/height.
+- Mounting clearances for this profile expand with elevation through the same rise, leaving sloped recess walls rather than cutting vertical steps into the new rim. Reuse profile_loft's bounded closed-solid path with zero holes; ordinary Raised stays vertical. Keep one source body/history and cached mesh.
+- grille_chamfer_mm controls only the small fin-top bevel, labelled Rib top bevel. It must not control the full-height external slope. Exact28-field recipe15 reads versions1–14 without writes; old chamfer records show the full-height transition notice before explicit Rebuild. See docs/grilles.md and grille-ramp-0.26.1 validation evidence.

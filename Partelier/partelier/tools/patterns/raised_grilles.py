@@ -13,7 +13,7 @@ def chamfer_size(settings):
     if settings.grille_profile!='chamfer':return 0.
     size=settings.grille_chamfer_mm or min(.6,settings.grille_height_mm/2,settings.web_mm/4,settings.border_mm/4)
     if size>=settings.grille_height_mm or 2*size>=settings.web_mm-1e-8:
-        raise ValueError('Chamfer size must be smaller than Height and half the Rib width. Reduce Chamfer size or increase Rib width.')
+        raise ValueError('Rib top bevel must be smaller than Height and half the Rib width. Reduce Rib top bevel or increase Rib width.')
     return size
 
 
@@ -85,9 +85,16 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
     # Retain a flat reveal around the raised frame. Angled fins need extra
     # room in the frame for their sideways rise; never enlarge the footprint.
     reveal=max(0,min(settings.border_mm/2,settings.border_mm-height*shear-2*cap-.5)) if settings.pattern in ANGLED else max(0,settings.border_mm-min(settings.web_mm,settings.border_mm/2))
-    raised_outer=clipping.offset_convex(outer,reveal) if reveal else outer
+    # The external frame tapers over its WHOLE height. Preserve the previous
+    # top footprint where possible and widen only the root, inside the plate.
+    # If the height requires a larger run, move the top inward rather than
+    # leaving a vertical step or extending outside the selected body.
+    ramp=settings.grille_profile=='chamfer'
+    rim_top=max(height,reveal+cap) if ramp else reveal
+    rim_base=rim_top-height if ramp else reveal
     def section(z,inset=0):
-        boundary=clipping.offset_convex(raised_outer,inset) if inset else raised_outer
+        distance=rim_base+z if ramp else reveal
+        boundary=clipping.offset_convex(outer,distance) if distance else outer
         # Freeze the slat shear at the start of the bevel. Its horizontal
         # offset then equals its rise, making EVERY bevel plane 45° to the bed.
         # Continuing the shear here would change the bevel to 0°/63.4° at a
@@ -105,7 +112,7 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
         try:
             plans.append(profile_loft.plan(frame,*lower,*upper,low,high))
         except ValueError as error:
-            raise ValueError('Raised profile does not fit. Increase Border/Rib width or reduce Height/Chamfer size. '+str(error)) from error
+            raise ValueError('Raised profile does not fit. Increase Border/Rib width or reduce Height/Rib top bevel. '+str(error)) from error
     from .perforated_prism import create,create_plan
     planned=time.perf_counter()
     result=create(frame,outer,holes,-thickness,0)
@@ -122,6 +129,8 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
          'total_ms':(completed-started)*1000,'raised_profile':settings.grille_profile,
          'raised_body_creations':1+len(plans),'raised_height_mm':height,'underside_limit_deg':45,
          'chamfer_size_mm':cap,'chamfer_angle_deg':45 if cap else 0,
+         'frame_ramp_height_mm':height if ramp else 0,'frame_ramp_run_mm':height if ramp else 0,
+         'frame_base_inset_mm':rim_base,'frame_top_inset_mm':rim_top,
          'louver_angle_deg':settings.louver_angle_deg if settings.pattern in ANGLED else 0},
         len(holes),tokens,accepted_samples=tuple(diagnostics),layouts=(layout,))
     a.validate_sources(prepared,_historical=historical)

@@ -48,6 +48,21 @@ class ProfileGeometryTests(unittest.TestCase):
             body=profile_loft.create(FRAME,OUTER,HOLES,clipping.offset_convex(OUTER,.4),upper,2,2.4)
         self.assertAlmostEqual(body.volume,plan.volume_mm3/1000)
 
+    def test_mount_clearance_frustum_has_full_height_slopes_and_closed_volume(self):
+        outer=((-2,-2),(2,-2),(2,2),(-2,2))
+        larger=clipping.offset_convex(outer,-3)
+        plan=profile_loft.plan(FRAME,outer,(),larger,(),0,3)
+        self.assertAlmostEqual(plan.volume_mm3,(16+4*49+100)/6*3)
+        for face in plan.faces[2:]:
+            a,b,c=(plan.points_mm[i] for i in face[0][:3])
+            normal=prism._cross(prism._sub(b,a),prism._sub(c,a))
+            vertical=abs(prism._dot(normal,FRAME.y_axis))
+            self.assertAlmostEqual(vertical**2,prism._dot(normal,normal)-vertical**2)
+        definition=MultiDefinition()
+        with patch.object(prism,'_api',return_value=api(definition)):
+            body=profile_loft.create(FRAME,outer,(),larger,(),0,3)
+        self.assertAlmostEqual(body.volume,plan.volume_mm3/1000)
+
     def test_nonplanar_twisted_walls_refuse(self):
         hole=((-4,-4),(4,-4),(4,4),(-4,4))
         rotated=((-3,-5),(5,-3),(3,5),(-5,3))

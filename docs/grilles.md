@@ -1,4 +1,4 @@
-# Grilles on existing bodies — 0.16.2
+# Grilles on existing bodies
 
 Shared storage update in 0.17.0: settings recipe 10 adds only the dormant
 truss_bays/truss_axis defaults to old grille recipes. Grille geometry is unchanged;
@@ -34,27 +34,36 @@ selection, preview-after-Done and in-place Create/Edit/Rebuild workflow.
 
 ## Raised profiles for back-to-bed printing
 
-Version0.26.0 corrects **Raised + chamfer** to45° relative to the plate/bed,
-including inclined fins. **Chamfer size (mm)** is beside Height. Zero uses Auto:
+Version 0.26.1 makes the **external frame** in Raised + chamfer slope all the way
+from the selected face to its raised top, with no vertical step below a small
+cap bevel. The sloped transition covers the whole Height. Its horizontal run
+equals that height. The top footprint stays where possible and the root widens
+inside the original plate; a taller frame can move the top inward. Incompatible
+openings/borders fail explicitly rather than silently changing dimensions.
+Mounting recesses also slope through the whole height, avoiding new vertical
+steps around their clearance regions. The plate thickness/flat back stay intact.
+
+**Rib top bevel (mm)** is separate: it finishes only the thin fins' upper edges,
+not the external frame. Zero uses Auto:
 `min(0.6 mm, Height/2, Rib width/4, Border/4)`. A positive value gives equal
 vertical and horizontal bevel distances, and must be smaller than Height and
 half Rib width. Geometry that does not fit is refused without shrinking it.
 The fin shear stops at the start of the bevel so it cannot distort its45° angle.
 This changes only the top segment; the main fin still has the selected tilt.
 
-Recipe14 adds `grille_chamfer_mm` to the28-field snapshot. Exact older records
-gain Auto only in memory. Their saved shape stays unchanged until explicit
-Rebuild, which previews the corrected bevel and the new Auto screw position.
-An Edit notice explains these changes; an explicit Screw inset preserves a
-measured older position. Top bevels do not chamfer the original plate perimeter
-or the full-height vertical walls exposed by the mounting clearance cuts.
+Recipe15 retains the28-field snapshot. Exact versions1–14 remain readable
+without changing the saved geometry or metadata. Versions1–13 gain the absent
+rib-bevel field only in memory. An Edit notice explains the new full-height
+frame before explicit Rebuild. The original plate perimeter is not rounded.
+Auto screw positions retain the0.26.0 inward shift; custom insets stay exact.
 
-Validation for0.26.0 passes1107 Python tests, five Node UI suites and browser
+Validation for0.26.1 passes1110 Python tests, five Node UI suites and browser
 checks at300/380/520px, including the380×513 docked layout. Six isolated Fusion
-2705.1.30 cases cover all five families, a too-large-size refusal, analytic45°
-bevel normals,0/20/45° main fins, size and inset Edit cycles, cached preview,
-same-body history and Delete restoring the source. See
-[grille-chamfer-0.26.0.json](validation/grille-chamfer-0.26.0.json).
+2705.1.30 cases cover all five families plus a refusal. Full-height analytic
+faces and inside/outside samples at10/50/90% of Height establish a root-to-top
+slope, independently of top-cap angles. Create/Edit/Delete preserve the same
+body/history and restore the caller. See
+[grille-ramp-0.26.1.json](validation/grille-ramp-0.26.1.json).
 
 Parallel bars, Crossed grid and Louvers each support **Raised** and **Raised +
 chamfer**, six new combinations. The original Flat profile remains the default.
@@ -64,9 +73,9 @@ plate openings are vertical. The same Louver tilt control applies to Flat and
 external louvers. Height is 0.2–20 mm above the
 original face, independent of plate thickness. Taller louvers require more Border.
 
-The raised frame leaves a flat reveal within the original border. Its footprint
-never expands outside the original plate. Chamfers narrow the upper ribs and
-frame by the Chamfer size (Auto is bounded by height/rib/border); Opening
+The raised frame can leave a flat reveal within the original border. Its footprint
+never expands outside the original plate. Rib top bevel narrows the upper ribs
+(Auto is bounded by height/rib/border); Opening
 width and Rib width still describe the roots on the original face. The local
 section diagram shows the back against the bed and responds to profile/height.
 Both new fields have illustrated help. Slots are covered by Parallel bars;

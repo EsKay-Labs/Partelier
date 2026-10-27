@@ -36,7 +36,7 @@ def _parse(raw,record):
     except (ValueError,TypeError) as error:
         raise ValueError("The saved pattern recipe is damaged.") from error
     if (not isinstance(value,dict) or set(value)!={"version","tool","feature_id","settings","sources"}
-            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5,6,7,8,9,10,11,12,13,14)
+            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)
             or value['tool']!='surface_pattern' or value['feature_id']!=record.feature_id):
         raise ValueError("The saved pattern recipe has an unsupported structure.")
     sources=value['sources']
@@ -86,9 +86,11 @@ def _parse(raw,record):
 def edit_notice(target):
     saved=target.recipe['settings']
     notices=[]
+    if target.recipe['version']<15 and target.settings.grille_profile=='chamfer':
+        notices.append('Rebuild slopes the external frame and mounting recesses through the full raised height. Review the new footprint; the saved body is unchanged until Rebuild.')
     if target.recipe['version']<14 and target.settings.pattern.startswith('grille_'):
         if target.settings.grille_profile=='chamfer':
-            notices.append('Rebuild applies the corrected 45° top bevel; Chamfer size 0 keeps the automatic size.')
+            notices.append('Rebuild applies the corrected 45° top bevel; Rib top bevel 0 keeps the automatic size.')
         if target.settings.mount_mode!='off' and not target.settings.mount_inset_mm:
             notices.append('Auto screw centres move 0.8 mm inward on Rebuild. Set Screw inset to keep a measured distance.')
     if target.recipe['version']<9 and target.settings.mount_mode!='off':
@@ -169,7 +171,7 @@ def validate_preview_sources(prepared, *, make_cut=False):
 
 
 def _save(anchor,record,prepared):
-    value={'version':14,'tool':'surface_pattern','feature_id':record.feature_id,
+    value={'version':15,'tool':'surface_pattern','feature_id':record.feature_id,
            'settings':prepared.settings.to_dict(),'sources':prepared.source_tokens}
     raw=json.dumps(value,separators=(',',':'))
     _parse(raw,record)

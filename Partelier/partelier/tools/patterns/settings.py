@@ -81,7 +81,7 @@ class PatternSettings:
         if not .2 <= self.grille_height_mm <= 20:
             raise ValueError('Grille height must be between 0.2 and 20 mm above the selected face.')
         if not 0 <= self.grille_chamfer_mm <= 20:
-            raise ValueError('Chamfer size must be 0–20 mm; 0 uses the automatic size.')
+            raise ValueError('Rib top bevel must be 0–20 mm; 0 uses the automatic size.')
         if self.mount_mode not in ('off','plain','countersink') or self.mount_screw not in ('M3','M4','M5','M6'):
             raise ValueError('Choose mounting holes Off, Plain or Countersunk and screw M3–M6.')
         if self.mount_mode!='off' and not self.pattern.startswith('grille_'):

@@ -10,18 +10,24 @@ from . import perforated_prism as direct
 from . import prism
 
 
+def _section(frame,outer,holes,low,high):
+    if holes:return direct.plan(frame,outer,holes,low,high)
+    solid=prism.plan_prism(frame,outer,low,high)
+    return direct.Plan(solid.points_mm,tuple((loop,) for loop in solid.face_loops),solid.volume_mm3)
+
+
 def plan(frame,outer,holes,top_outer,top_holes,low,high):
     holes=tuple(holes);top_holes=tuple(top_holes)
-    if not 1<=len(holes)<=200 or len(holes)!=len(top_holes):
+    if len(holes)>200 or len(holes)!=len(top_holes):
         raise ValueError('Raised profiles support up to 200 openings. Increase Opening width or Rib width.')
-    lower=direct.plan(frame,outer,holes,low,high)
-    upper=direct.plan(frame,top_outer,top_holes,low,high)
+    lower=_section(frame,outer,holes,low,high)
+    upper=_section(frame,top_outer,top_holes,low,high)
     loops=(tuple(outer),)+tuple(tuple(p) for p in holes)
     tops=(tuple(top_outer),)+tuple(tuple(p) for p in top_holes)
     if any(len(a)!=len(b) for a,b in zip(loops,tops)):
         raise ValueError('The profile collapsed an opening corner. Increase Rib width or Border.')
     middle=tuple(tuple(tuple((x+y)/2 for x,y in zip(a,b)) for a,b in zip(one,two)) for one,two in zip(loops,tops))
-    midpoint=direct.plan(frame,middle[0],middle[1:],low,high)
+    midpoint=_section(frame,middle[0],middle[1:],low,high)
     points=[];offset=0
     for loop in loops:
         count=len(loop)
