@@ -29,7 +29,7 @@ class MountPlanTests(unittest.TestCase):
         self.assertAlmostEqual(changed.countersink_depth_mm,2.678)
 
     def test_automatic_border_contains_the_whole_head_and_rim_for_each_screw(self):
-        for screw,expected in (('M3',10.292),('M4',12.756),('M5',15.22),('M6',17.684)):
+        for screw,expected in (('M3',11.092),('M4',13.556),('M5',16.02),('M6',18.484)):
             settings=replace(self.settings,mount_screw=screw)
             before=settings.to_dict();border=mounting.border_for_screw(settings)
             self.assertAlmostEqual(border,expected)
@@ -41,7 +41,7 @@ class MountPlanTests(unittest.TestCase):
 
     def test_auto_border_keeps_larger_minimum_and_follows_custom_head_and_inset(self):
         self.assertEqual(mounting.border_for_screw(replace(self.settings,border_mm=20)),20)
-        self.assertAlmostEqual(mounting.border_for_screw(replace(self.settings,mount_head_mm=8)),11.7)
+        self.assertAlmostEqual(mounting.border_for_screw(replace(self.settings,mount_head_mm=8)),12.5)
         self.assertAlmostEqual(mounting.border_for_screw(replace(self.settings,mount_inset_mm=8)),14.128)
         self.assertEqual(mounting.border_for_screw(replace(self.settings,mount_mode='off')),7)
 
@@ -50,9 +50,9 @@ class MountPlanTests(unittest.TestCase):
         plate=N(outer=((-30,-25),(30,-25),(30,25),(-30,25)),thickness_mm=3)
         events=[]
         def inspect(design,faces,settings,body):
-            self.assertAlmostEqual(settings.border_mm,12.756);events.append('inspect');return plate
+            self.assertAlmostEqual(settings.border_mm,13.556);events.append('inspect');return plate
         def prepare(design,faces,settings,**kwargs):
-            self.assertEqual(events,['inspect']);self.assertAlmostEqual(settings.border_mm,12.756)
+            self.assertEqual(events,['inspect']);self.assertAlmostEqual(settings.border_mm,13.556)
             events.append('repeat')
             return fusion.PreparedPattern(design,faces,body,settings,object(),(),{},1,{})
         body=object()
@@ -60,7 +60,7 @@ class MountPlanTests(unittest.TestCase):
             result=fusion.prepare_pattern(object(),('face',),self.settings)
         self.assertEqual(events,['inspect','repeat'])
         self.assertEqual(result.settings,self.settings)
-        self.assertAlmostEqual(result.timings['mount_border_mm'],12.756)
+        self.assertAlmostEqual(result.timings['mount_border_mm'],13.556)
         self.assertEqual(result.timings['requested_border_mm'],7)
 
     def test_excessive_border_or_bad_seat_never_reaches_repeat_planning(self):
@@ -89,7 +89,7 @@ class MountPlanTests(unittest.TestCase):
         value=self.plan()
         self.assertEqual(len(value.centers_mm),4)
         self.assertEqual(sorted(value.centers_mm),sorted((-x,-z) for x,z in value.centers_mm))
-        self.assertAlmostEqual(value.inset_mm-value.land_radius_mm,.5)
+        self.assertAlmostEqual(value.inset_mm-value.land_radius_mm,1.3)
         self.assertGreaterEqual(self.settings.border_mm+value.land_radius_mm-value.inset_mm,1)
         for i,one in enumerate(value.centers_mm):
             for two in value.centers_mm[i+1:]:
@@ -106,6 +106,15 @@ class MountPlanTests(unittest.TestCase):
             self.assertGreater(value.land_radius_mm,value.head_diameter_mm/2)
         value=self.plan(replace(self.settings,mount_inset_mm=8))
         self.assertEqual(value.inset_mm,8)
+
+    def test_auto_moves_centres_inward_but_explicit_measured_insets_are_retained(self):
+        auto=self.plan();original=self.plan(replace(self.settings,mount_inset_mm=6.628))
+        self.assertAlmostEqual(auto.inset_mm,7.428)
+        for current,prior in zip(auto.centers_mm,original.centers_mm):
+            for one,two in zip(current,prior):self.assertAlmostEqual(abs(two)-abs(one),.8)
+        deeper=self.plan(replace(self.settings,mount_inset_mm=8.5))
+        self.assertAlmostEqual(deeper.inset_mm,8.5)
+        self.assertAlmostEqual(mounting.border_for_screw(replace(self.settings,mount_inset_mm=8.5)),14.628)
 
     def test_unsupported_geometry_is_refused_without_silently_changing_dimensions(self):
         cases=[(replace(self.settings,mount_inset_mm=2),(-30,30,-25,25)),
@@ -142,7 +151,7 @@ class MountPlanTests(unittest.TestCase):
     def test_version_six_reads_mounting_off_without_rewriting_its_profile(self):
         settings=replace(self.settings,grille_profile='chamfer').to_dict()
         old={key:value for key,value in settings.items() if not key.startswith(('mount_','truss_'))}
-        old.pop('pattern_fillet_mm')
+        old.pop('grille_chamfer_mm');old.pop('pattern_fillet_mm')
         value={'version':6,'tool':'surface_pattern','feature_id':'owned','settings':old,
                'sources':{'body':'body','faces':['face']}}
         raw=json.dumps(value)

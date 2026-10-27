@@ -71,7 +71,7 @@ class GrilleFilletTests(unittest.TestCase):
         self.assertAlmostEqual(prepared.result_body.volume,source.volume-sum(p.area_mm2 for p in profiles)*3/1000)
         self.assertEqual(source.volume,1.2);self.assertEqual(prepared.timings['grid_body_creations'],1)
 
-    def prepare_raised(self,profile='raised',pattern='grille_cross',radius=.4,created=None):
+    def prepare_raised(self,profile='raised',pattern='grille_cross',radius=.4,created=None,angle=20,chamfer=0):
         source=N(volume=3.6);chart=Chart();face=object()
         plate=Plate(face,source,chart,FRAME,((-20,-15),(20,-15),(20,15),(-20,15)),3,(0,0,1))
         hole=((-4,-2),(4,-2),(4,2),(-4,2));cell=Cell((0.,0.),hole)
@@ -85,7 +85,7 @@ class GrilleFilletTests(unittest.TestCase):
         original_plan=profile_loft.plan
         def plan(*args):plans.append(args);return original_plan(*args)
         def union(manager,target,tool,operation,message):target.volume+=tool.volume
-        settings=self.settings(pattern=pattern,grille_profile=profile,grille_height_mm=2,louver_angle_deg=20,pattern_fillet_mm=radius)
+        settings=self.settings(pattern=pattern,grille_profile=profile,grille_height_mm=2,louver_angle_deg=angle,pattern_fillet_mm=radius,grille_chamfer_mm=chamfer)
         with patch.object(fusion,'_api',return_value=(None,native)),patch.object(raised_grilles,'build_layout',return_value=layout),\
                 patch.object(perforated_prism,'create',side_effect=base) as create,\
                 patch.object(perforated_prism,'create_plan',side_effect=lambda plan:N(volume=plan.volume_mm3/1000)),\
@@ -93,6 +93,35 @@ class GrilleFilletTests(unittest.TestCase):
                 patch.object(fusion,'validate_sources'):
             result=raised_grilles.prepare(None,(face,),settings,source,(),{},0,plate=plate)
         return result,hole,captures,plans
+
+    def test_all_top_bevel_planes_are_45_degrees_independent_of_slat_tilt(self):
+        for shape in ('grille_parallel','grille_cross','grille_louver','grille_deflection','grille_diffuser'):
+            for tilt in (0,20,45):
+                for size in (.2,.65):
+                    with self.subTest(shape=shape,tilt=tilt,size=size):
+                        result,_,_,args=self.prepare_raised('chamfer',shape,angle=tilt,chamfer=size)
+                        bevel=profile_loft.plan(*args[-1])
+                        self.assertAlmostEqual(args[-1][-1]-args[-1][-2],size)
+                        self.assertEqual(result.timings['chamfer_size_mm'],size)
+                        for face in bevel.faces[2:]:
+                            a,b,c=(bevel.points_mm[i] for i in face[0][:3])
+                            normal=prism._cross(prism._sub(b,a),prism._sub(c,a))
+                            vertical=abs(normal[1]);horizontal=math.hypot(normal[0],normal[2])
+                            self.assertAlmostEqual(vertical/horizontal,1,places=7)
+                        self.assertEqual(result.timings['raised_body_creations'],3)
+
+    def test_chamfer_size_never_silently_shrinks_or_creates_shapes_before_refusal(self):
+        for size in (1,1.5,2):
+            created=[]
+            with self.subTest(size=size),self.assertRaisesRegex(ValueError,'Chamfer size'):
+                self.prepare_raised('chamfer',chamfer=size,created=created)
+            self.assertEqual(created,[])
+        settings=self.settings(grille_profile='chamfer',grille_height_mm=2)
+        self.assertEqual(raised_grilles.chamfer_size(settings),.5)
+        self.assertEqual(raised_grilles.chamfer_size(replace(settings,grille_chamfer_mm=.7)),.7)
+        self.assertEqual(raised_grilles.chamfer_size(replace(settings,grille_profile='flat')),0)
+        for value in (-.1,21,True,float('nan'),float('inf')):
+            with self.subTest(value=value),self.assertRaises(ValueError):replace(settings,grille_chamfer_mm=value)
 
     def test_raised_chamfer_and_louver_reuse_one_bounded_stroke_for_every_section(self):
         for mode,pattern in (('raised','grille_cross'),('chamfer','grille_cross'),('raised','grille_louver'),('chamfer','grille_louver')):

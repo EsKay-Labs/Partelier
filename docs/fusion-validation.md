@@ -6,6 +6,21 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.26.0 raised bevels and screw inset
+
+Six isolated MCP cases pass on Fusion2705.1.30: five grille families plus an
+explicit oversized-bevel refusal. Measured top bevel planes are45° independently
+of0/20/45° main fin tilt, including rounded aperture profiles. Chamfer sizes
+0.25/0.7/Auto and screw insets6.628/8.25/Auto survive Edit/Rebuild, with reserved
+solid borders and the same source body/history. Mounted clearance walls remain
+separate from the cap-bevel measurements. Preview cleanup and grouped Delete
+restore their temporary fixture; every case restores the caller document.
+The app reloads0.26.0 while preserving the user's body/timeline state.
+Local checks pass1107 Python tests, five Node suites, compilation and whitespace;
+headless HTML checks cover300/380/520px plus a513px docked height. These are
+geometry/browser checks, not physical printing evidence. See
+[report](validation/grille-chamfer-0.26.0.json) and [controls](grilles.md).
+
 ## 0.16.0 optional grille mounting
 
 Fusion MCP checks on Fusion 2705.1.30 pass **19 isolated cases**: M4 Plain and

@@ -26,6 +26,7 @@ class PatternSettings:
     louver_angle_deg: float = 45.0
     grille_profile: str = "flat"
     grille_height_mm: float = 3.0
+    grille_chamfer_mm: float = 0.0
     mount_mode: str = "off"
     mount_screw: str = "M4"
     mount_clearance_mm: float = .3
@@ -39,7 +40,7 @@ class PatternSettings:
 
     def __post_init__(self):
         for key in ("pitch_mm", "web_mm", "depth_mm", "border_mm", "rotation_deg", "offset_u_mm", "offset_v_mm", "louver_angle_deg", "grille_height_mm",
-                    "mount_clearance_mm","mount_head_extra_percent","mount_head_mm","mount_inset_mm","truss_fillet_mm","pattern_fillet_mm"):
+                    "mount_clearance_mm","mount_head_extra_percent","mount_head_mm","mount_inset_mm","truss_fillet_mm","pattern_fillet_mm","grille_chamfer_mm"):
             value = getattr(self, key)
             try:
                 finite = not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value)
@@ -79,6 +80,8 @@ class PatternSettings:
             raise ValueError('Choose Flat, Raised or Chamfered grille profile.')
         if not .2 <= self.grille_height_mm <= 20:
             raise ValueError('Grille height must be between 0.2 and 20 mm above the selected face.')
+        if not 0 <= self.grille_chamfer_mm <= 20:
+            raise ValueError('Chamfer size must be 0–20 mm; 0 uses the automatic size.')
         if self.mount_mode not in ('off','plain','countersink') or self.mount_screw not in ('M3','M4','M5','M6'):
             raise ValueError('Choose mounting holes Off, Plain or Countersunk and screw M3–M6.')
         if self.mount_mode!='off' and not self.pattern.startswith('grille_'):

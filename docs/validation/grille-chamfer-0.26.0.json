@@ -1,0 +1,478 @@
+{
+  "release": "0.26.0",
+  "date": "2026-10-28",
+  "fusion_version": "2705.1.30",
+  "local": {
+    "python_unittest": {
+      "passed": 1107
+    },
+    "node_ui_suites": [
+      "palette",
+      "snap_fit",
+      "details",
+      "operations",
+      "patterns"
+    ],
+    "compileall": true,
+    "diff_check": true
+  },
+  "native_cases": {
+    "louver": {
+      "version": "0.26.0",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "prepare_ms": 549.0125999931479,
+      "openings": 3,
+      "timings": {
+        "source_and_plan_ms": 25.333500001579523,
+        "temporary_geometry_ms": 131.02980000257958,
+        "total_ms": 533.5142999974778,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "chamfer_size_mm": 0.6,
+        "chamfer_angle_deg": 45,
+        "louver_angle_deg": 45.0,
+        "mounting_ms": 319.0593000035733,
+        "mount_holes": 4,
+        "mount_border_restores": 0,
+        "mount_hole_diameter_mm": 4.3,
+        "mount_head_diameter_mm": 9.856000000000002,
+        "mount_countersink_depth_mm": 2.778000000000001,
+        "mount_inset_mm": 7.428000000000001,
+        "mount_preflight_ms": 31.66129999590339,
+        "mount_border_mm": 13.556000000000001,
+        "requested_border_mm": 7.0
+      },
+      "analytic_bevel_angles": {
+        "measured_planes": 16,
+        "min_deg": 44.99999999999995,
+        "max_deg": 45.0000000000001,
+        "full_height_mounting_walls": 8
+      },
+      "analytic_wall_angles": [
+        0.0,
+        45.0
+      ],
+      "mount_bore_and_seat_witnesses": 4,
+      "solid_border_witnesses": 300,
+      "through_opening_witnesses": 0,
+      "cached_preview_draw_cleanup": true,
+      "preview_triangles": 1044,
+      "create_ms": 406.03289999853587,
+      "edit_rebuild_ms": 1380.0353000042378,
+      "rebuilt_bevel_angles": {
+        "measured_planes": 16,
+        "min_deg": 44.99999999999991,
+        "max_deg": 45.00000000000006,
+        "full_height_mounting_walls": 8
+      },
+      "named_group_edit_delete": true,
+      "delete_restored_source": true,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "pattern": "grille_louver",
+        "profile": "chamfer",
+        "grille_chamfer_mm": 0.6,
+        "louver_angle_deg": 45,
+        "mount_mode": "countersink",
+        "history": true,
+        "preview": true
+      }
+    },
+    "parallel-auto": {
+      "version": "0.26.0",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "prepare_ms": 161.55670000443934,
+      "openings": 5,
+      "timings": {
+        "source_and_plan_ms": 56.7802000005031,
+        "temporary_geometry_ms": 95.67360000073677,
+        "total_ms": 152.45380000123987,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "chamfer_size_mm": 0.5,
+        "chamfer_angle_deg": 45,
+        "louver_angle_deg": 0
+      },
+      "analytic_bevel_angles": {
+        "measured_planes": 24,
+        "min_deg": 45.00000000000001,
+        "max_deg": 45.00000000000001,
+        "full_height_mounting_walls": 0
+      },
+      "through_opening_witnesses": 3,
+      "create_ms": 518.525999999838,
+      "edit_rebuild_ms": 904.4829999984358,
+      "rebuilt_bevel_angles": {
+        "measured_planes": 24,
+        "min_deg": 45.00000000000001,
+        "max_deg": 45.00000000000001,
+        "full_height_mounting_walls": 0
+      },
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "profile": "chamfer",
+        "pattern": "grille_parallel"
+      }
+    },
+    "cross-fillet": {
+      "version": "0.26.0",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "prepare_ms": 1738.4748999975272,
+      "openings": 40,
+      "timings": {
+        "source_and_plan_ms": 188.13329999829875,
+        "temporary_geometry_ms": 1510.5021999988821,
+        "total_ms": 1698.635499997181,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "chamfer_size_mm": 0.75,
+        "chamfer_angle_deg": 45,
+        "louver_angle_deg": 0
+      },
+      "analytic_bevel_angles": {
+        "measured_planes": 644,
+        "min_deg": 44.99999999999985,
+        "max_deg": 45.00000000000021,
+        "full_height_mounting_walls": 0
+      },
+      "through_opening_witnesses": 3,
+      "create_ms": 2908.8759000005666,
+      "edit_rebuild_ms": 8561.330900003668,
+      "rebuilt_bevel_angles": {
+        "measured_planes": 644,
+        "min_deg": 44.99999999999985,
+        "max_deg": 45.00000000000021,
+        "full_height_mounting_walls": 0
+      },
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "profile": "chamfer",
+        "pattern": "grille_cross",
+        "grille_chamfer_mm": 0.75,
+        "pattern_fillet_mm": 0.25
+      }
+    },
+    "deflection": {
+      "version": "0.26.0",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "prepare_ms": 121.69040000298992,
+      "openings": 4,
+      "timings": {
+        "source_and_plan_ms": 14.198600001691375,
+        "temporary_geometry_ms": 46.61040000064531,
+        "total_ms": 118.06710000382736,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "chamfer_size_mm": 0.6,
+        "chamfer_angle_deg": 45,
+        "louver_angle_deg": 45.0,
+        "mounting_ms": 37.34019999683369,
+        "mount_holes": 4,
+        "mount_border_restores": 0,
+        "mount_hole_diameter_mm": 4.3,
+        "mount_head_diameter_mm": 9.856000000000002,
+        "mount_countersink_depth_mm": 0.0,
+        "mount_inset_mm": 7.428000000000001,
+        "mount_preflight_ms": 11.635599999863189,
+        "mount_border_mm": 13.556000000000001,
+        "requested_border_mm": 7.0
+      },
+      "analytic_bevel_angles": {
+        "measured_planes": 20,
+        "min_deg": 44.99999999999998,
+        "max_deg": 45.00000000000016,
+        "full_height_mounting_walls": 8
+      },
+      "analytic_wall_angles": [
+        0.0,
+        45.0
+      ],
+      "directional_aperture_witnesses": 8,
+      "mount_bore_and_seat_witnesses": 4,
+      "solid_border_witnesses": 300,
+      "through_opening_witnesses": 0,
+      "create_ms": 257.4062999992748,
+      "edit_rebuild_ms": 609.0758999998798,
+      "rebuilt_bevel_angles": {
+        "measured_planes": 20,
+        "min_deg": 44.99999999999995,
+        "max_deg": 45.00000000000012,
+        "full_height_mounting_walls": 8
+      },
+      "tilt_edit_cycle": [
+        {
+          "requested": 0,
+          "measured_wall_angles": [
+            0.0
+          ],
+          "bevel_angles": {
+            "measured_planes": 20,
+            "min_deg": 44.99999999999995,
+            "max_deg": 45.00000000000012,
+            "full_height_mounting_walls": 8
+          }
+        },
+        {
+          "requested": 20,
+          "measured_wall_angles": [
+            0.0,
+            20.0
+          ],
+          "bevel_angles": {
+            "measured_planes": 20,
+            "min_deg": 44.99999999999995,
+            "max_deg": 45.00000000000012,
+            "full_height_mounting_walls": 8
+          }
+        },
+        {
+          "requested": 45,
+          "measured_wall_angles": [
+            0.0,
+            45.0
+          ],
+          "bevel_angles": {
+            "measured_planes": 20,
+            "min_deg": 44.99999999999995,
+            "max_deg": 45.00000000000012,
+            "full_height_mounting_walls": 8
+          }
+        }
+      ],
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "profile": "chamfer",
+        "pattern": "grille_deflection",
+        "grille_chamfer_mm": 0.6,
+        "mount_mode": "plain",
+        "tilt_edit_cycle": true
+      }
+    },
+    "diffuser": {
+      "version": "0.26.0",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "prepare_ms": 179.12300000170944,
+      "openings": 8,
+      "timings": {
+        "source_and_plan_ms": 26.17909999389667,
+        "temporary_geometry_ms": 75.84780000615865,
+        "total_ms": 174.65050000464544,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "chamfer_size_mm": 0.6,
+        "chamfer_angle_deg": 45,
+        "louver_angle_deg": 45.0,
+        "mounting_ms": 50.98780000116676,
+        "mount_holes": 4,
+        "mount_border_restores": 0,
+        "mount_hole_diameter_mm": 4.3,
+        "mount_head_diameter_mm": 9.856000000000002,
+        "mount_countersink_depth_mm": 2.778000000000001,
+        "mount_inset_mm": 7.428000000000001,
+        "mount_preflight_ms": 12.780000004568137,
+        "mount_border_mm": 13.556000000000001,
+        "requested_border_mm": 7.0
+      },
+      "analytic_bevel_angles": {
+        "measured_planes": 36,
+        "min_deg": 44.999999999999915,
+        "max_deg": 45.00000000000009,
+        "full_height_mounting_walls": 8
+      },
+      "analytic_wall_angles": [
+        0.0,
+        35.26439,
+        45.0
+      ],
+      "directional_aperture_witnesses": 16,
+      "mount_bore_and_seat_witnesses": 4,
+      "solid_border_witnesses": 300,
+      "through_opening_witnesses": 0,
+      "create_ms": 246.68150000070455,
+      "edit_rebuild_ms": 598.4648000012385,
+      "rebuilt_bevel_angles": {
+        "measured_planes": 36,
+        "min_deg": 44.99999999999994,
+        "max_deg": 45.00000000000004,
+        "full_height_mounting_walls": 8
+      },
+      "chamfer_edit_cycle": [
+        {
+          "requested_mm": 0.25,
+          "actual_mm": 0.25,
+          "bevel_angles": {
+            "measured_planes": 36,
+            "min_deg": 44.999999999999815,
+            "max_deg": 45.00000000000009,
+            "full_height_mounting_walls": 8
+          }
+        },
+        {
+          "requested_mm": 0.7,
+          "actual_mm": 0.7,
+          "bevel_angles": {
+            "measured_planes": 36,
+            "min_deg": 44.999999999999964,
+            "max_deg": 45.00000000000005,
+            "full_height_mounting_walls": 8
+          }
+        },
+        {
+          "requested_mm": 0,
+          "actual_mm": 0.5,
+          "bevel_angles": {
+            "measured_planes": 36,
+            "min_deg": 44.999999999999964,
+            "max_deg": 45.00000000000009,
+            "full_height_mounting_walls": 8
+          }
+        }
+      ],
+      "inset_edit_cycle": [
+        {
+          "requested_mm": 6.628,
+          "actual_mm": 6.628,
+          "border_mm": 12.756
+        },
+        {
+          "requested_mm": 8.25,
+          "actual_mm": 8.25,
+          "border_mm": 14.378
+        },
+        {
+          "requested_mm": 0,
+          "actual_mm": 7.428000000000001,
+          "border_mm": 13.556000000000001
+        }
+      ],
+      "named_group_edit_delete": true,
+      "delete_restored_source": true,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "profile": "chamfer",
+        "pattern": "grille_diffuser",
+        "grille_chamfer_mm": 0.6,
+        "mount_mode": "countersink",
+        "history": true,
+        "chamfer_edit_cycle": true,
+        "inset_edit_cycle": true
+      }
+    },
+    "refuse-wide": {
+      "version": "0.26.0",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "expected_refusal": "Chamfer size must be smaller than Height and half the Rib width. Reduce Chamfer size or increase Rib width.",
+      "model_unchanged_before_cleanup": true,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "profile": "chamfer",
+        "pattern": "grille_louver",
+        "grille_chamfer_mm": 1,
+        "expect_refusal": "Chamfer size"
+      }
+    }
+  },
+  "browser": {
+    "checks": [
+      {
+        "width": 300,
+        "height": 760,
+        "visibleEditableChamfer": true,
+        "screwInsetBesideSize": true,
+        "mountingSummaryRecalculated": true,
+        "illustratedHelp": true,
+        "flatAndOtherToolsHideChamfer": true,
+        "noHorizontalOverflow": true
+      },
+      {
+        "width": 380,
+        "height": 760,
+        "visibleEditableChamfer": true,
+        "screwInsetBesideSize": true,
+        "mountingSummaryRecalculated": true,
+        "illustratedHelp": true,
+        "flatAndOtherToolsHideChamfer": true,
+        "noHorizontalOverflow": true
+      },
+      {
+        "width": 380,
+        "height": 513,
+        "visibleEditableChamfer": true,
+        "screwInsetBesideSize": true,
+        "mountingSummaryRecalculated": true,
+        "illustratedHelp": true,
+        "flatAndOtherToolsHideChamfer": true,
+        "noHorizontalOverflow": true
+      },
+      {
+        "width": 520,
+        "height": 760,
+        "visibleEditableChamfer": true,
+        "screwInsetBesideSize": true,
+        "mountingSummaryRecalculated": true,
+        "illustratedHelp": true,
+        "flatAndOtherToolsHideChamfer": true,
+        "noHorizontalOverflow": true
+      }
+    ],
+    "errors": []
+  },
+  "installed": {
+    "version": "0.26.0",
+    "safe_reload_caller_unchanged": true,
+    "width": 380,
+    "docked_height": 513
+  },
+  "source_sha256": {
+    "Partelier/partelier/tools/patterns/settings.py": "a9bd677c1171f08646cb382fdafeef64f4a4a144016611cd5fa8f46c23cc8525",
+    "Partelier/partelier/tools/patterns/recipe.py": "ef75cd5aa96cfd6e20561afc91d791ac7ff56b84e7a75fc947fc4677232d608e",
+    "Partelier/partelier/tools/patterns/raised_grilles.py": "14a3117b694cd24b38f28623d12f2c90d9ba57a78681593a593fa7ab0dabfeb8",
+    "Partelier/partelier/tools/patterns/mounting.py": "edec919b3a894fe6128bd1c1e80410662eb0d43c34853b78341ffff7023c1539",
+    "Partelier/partelier/tools/patterns/profile_loft.py": "da702b356ae686edfcb274c567a7a4e46729fc980734d86882c0316c2daf90c4"
+  },
+  "scope": [
+    "Five grille families, sharp and rounded cell perimeters, measured top bevel planes are45 degrees.",
+    "Native slit wall tilt remains0/20/45 independently of bevel size; size edit cycle0.25/0.7/Auto.",
+    "M4 bore4.3/head9.856; Auto inset7.428, custom6.628/8.25 retained; full border witnesses and unchanged history/body.",
+    "Full-height vertical walls exposed by later mounting relief are classified separately from top bevel planes.",
+    "Preview uses cached mesh; Create/Rebuild/Delete tested in temporary documents; caller restored.",
+    "Headless simulated-host browser checks do not establish manual CEF pointer/orbit acceptance or physical printing."
+  ]
+}

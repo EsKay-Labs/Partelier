@@ -1,5 +1,10 @@
 # Surface patterns
 
+Grilles0.26.0 adds exact45° raised bevels, **Chamfer size** (0=Auto) and
+more accessible **Screw inset** controls. Auto screws sit0.8mm farther inward.
+The shared settings now have28 fields and recipe14, with exactv1–13 read-only
+migration. See [grille controls](grilles.md) for dimensions and validation.
+
 Grilles 0.25.0 adds **Two-way deflection** and **Four-way diffuser**, alongside
 Linear bars, Standard grid and Fixed louvers. Shared tilt, fillet, raised profile,
 mounting and Saved features remain available. See [grille families](grille-families.md)

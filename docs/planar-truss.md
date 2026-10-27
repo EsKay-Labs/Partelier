@@ -61,7 +61,9 @@ identity, name, visibility, feature ID and history count. The shared store allow
 one owned Pattern/Grille/Truss layout per body; these cannot be independently
 stacked on the same body. Edit uses the original plate before the owned cut.
 
-The0.23.0 shared settings recipe **12** contains27 fields. The separate common
+The0.26.0 shared settings recipe **14** contains28 fields. The grille-only
+`grille_chamfer_mm` defaults to0 for exact versions1–13 and is inactive here.
+The separate common
 `pattern_fillet_mm` defaults to0 for exact versions1–11 and is inactive for
 Planar truss. Versions1–10 gain the
 previously absent `truss_fillet_mm=0` default; versions1–9 also gain the absent

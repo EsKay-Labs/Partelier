@@ -3,7 +3,7 @@
 // One pattern session serves the honeycomb, perforation and texture presets.
 (() => {
     const $ = id => document.getElementById(id);
-    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3, mount_mode: "off", mount_screw: "M4", mount_clearance_mm: .3, mount_head_extra_percent: 10, mount_head_mm: 0, mount_inset_mm: 0, truss_bays: 6, truss_axis: "long", truss_fillet_mm: 0, pattern_fillet_mm: 0 });
+    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3, grille_chamfer_mm: 0, mount_mode: "off", mount_screw: "M4", mount_clearance_mm: .3, mount_head_extra_percent: 10, mount_head_mm: 0, mount_inset_mm: 0, truss_bays: 6, truss_axis: "long", truss_fillet_mm: 0, pattern_fillet_mm: 0 });
     const presets = { honeycomb: { pattern: "hexagon", mode: "through" }, perforation: { pattern: "circle", mode: "through" }, knurl: { pattern: "diamond", mode: "emboss" }, truss: {pattern:"truss_warren",mode:"through",layout_mode:"fill",web_mm:2,border_mm:3,selection_scope:"faces",rotation_deg:0,offset_u_mm:0,offset_v_mm:0,grille_profile:"flat",mount_mode:"off",truss_bays:6,truss_axis:"long",truss_fillet_mm:0}, grilles: { pattern: "grille_parallel", mode: "through", layout_mode: "fill", pitch_mm: 7, web_mm: 2, border_mm: 7, edge_mode: "clip", rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0 } };
     const choices = {
         pattern: [["hexagon", "Hexagons"], ["rounded_hexagon", "Rounded hexagons"], ["elongated_hexagon", "Elongated hexagons"],
@@ -15,7 +15,7 @@
         layout_mode: [["auto", "Auto fit · visual balance"], ["balanced", "Balanced · fewer cells"], ["fill", "Fill face · fixed size"], ["fit", "Automatic size"], ["fixed", "Exact pitch"]],
         density: [["sparse", "Sparse"], ["balanced", "Balanced"], ["dense", "Dense"]],
         size_locked: [["false", "Automatic"], ["true", "Custom size"]],
-        grille_profile: [["flat", "Flat"], ["raised", "Raised"], ["chamfer", "Raised + chamfer"]],
+        grille_profile: [["flat", "Flat"], ["raised", "Raised"], ["chamfer", "Raised + chamfer · 45°"]],
         mount_mode: [["off", "Off"], ["plain", "4 plain holes"], ["countersink", "4 countersunk holes · 90°"]],
         mount_screw: [["M3","M3"],["M4","M4"],["M5","M5"],["M6","M6"]],
         truss_axis: [["long","Along long side"],["short","Along short side"]],
@@ -139,7 +139,7 @@
         const s=state.settings,heads={M3:6.72,M4:8.96,M5:11.2,M6:13.44};
         if(!grille() || s.mount_mode==="off")return s.border_mm;
         const radius=(s.mount_head_mm || heads[s.mount_screw])*(1+s.mount_head_extra_percent/100)/2+1.2;
-        return Math.max(s.border_mm,(s.mount_inset_mm || radius+.5)+radius);
+        return Math.max(s.border_mm,(s.mount_inset_mm || radius+1.3)+radius);
     }
     function renderArt() { $("pattern-illustration").innerHTML = window.PartelierIllustrations.renderPattern({...state.settings,border_mm:mountingBorder()}); }
     function availability(committing) {
@@ -169,12 +169,13 @@
         $("pattern-mounting").hidden=!isGrille;
         $("pattern-mount_mode").parentElement.classList.toggle("full-width-parameter",true);
         $("pattern-mount_screw").parentElement.hidden=!mounting;
+        $("pattern-mount_inset_mm").parentElement.hidden=!mounting;
         $("pattern-mount-options").hidden=!mounting;
         $("pattern-mount-summary").hidden=!mounting;
         if(mounting) {
             const sizes={M3:[3,6.72],M4:[4,8.96],M5:[5,11.2],M6:[6,13.44]},size=sizes[state.settings.mount_screw];
             const hole=size?.[0]+state.settings.mount_clearance_mm,head=(state.settings.mount_head_mm || size?.[1])*(1+state.settings.mount_head_extra_percent/100);
-            const inset=state.settings.mount_inset_mm || head/2+1.7,fmt=value=>Number(value.toFixed(2));
+            const inset=state.settings.mount_inset_mm || head/2+2.5,fmt=value=>Number(value.toFixed(2));
             $("pattern-mount-summary").textContent=Number.isFinite(hole+head+inset)
                 ? `4 corners · Ø${fmt(hole)} mm`+(state.settings.mount_mode==="countersink"?` · 90° seat Ø${fmt(head)} mm · depth ${fmt((head-hole)/2)} mm`:"")+` · centre inset ${fmt(inset)} mm · Border used ${fmt(mountingBorder())} mm (auto for ${state.settings.mount_screw}). Calculated before the pattern preview.`
                 : "Check the mounting settings.";
@@ -182,6 +183,7 @@
         $("pattern-grille_profile").parentElement.hidden=!isGrille;
         $("pattern-grille_profile").parentElement.classList.remove("full-width-parameter");
         $("pattern-grille_height_mm").parentElement.hidden=!raised;
+        $("pattern-grille_chamfer_mm").parentElement.hidden=!isGrille || state.settings.grille_profile!=="chamfer";
         $("pattern-louver_angle_deg").parentElement.hidden=!angledGrille();
         $("pattern-offset_u_mm").parentElement.hidden=isGrille||isTruss;
         $("pattern-offset_v_mm").parentElement.hidden=isTruss||state.settings.pattern==="grille_diffuser";
@@ -425,7 +427,7 @@
         for (const [value, text] of choices[name]) { const option = document.createElement("option"); option.value = value; option.textContent = text; input.append(option); }
         input.value = defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
     }
-    for (const [container, fields] of [["pattern-size-fields", [["truss_bays", "Bays"], ["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Border"], ["truss_fillet_mm", "Junction fillet (mm)"], ["pattern_fillet_mm", "Cell fillet (mm)"], ["depth_mm", "Relief height"], ["louver_angle_deg", "Louver tilt (°)"], ["grille_height_mm", "Height above face (mm)"]]], ["pattern-mount-fields", [["mount_clearance_mm","Hole allowance (mm)"],["mount_head_extra_percent","Head allowance (%)"],["mount_head_mm","Head Ø · 0 = Auto (mm)"],["mount_inset_mm","Edge to centre · 0 = Auto (mm)"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
+    for (const [container, fields] of [["pattern-size-fields", [["truss_bays", "Bays"], ["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Border"], ["truss_fillet_mm", "Junction fillet (mm)"], ["pattern_fillet_mm", "Cell fillet (mm)"], ["depth_mm", "Relief height"], ["louver_angle_deg", "Louver tilt (°)"], ["grille_height_mm", "Height above face (mm)"], ["grille_chamfer_mm", "Chamfer size (mm)"]]], ["pattern-mount-controls", [["mount_inset_mm","Screw inset (mm)"]]], ["pattern-mount-fields", [["mount_clearance_mm","Hole allowance (mm)"],["mount_head_extra_percent","Head allowance (%)"],["mount_head_mm","Head Ø · 0 = Auto (mm)"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
         for (const [name, caption] of fields) {
             const item = document.createElement("div"); item.className = "parameter-item";
             const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
@@ -434,6 +436,8 @@
             if (name === "truss_bays") {input.min="2";input.max="64";input.step="1";}
             if (name === "louver_angle_deg") input.max="45";
             if (["truss_fillet_mm","pattern_fillet_mm"].includes(name)) input.max="1000";
+            if (name === "grille_chamfer_mm") {input.max="20";input.title="45° bevel · 0 = Auto size";}
+            if (name === "mount_inset_mm") input.title="Edge to screw centre · 0 = Auto · larger moves inward";
             if (name === "grille_height_mm") {input.min="0.2";input.max="20";}
             if (name.startsWith("mount_")) input.max=({mount_clearance_mm:2,mount_head_extra_percent:30,mount_head_mm:40,mount_inset_mm:1000})[name];
             input.value = name === "cell_size_mm" ? defaults.pitch_mm-defaults.web_mm : defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
@@ -463,7 +467,7 @@
         if (input.name === "selection_scope" && editing()) { input.value = state.settings.selection_scope; message("Create a new pattern to change between selected faces and a whole body.", true); return; }
         if (input.id === "pattern-cell_size_mm") { /* Derived locally; the host retains its strict snapshot contract. */ }
         else if (input.type === "number") {
-            const value = Number(input.value), zeroAllowed = ["pattern_fillet_mm","truss_fillet_mm","border_mm","louver_angle_deg","mount_clearance_mm","mount_head_extra_percent","mount_head_mm","mount_inset_mm"].includes(input.name);
+            const value = Number(input.value), zeroAllowed = ["grille_chamfer_mm","pattern_fillet_mm","truss_fillet_mm","border_mm","louver_angle_deg","mount_clearance_mm","mount_head_extra_percent","mount_head_mm","mount_inset_mm"].includes(input.name);
             const okay = input.value.trim() !== "" && Number.isFinite(value) && (signed.has(input.name) || (zeroAllowed ? value >= 0 : value > 0));
             if (input.name === "web_mm" && sized && okay && $("pattern-cell_size_mm").checkValidity()) {
                 state.settings.pitch_mm = Number((Number($("pattern-cell_size_mm").value)+value).toFixed(6));
@@ -529,5 +533,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.25.1" }); renderArt(); render();
+    trace("boot", { build:"0.26.0" }); renderArt(); render();
 })();

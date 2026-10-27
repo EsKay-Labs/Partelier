@@ -13,6 +13,7 @@ import time
 SCREWS={'M3':(3.,6.72),'M4':(4.,8.96),'M5':(5.,11.20),'M6':(6.,13.44)}
 RIM_MM=1.2
 EDGE_MM=.5
+AUTO_INSET_EXTRA_MM=.8
 MIN_BARREL_MM=.2
 
 
@@ -30,7 +31,7 @@ def border_for_screw(settings):
     if head<=hole+.1:
         raise ValueError('Head diameter must be larger than the through hole. Check Head Ø and Hole allowance.')
     radius=head/2+RIM_MM
-    inset=settings.mount_inset_mm or radius+EDGE_MM
+    inset=settings.mount_inset_mm or radius+EDGE_MM+AUTO_INSET_EXTRA_MM
     if inset<radius+EDGE_MM-1e-8:
         raise ValueError(f'Mounting centres need at least {radius+EDGE_MM:.2f} mm from the outside edges. Use 0 for Auto.')
     return max(settings.border_mm,inset+radius)
@@ -64,7 +65,7 @@ def plan(settings,bounds,thickness_mm):
         raise ValueError(f'The 90° countersink needs plate thickness at least {depth+MIN_BARREL_MM:.2f} mm '
                          f'(current {thickness_mm:.2f} mm). Use Plain, a thicker plate or your measured Head Ø.')
     radius=head/2+RIM_MM
-    inset=settings.mount_inset_mm or radius+EDGE_MM
+    inset=settings.mount_inset_mm or radius+EDGE_MM+AUTO_INSET_EXTRA_MM
     if inset<radius+EDGE_MM-1e-8:
         raise ValueError(f'Mounting centres need at least {radius+EDGE_MM:.2f} mm from the outside edges. Use 0 for Auto.')
     if settings.border_mm<1:

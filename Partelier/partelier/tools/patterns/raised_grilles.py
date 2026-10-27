@@ -9,11 +9,20 @@ from .planner import Cell,PatternDensityError,build_layout
 from .grille_styles import ANGLED,flow_uv
 
 
+def chamfer_size(settings):
+    if settings.grille_profile!='chamfer':return 0.
+    size=settings.grille_chamfer_mm or min(.6,settings.grille_height_mm/2,settings.web_mm/4,settings.border_mm/4)
+    if size>=settings.grille_height_mm or 2*size>=settings.web_mm-1e-8:
+        raise ValueError('Chamfer size must be smaller than Height and half the Rib width. Reduce Chamfer size or increase Rib width.')
+    return size
+
+
 def prepare(design,faces,settings,body,signature,tokens,started,*,historical=False,plate=None):
     from . import fusion as a
     from .flat_plate import inspect
     if len(faces)!=1 or settings.selection_scope!='faces' or settings.border_mm<.5:
         raise ValueError('Raised grilles need one rectangular plate face and Border at least 0.5 mm. Its back prints on the bed.')
+    cap=chamfer_size(settings)
     flat=replace(settings,grille_profile='flat',pattern='grille_parallel' if settings.pattern=='grille_louver' else settings.pattern)
     plate=plate or inspect(design,faces,flat,body)
     chart=plate.chart
@@ -73,14 +82,18 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
         direction=flow_uv(settings,uv,chart.bounds)
         across=tuple(direction[0]*u+direction[1]*v for u,v in zip(tangent_u,tangent_v))
         slopes.append(tuple(shear*a._dot(across,axis) for axis in (frame.x_axis,frame.z_axis)))
-    cap=min(.6,height/2,settings.web_mm/4,settings.border_mm/4) if settings.grille_profile=='chamfer' else 0.
     # Retain a flat reveal around the raised frame. Angled fins need extra
     # room in the frame for their sideways rise; never enlarge the footprint.
     reveal=max(0,min(settings.border_mm/2,settings.border_mm-height*shear-2*cap-.5)) if settings.pattern in ANGLED else max(0,settings.border_mm-min(settings.web_mm,settings.border_mm/2))
     raised_outer=clipping.offset_convex(outer,reveal) if reveal else outer
     def section(z,inset=0):
         boundary=clipping.offset_convex(raised_outer,inset) if inset else raised_outer
-        openings=tuple(tuple((u+z*slope[0],v+z*slope[1]) for u,v in (clipping.offset_convex(hole,-inset) if inset else hole)) for hole,slope in zip(holes,slopes))
+        # Freeze the slat shear at the start of the bevel. Its horizontal
+        # offset then equals its rise, making EVERY bevel plane 45° to the bed.
+        # Continuing the shear here would change the bevel to 0°/63.4° at a
+        # 45° slat tilt. Since |shear|<=1 this only removes original material.
+        rise=min(z,height-cap) if cap else z
+        openings=tuple(tuple((u+rise*slope[0],v+rise*slope[1]) for u,v in (clipping.offset_convex(hole,-inset) if inset else hole)) for hole,slope in zip(holes,slopes))
         return boundary,openings
     # Validate every numeric segment before any expensive preparation or SDK
     # creation. Tilt is measured from the plate normal (0 through 45 degrees).
@@ -92,7 +105,7 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
         try:
             plans.append(profile_loft.plan(frame,*lower,*upper,low,high))
         except ValueError as error:
-            raise ValueError('Raised profile does not fit. Increase Border/Rib width or reduce Height. '+str(error)) from error
+            raise ValueError('Raised profile does not fit. Increase Border/Rib width or reduce Height/Chamfer size. '+str(error)) from error
     from .perforated_prism import create,create_plan
     planned=time.perf_counter()
     result=create(frame,outer,holes,-thickness,0)
@@ -108,6 +121,7 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
         {'source_and_plan_ms':(planned-started)*1000,'temporary_geometry_ms':(completed-planned)*1000,
          'total_ms':(completed-started)*1000,'raised_profile':settings.grille_profile,
          'raised_body_creations':1+len(plans),'raised_height_mm':height,'underside_limit_deg':45,
+         'chamfer_size_mm':cap,'chamfer_angle_deg':45 if cap else 0,
          'louver_angle_deg':settings.louver_angle_deg if settings.pattern in ANGLED else 0},
         len(holes),tokens,accepted_samples=tuple(diagnostics),layouts=(layout,))
     a.validate_sources(prepared,_historical=historical)

@@ -69,7 +69,7 @@ Edit/Rebuild before adding the other first-release helpers.
 - `Partelier/partelier/tools/truss/`: pure bounded triangular-window planning and
   one-solid Fusion adaptation. Shares the HTML pattern session, plate inspector,
   cached mesh and same-body Cut persistence. See docs/planar-truss.md for scope;
-  shared settings recipe13 retains27 fields and reads exact versions1–12.
+  shared settings recipe14 retains28 fields and reads exact versions1–13.
 - `docs/`: product plan, architecture, development and AI workflow guidance.
 - `.ai/templates/`: manually selected task prompts, not auto-loaded instructions.
 Use docs/architecture.md for module boundaries and docs/development.md for setup
@@ -207,3 +207,9 @@ See docs/fusion-validation.md. Local mocks remain distinct from native evidence.
 - `patterns/grille_styles.py` adds opposed Two-way deflection and Four-way diffuser to the existing linear/grid/louver types. Per-hole flow directions drive shared cutters/raised lofts. The diffuser remains centred/aligned; nonzero Direction/offsets are rejected, not ignored. Preserve the central/diagonal rib widths, bounded aperture counts and bed-relative45° proof.
 - Settings remain27 fields; recipe13 admits the new enums, while exact versions1–12 remain read-only compatible and refuse those enums. Preview remains a cached opaque mesh. Use the same body/history and per-tool Saved features.
 - `tools/fusion/PipLouverCoupon.py` is a separate experimental captive-pivot print test, not a production moving/register option. Its generated3MF/STL and instructions are in examples/print-tests/pip-louver. Native motion/solid/overhang checks are not physical release/friction evidence. Wait for a real print before promoting the mechanism to the app. See docs/grille-families.md.
+
+## Grille bevel and screw position (0.26.0)
+- Raised + chamfer freezes fin shear at the start of the top bevel. Equal inward/outward profile offset and rise give45° bevel planes relative to the flat back, independently of fin tilt. Keep the bounded shared loft, cached mesh and same-body history; no per-edge native chamfer features.
+- `grille_chamfer_mm=0` means Auto (min0.6,height/2,rib/4,border/4). Positive size is exact and must be below Height and half Rib width; refuse collapsed/overlapping geometry without clamping. It is independent of cell fillets and louver tilt.
+- Auto screw centres move0.8mm inward; custom `mount_inset_mm` remains an exact edge-to-centre distance with its original safety minimum. Reserve effective border before pattern planning. Screw inset is beside Screw size under Advanced → Mounting holes.
+- Recipe14 has28 strict fields. Exactv1–13 inject only the absent bevel field in memory; saved bodies/recipes change only on explicit Rebuild. Explain corrected bevel/Auto mounting changes when editing older grilles. See docs/grilles.md and validation/grille-chamfer-0.26.0.json.

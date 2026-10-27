@@ -1,4 +1,8 @@
-# Fixed grille families — 0.25.0
+# Fixed grille families
+
+Version0.26.0 adds adjustable **Chamfer size** with a true45° top bevel,
+and moves Auto screw centres0.8mm inward. **Screw inset** is beside Screw size
+under Advanced → Mounting holes. See [grille controls](grilles.md).
 
 The Grilles dropdown now exposes five real geometric choices:
 
@@ -35,10 +39,10 @@ and at most two loft segments; it creates no native feature per aperture or
 corner. The bed-relative side-normal proof still refuses underside slopes beyond
 45°. These are geometry checks, not physical print or airflow guarantees.
 
-The settings snapshot is still exactly 27 fields. Recipe 13 admits the two new
-shape enums. Exact versions 1–12 remain readable without rewriting them; they
-refuse the new enums. Explicit Create/Rebuild writes 13. Existing dimensions and
-source-body ownership are preserved.
+The settings snapshot now has exactly28 fields. Recipe14 adds the independent
+chamfer size; recipe13 first admitted the two new shape enums. Exact versions1–13
+remain readable without rewriting them; versions1–12 refuse the new enums.
+Explicit Create/Rebuild writes14. Existing source-body ownership is preserved.
 
 ## Print-in-place trial
 

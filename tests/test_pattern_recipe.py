@@ -120,7 +120,7 @@ class PatternRecipeTests(unittest.TestCase):
             spec.loader.exec_module(self.module)
         self.module.STORE = self.store
         self.module.colour_store=NS(selection_anchor=lambda selected,group:selected,read=Mock(return_value=None),apply=Mock())
-        self.saved = {"version": 13, "tool": "surface_pattern", "feature_id": self.record.feature_id,
+        self.saved = {"version": 14, "tool": "surface_pattern", "feature_id": self.record.feature_id,
                       "settings": self.settings.to_dict(), "sources": deepcopy(self.tokens)}
         self.write_recipe(self.saved)
 
@@ -139,7 +139,7 @@ class PatternRecipeTests(unittest.TestCase):
         for version in (6,7):
             for angle in (0,20,45,60):
                 with self.subTest(version=version,angle=angle):
-                    legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['version']=version
+                    legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('grille_chamfer_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['version']=version
                     legacy['settings'].update(pattern='grille_louver',mode='through',layout_mode='fill',grille_profile='raised',louver_angle_deg=angle)
                     if version==6:
                         legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('mount_')}
@@ -151,7 +151,7 @@ class PatternRecipeTests(unittest.TestCase):
                     self.assert_no_persistence()
 
     def test_legacy_flat_tilt_proposes_new_limit_and_explicit_rebuild_notice(self):
-        legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['version']=7
+        legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('grille_chamfer_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['version']=7
         legacy['settings'].update(pattern='grille_louver',mode='through',layout_mode='fill',louver_angle_deg=60)
         self.write_recipe(legacy);target=self.read()
         self.assertEqual(target.settings.louver_angle_deg,45)
@@ -172,7 +172,7 @@ class PatternRecipeTests(unittest.TestCase):
                 self.assert_no_persistence()
 
     def test_old_mounted_recipe_keeps_its_requested_border_and_explains_new_preview(self):
-        legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['version']=8
+        legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('grille_chamfer_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['version']=8
         legacy['settings'].update(pattern='grille_parallel',mode='through',layout_mode='fill',mount_mode='plain',border_mm=7)
         self.write_recipe(legacy);target=self.read()
         self.assertEqual(target.recipe,legacy)
@@ -192,7 +192,7 @@ class PatternRecipeTests(unittest.TestCase):
         self.assertEqual(self.events, ["validate-current", "create", "save"])
         saved = json.loads(self.anchor.attributes.itemByName(self.module.GROUP, "recipe").value)
         self.assertEqual(saved, self.saved)
-        self.assertEqual(len(saved["settings"]), 27)
+        self.assertEqual(len(saved["settings"]), 28)
         self.assertEqual(saved["sources"], self.tokens)
         selected = object()
         self.events.clear()
@@ -224,15 +224,33 @@ class PatternRecipeTests(unittest.TestCase):
         for shape in ('grille_deflection','grille_diffuser'):
             current=deepcopy(self.saved);current['settings']=replace(self.settings,pattern=shape,mode='through',layout_mode='fill',rotation_deg=0,offset_u_mm=0,offset_v_mm=0).to_dict()
             self.write_recipe(current);self.assertEqual(self.read().settings.pattern,shape);self.assert_no_persistence()
-            legacy=deepcopy(current);legacy['version']=12;self.write_recipe(legacy)
+            legacy=deepcopy(current);legacy['version']=12;legacy['settings'].pop('grille_chamfer_mm');self.write_recipe(legacy)
             with self.assertRaisesRegex(ValueError,'legacy grille'):self.read()
             self.assert_no_persistence()
-        previous=deepcopy(self.saved);previous['version']=12;self.write_recipe(previous)
+        previous=deepcopy(self.saved);previous['version']=12;previous['settings'].pop('grille_chamfer_mm');self.write_recipe(previous)
         self.assertEqual(self.read().recipe,previous);self.assert_no_persistence()
+
+    def test_version_thirteen_chamfer_migrates_read_only_and_rebuild_saves_explicit_size(self):
+        legacy=deepcopy(self.saved);legacy['version']=13;legacy['settings'].pop('grille_chamfer_mm')
+        legacy['settings'].update(pattern='grille_louver',mode='through',layout_mode='fill',grille_profile='chamfer',mount_mode='plain')
+        self.write_recipe(legacy);raw=self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value
+        target=self.read()
+        self.assertEqual(target.settings.grille_chamfer_mm,0)
+        self.assertEqual(target.recipe,legacy);self.assert_no_persistence()
+        self.assertEqual(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value,raw)
+        notice=self.module.edit_notice(target)
+        self.assertIn('45°',notice);self.assertIn('0.8 mm',notice)
+        changed=replace(target.settings,grille_chamfer_mm=.7,mount_inset_mm=8.25)
+        prepared=self.module.prepare_edit_pattern(self.design,target,changed)
+        self.module.rebuild_pattern(self.design,target,prepared)
+        saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
+        self.assertEqual(saved['version'],14);self.assertEqual(saved['settings'],changed.to_dict())
+        legacy['settings']['grille_chamfer_mm']=0;self.write_recipe(legacy)
+        with self.assertRaisesRegex(ValueError,'settings'):self.read()
 
     def test_recipe_envelope_and_exact_settings_are_strict_on_public_edit_read(self):
         malformed = []
-        for key, value in (("version", True), ("version", 14), ("tool", "snap_fit"), ("feature_id", "another-pattern")):
+        for key, value in (("version", True), ("version", 15), ("tool", "snap_fit"), ("feature_id", "another-pattern")):
             damaged = deepcopy(self.saved)
             damaged[key] = value
             malformed.append(damaged)
@@ -260,7 +278,7 @@ class PatternRecipeTests(unittest.TestCase):
         self.store.input_scope.assert_not_called()
 
     def test_legacy_read_preserves_exact_spacing_and_migrates_only_on_rebuild(self):
-        legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('mount_')};legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm')
+        legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('grille_chamfer_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('mount_')};legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm')
         legacy['version']=1
         legacy['settings'].pop('density');legacy['settings'].pop('size_locked');legacy['settings'].pop('louver_angle_deg')
         legacy['settings'].pop('layout_mode')
@@ -276,7 +294,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,settings)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],13)
+        self.assertEqual(saved['version'],14)
         self.assertEqual(saved['settings']['layout_mode'],'fixed')
         self.assertEqual(saved['settings']['pitch_mm'],legacy['settings']['pitch_mm'])
 
@@ -294,7 +312,7 @@ class PatternRecipeTests(unittest.TestCase):
     def test_version_ten_truss_loads_sharp_without_writing_and_explicit_rebuild_saves_fillet(self):
         legacy=deepcopy(self.saved);legacy['version']=10
         legacy['settings']=PatternSettings(pattern='truss_warren',layout_mode='fill',web_mm=2,border_mm=3).to_dict()
-        legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('pattern_fillet_mm')
+        legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('grille_chamfer_mm');legacy['settings'].pop('pattern_fillet_mm')
         self.write_recipe(legacy);raw=self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value
         target=self.read()
         self.assertEqual(target.settings.truss_fillet_mm,0.0)
@@ -305,7 +323,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,changed)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],13);self.assertEqual(saved['settings']['truss_fillet_mm'],1.25)
+        self.assertEqual(saved['version'],14);self.assertEqual(saved['settings']['truss_fillet_mm'],1.25)
         self.assertEqual(saved['sources'],legacy['sources'])
 
     def test_every_legacy_schema_injects_only_absent_fields_and_refuses_a_new_fillet_field(self):
@@ -344,7 +362,7 @@ class PatternRecipeTests(unittest.TestCase):
 
     def test_version_eleven_preserves_the_truss_radius_and_defers_pattern_fillet_until_rebuild(self):
         legacy=deepcopy(self.saved);legacy['version']=11
-        legacy['settings'].pop('pattern_fillet_mm');legacy['settings']['truss_fillet_mm']=2.25
+        legacy['settings'].pop('grille_chamfer_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['settings']['truss_fillet_mm']=2.25
         self.write_recipe(legacy);raw=self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value
         target=self.read()
         self.assertEqual(target.settings.truss_fillet_mm,2.25);self.assertEqual(target.settings.pattern_fillet_mm,0)
@@ -354,7 +372,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,changed)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],13)
+        self.assertEqual(saved['version'],14)
         self.assertEqual(saved['settings']['pattern_fillet_mm'],.75)
         self.assertEqual(saved['settings']['truss_fillet_mm'],2.25)
 
@@ -377,7 +395,7 @@ class PatternRecipeTests(unittest.TestCase):
             self.write_recipe(current);self.assertEqual(self.read().settings.pattern,'warren')
             for version in (9,10,11):
                 legacy=deepcopy(current);legacy['version']=version
-                legacy['settings'].pop('pattern_fillet_mm')
+                legacy['settings'].pop('grille_chamfer_mm');legacy['settings'].pop('pattern_fillet_mm')
                 if version<11:legacy['settings'].pop('truss_fillet_mm')
                 if version<10:
                     legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis')
@@ -387,7 +405,7 @@ class PatternRecipeTests(unittest.TestCase):
                 self.assert_no_persistence()
 
     def test_version_four_retains_all_dimensions_and_migrates_only_on_rebuild(self):
-        legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('mount_')};legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm');legacy['version']=4
+        legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('grille_chamfer_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('mount_')};legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm');legacy['version']=4
         legacy['settings'].pop('louver_angle_deg')
         self.write_recipe(legacy)
         before=self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value
@@ -398,12 +416,12 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,target.settings)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],13)
+        self.assertEqual(saved['version'],14)
         self.assertEqual(saved['settings']['louver_angle_deg'],45)
         for key,value in legacy['settings'].items():self.assertEqual(saved['settings'][key],value)
 
     def test_version_three_injects_auto_defaults_without_rewriting_saved_settings(self):
-        legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('mount_')};legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm');legacy['version']=3
+        legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('grille_chamfer_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('mount_')};legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm');legacy['version']=3
         legacy['settings'].pop('density');legacy['settings'].pop('size_locked');legacy['settings'].pop('louver_angle_deg')
         self.write_recipe(legacy)
         before=self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value
@@ -415,7 +433,7 @@ class PatternRecipeTests(unittest.TestCase):
         self.assert_no_persistence()
 
     def test_version_two_restores_whole_cells_without_rewriting_its_recipe(self):
-        legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('mount_')};legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm');legacy['version']=2;legacy['settings'].pop('edge_mode')
+        legacy=deepcopy(self.saved);legacy['settings'].pop('truss_bays');legacy['settings'].pop('truss_axis');legacy['settings'].pop('truss_fillet_mm');legacy['settings'].pop('grille_chamfer_mm');legacy['settings'].pop('pattern_fillet_mm');legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('mount_')};legacy['settings'].pop('grille_profile');legacy['settings'].pop('grille_height_mm');legacy['version']=2;legacy['settings'].pop('edge_mode')
         legacy['settings'].pop('density');legacy['settings'].pop('size_locked');legacy['settings'].pop('louver_angle_deg')
         self.write_recipe(legacy)
         before=self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value

@@ -2,7 +2,7 @@
 // Exercise all three actual controllers through one native-message fixture.
 const assert = require("node:assert/strict"), fs = require("node:fs"), vm = require("node:vm"), path = require("node:path");
 const ui = path.join(__dirname, "..", "Partelier", "partelier", "ui"), html = fs.readFileSync(path.join(ui, "palette.html"), "utf8");
-const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3, mount_mode: "off", mount_screw: "M4", mount_clearance_mm: .3, mount_head_extra_percent: 10, mount_head_mm: 0, mount_inset_mm: 0, truss_bays: 6, truss_axis: "long", truss_fillet_mm: 0, pattern_fillet_mm: 0 };
+const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3, grille_chamfer_mm: 0, mount_mode: "off", mount_screw: "M4", mount_clearance_mm: .3, mount_head_extra_percent: 10, mount_head_mm: 0, mount_inset_mm: 0, truss_bays: 6, truss_axis: "long", truss_fillet_mm: 0, pattern_fillet_mm: 0 };
 const idle = () => ({ sessionId: null, revision: 0, phase: "idle", editing: false, settings: null, selections: {}, message: "" });
 function fixture(options = {}) {
     const ids = new Map();
@@ -106,7 +106,7 @@ function fixture(options = {}) {
     }
     await trussUI.input("truss_fillet_mm",1.25);
     assert.equal(trussUI.snapshot().settings.truss_fillet_mm,1.25);
-    assert.equal(Object.keys(trussUI.requests.filter(([a])=>a==="pattern_preview").at(-1)[1].settings).length,27,"fillet preview keeps the complete strict settings snapshot");
+    assert.equal(Object.keys(trussUI.requests.filter(([a])=>a==="pattern_preview").at(-1)[1].settings).length,28,"fillet preview keeps the complete strict settings snapshot");
     const beforeInvalidRadius=trussUI.requests.filter(([a])=>a==="pattern_preview").length;
     for(const value of [-1,"", "Infinity",1000.1]){
         await trussUI.input("truss_fillet_mm",value);
@@ -160,7 +160,7 @@ function fixture(options = {}) {
     for(const mode of ["through","engrave","emboss","inlay"]){
         await cells.input("mode",mode);
         assert.equal(cells.snapshot().settings.pattern_fillet_mm,.9);
-        assert.equal(Object.keys(cells.requests.filter(([action])=>action==="pattern_preview").at(-1)[1].settings).length,27);
+        assert.equal(Object.keys(cells.requests.filter(([action])=>action==="pattern_preview").at(-1)[1].settings).length,28);
     }
     for(const pattern of ["hexagon","triangle","rounded_triangle","pentagon","octagon","trihex","octagon_square","cairo","rhombille","rounded_hexagon","elongated_hexagon","circle","slot"]){
         await cells.input("pattern",pattern);
@@ -269,20 +269,38 @@ function fixture(options = {}) {
     await grilleUI.click("pattern-help-close");
     await grilleUI.input("grille_profile","chamfer");
     assert(grilleUI.$("pattern-illustration").innerHTML.includes('data-grille-profile="chamfer"'));
+    assert.equal(grilleUI.$("pattern-grille_chamfer_mm").parentElement.hidden,false);
+    const autoChamferArt=grilleUI.$("pattern-illustration").innerHTML;
+    await grilleUI.input("grille_chamfer_mm",.75);
+    assert.equal(grilleUI.snapshot().settings.grille_chamfer_mm,.75);
+    assert.notEqual(grilleUI.$("pattern-illustration").innerHTML,autoChamferArt);
+    await grilleUI.click("pattern-help-grille_chamfer_mm");
+    assert(grilleUI.$("pattern-help-image").innerHTML.includes('45°'));
+    await grilleUI.click("pattern-help-close");
+    await grilleUI.input("grille_chamfer_mm",0);
+    assert.equal(grilleUI.$("pattern-settings").checkValidity(),true);
     await grilleUI.input("grille_profile","flat");
+    assert.equal(grilleUI.$("pattern-grille_chamfer_mm").parentElement.hidden,true);
     assert.equal(grilleUI.$("pattern-grille_height_mm").parentElement.hidden,true);
     assert.equal(grilleUI.$("pattern-louver_angle_deg").parentElement.hidden,false);
     await grilleUI.input("mount_mode","countersink");
+    assert.equal(grilleUI.$("pattern-mount_inset_mm").parentElement.parentElement,grilleUI.$("pattern-mount-controls"));
+    assert.equal(grilleUI.$("pattern-mount_inset_mm").parentElement.hidden,false);
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("centre inset 7.43 mm"));
+    await grilleUI.input("mount_inset_mm",8.25);
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("centre inset 8.25 mm"));
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Border used 14.38 mm"));
+    await grilleUI.input("mount_inset_mm",0);
     assert.equal(grilleUI.$("pattern-mount-options").hidden,false);
     assert(grilleUI.$("pattern-mount-summary").textContent.includes("Ø4.3 mm"));
     assert(grilleUI.$("pattern-mount-summary").textContent.includes("Ø9.86 mm"));
     assert(grilleUI.$("pattern-mount-summary").textContent.includes("2.78 mm"));
-    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Border used 12.76 mm"));
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Border used 13.56 mm"));
     assert.equal(Number(grilleUI.$("pattern-border_mm").value),7,"the requested minimum is retained independently of the automatic border");
     await grilleUI.input("mount_screw","M3");
-    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Border used 10.29 mm"));
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Border used 11.09 mm"));
     await grilleUI.input("mount_screw","M6");
-    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Border used 17.68 mm"));
+    assert(grilleUI.$("pattern-mount-summary").textContent.includes("Border used 18.48 mm"));
     await grilleUI.input("border_mm",20);
     assert(grilleUI.$("pattern-mount-summary").textContent.includes("Border used 20 mm"));
     await grilleUI.input("mount_screw","M4");await grilleUI.input("border_mm",7);
@@ -535,9 +553,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.25.1"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.26.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.25.1"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.26.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.begin();await logged.click("pattern-select-surface");await logged.click("pattern-finish-faces");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.begin();const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));

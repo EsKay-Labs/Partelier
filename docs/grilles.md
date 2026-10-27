@@ -34,6 +34,28 @@ selection, preview-after-Done and in-place Create/Edit/Rebuild workflow.
 
 ## Raised profiles for back-to-bed printing
 
+Version0.26.0 corrects **Raised + chamfer** to45° relative to the plate/bed,
+including inclined fins. **Chamfer size (mm)** is beside Height. Zero uses Auto:
+`min(0.6 mm, Height/2, Rib width/4, Border/4)`. A positive value gives equal
+vertical and horizontal bevel distances, and must be smaller than Height and
+half Rib width. Geometry that does not fit is refused without shrinking it.
+The fin shear stops at the start of the bevel so it cannot distort its45° angle.
+This changes only the top segment; the main fin still has the selected tilt.
+
+Recipe14 adds `grille_chamfer_mm` to the28-field snapshot. Exact older records
+gain Auto only in memory. Their saved shape stays unchanged until explicit
+Rebuild, which previews the corrected bevel and the new Auto screw position.
+An Edit notice explains these changes; an explicit Screw inset preserves a
+measured older position. Top bevels do not chamfer the original plate perimeter
+or the full-height vertical walls exposed by the mounting clearance cuts.
+
+Validation for0.26.0 passes1107 Python tests, five Node UI suites and browser
+checks at300/380/520px, including the380×513 docked layout. Six isolated Fusion
+2705.1.30 cases cover all five families, a too-large-size refusal, analytic45°
+bevel normals,0/20/45° main fins, size and inset Edit cycles, cached preview,
+same-body history and Delete restoring the source. See
+[grille-chamfer-0.26.0.json](validation/grille-chamfer-0.26.0.json).
+
 Parallel bars, Crossed grid and Louvers each support **Raised** and **Raised +
 chamfer**, six new combinations. The original Flat profile remains the default.
 Raised parallel bars/grid extend above the selected face; raised louvers shear
@@ -44,7 +66,7 @@ original face, independent of plate thickness. Taller louvers require more Borde
 
 The raised frame leaves a flat reveal within the original border. Its footprint
 never expands outside the original plate. Chamfers narrow the upper ribs and
-frame automatically, by at most 0.6 mm and bounded by height/rib/border; Opening
+frame by the Chamfer size (Auto is bounded by height/rib/border); Opening
 width and Rib width still describe the roots on the original face. The local
 section diagram shows the back against the bed and responds to profile/height.
 Both new fields have illustrated help. Slots are covered by Parallel bars;
@@ -120,11 +142,17 @@ For M4 this gives head seat diameter 9.856 mm and 90-degree depth
 `(9.856 - 4.3) / 2 = 2.778 mm`. The plate must retain at least 0.2 mm of straight
 bore below the cone; this geometrical margin is not a strength rating.
 
+Under **Advanced → Mounting holes**, **Screw inset (mm)** is beside Screw size.
+Larger values move the four centres inward, measured from both outer edges.
+Zero uses Auto. In0.26.0 Auto sits0.8mm farther inward; M4 defaults to7.428mm,
+previously6.628mm. Explicit insets keep their original exact distances and
+minimum safety bounds. The solid border is recalculated before the pattern.
+
 In the closed **Mounting settings**, **Head Ø = 0** uses the catalogue preset.
 Enter a measured head diameter for another screw before applying the percentage:
 8 mm with +10% gives an 8.8 mm seat. An M-size alone does not identify every head
 shape. Countersunk here means a flat 90-degree head; cylindrical heads use Plain,
-without a counterbore. **Edge to centre = 0** calculates symmetric corner insets;
+without a counterbore. **Screw inset = 0** calculates symmetric corner insets;
 an explicit value is measured from both outer edges to each hole centre.
 Every control has illustrated help and the summary shows resulting dimensions.
 
@@ -136,7 +164,7 @@ the host resolves the effective solid perimeter from the screw/head envelope:
 
 `rim radius = head diameter with allowance / 2 + 1.2 mm`
 
-`automatic inset = rim radius + 0.5 mm`
+`automatic inset = rim radius + 0.5 mm + 0.8 mm` (since0.26.0)
 
 `border used = max(requested minimum, inset + rim radius)`
 
@@ -151,10 +179,10 @@ No extra toggle or setting is added. Off uses the original requested border.
 
 | Screw | Border with catalogue head, +10%, Auto inset and 7 mm minimum |
 | --- | ---: |
-| M3 | 10.292 mm |
-| M4 (default) | 12.756 mm |
-| M5 | 15.220 mm |
-| M6 | 17.684 mm |
+| M3 | 11.092 mm |
+| M4 (default) | 13.556 mm |
+| M5 | 16.020 mm |
+| M6 | 18.484 mm |
 
 Plate/head/inset/thickness and remaining grille area are checked before repeat
 construction. Unsupported dimensions are refused rather than shrinking a screw

@@ -45,7 +45,7 @@ def louver_angles(body,settings,thickness):
     """Read actual analytic wall normals, independently of planner diagnostics."""
     angles=[]
     raised=settings.grille_profile!='flat'
-    cap=min(.6,settings.grille_height_mm/2,settings.web_mm/4,settings.border_mm/4) if settings.grille_profile=='chamfer' else 0
+    cap=(settings.grille_chamfer_mm or min(.6,settings.grille_height_mm/2,settings.web_mm/4,settings.border_mm/4)) if settings.grille_profile=='chamfer' else 0
     for face in body.faces:
         if face.geometry.surfaceType!=core.SurfaceTypes.PlaneSurfaceType:continue
         bounds=face.boundingBox
@@ -62,6 +62,24 @@ def louver_angles(body,settings,thickness):
     # their tilt can be smaller than the main fin wall, never greater.
     assert all(angle<=expected+1e-4 for angle in angles),(expected,angles)
     return sorted(set(round(angle,5) for angle in angles))
+
+
+def bevel_angles(body,settings,thickness):
+    """Measure cap planes; mounting relief can also expose full-height walls."""
+    top=(thickness+settings.grille_height_mm)/10;angles=[];mounting_walls=0
+    size=settings.grille_chamfer_mm or min(.6,settings.grille_height_mm/2,settings.web_mm/4,settings.border_mm/4)
+    for face in body.faces:
+        if face.geometry.surfaceType!=core.SurfaceTypes.PlaneSurfaceType:continue
+        bounds=face.boundingBox
+        if abs(bounds.maxPoint.z-top)>1e-7 or bounds.maxPoint.z-bounds.minPoint.z<1e-5:continue
+        ok,normal=face.evaluator.getNormalAtPoint(face.pointOnFace);assert ok
+        angle=math.degrees(math.asin(min(1,abs(normal.z))))
+        if settings.mount_mode!='off' and angle<1e-5 and bounds.minPoint.z<top-size/10-1e-7:
+            mounting_walls+=1;continue
+        assert abs(angle-45)<1e-4,(angle,bounds.minPoint.z,bounds.maxPoint.z)
+        angles.append(angle)
+    assert len(angles)>=4,'No bevel planes measured'
+    return {'measured_planes':len(angles),'min_deg':min(angles),'max_deg':max(angles),'full_height_mounting_walls':mounting_walls}
 
 
 def border_witnesses(adapter,body,settings,width,depth,thickness,timings):
@@ -115,7 +133,8 @@ def run(context):
     app=core.Application.get();caller=app.activeDocument;original=native.Design.cast(app.activeProduct)
     before=snapshot(original);camera=app.activeViewport.camera
     original_component=original.activeComponent if original else None
-    report={'version':'0.17.0','fusion_version':app.version,'context':context,'success':False}
+    report={'version':json.loads((root/'Partelier/Partelier.manifest').read_text(encoding='utf-8'))['version'],
+        'fusion_version':app.version,'context':context,'success':False}
     owned=None
     try:
         if app.userInterface.activeCommand not in ('','SelectCommand'):
@@ -142,7 +161,7 @@ def run(context):
             pitch_mm=7,web_mm=2,border_mm=context.get('border_mm',7),rotation_deg=context.get('rotation_deg',0),
             grille_profile=context.get('profile','raised'),grille_height_mm=context.get('height_mm',3),
             louver_angle_deg=context.get('louver_angle_deg',45))
-        settings=replace(settings,pattern_fillet_mm=context.get('pattern_fillet_mm',0))
+        settings=replace(settings,pattern_fillet_mm=context.get('pattern_fillet_mm',0),grille_chamfer_mm=context.get('grille_chamfer_mm',0))
         settings=replace(settings,**{key:value for key,value in context.items() if key.startswith('mount_') and key in settings.to_dict()})
         if context.get('expect_refusal'):
             clean=snapshot(design)
@@ -166,6 +185,7 @@ def run(context):
         prepared=recipe.prepare_edit_pattern(design,prior,settings) if prior else adapter.prepare_pattern(design,(face,),settings)
         report['prepare_ms']=(time.perf_counter()-start)*1000
         report['openings']=prepared.cell_count;report['timings']=prepared.timings
+        if settings.grille_profile=='chamfer':report['analytic_bevel_angles']=bevel_angles(prepared.result_body,settings,thickness)
         if settings.pattern in ('grille_louver','grille_deflection','grille_diffuser'):
             report['analytic_wall_angles']=louver_angles(prepared.result_body,settings,thickness)
         assert body==design.findEntityByToken(token)[0] and design.rootComponent.bRepBodies.count==1
@@ -208,7 +228,7 @@ def run(context):
         assert target.settings==settings and target.record.recipe['version']==(1 if raised or prior else 2)
         if context.get('legacy_mount'):
             unchanged=snapshot(design)
-            legacy=json.loads(target.anchor.attributes.itemByName(recipe.GROUP,'recipe').value);legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('truss_')};legacy['version']=8
+            legacy=json.loads(target.anchor.attributes.itemByName(recipe.GROUP,'recipe').value);legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('truss_') and k not in ('pattern_fillet_mm','grille_chamfer_mm')};legacy['version']=8
             raw=json.dumps(legacy,separators=(',',':'));assert target.anchor.attributes.add(recipe.GROUP,'recipe',raw)
             target=recipe.read_edit_target(design,body)
             assert target.recipe==legacy and target.settings==settings and snapshot(design)==unchanged
@@ -217,7 +237,7 @@ def run(context):
         if context.get('legacy_raised'):
             unchanged=snapshot(design)
             saved=target.anchor.attributes.itemByName(recipe.GROUP,'recipe').value
-            legacy=json.loads(saved);legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('truss_')};legacy['version']=7;legacy['settings']['louver_angle_deg']=0
+            legacy=json.loads(saved);legacy['settings']={k:v for k,v in legacy['settings'].items() if not k.startswith('truss_') and k not in ('pattern_fillet_mm','grille_chamfer_mm')};legacy['version']=7;legacy['settings']['louver_angle_deg']=0
             raw=json.dumps(legacy,separators=(',',':'))
             assert target.anchor.attributes.add(recipe.GROUP,'recipe',raw)
             target=recipe.read_edit_target(design,body)
@@ -236,6 +256,7 @@ def run(context):
         assert design.rootComponent.bRepBodies.count==1 and design.findEntityByToken(token)[0]==body
         assert design.timeline.count==history+features and body.name=='Raised grille fixture'
         assert recipe.read_edit_target(design,body).settings==settings
+        if settings.grille_profile=='chamfer':report['rebuilt_bevel_angles']=bevel_angles(body,settings,thickness)
         assert abs(body.boundingBox.minPoint.z)<1e-7
         assert abs(body.boundingBox.maxPoint.z-(thickness+(settings.grille_height_mm if raised else 0))/10)<1e-7
         if settings.mount_mode!='off':
@@ -264,7 +285,28 @@ def run(context):
                 assert recipe.read_edit_target(design,body).settings==revised
                 measured=louver_angles(body,revised,thickness)
                 if revised.mount_mode!='off':mounting_witnesses(adapter,body,revised,width,depth,thickness,staged.timings)
-                report['tilt_edit_cycle'].append({'requested':tilt,'measured_wall_angles':measured})
+                report['tilt_edit_cycle'].append({'requested':tilt,'measured_wall_angles':measured,
+                    'bevel_angles':bevel_angles(body,revised,thickness) if revised.grille_profile=='chamfer' else None})
+        if context.get('chamfer_edit_cycle'):
+            report['chamfer_edit_cycle']=[]
+            for size in (.25,.7,0):
+                target=recipe.read_edit_target(design,body);revised=replace(settings,grille_chamfer_mm=size)
+                staged=recipe.prepare_edit_pattern(design,target,revised);recipe.rebuild_pattern(design,target,staged)
+                assert design.rootComponent.bRepBodies.count==1 and design.timeline.count==history+features
+                assert design.findEntityByToken(token)[0]==body and recipe.read_edit_target(design,body).settings==revised
+                report['chamfer_edit_cycle'].append({'requested_mm':size,'actual_mm':staged.timings['chamfer_size_mm'],
+                    'bevel_angles':bevel_angles(body,revised,thickness)})
+        if context.get('inset_edit_cycle'):
+            report['inset_edit_cycle']=[]
+            for inset in (6.628,8.25,0):
+                target=recipe.read_edit_target(design,body);revised=replace(settings,mount_inset_mm=inset)
+                staged=recipe.prepare_edit_pattern(design,target,revised);recipe.rebuild_pattern(design,target,staged)
+                assert design.rootComponent.bRepBodies.count==1 and design.timeline.count==history+features
+                assert design.findEntityByToken(token)[0]==body and recipe.read_edit_target(design,body).settings==revised
+                mounting_witnesses(adapter,body,revised,width,depth,thickness,staged.timings)
+                border_witnesses(adapter,body,revised,width,depth,thickness,staged.timings)
+                report['inset_edit_cycle'].append({'requested_mm':inset,'actual_mm':staged.timings['mount_inset_mm'],
+                    'border_mm':staged.timings['mount_border_mm']})
         if context.get('mount_edit_cycle'):
             unchanged_volume=float(body.volume)
             for mode in ('plain','countersink','off'):
