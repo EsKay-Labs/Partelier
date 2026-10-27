@@ -1,0 +1,90 @@
+{
+  "version": "0.24.1",
+  "scope": "Saved feature row buttons and inline deletion confirmation only; no geometry or protocol changes.",
+  "node_suites": [
+    "operations",
+    "palette",
+    "patterns",
+    "snap_fit",
+    "details"
+  ],
+  "browser": {
+    "checks": [
+      {
+        "width": 280,
+        "sectionLists": true,
+        "exactEdit": true,
+        "correctSavedStyle": true,
+        "rebuildKeepsIdentity": true,
+        "explicitDelete": true,
+        "patternsTogether": true,
+        "grillesSeparate": true,
+        "noOverflow": true,
+        "buttonsContained": true,
+        "noButtonOverlap": true,
+        "confirmationReplacesToolbar": true,
+        "keyboardFocusRestored": true,
+        "zoom125and150": true
+      },
+      {
+        "width": 300,
+        "sectionLists": true,
+        "exactEdit": true,
+        "correctSavedStyle": true,
+        "rebuildKeepsIdentity": true,
+        "explicitDelete": true,
+        "patternsTogether": true,
+        "grillesSeparate": true,
+        "noOverflow": true,
+        "buttonsContained": true,
+        "noButtonOverlap": true,
+        "confirmationReplacesToolbar": true,
+        "keyboardFocusRestored": true,
+        "zoom125and150": true
+      },
+      {
+        "width": 380,
+        "sectionLists": true,
+        "exactEdit": true,
+        "correctSavedStyle": true,
+        "rebuildKeepsIdentity": true,
+        "explicitDelete": true,
+        "patternsTogether": true,
+        "grillesSeparate": true,
+        "noOverflow": true,
+        "buttonsContained": true,
+        "noButtonOverlap": true,
+        "confirmationReplacesToolbar": true,
+        "keyboardFocusRestored": true,
+        "zoom125and150": true
+      },
+      {
+        "width": 520,
+        "sectionLists": true,
+        "exactEdit": true,
+        "correctSavedStyle": true,
+        "rebuildKeepsIdentity": true,
+        "explicitDelete": true,
+        "patternsTogether": true,
+        "grillesSeparate": true,
+        "noOverflow": true,
+        "buttonsContained": true,
+        "noButtonOverlap": true,
+        "confirmationReplacesToolbar": true,
+        "keyboardFocusRestored": true,
+        "zoom125and150": true
+      }
+    ],
+    "errors": []
+  },
+  "short_panel": {
+    "width": 380,
+    "height": 513,
+    "confirmation_visible_above_action_dock": true
+  },
+  "fusion_reload": "Not performed: read-only Fusion MCP status request timed out. User Stop/Run is required to load the changed HTML assets.",
+  "limits": [
+    "Headless Edge layout evidence, not manual Fusion CEF pointer acceptance.",
+    "Existing native geometry/history ownership and dependency guards are unchanged."
+  ]
+}

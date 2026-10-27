@@ -1,6 +1,18 @@
-# Selection and saved features — 0.24.0
+# Selection and saved features — 0.24.1
 
-Each tool now shows **Features in this section** above its geometry controls.
+0.24.1 labels the per-tool card **Saved features**. Edit and Delete use matching
+full-width buttons in a two-column grid. Delete replaces that toolbar with an
+inset confirmation and a spaced **Keep feature / Delete feature** pair; it does
+not append a second toolbar. Opening confirmation reveals it in the workspace
+and focuses Keep feature; keeping it returns focus to Delete. The existing
+exact-ID routes, native deletion and dependency guards are unchanged.
+
+Headless Edge verifies button containment, spacing, equal heights and no
+overlaps at 280/300/380/520 px, including confirmation in both lists and
+125%/150% zoom. Evidence:
+[feature-actions-0.24.1.json](validation/feature-actions-0.24.1.json).
+
+Each tool shows **Saved features** above its geometry controls.
 Planar trusses and grilles have their own lists; Surface patterns, Perforations
 and Surface texture share the ordinary surface-pattern list so a saved feature
 remains discoverable after changing shape or relief mode. Hinges, snap-fits and

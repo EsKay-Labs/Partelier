@@ -10,24 +10,33 @@
  function message(text,error=false){
   for(const id of ["operations-message","section-features-message"]){const node=$(id);node.textContent=text;node.classList.toggle("is-error",error);node.hidden=!text;}
  }
+ function focusRow(location,identity,selector){
+  const list=$(location==="section"?"section-features-list":"operations-list");
+  const row=[...list.children].find(node=>node.dataset.operationId===identity);
+  const control=row?.querySelector?.(selector);
+  if(control){(control.closest(".operation-confirmation")||control).scrollIntoView({block:"nearest"});control.focus({preventScroll:true});}
+ }
  function rowFor(item,location){
   const row=document.createElement("div");row.className="operation-row";row.dataset.operationId=item.id;
   row.classList.toggle("is-editing",editingId===item.id);
   const title=document.createElement("strong");title.textContent=item.name;
   const actions=document.createElement("div");actions.className="operation-actions";
-  const edit=document.createElement("button");edit.type="button";edit.className="secondary-button";edit.textContent="Edit";
+  const edit=document.createElement("button");edit.type="button";edit.className="operation-button operation-edit";edit.textContent="Edit";
   edit.disabled=unavailable();edit.setAttribute("aria-label","Edit "+item.name);edit.addEventListener("click",()=>act("operation_edit",item.id));
-  const remove=document.createElement("button");remove.type="button";remove.className="text-button operation-delete";remove.textContent="Delete…";
+  const remove=document.createElement("button");remove.type="button";remove.className="operation-button operation-delete";remove.textContent="Delete";
   remove.disabled=unavailable()||!item.canDelete;remove.setAttribute("aria-label","Delete "+item.name);
   remove.title=item.canDelete?"Delete this complete feature; later features may block deletion":"Older feature: rebuild it to adopt its history, or use the Fusion timeline";
-  remove.addEventListener("click",()=>{if(unavailable())return;confirmation={id:item.id,location};render();});actions.append(edit,remove);
-  row.append(title,actions);
+  remove.addEventListener("click",()=>{if(unavailable())return;confirmation={id:item.id,location};render();focusRow(location,item.id,".operation-keep");});actions.append(edit,remove);
+  row.append(title);
   if(editingId===item.id){const label=document.createElement("span");label.className="operation-editing-label";label.textContent="Editing · change settings, then Rebuild or Cancel below.";row.append(label);}
   if(confirmation?.id===item.id&&confirmation.location===location){
-   const note=document.createElement("p");note.textContent="Delete “"+item.name+"”? Source bodies stay. Later features can block deletion.";
-   const yes=document.createElement("button");yes.type="button";yes.className="secondary-button";yes.textContent="Delete feature";yes.disabled=unavailable();yes.addEventListener("click",()=>act("operation_delete",item.id));
-   const no=document.createElement("button");no.type="button";no.className="text-button";no.textContent="Keep";no.disabled=busy||deleting;no.addEventListener("click",()=>{confirmation=null;render();});row.append(note,yes,no);
-  }
+   const panel=document.createElement("div");panel.className="operation-confirmation";panel.setAttribute("role","group");panel.setAttribute("aria-label","Delete "+item.name);
+   const heading=document.createElement("strong");heading.textContent="Delete this feature?";
+   const note=document.createElement("p");note.textContent="The original bodies are kept.";
+   const yes=document.createElement("button");yes.type="button";yes.className="operation-button operation-confirm-delete";yes.textContent="Delete feature";yes.disabled=unavailable();yes.addEventListener("click",()=>act("operation_delete",item.id));
+   const no=document.createElement("button");no.type="button";no.className="operation-button operation-keep";no.textContent="Keep feature";no.disabled=busy||deleting;no.addEventListener("click",()=>{confirmation=null;render();focusRow(location,item.id,".operation-delete");});
+   const controls=document.createElement("div");controls.className="operation-confirm-actions";controls.append(no,yes);panel.append(heading,note,controls);row.append(panel);
+  }else row.append(actions);
   return row;
  }
  function render(){

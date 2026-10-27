@@ -236,21 +236,32 @@ dialog p { color: var(--muted); font-size: 12px; line-height: 1.7; }
 .operations-browser { padding: 11px 12px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
 .operations-browser > summary { cursor: pointer; color: #464646; font-size: 12px; font-weight: 650; }
 .operations-browser[open] > summary { margin-bottom: 12px; }
-.operation-row { padding: 10px 0; border-top: 1px solid #d5d5d5; overflow-wrap: anywhere; }
+.operation-row { display: grid; gap: 8px; min-width: 0; padding: 10px 0; border-top: 1px solid #d5d5d5; overflow-wrap: anywhere; }
 .operation-row > strong { display: block; font-size: 12px; line-height: 1.5; }
-.operation-row p { font-size: 11px; line-height: 1.5; }
-.operation-actions { display: flex; align-items: center; gap: 15px; margin-top: 6px; }
+.operation-row p { margin: 0; font-size: 11px; line-height: 1.5; }
+.operation-actions, .operation-confirm-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: stretch; gap: 8px; min-width: 0; }
+.operation-button { min-width: 0; width: 100%; min-height: 31px; padding: 6px 8px; border: 1px solid #9bacc1; border-radius: 5px; background: #edf2f8; color: #345373; font-size: 11px; font-weight: 600; line-height: 1.35; white-space: normal; overflow-wrap: anywhere; text-align: center; }
+.operation-button:enabled:hover { border-color: #668bb2; background: #dfeaf7; }
+.operation-button:disabled { color: #79879a; border-color: #c3cdd8; background: #e8edf3; }
+.operation-delete { border-color: #ceb3b3; background: #fffafa; color: #934444; }
+.operation-delete:enabled:hover { border-color: #b87c7c; background: #f9eaea; }
+.operation-confirmation { display: grid; gap: 6px; min-width: 0; padding: 10px; border: 1px solid #d5b3b3; border-radius: 5px; background: #fff6f4; }
+.operation-confirmation > strong { color: #874343; font-size: 12px; line-height: 1.5; }
+.operation-confirmation > p { color: #695757; }
+.operation-confirm-actions { margin-top: 4px; }
+.operation-confirm-delete { border-color: #a44d4d; background: #a44d4d; color: #fff; }
+.operation-confirm-delete:enabled:hover { border-color: #8c3d3d; background: #8c3d3d; }
+.operation-keep { background: #fff; color: #40566f; }
 .section-features { margin-bottom: 12px; padding: 10px 12px; border: 1px solid #839bb5; border-radius: 8px; background: #e1eaf4; }
 .section-features > .section-heading { margin-bottom: 0; }
-.section-features h2 { font-size: 12px; color: #244564; }
+.section-features h2 { min-width: 0; font-size: 12px; color: #244564; }
+#section-features-refresh { flex-shrink: 0; }
 .feature-count { margin-left: 4px; padding: 1px 5px; border-radius: 4px; background: #c5d6e9; font-size: 10px; }
 .section-features .helper-copy { margin: 7px 0 0; }
 .section-features .operation-row { margin-top: 8px; padding: 8px; border: 1px solid #a2b6ce; border-radius: 5px; background: #f7f9fc; }
 .operation-row.is-editing { border-color: #3676b8; box-shadow: inset 3px 0 #3676b8; background: #eaf2ff; }
 .operation-row.is-editing .operation-actions { display: none; }
-.operation-editing-label { display: block; margin-top: 5px; color: #245b91; font-size: 11px; }
-.operation-actions .operation-delete { color: #8b3434; }
-.operation-actions .operation-delete:disabled { color: #777; }
+.operation-editing-label { display: block; color: #245b91; font-size: 11px; line-height: 1.5; }
 #section-features-message.is-error, #operations-message.is-error { color: #9c2424; }
 @media (max-width: 359px) { .selection-step { padding-left: 42px; } }
 
