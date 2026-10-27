@@ -167,11 +167,11 @@ See docs/fusion-validation.md. Local mocks remain distinct from native evidence.
 ## Selection and operation history (0.19.0)
 - `partelier/operations.py` lists recipe metadata only, captures native timeline groups inside commit transactions and owns guarded suffix deletion. Group children have exact per-operation ownership; preserve original source bodies. Stable timeline groups are used; no preview Custom Features API.
 - `ui/selection-ui.js` owns shared step styling, palette Esc/reset and wheel routing. Esc resets references/preview but keeps dimensions; pattern faces still require Done. Late preview work must be cancelled/retired.
-- `ui/operations.js` opens exact saved anchors through In this design; Pick from model remains an alternative. Earlier-feature geometry guards remain. Explicit successful Rebuild may adopt exact legacy history; listing never migrates it. See docs/selection-history.md and its native/browser evidence.
+- `ui/operations.js` shows Features in this section in each tool (0.24.0), with exact saved-anchor Edit/Delete. Ordinary surface aliases share a list; Planar truss, Grilles and each other tool are scoped separately. Saved is the optional all-features browser; Pick from model remains an alternative. Earlier-feature geometry guards remain. Explicit successful Rebuild may adopt exact legacy history; listing never migrates it. See docs/selection-history.md and its native/browser evidence.
 
 ## Compact workflow (0.20.0)
 - `ui/workspace-flow.js` owns geometry disclosure presentation only. Fold once references are complete; keep multi-face picking open until Done. Change stays open through ordinary edits and reset reopens selection. Never use disclosure state to decide CAD validity or alter settings.
-- Startup size is 380 × 760; actual docked height belongs to Fusion. Saved is the header entry point for operations; the alternate model picker is inside it. Examples and all secondary parameters remain available.
+- Startup size is 380 × 760; actual docked height belongs to Fusion. The per-tool feature list is visible above Geometry; Saved opens the optional all-features browser and model picker. Examples and all secondary parameters remain available.
 - Session revisions are local to their session. On a legitimately adopted new operation, load its settings even if its revision is lower than the previous session's. Continue rejecting retired sessions and older same-session pushes.
 - See docs/compact-ui.md and docs/validation/compact-ui-0.20.0.json for scoped checks. Browser screenshots are not native pointer acceptance.
 

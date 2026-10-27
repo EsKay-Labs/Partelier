@@ -1,7 +1,11 @@
-# Selection and saved operations — 0.19.0
+# Selection and saved features — 0.24.0
 
-In 0.20, **Saved** in the header opens this operation browser; geometry selection
-also folds once complete. See [compact-ui.md](compact-ui.md) for the new layout.
+Each tool now shows **Features in this section** above its geometry controls.
+Planar trusses and grilles have their own lists; Surface patterns, Perforations
+and Surface texture share the ordinary surface-pattern list so a saved feature
+remains discoverable after changing shape or relief mode. Hinges, snap-fits and
+each small-detail tool also show their own features. **Saved** in the header
+remains the optional list of all operations in the active design.
 
 Reference buttons are numbered, full-width rows. The current native pick is solid
 blue, captured references show their body names, and the next missing reference
@@ -18,12 +22,20 @@ callbacks cannot restore a discarded preview.
 
 ## Finding and editing one operation
 
-Open **In this design** at the top of the palette. It lists small saved recipe
-records from the active design; it does not scan faces, hash solids or rebuild
-geometry. Each entry has a unique name. **Edit** selects its exact saved anchor,
-opens the corresponding tool and loads the dimensions. **Pick from model**
-remains an alternative to the list. Refresh the list after external timeline
-changes, Undo/Redo or switching designs.
+Choose the tool and find its saved feature directly under the dropdown. Each
+entry has its saved name and explicit **Edit / Delete…** actions. **Edit** opens
+that exact saved anchor, loads its dimensions and highlights the row in blue;
+change the settings and use **Rebuild** in the bottom action bar. **Cancel** ends
+the edit without changing the saved result. Other saved-feature actions stay
+disabled while a selection, preview or native deletion is active.
+
+The lists read small recipe records only: no face walks, solid hashes, geometry
+generation or polling loop. They refresh on connection, tool changes and
+Create/Rebuild/Cancel; native deletion pushes its resulting list. An older
+acknowledgement cannot restore rows removed by a newer push. Use **Refresh**
+after external timeline changes, Undo/Redo or switching designs without changing
+the selected tool. **Select an existing result from the model** remains available
+inside the optional **Saved** browser.
 
 New operations have a native **Partelier** timeline group containing their real
 Fusion features. A lid operation includes separately named **Lip · body name**
@@ -42,7 +54,7 @@ the recorded native children without grouping unrelated features.
 
 ## Deletion and dependency limits
 
-**Delete… → Delete operation** removes the complete chosen operation in a native
+**Delete… → Delete feature** confirms the chosen name and removes the complete operation in a native
 command transaction. Each child must still have its saved ownership and token;
 duplicates, missing/foreign children and inserted unrelated features are refused.
 The operation must be a consecutive suffix at the end of the timeline. Source
@@ -64,6 +76,23 @@ HTML; headless browser checks are distinct from manual Fusion CEF pointer and
 wheel acceptance.
 
 ## Validation
+
+0.24.0 adds a focused Node controller suite for section membership, exact IDs,
+Edit/Cancel, explicit Delete/Keep, legacy rows, native pending deletion, failure
+messages and push-versus-acknowledgement ordering. The four existing UI suites
+and 1,082 Python tests still pass. Headless Edge checks the full palette at
+300/380/520 px: scoped lists, correct saved style/dimensions, Rebuild without an
+extra row, deletion confirmation, shared ordinary patterns, separate grilles and
+no horizontal overflow. The previous compact-workflow browser suite also passes.
+
+The existing native history probe was rerun against the 0.24.0 sources in Fusion
+2705.1.30 for pattern and Planar truss: grouped Edit/Rebuild/Delete preserves the
+original bodies and restores the unchanged caller after disposable documents
+close. These are native geometry/history checks, separate from browser UI
+checks; manual Fusion CEF pointer acceptance is not claimed. See
+[section-features-0.24.0.json](validation/section-features-0.24.0.json).
+
+Historical 0.19.0 evidence:
 
 - 1,033 Python tests pass, including protocol, ownership, automatic A/B picking,
   Esc/reset, late-preview cancellation and exact-anchor routing.

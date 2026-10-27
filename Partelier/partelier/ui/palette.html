@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
     <title>Partelier · CAD details</title>
-    <link rel="stylesheet" href="palette.css?v=0.23.0">
-    <script src="catalog.js?v=0.23.0" defer></script>
-    <script src="illustrations.js?v=0.23.0" defer></script>
-    <script src="pattern-help.js?v=0.23.0" defer></script>
-    <script src="selection-ui.js?v=0.23.0" defer></script>
-    <script src="workspace-flow.js?v=0.23.0" defer></script>
-    <script src="snap.js?v=0.23.0" defer></script>
-    <script src="patterns.js?v=0.23.0" defer></script>
-    <script src="detail-examples.js?v=0.23.0" defer></script>
-    <script src="details.js?v=0.23.0" defer></script>
-    <script src="palette.js?v=0.23.0" defer></script>
-    <script src="operations.js?v=0.23.0" defer></script>
+    <link rel="stylesheet" href="palette.css?v=0.24.0">
+    <script src="catalog.js?v=0.24.0" defer></script>
+    <script src="illustrations.js?v=0.24.0" defer></script>
+    <script src="pattern-help.js?v=0.24.0" defer></script>
+    <script src="selection-ui.js?v=0.24.0" defer></script>
+    <script src="workspace-flow.js?v=0.24.0" defer></script>
+    <script src="snap.js?v=0.24.0" defer></script>
+    <script src="patterns.js?v=0.24.0" defer></script>
+    <script src="detail-examples.js?v=0.24.0" defer></script>
+    <script src="details.js?v=0.24.0" defer></script>
+    <script src="operations.js?v=0.24.0" defer></script>
+    <script src="palette.js?v=0.24.0" defer></script>
 </head>
 <body>
     <header class="app-header">
@@ -34,6 +34,12 @@
     <main id="tool-workspace" class="workspace" tabindex="0" aria-label="Tool settings and examples">
         <details id="operations-browser" class="operations-browser" hidden><summary>Saved operations <span id="operations-count">0</span></summary><div class="section-heading"><p class="helper-copy">Saved Partelier operations</p><button id="operations-refresh" class="text-button" type="button">Refresh</button></div><p id="operations-message" class="helper-copy" role="status">Open to load saved operations.</p><div id="operations-list"></div><button id="operation-pick-model" class="text-button" type="button">Select an existing result from the model</button></details>
         <div class="tool-heading"><div><p id="detail-category" class="eyebrow"></p><h1 id="detail-title"></h1></div><span id="detail-stage" class="stage-badge"></span></div>
+        <section id="section-features" class="section-features" aria-labelledby="section-features-title">
+            <div class="section-heading"><h2 id="section-features-title">Features in this section <span id="section-features-count" class="feature-count">0</span></h2><button id="section-features-refresh" class="text-button" type="button" aria-label="Refresh features in this design">Refresh</button></div>
+            <p id="section-features-empty" class="helper-copy">Open Partelier in Fusion to see saved features.</p>
+            <div id="section-features-list"></div>
+            <p id="section-features-message" class="helper-copy" role="status" hidden></p>
+        </section>
         <form id="hinge-settings" novalidate>
             <details class="hinge-input-group geometry-card" id="hinge-selection-section" aria-labelledby="geometry-title" data-geometry="hinge" open><summary class="geometry-summary"><span>1. Geometry</span><span id="hinge-geometry-state" class="geometry-state">Choose faces</span><span class="geometry-change">Select</span></summary>
                 <div class="section-heading"><h2 id="geometry-title">Geometry</h2><button id="edit-hinge-button" class="text-button" type="button" disabled>Pick from model</button></div>
@@ -190,7 +196,7 @@
         <div class="action-buttons"><button id="cancel-detail-button" type="button" class="secondary-button">Cancel</button><button id="retry-detail-button" type="button" class="secondary-button" hidden>Retry preview</button><button id="create-detail-button" type="button" class="create-button">Create detail</button></div>
     </section>
     <dialog id="detail-help-dialog" class="pattern-help-dialog" aria-labelledby="detail-help-title"><button id="detail-help-close" type="button" class="dialog-close icon-button" aria-label="Close help">×</button><h2 id="detail-help-title"></h2><p id="detail-help-description"></p><div id="detail-help-image" class="parameter-help-illustration"></div></dialog>
-    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.23.0</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure hinges, snap-fits and surface patterns here, then select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached details become part of your selected bodies. Optional hinge pins and Flat colour material regions add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
+    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.24.0</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure hinges, snap-fits and surface patterns here, then select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached details become part of your selected bodies. Optional hinge pins and Flat colour material regions add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
     <dialog id="pattern-parameter-help" class="pattern-help-dialog" aria-labelledby="pattern-help-title" aria-describedby="pattern-help-description">
         <button id="pattern-help-close" type="button" class="dialog-close icon-button" aria-label="Κλείσιμο βοήθειας" autofocus>×</button>
         <p class="eyebrow">PATTERNS · ΟΔΗΓΟΣ ΡΥΘΜΙΣΗΣ</p>

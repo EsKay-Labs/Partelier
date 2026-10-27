@@ -1,5 +1,9 @@
 # Compact workflow — 0.20.0
 
+**0.24.0 saved features:** each tool now includes a visible scoped feature list
+above Geometry; Saved remains the optional all-features browser. See
+[selection-history.md](selection-history.md) for Edit/Delete and dependency limits.
+
 **0.20.1 contrast correction:** the off-white workspace and white cards were too
 close in tone. The header is now graphite, the workspace slate gray, the cards
 pale blue-gray and the inputs nearly white. Size and workflow are unchanged.

@@ -5,6 +5,12 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
+**New in 0.24.0:** every tool shows **Features in this section** with direct
+**Edit / Delete…** actions for each saved operation. Trusses and grilles have
+separate lists; ordinary surface patterns stay together. Edit highlights the
+chosen feature and loads its dimensions for Rebuild. Source-body ownership and
+existing timeline dependency guards remain. See [saved features](docs/selection-history.md).
+
 **Current code:** experimental 0.13.0 provides surface patterns, an editable separate-pin hinge
 and four snap-fit families: Hook latch, Ball detent, Torsion latch and Annular
 ring. Hook latch also offers straight, tapered or twin arms. Snap-fits include

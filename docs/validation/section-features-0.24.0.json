@@ -1,0 +1,83 @@
+{
+  "version": "0.24.0",
+  "python_tests": 1082,
+  "node_suites": [
+    "palette",
+    "patterns",
+    "snap_fit",
+    "details",
+    "operations"
+  ],
+  "browser": {
+    "checks": [
+      {
+        "width": 300,
+        "sectionLists": true,
+        "exactEdit": true,
+        "correctSavedStyle": true,
+        "rebuildKeepsIdentity": true,
+        "explicitDelete": true,
+        "patternsTogether": true,
+        "grillesSeparate": true,
+        "noOverflow": true
+      },
+      {
+        "width": 380,
+        "sectionLists": true,
+        "exactEdit": true,
+        "correctSavedStyle": true,
+        "rebuildKeepsIdentity": true,
+        "explicitDelete": true,
+        "patternsTogether": true,
+        "grillesSeparate": true,
+        "noOverflow": true
+      },
+      {
+        "width": 520,
+        "sectionLists": true,
+        "exactEdit": true,
+        "correctSavedStyle": true,
+        "rebuildKeepsIdentity": true,
+        "explicitDelete": true,
+        "patternsTogether": true,
+        "grillesSeparate": true,
+        "noOverflow": true
+      }
+    ],
+    "errors": []
+  },
+  "native": {
+    "fusion_version": "2705.1.30",
+    "probe": "tools/fusion/SelectionHistoryProbe.py",
+    "probe_report_format_version": "0.19.0",
+    "source_bundle_version": "0.24.0",
+    "cases": [
+      {
+        "success": true,
+        "version": "0.19.0",
+        "fusion_version": "2705.1.30",
+        "case": "pattern",
+        "group_edit_delete": true,
+        "owned_native_features": 3,
+        "source_bodies_preserved": true,
+        "caller_unchanged": true
+      },
+      {
+        "success": true,
+        "version": "0.19.0",
+        "fusion_version": "2705.1.30",
+        "case": "truss",
+        "group_edit_delete": true,
+        "owned_native_features": 2,
+        "source_bodies_preserved": true,
+        "caller_unchanged": true
+      }
+    ]
+  },
+  "limits": [
+    "Earlier-feature edit and exact suffix deletion guards are unchanged.",
+    "Refresh is required after external timeline changes, Undo/Redo or design switches without changing tools.",
+    "Headless browser interaction is separate from manual native Fusion CEF pointer acceptance.",
+    "No geometry algorithms, recipe schemas, source body identity or custom feature API were changed."
+  ]
+}
