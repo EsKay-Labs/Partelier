@@ -62,16 +62,33 @@ def density_error(settings, areas_mm2, *, face_index=0, face_cells=0,
 class Cell:
     center_mm: tuple
     polygon_mm: tuple
+    original_polygon_mm: tuple = None
 
     @property
     def radius_mm(self):
         return max(math.hypot(x, y) for x, y in self.polygon_mm)
 
 
+def same_polygon(one,two,tolerance_mm=1e-7):
+    """Geometric loop equality despite a different start vertex or winding.
+
+    Clip routines may rebuild the exact same boundary with a new centre and
+    metadata. Those harmless changes must not demote analytic fillets to strokes.
+    """
+    if len(one)!=len(two):return False
+    if not one:return True
+    for index,point in enumerate(two):
+        if math.dist(one[0],point)>tolerance_mm:continue
+        for direction in (1,-1):
+            if all(math.dist(p,two[(index+direction*i)%len(two)])<=tolerance_mm for i,p in enumerate(one)):
+                return True
+    return False
+
+
 def _polygon(settings):
     if settings.pattern in TILED_PATTERNS:
         from .tiles import profiles, motif
-        value=profiles(settings.pattern,settings.pitch_mm-settings.web_mm,settings.web_mm)
+        value=profiles(settings.pattern,settings.pitch_mm-settings.web_mm,settings.web_mm,sharp=settings.pattern_fillet_mm>0)
         if not value:raise ValueError('Increase Cell size or reduce Minimum gap for this polygon pattern.')
         return value[2][motif(settings.pattern).reference][1]
     width = settings.pitch_mm-settings.web_mm
@@ -332,7 +349,9 @@ def _clipped_grid(settings,bounds,pitch,period,phase,*,preserve_size=False,sprea
             clipped=clipping.rectangle(world,bounds,periodic)
             if not clipped:continue
             origin=tuple(sum(p[axis] for p in clipped)/len(clipped) for axis in (0,1))
-            result.append(Cell(origin,tuple((x-origin[0],y-origin[1]) for x,y in clipped)))
+            original=(tuple((x-origin[0],y-origin[1]) for x,y in world)
+                      if settings.pattern_fillet_mm and not same_polygon(world,clipped) else None)
+            result.append(Cell(origin,tuple((x-origin[0],y-origin[1]) for x,y in clipped),original))
     return tuple(result),pitch
 
 

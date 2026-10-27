@@ -34,10 +34,11 @@ class PatternSettings:
     truss_bays: int = 6
     truss_axis: str = 'long'
     truss_fillet_mm: float = 0.0
+    pattern_fillet_mm: float = 0.0
 
     def __post_init__(self):
         for key in ("pitch_mm", "web_mm", "depth_mm", "border_mm", "rotation_deg", "offset_u_mm", "offset_v_mm", "louver_angle_deg", "grille_height_mm",
-                    "mount_clearance_mm","mount_head_extra_percent","mount_head_mm","mount_inset_mm","truss_fillet_mm"):
+                    "mount_clearance_mm","mount_head_extra_percent","mount_head_mm","mount_inset_mm","truss_fillet_mm","pattern_fillet_mm"):
             value = getattr(self, key)
             try:
                 finite = not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(value)
@@ -57,6 +58,8 @@ class PatternSettings:
             raise ValueError('Use 2–64 whole Bays and Long side or Short side for the truss span.')
         if not 0<=self.truss_fillet_mm<=1000:
             raise ValueError('Truss fillet radius must be between 0 and 1000 mm; 0 keeps sharp junctions.')
+        if not 0<=self.pattern_fillet_mm<=1000:
+            raise ValueError('Pattern fillet radius must be between 0 and 1000 mm; 0 keeps the original cell perimeter.')
         if self.pattern in STYLES:
             if (self.mode!='through' or self.layout_mode!='fill' or self.selection_scope!='faces'
                     or self.grille_profile!='flat' or self.rotation_deg or self.offset_u_mm or self.offset_v_mm):

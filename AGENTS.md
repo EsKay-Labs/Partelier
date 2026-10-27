@@ -69,7 +69,7 @@ Edit/Rebuild before adding the other first-release helpers.
 - `Partelier/partelier/tools/truss/`: pure bounded triangular-window planning and
   one-solid Fusion adaptation. Shares the HTML pattern session, plate inspector,
   cached mesh and same-body Cut persistence. See docs/planar-truss.md for scope;
-  shared settings recipe11 adds truss_fillet_mm and reads exact versions1–10.
+  shared settings recipe12 adds pattern_fillet_mm and reads exact versions1–11.
 - `docs/`: product plan, architecture, development and AI workflow guidance.
 - `.ai/templates/`: manually selected task prompts, not auto-loaded instructions.
 Use docs/architecture.md for module boundaries and docs/development.md for setup
@@ -190,3 +190,9 @@ See docs/fusion-validation.md. Local mocks remain distinct from native evidence.
 - truss_fillet_mm is a radius, default0 (sharp); exact26-field snapshots, recipe11. Exact recipes1–10 inject0 only in memory and explicit Rebuild saves11. Never silently shrink the radius.
 - Round triangular window corners in2D through the original thickness; add junction material without rounding the outer/cap edges. rounding.py owns exact tangent arc/area planning; rounded_prism.py constructs one healed BRep with analytic arcs/cylinders, no per-corner features/booleans. Radius0 stays on the original planar prism path.
 - Preserve same target body and BaseFeature/Cut history. Tests and scoped native evidence: docs/planar-truss.md and truss-fillet-0.22.0.json. No structural/print-force claims follow from fillets.
+
+## Surface Warren and cell fillets (0.23.0)
+- Surface patterns is the visible name for internal honeycomb alias. Ordinary shape 'warren' is a tiled2:1 triangular band motif, distinct from the plate-only truss_warren. Use the existing chart/periodic/gap/border guards; full-wrap mosaics retain0/180° rotation.
+- pattern_fillet_mm is independent of truss_fillet_mm. Exact27-field snapshots and recipe12; exactv1–11 inject0 read-only, and legacy versions refuse 'warren'. Zero preserves previous built-in rounded variants; positive radius overrides them. Circles/slots are already smooth.
+- Whole-cell fillets use shared analytic Profile/prism construction; round original polygons before trim decomposition to avoid fragment seams. Preserve Cell.original_polygon_mm only for actual positive-radius clipping. Trim/sheared/raised paths use <=0.01mm sag/128point strokes shared across levels. Never silently clamp a requested radius.
+- Keep source safety rays/physical gap threshold, actual on-surface interior witnesses and conservative AABB pruning. Retain cached mesh rendering; no native feature per corner, no duplicate source bodies. See docs/surface-patterns.md and surface-cell-fillet-0.23.0 validation evidence.

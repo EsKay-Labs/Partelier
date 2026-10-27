@@ -48,12 +48,20 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
     def world(uv):
         return tuple(p+(uv[0]-u0)*u+(uv[1]-v0)*v for p,u,v in zip(origin.point_mm,tangent_u,tangent_v))
     holes=tuple(ccw(local(world(point)) for point in loop) for loop in loops)
+    profiles=()
+    if settings.pattern_fillet_mm:
+        from .fillet import profile,stroke
+        # One bounded stroked contour is shared by the base and every loft
+        # section. Sheared/capped profiles cannot use cylindrical side faces.
+        profiles=tuple(profile(hole,settings.pattern_fillet_mm) for hole in holes)
+        holes=tuple(stroke(item,tolerance_mm=.01,max_points=128) for item in profiles)
     cells=[];diagnostics=[]
-    for loop in loops:
+    for index,loop in enumerate(loops):
         center=tuple(sum(point[i] for point in loop)/len(loop) for i in (0,1))
         cells.append(Cell(center,tuple((u-center[0],v-center[1]) for u,v in loop)))
         if len(diagnostics)<3:
-            diagnostics.append({'face_index':0,'point_mm':world(center),'normal':origin.normal,
+            point_mm=plate.world(*profiles[index].interior_point) if profiles else world(center)
+            diagnostics.append({'face_index':0,'point_mm':point_mm,'normal':origin.normal,
                                 'first_exit_mm':thickness,'next_entry_mm':None})
     layout=replace(layout,cells=tuple(cells))
     height=settings.grille_height_mm

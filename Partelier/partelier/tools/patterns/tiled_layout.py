@@ -4,7 +4,7 @@ import math
 
 from . import clipping
 from .tiles import motif, dimensions, profiles, rotate
-from .planner import Cell, Layout, MAX_CANDIDATES, density_error, _fit_bounds, _projected_size
+from .planner import Cell, Layout, MAX_CANDIDATES, density_error, _fit_bounds, _projected_size,same_polygon
 from .auto_fit import DENSITIES, _quality
 
 
@@ -49,7 +49,10 @@ def _grid(settings,bounds,period,size,spread,phase,prepared):
                 clipped=clipping.rectangle(tuple((x+a,y+b) for a,b in polygon),bounds,bool(period))
                 if not clipped:continue
                 origin=(sum(a for a,b in clipped)/len(clipped),sum(b for a,b in clipped)/len(clipped))
-                cells.append(Cell(origin,tuple((a-origin[0],b-origin[1]) for a,b in clipped)))
+                world=tuple((x+a,y+b) for a,b in polygon)
+                original=(tuple((a-origin[0],b-origin[1]) for a,b in world)
+                          if settings.pattern_fillet_mm and not same_polygon(world,clipped) else None)
+                cells.append(Cell(origin,tuple((a-origin[0],b-origin[1]) for a,b in clipped),original))
     return tuple(cells),step_u,size
 
 
@@ -83,7 +86,7 @@ def build_tiled_layout(settings,bounds,period,max_cells,accept):
                            for p in value.polygons)
             size=min(size,period*.065*ref_width/raw_radius-settings.web_mm*shrink)
         if size<=0 or size+settings.web_mm>10000:continue
-        prepared=profiles(settings.pattern,size,settings.web_mm)
+        prepared=profiles(settings.pattern,size,settings.web_mm,sharp=settings.pattern_fillet_mm>0)
         if not prepared:continue
         unit_u,unit_v,shapes=prepared
         spread=(max(1,math.sqrt(area*len(shapes)/(unit_u*unit_v*target)))*factor

@@ -142,6 +142,7 @@ class MountPlanTests(unittest.TestCase):
     def test_version_six_reads_mounting_off_without_rewriting_its_profile(self):
         settings=replace(self.settings,grille_profile='chamfer').to_dict()
         old={key:value for key,value in settings.items() if not key.startswith(('mount_','truss_'))}
+        old.pop('pattern_fillet_mm')
         value={'version':6,'tool':'surface_pattern','feature_id':'owned','settings':old,
                'sources':{'body':'body','faces':['face']}}
         raw=json.dumps(value)

@@ -48,7 +48,7 @@ def _alias(tool, settings):
         return tool
     pattern = settings.get('pattern', '')
     return ('grilles' if pattern.startswith('grille_') else 'truss' if pattern.startswith('truss_')
-            else 'honeycomb' if pattern == 'hexagon' else 'knurl' if settings.get('mode') == 'emboss' else 'perforation')
+            else 'honeycomb' if pattern in ('hexagon','warren') else 'knurl' if settings.get('mode') == 'emboss' else 'perforation')
 
 
 def records(design):

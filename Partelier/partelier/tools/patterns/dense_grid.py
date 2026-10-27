@@ -74,8 +74,13 @@ def plan(settings,bounds,*,trim_margin_mm=0.0):
             points=((low,-radius),(high,-radius),(high,radius),(low,radius)) if axis==0 else ((-radius,low),(radius,low),(radius,high),(-radius,high))
             points=polygon(points)
             if points and clipping.area(points)>1e-7:bands.append(points)
-    return Grid(Layout(tuple(cells),pitch,pitch,'fill',opening,1,0),tuple(bands),inner,
-                math.fsum(clipping.area(cell.polygon_mm) for cell in cells))
+    if settings.pattern_fillet_mm:
+        from .fillet import profile
+        # Validate the real clipped apertures, including border fragments,
+        # before copying/querying any source body. Never shrink the radius.
+        opened=math.fsum(profile(cell.polygon_mm,settings.pattern_fillet_mm).area_mm2 for cell in cells)
+    else:opened=math.fsum(clipping.area(cell.polygon_mm) for cell in cells)
+    return Grid(Layout(tuple(cells),pitch,pitch,'fill',opening,1,0),tuple(bands),inner,opened)
 
 
 def _volume_agrees(actual,expected):
@@ -166,7 +171,13 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
         masks.append(mask)
         a._trace_geometry('grid.wall_proven',face_index=index,thickness_mm=thickness)
         holes=tuple(footprint(tuple((cell.center_mm[0]+u,cell.center_mm[1]+v) for u,v in cell.polygon_mm)) for cell in grid.layout.cells)
-        grid_body=perforated(frame,footprint(region),holes,-thickness,0)
+        profiles=()
+        if settings.pattern_fillet_mm:
+            from .fillet import profile
+            from .rounded_prism import create
+            profiles=tuple(profile(hole,settings.pattern_fillet_mm) for hole in holes)
+            grid_body=create(frame,footprint(region),profiles,-thickness,0)
+        else:grid_body=perforated(frame,footprint(region),holes,-thickness,0)
         a._trace_geometry('grid.body_ready',face_index=index)
         boolean(result,mask,native.BooleanTypes.DifferenceBooleanType)
         boolean(result,grid_body,native.BooleanTypes.UnionBooleanType)
@@ -175,9 +186,14 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
             raise ValueError('The dense grid did not retain the expected connected material. Increase Border or Rib width.')
         layouts.append(grid.layout)
         a._trace_geometry('grid.face.end',face_index=index)
-        for cell in grid.layout.cells[::max(1,grid.layout.cell_count//9)]:
-            point=chart.sample(*cell.center_mm)
-            diagnostics.append({'face_index':index,'point_mm':point.point_mm,'normal':point.normal,
+        for cell_index in range(0,grid.layout.cell_count,max(1,grid.layout.cell_count//9)):
+            if profiles:
+                x,z=profiles[cell_index].interior_point
+                point_mm=tuple(p+x*u+z*v for p,u,v in zip(frame.origin_mm,frame.x_axis,frame.z_axis))
+                normal=frame.y_axis
+            else:
+                point=chart.sample(*grid.layout.cells[cell_index].center_mm);point_mm,normal=point.point_mm,point.normal
+            diagnostics.append({'face_index':index,'point_mm':point_mm,'normal':normal,
                                 'first_exit_mm':thickness,'next_entry_mm':None})
     completed=time.perf_counter()
     prepared=a.PreparedPattern(design,faces,body,settings,result,signature,

@@ -100,7 +100,11 @@ def louver_cutter(cell,settings,through_depth,context):
         cell.center.normal,adapter.hinge._cross(cell.center.tangent_u,cell.center.normal))
     slope=math.tan(math.radians(settings.louver_angle_deg))
     shear=(-slope*adapter._dot(context.across,frame.x_axis),-slope*adapter._dot(context.across,frame.z_axis))
-    cutter=prism(frame,cell.polygon,-depth,.02,shear_xz_per_y=shear)
+    polygon=cell.polygon
+    if settings.pattern_fillet_mm:
+        from .fillet import profile,stroke
+        polygon=stroke(profile(polygon,settings.pattern_fillet_mm),tolerance_mm=.01,max_points=128)
+    cutter=prism(frame,polygon,-depth,.02,shear_xz_per_y=shear)
     footprint=tuple((adapter._dot(adapter._sub(p,frame.origin_mm),frame.x_axis),
                      adapter._dot(adapter._sub(p,frame.origin_mm),frame.z_axis)) for p in context.inner_points_mm)
     if sum(a[0]*z[1]-z[0]*a[1] for a,z in zip(footprint,footprint[1:]+footprint[:1]))<0:footprint=tuple(reversed(footprint))

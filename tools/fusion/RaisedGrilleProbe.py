@@ -20,7 +20,7 @@ import adsk.fusion as native
 
 def snapshot(design):
     if design is None:return None
-    return {'timeline':design.timeline.count,'marker':design.timeline.markerPosition,
+    return {'timeline':design.timeline.count if design.designType==native.DesignTypes.ParametricDesignType else None,'marker':design.timeline.markerPosition if design.designType==native.DesignTypes.ParametricDesignType else None,
         'bodies':[(b.entityToken,b.name,b.isLightBulbOn,round(b.volume,9),b.faces.count,b.edges.count)
                   for b in design.rootComponent.bRepBodies]}
 
@@ -121,6 +121,7 @@ def run(context):
             pitch_mm=7,web_mm=2,border_mm=context.get('border_mm',7),rotation_deg=context.get('rotation_deg',0),
             grille_profile=context.get('profile','raised'),grille_height_mm=context.get('height_mm',3),
             louver_angle_deg=context.get('louver_angle_deg',45))
+        settings=replace(settings,pattern_fillet_mm=context.get('pattern_fillet_mm',0))
         settings=replace(settings,**{key:value for key,value in context.items() if key.startswith('mount_') and key in settings.to_dict()})
         if context.get('expect_refusal'):
             clean=snapshot(design)

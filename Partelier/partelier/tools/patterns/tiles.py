@@ -13,7 +13,7 @@ from . import clipping
 
 
 TILED_PATTERNS = ('triangle','rounded_triangle','pentagon','octagon',
-                  'trihex','octagon_square','cairo','rhombille','rounded_hexagon','elongated_hexagon')
+                  'trihex','octagon_square','cairo','rhombille','rounded_hexagon','elongated_hexagon','warren')
 
 
 @dataclass(frozen=True)
@@ -41,7 +41,11 @@ def _regular(count, phase=math.pi/2):
 @lru_cache(maxsize=16)
 def motif(pattern):
     h=math.sqrt(3)/2
-    if pattern in ('triangle','rounded_triangle'):
+    if pattern in ('triangle','rounded_triangle','warren'):
+        # Warren bands have alternating +/-45-degree diagonals between straight
+        # horizontal chords. Their 2:1 windows intentionally differ from the
+        # equilateral triangle mosaic while sharing its closed periodic topology.
+        if pattern=='warren':h=.5
         polygons=(((0,0),(1,0),(.5,h)),((.5,h),(1,0),(1.5,h)),
                   ((.5,h),(1.5,h),(1,2*h)),((0,2*h),(.5,h),(1,2*h)))
         value=Motif(1,2*h,polygons,rounded=pattern=='rounded_triangle')
@@ -134,7 +138,7 @@ def dimensions(pattern):
     return width,shrink
 
 
-def profiles(pattern, size, gap):
+def profiles(pattern, size, gap, *, sharp=False):
     value=motif(pattern);width,shrink=dimensions(pattern)
     scale=(size+gap*shrink)/width
     result=[]
@@ -142,7 +146,7 @@ def profiles(pattern, size, gap):
         scaled=tuple((x*scale,y*scale) for x,y in polygon)
         inner=inset(scaled,gap/2)
         if not inner:return ()
-        if value.rounded:inner=rounded(inner,size*.12)
+        if value.rounded and not sharp:inner=rounded(inner,size*.12)
         if not inner:return ()
         cx=sum(x for x,y in inner)/len(inner);cy=sum(y for x,y in inner)/len(inner)
         result.append(((cx,cy),tuple((x-cx,y-cy) for x,y in inner)))

@@ -1,0 +1,646 @@
+{
+  "release": "0.23.0",
+  "date": "2026-10-28",
+  "native_cases": [
+    {
+      "release": "0.23.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "kind": "cylinder",
+        "pattern": "warren",
+        "edge_mode": "whole",
+        "screenshot": "C:/Users/SKTech/Desktop/Programming_Projects/Apps/Fusion360/Partelier/output/pattern-cell-fillet/warren-cylinder.png"
+      },
+      "success": true,
+      "prepare_ms": 453.53,
+      "timings": {
+        "source_and_plan_ms": 140.846700000111,
+        "temporary_geometry_ms": 307.51279999822145,
+        "total_ms": 448.3600999992632,
+        "wall_checks_ms": 63.11220000134199,
+        "tool_construction_ms": 63.29380000170204,
+        "tool_clip_ms": 41.38389999570791,
+        "result_application_ms": 139.0207999975246,
+        "batch_used": false
+      },
+      "cells": 20,
+      "exact_radius_faces": 60,
+      "create_rebuild_ms": 1443.61,
+      "witnesses": 12,
+      "same_body_and_history": true,
+      "preview_cleanup": true,
+      "caller_unchanged": true
+    },
+    {
+      "release": "0.23.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "kind": "cylinder",
+        "pattern": "warren",
+        "edge_mode": "clip"
+      },
+      "success": true,
+      "prepare_ms": 426.88,
+      "timings": {
+        "source_and_plan_ms": 125.28220000240253,
+        "temporary_geometry_ms": 296.96770000009565,
+        "total_ms": 422.250300001906,
+        "wall_checks_ms": 63.026499992702156,
+        "tool_construction_ms": 61.004599989246344,
+        "tool_clip_ms": 37.320800012821564,
+        "result_application_ms": 135.01669999823207,
+        "batch_used": false
+      },
+      "cells": 20,
+      "exact_radius_faces": 60,
+      "create_rebuild_ms": 1454.52,
+      "witnesses": 12,
+      "same_body_and_history": true,
+      "preview_cleanup": true,
+      "caller_unchanged": true
+    },
+    {
+      "release": "0.23.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "kind": "cylinder",
+        "pattern": "hexagon",
+        "edge_mode": "clip"
+      },
+      "success": true,
+      "prepare_ms": 1573.81,
+      "timings": {
+        "source_and_plan_ms": 340.7791999998153,
+        "temporary_geometry_ms": 1221.945000001142,
+        "total_ms": 1562.724999999773,
+        "wall_checks_ms": 406.5707999980077,
+        "tool_construction_ms": 203.87599999594386,
+        "tool_clip_ms": 101.06040001483052,
+        "result_application_ms": 509.4176000020525,
+        "batch_used": false
+      },
+      "cells": 16,
+      "exact_radius_faces": 0,
+      "create_rebuild_ms": 5686.23,
+      "witnesses": 12,
+      "same_body_and_history": true,
+      "preview_cleanup": true,
+      "caller_unchanged": true
+    },
+    {
+      "release": "0.23.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "kind": "plane",
+        "pattern": "pentagon",
+        "mode": "emboss",
+        "edge_mode": "clip"
+      },
+      "success": true,
+      "prepare_ms": 511.39,
+      "timings": {
+        "source_and_plan_ms": 198.68440000209375,
+        "temporary_geometry_ms": 309.7307999996701,
+        "total_ms": 508.41550000041025,
+        "wall_checks_ms": 0.0,
+        "tool_construction_ms": 117.15229999754229,
+        "tool_clip_ms": 44.59579999820562,
+        "result_application_ms": 91.3421999939601,
+        "batch_used": false
+      },
+      "cells": 15,
+      "exact_radius_faces": 15,
+      "create_rebuild_ms": 2102.29,
+      "witnesses": 12,
+      "same_body_and_history": true,
+      "preview_cleanup": true,
+      "caller_unchanged": true
+    },
+    {
+      "release": "0.23.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "kind": "cylinder",
+        "pattern": "warren",
+        "mode": "engrave"
+      },
+      "success": true,
+      "prepare_ms": 454.93,
+      "timings": {
+        "source_and_plan_ms": 122.98700000246754,
+        "temporary_geometry_ms": 329.4041000008292,
+        "total_ms": 452.3914000019431,
+        "wall_checks_ms": 95.60570000758162,
+        "tool_construction_ms": 66.56550000116113,
+        "tool_clip_ms": 36.21449999263859,
+        "result_application_ms": 102.2387000011804,
+        "batch_used": false
+      },
+      "cells": 20,
+      "exact_radius_faces": 60,
+      "create_rebuild_ms": 1402.34,
+      "witnesses": 12,
+      "same_body_and_history": true,
+      "preview_cleanup": true,
+      "caller_unchanged": true
+    },
+    {
+      "release": "0.23.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "kind": "plane",
+        "pattern": "square",
+        "mode": "inlay"
+      },
+      "success": true,
+      "prepare_ms": 172.6,
+      "timings": {
+        "source_and_plan_ms": 14.331800000945805,
+        "temporary_geometry_ms": 153.3750999988115,
+        "total_ms": 167.70739999992657,
+        "wall_checks_ms": 16.36759999746573,
+        "tool_construction_ms": 31.91299999889452,
+        "tool_clip_ms": 12.5984999940556,
+        "result_application_ms": 0.0,
+        "batch_used": false
+      },
+      "cells": 8,
+      "exact_radius_faces": 32,
+      "create_rebuild_ms": 1144.05,
+      "witnesses": 8,
+      "same_body_and_history": true,
+      "preview_cleanup": true,
+      "caller_unchanged": true
+    },
+    {
+      "release": "0.23.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "kind": "cylinder",
+        "pattern": "warren",
+        "edge_mode": "clip",
+        "layout_mode": "fill",
+        "screenshot": "C:/Users/SKTech/Desktop/Programming_Projects/Apps/Fusion360/Partelier/output/pattern-cell-fillet/warren-cylinder-fill.png"
+      },
+      "success": true,
+      "prepare_ms": 3380.37,
+      "timings": {
+        "source_and_plan_ms": 552.7045000017097,
+        "temporary_geometry_ms": 2811.641399999644,
+        "total_ms": 3364.3462,
+        "wall_checks_ms": 367.5924999770359,
+        "tool_construction_ms": 321.54739999896265,
+        "tool_clip_ms": 193.33919999553473,
+        "result_application_ms": 1927.7443999999377,
+        "batch_used": false
+      },
+      "cells": 100,
+      "exact_radius_faces": 240,
+      "create_rebuild_ms": 10120.76,
+      "witnesses": 12,
+      "same_body_and_history": true,
+      "preview_cleanup": true,
+      "caller_unchanged": true
+    },
+    {
+      "release": "0.23.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "kind": "plane",
+        "pattern": "circle",
+        "mode": "through"
+      },
+      "success": true,
+      "prepare_ms": 461.69,
+      "timings": {
+        "source_and_plan_ms": 57.45949999982258,
+        "temporary_geometry_ms": 395.90769999995246,
+        "total_ms": 453.36740000129794,
+        "wall_checks_ms": 141.5592999983346,
+        "tool_construction_ms": 115.76750000313041,
+        "tool_clip_ms": 46.51219999868772,
+        "result_application_ms": 91.35240000250633,
+        "batch_used": true,
+        "batch_aggregate_ms": 29.569400001491886,
+        "batch_apply_ms": 56.10520000118413,
+        "batch_total_ms": 85.67460000267602,
+        "batch_union_calls": 10
+      },
+      "cells": 11,
+      "already_smooth_unchanged": true,
+      "create_rebuild_ms": 2790.77,
+      "witnesses": 11,
+      "same_body_and_history": true,
+      "preview_cleanup": true,
+      "caller_unchanged": true
+    },
+    {
+      "release": "0.23.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "kind": "cylinder",
+        "pattern": "warren",
+        "edge_mode": "clip",
+        "radius_mm": 100,
+        "expect_refusal": "too large"
+      },
+      "success": true,
+      "expected_refusal": "Cell fillet is too large. Use less than 2.067 mm or increase Cell size. Your radius was not changed.",
+      "caller_unchanged": true
+    },
+    {
+      "version": "0.17.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_parallel",
+        "profile": "raised",
+        "pattern_fillet_mm": 0.25,
+        "preview": true
+      },
+      "success": true,
+      "prepare_ms": 131.6512999983388,
+      "openings": 5,
+      "timings": {
+        "source_and_plan_ms": 44.02259999915259,
+        "temporary_geometry_ms": 83.32180000070366,
+        "total_ms": 127.34439999985625,
+        "raised_profile": "raised",
+        "raised_body_creations": 2,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "louver_angle_deg": 0
+      },
+      "through_opening_witnesses": 3,
+      "cached_preview_draw_cleanup": true,
+      "preview_triangles": 368,
+      "create_ms": 211.3126000003831,
+      "edit_rebuild_ms": 602.228899999318,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "version": "0.17.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_cross",
+        "profile": "chamfer",
+        "pattern_fillet_mm": 0.25,
+        "preview": true
+      },
+      "success": true,
+      "prepare_ms": 1453.572599999461,
+      "openings": 40,
+      "timings": {
+        "source_and_plan_ms": 176.5769999983604,
+        "temporary_geometry_ms": 1254.9737000008463,
+        "total_ms": 1431.5506999992067,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "louver_angle_deg": 0
+      },
+      "through_opening_witnesses": 3,
+      "cached_preview_draw_cleanup": true,
+      "preview_triangles": 4036,
+      "create_ms": 2795.581200000015,
+      "edit_rebuild_ms": 9104.081900000892,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "version": "0.17.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_louver",
+        "profile": "raised",
+        "pattern_fillet_mm": 0.25,
+        "preview": true
+      },
+      "success": true,
+      "prepare_ms": 115.37490000046091,
+      "openings": 5,
+      "timings": {
+        "source_and_plan_ms": 29.083400000672555,
+        "temporary_geometry_ms": 81.79960000052233,
+        "total_ms": 110.88300000119489,
+        "raised_profile": "raised",
+        "raised_body_creations": 2,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "louver_angle_deg": 45.0
+      },
+      "analytic_wall_angles": [
+        0.0,
+        14.51082,
+        35.26439,
+        44.00703,
+        45.0
+      ],
+      "through_opening_witnesses": 3,
+      "cached_preview_draw_cleanup": true,
+      "preview_triangles": 528,
+      "create_ms": 243.62090000067838,
+      "edit_rebuild_ms": 633.4492999994836,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "version": "0.17.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_louver",
+        "profile": "flat",
+        "pattern_fillet_mm": 0.25,
+        "preview": true
+      },
+      "success": true,
+      "prepare_ms": 125.54150000141817,
+      "openings": 5,
+      "timings": {
+        "source_and_plan_ms": 18.20370000132243,
+        "temporary_geometry_ms": 103.22829999859096,
+        "total_ms": 121.43250000008265,
+        "wall_checks_ms": 10.487100003956584,
+        "tool_construction_ms": 57.280299999547424,
+        "tool_clip_ms": 11.330299996188842,
+        "result_application_ms": 21.447999999509193,
+        "batch_used": false,
+        "louver_face_setups": 1
+      },
+      "analytic_wall_angles": [
+        0.0,
+        14.51082,
+        35.26439,
+        44.00703,
+        45.0
+      ],
+      "through_opening_witnesses": 3,
+      "cached_preview_draw_cleanup": true,
+      "preview_triangles": 356,
+      "create_ms": 197.92819999929634,
+      "edit_rebuild_ms": 576.5324999993027,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 2,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "version": "0.17.0",
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_cross",
+        "profile": "flat",
+        "width_mm": 110,
+        "depth_mm": 110,
+        "pattern_fillet_mm": 0.25,
+        "preview": true
+      },
+      "success": true,
+      "prepare_ms": 1138.9984999987064,
+      "openings": 225,
+      "timings": {
+        "source_and_plan_ms": 52.08930000299006,
+        "temporary_geometry_ms": 1037.702999998146,
+        "total_ms": 1089.792300001136,
+        "dense_grid": true,
+        "grid_rib_tools": 0,
+        "grid_body_creations": 1,
+        "grid_wall_queries": 9
+      },
+      "through_opening_witnesses": 3,
+      "cached_preview_draw_cleanup": true,
+      "preview_triangles": 44112,
+      "create_ms": 3140.9175000007963,
+      "edit_rebuild_ms": 7971.7751999996835,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 2,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    }
+  ],
+  "native_primitives": {
+    "success": true,
+    "profiles": [
+      {
+        "pattern": "triangle",
+        "profile_count": 4,
+        "success": true
+      },
+      {
+        "pattern": "rounded_triangle",
+        "profile_count": 4,
+        "success": true
+      },
+      {
+        "pattern": "pentagon",
+        "profile_count": 1,
+        "success": true
+      },
+      {
+        "pattern": "octagon",
+        "profile_count": 1,
+        "success": true
+      },
+      {
+        "pattern": "trihex",
+        "profile_count": 6,
+        "success": true
+      },
+      {
+        "pattern": "octagon_square",
+        "profile_count": 2,
+        "success": true
+      },
+      {
+        "pattern": "cairo",
+        "profile_count": 8,
+        "success": true
+      },
+      {
+        "pattern": "rhombille",
+        "profile_count": 6,
+        "success": true
+      },
+      {
+        "pattern": "rounded_hexagon",
+        "profile_count": 2,
+        "success": true
+      },
+      {
+        "pattern": "elongated_hexagon",
+        "profile_count": 2,
+        "success": true
+      },
+      {
+        "pattern": "warren",
+        "profile_count": 4,
+        "success": true
+      }
+    ],
+    "temporary_only": true
+  },
+  "truss_regression": {
+    "version": "0.22.0",
+    "fusion_version": "2705.1.30",
+    "cases": [
+      {
+        "style": "truss_warren",
+        "axis": "long",
+        "radius_mm": 0.8,
+        "prepare_and_verify_ms": 60.62,
+        "arc_faces": 21,
+        "material_witnesses": 49
+      },
+      {
+        "style": "truss_warren",
+        "axis": "short",
+        "radius_mm": 0.3,
+        "prepare_and_verify_ms": 41.33,
+        "arc_faces": 21,
+        "material_witnesses": 49
+      },
+      {
+        "style": "truss_pratt",
+        "axis": "long",
+        "radius_mm": 0.8,
+        "prepare_and_verify_ms": 59.79,
+        "arc_faces": 36,
+        "material_witnesses": 84
+      },
+      {
+        "style": "truss_pratt",
+        "axis": "short",
+        "radius_mm": 0.3,
+        "prepare_and_verify_ms": 62.06,
+        "arc_faces": 36,
+        "material_witnesses": 84
+      },
+      {
+        "style": "truss_howe",
+        "axis": "long",
+        "radius_mm": 0.8,
+        "prepare_and_verify_ms": 62.67,
+        "arc_faces": 36,
+        "material_witnesses": 84
+      },
+      {
+        "style": "truss_howe",
+        "axis": "short",
+        "radius_mm": 0.3,
+        "prepare_and_verify_ms": 61.97,
+        "arc_faces": 36,
+        "material_witnesses": 84
+      },
+      {
+        "style": "truss_pratt",
+        "bays": 64,
+        "inclined": false,
+        "radius_mm": 0.5,
+        "prepare_and_verify_ms": 1125.04,
+        "arc_faces": 384,
+        "material_witnesses": 896
+      },
+      {
+        "style": "truss_pratt",
+        "bays": 6,
+        "inclined": true,
+        "radius_mm": 0.5,
+        "prepare_and_verify_ms": 90.13,
+        "arc_faces": 36,
+        "material_witnesses": 84
+      }
+    ],
+    "edits": [
+      {
+        "style": "truss_pratt",
+        "radius_mm": 0.8,
+        "material_witnesses": 84
+      },
+      {
+        "style": "truss_howe",
+        "radius_mm": 1.2,
+        "material_witnesses": 84
+      },
+      {
+        "style": "truss_warren",
+        "radius_mm": 0,
+        "material_witnesses": 0
+      },
+      {
+        "style": "truss_warren",
+        "radius_mm": 1.0,
+        "material_witnesses": 49
+      }
+    ],
+    "success": true,
+    "oversize_refusal": "Junction fillet is too large for the truss windows. Use less than 6.602 mm, reduce Bays or increase the plate size. Your radius was not changed.",
+    "same_body_and_history": true,
+    "preview_cleanup": true,
+    "legacy_read_only_then_rebuild": true,
+    "caller_unchanged": true
+  },
+  "python_tests": 1082,
+  "node_suites": [
+    "test_palette_ui.cjs",
+    "test_patterns_ui.cjs",
+    "test_snap_fit_ui.cjs",
+    "test_details_ui.cjs"
+  ],
+  "browser": {
+    "checks": [
+      {
+        "width": 320,
+        "commonRadiusControl": true,
+        "defaultSharp": true,
+        "roundedCellHelp": true,
+        "warrenBandsHelp": true,
+        "warrenSample": true,
+        "noOverflow": true
+      },
+      {
+        "width": 380,
+        "commonRadiusControl": true,
+        "defaultSharp": true,
+        "roundedCellHelp": true,
+        "warrenBandsHelp": true,
+        "warrenSample": true,
+        "noOverflow": true
+      },
+      {
+        "width": 440,
+        "commonRadiusControl": true,
+        "defaultSharp": true,
+        "roundedCellHelp": true,
+        "warrenBandsHelp": true,
+        "warrenSample": true,
+        "noOverflow": true
+      }
+    ],
+    "errors": []
+  },
+  "limits": [
+    "Existing supported chart/curvature limits apply; not arbitrary surfaces",
+    "Cellradius is localprofile rounding; clipped ends remain trimmed",
+    "Clipped/raised/sheared contours use0.01mm bounded strokes",
+    "No physical print, manualCEF orbit, or save/reopen acceptance"
+  ],
+  "installed_reload": {
+    "version": "0.23.0",
+    "caller_unchanged": true,
+    "palette_width": 380,
+    "palette_height": 513,
+    "saved_operations": 1
+  }
+}

@@ -87,7 +87,7 @@ class TrussGeometryTests(unittest.TestCase):
 
     def test_legacy_version_nine_adds_only_truss_defaults_without_changing_or_writing_settings(self):
         from Partelier.partelier.tools.patterns import recipe
-        settings=PatternSettings().to_dict();settings.pop('truss_bays');settings.pop('truss_axis');settings.pop('truss_fillet_mm')
+        settings=PatternSettings().to_dict();settings.pop('truss_bays');settings.pop('truss_axis');settings.pop('truss_fillet_mm');settings.pop('pattern_fillet_mm')
         value={'version':9,'tool':'surface_pattern','feature_id':'owned','settings':settings,
                'sources':{'body':'body','faces':['face']}}
         raw=json.dumps(value);parsed,loaded=recipe._parse(raw,N(feature_id='owned'))

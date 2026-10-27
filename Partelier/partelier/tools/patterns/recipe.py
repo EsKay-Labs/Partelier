@@ -36,7 +36,7 @@ def _parse(raw,record):
     except (ValueError,TypeError) as error:
         raise ValueError("The saved pattern recipe is damaged.") from error
     if (not isinstance(value,dict) or set(value)!={"version","tool","feature_id","settings","sources"}
-            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5,6,7,8,9,10,11)
+            or type(value['version']) is not int or value['version'] not in (1,2,3,4,5,6,7,8,9,10,11,12)
             or value['tool']!='surface_pattern' or value['feature_id']!=record.feature_id):
         raise ValueError("The saved pattern recipe has an unsupported structure.")
     sources=value['sources']
@@ -54,7 +54,7 @@ def _parse(raw,record):
         6:{'grille_profile':'flat','grille_height_mm':3},
         7:{name:defaults[name] for name in ('mount_mode','mount_screw','mount_clearance_mm',
             'mount_head_extra_percent','mount_head_mm','mount_inset_mm')},
-        10:{'truss_bays':6,'truss_axis':'long'},11:{'truss_fillet_mm':0.0}}
+        10:{'truss_bays':6,'truss_axis':'long'},11:{'truss_fillet_mm':0.0},12:{'pattern_fillet_mm':0.0}}
     for version,fields in introduced.items():
         if value['version']<version:injected.update(fields)
     if not isinstance(supplied,dict) or set(supplied)!=set(defaults)-set(injected):
@@ -76,6 +76,8 @@ def _parse(raw,record):
         raise ValueError('The saved legacy pattern mode is unsupported.')
     if value['version']<10 and settings.pattern.startswith('truss_'):
         raise ValueError('The saved legacy truss mode is unsupported.')
+    if value['version']<12 and settings.pattern=='warren':
+        raise ValueError('The saved legacy Warren surface pattern is unsupported.')
     return value,settings
 
 
@@ -160,7 +162,7 @@ def validate_preview_sources(prepared, *, make_cut=False):
 
 
 def _save(anchor,record,prepared):
-    value={'version':11,'tool':'surface_pattern','feature_id':record.feature_id,
+    value={'version':12,'tool':'surface_pattern','feature_id':record.feature_id,
            'settings':prepared.settings.to_dict(),'sources':prepared.source_tokens}
     raw=json.dumps(value,separators=(',',':'))
     _parse(raw,record)

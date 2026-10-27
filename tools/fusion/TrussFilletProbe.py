@@ -81,7 +81,7 @@ def run(context):
         assert group.isValid and group.deleteMe() and comp.customGraphicsGroups.count==graphics and snapshot(design)==clean
         count=comp.bRepBodies.count;history=design.timeline.count;token=body.entityToken
         recipe.create_pattern(design,prepared);target=recipe.read_edit_target(design,body);feature=target.record.feature_id
-        assert target.settings==values and target.recipe['version']==11 and design.timeline.count==history+2
+        assert target.settings==values and target.recipe['version']==12 and design.timeline.count==history+2
         for style,radius in (('truss_pratt',.8),('truss_howe',1.2),('truss_warren',0),('truss_warren',1.0)):
             target=recipe.read_edit_target(design,body);changed=replace(target.settings,pattern=style,truss_fillet_mm=radius)
             candidate=recipe.prepare_edit_pattern(design,target,changed)
@@ -94,13 +94,13 @@ def run(context):
         target=recipe.read_edit_target(design,body);zero=replace(target.settings,truss_fillet_mm=0)
         recipe.rebuild_pattern(design,target,recipe.prepare_edit_pattern(design,target,zero))
         target=recipe.read_edit_target(design,body);old=dict(target.recipe);old['version']=10
-        old['settings']=dict(old['settings']);del old['settings']['truss_fillet_mm']
+        old['settings']=dict(old['settings']);del old['settings']['truss_fillet_mm'];del old['settings']['pattern_fillet_mm']
         raw=json.dumps(old,separators=(',',':'));assert target.anchor.attributes.add(recipe.GROUP,'recipe',raw)
         loaded=recipe.read_edit_target(design,body);assert loaded.settings.truss_fillet_mm==0
         assert loaded.anchor.attributes.itemByName(recipe.GROUP,'recipe').value==raw
         revised=replace(loaded.settings,truss_fillet_mm=.8)
         recipe.rebuild_pattern(design,loaded,recipe.prepare_edit_pattern(design,loaded,revised))
-        assert recipe.read_edit_target(design,body).recipe['version']==11
+        assert recipe.read_edit_target(design,body).recipe['version']==12
         clean=snapshot(design)
         target=recipe.read_edit_target(design,body)
         try:recipe.prepare_edit_pattern(design,target,replace(target.settings,truss_fillet_mm=100))

@@ -17,7 +17,7 @@ class PatternSettingsTests(unittest.TestCase):
             for mode in ('through','engrave','emboss'):
                 value=PatternSettings(pattern=pattern,mode=mode,rotation_deg=-30,offset_u_mm=-2)
                 self.assertEqual(PatternSettings.from_dict(value.to_dict()),value)
-        self.assertEqual(len(PatternSettings().to_dict()),26)
+        self.assertEqual(len(PatternSettings().to_dict()),27)
 
     def test_invalid_dimensions_modes_and_partial_snapshots_are_refused(self):
         for values in ({'pitch_mm':0},{'web_mm':PatternSettings().pitch_mm},{'depth_mm':-1},{'border_mm':-1},
@@ -26,6 +26,16 @@ class PatternSettingsTests(unittest.TestCase):
                        {'pitch_mm':10**1000}):
             with self.subTest(values=values),self.assertRaises(ValueError):PatternSettings(**values)
         with self.assertRaises(ValueError):PatternSettings.from_dict({'pitch_mm':8})
+
+    def test_pattern_fillet_is_bounded_and_independent_from_the_truss_radius(self):
+        self.assertEqual(PatternSettings().pattern_fillet_mm,0.0)
+        for radius in (0,.75,1000):
+            value=PatternSettings(pattern_fillet_mm=radius,truss_fillet_mm=2.5)
+            self.assertEqual(value.pattern_fillet_mm,float(radius))
+            self.assertEqual(value.truss_fillet_mm,2.5)
+            self.assertEqual(PatternSettings.from_dict(value.to_dict()),value)
+        for radius in (-.01,1000.01,True,None,'1',math.nan,math.inf,10**400):
+            with self.subTest(radius=radius),self.assertRaises(ValueError):PatternSettings(pattern_fillet_mm=radius)
 
 
 def _fixed(**values):

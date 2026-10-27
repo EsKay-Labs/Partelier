@@ -13,7 +13,7 @@ import time
 
 from ..hinge import fusion as hinge
 from ..hinge.support import _prism
-from .planner import MAX_CELLS, MAX_FACE_CELLS, PatternDensityError, build_cells, build_layout, density_error
+from .planner import MAX_CELLS, MAX_FACE_CELLS, PatternDensityError, build_cells, build_layout, density_error,same_polygon
 from .surfaces import SurfaceMap
 from .prism import prism as _direct_prism
 from .batch import try_through_difference
@@ -58,6 +58,7 @@ class _MappedCell:
     radius_mm: float
     sag_mm: float
     cell_key: object = None
+    rounded_profile: object = None
 
 
 def _trace_geometry(event,**fields):
@@ -237,10 +238,23 @@ def _mapped_cells(faces, settings, *, _return_layouts=False):
             accept=accept)
         layouts.append(layout)
         pieces=[]
+        fillet_radius=settings.pattern_fillet_mm if settings.pattern not in ('circle','slot') and settings.pattern!='grille_louver' else 0
         for ordinal,cell in enumerate(layout.cells):
             parts=fragments[cell] if settings.edge_mode=='clip' else (cell,)
-            pieces.extend((part,(index,ordinal) if settings.edge_mode=='clip' else None) for part in parts)
-        for cell,cell_key in pieces:
+            exact_radius=fillet_radius
+            original=getattr(cell,'original_polygon_mm',None) or cell.polygon_mm
+            world=lambda value:tuple((value.center_mm[0]+x,value.center_mm[1]+y) for x,y in value.polygon_mm)
+            unchanged=(len(parts)==1 and same_polygon(world(parts[0]),world(cell)))
+            if fillet_radius and (not unchanged or not same_polygon(original,cell.polygon_mm)):
+                # Round the original cell BEFORE boundary decomposition. Rounding
+                # each convex trim fragment would add false internal seam webs.
+                from .fillet import profile,stroke
+                from .planner import Cell
+                rounded=Cell(cell.center_mm,stroke(profile(original,fillet_radius)))
+                parts=chart.clipped_cells(rounded,settings.border_mm)
+                exact_radius=0
+            pieces.extend((part,(index,ordinal) if settings.edge_mode=='clip' else None,exact_radius) for part in parts)
+        for cell,cell_key,exact_radius in pieces:
             u, v = cell.center_mm
             center = chart.sample(u, v)
             boundary = tuple(chart.sample(u + du, v + dv) for du, dv in cell.polygon_mm)
@@ -253,13 +267,25 @@ def _mapped_cells(faces, settings, *, _return_layouts=False):
             z_axis = hinge._cross(x_axis, center.normal)
             polygon = tuple((_dot(_sub(point.point_mm, center.point_mm), x_axis),
                              _dot(_sub(point.point_mm, center.point_mm), z_axis)) for point in boundary)
+            projected=polygon
             area = sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(polygon, polygon[1:] + polygon[:1]))
             if area < 0:
                 polygon = tuple(reversed(polygon))
             radius = max(math.hypot(x, z) for x, z in polygon)
             sag = max(abs(_dot(_sub(sample.point_mm, center.point_mm), center.normal)) for sample in samples)
+            rounded=None
+            if exact_radius:
+                from .fillet import profile
+                rounded=profile(polygon,exact_radius)
+                witness=_rounded_witness(chart,(u,v),center,rounded,cell.polygon_mm,projected)
+                if _dot(center.normal,witness.normal)<MIN_NORMAL_DOT:
+                    raise ValueError('The rounded cell interior crosses too much curvature. Reduce Cell size.')
+                # The original polygon centre can lie outside a near-limit,
+                # asymmetric rounded opening. Rays/diagnostics start at a real
+                # on-surface interior witness; the extrusion frame stays fixed.
+                samples=(witness,)+samples
             mapped.append(_MappedCell(index, center, samples, polygon,
-                                      tuple(sample.point_mm for sample in boundary), radius, sag,cell_key))
+                                      tuple(sample.point_mm for sample in boundary), radius, sag,cell_key,rounded))
             accepted += 1
             if len(mapped)>1200:
                 raise ValueError('Too many clipped pattern fragments. Increase cell size or select a simpler region.')
@@ -270,6 +296,53 @@ def _mapped_cells(faces, settings, *, _return_layouts=False):
         raise ValueError("No pattern cells fit inside the selected faces and border. Reduce cell size or border.")
     _check_webs(mapped, settings.web_mm)
     return (tuple(mapped),tuple(layouts)) if _return_layouts else tuple(mapped)
+
+
+def _inside_rounded(profile,point,tolerance=1e-7):
+    polygon=profile.polygon_mm
+    for a,b in zip(polygon,polygon[1:]+polygon[:1]):
+        length=math.dist(a,b)
+        if (b[0]-a[0])*(point[1]-a[1])-(b[1]-a[1])*(point[0]-a[0])< -tolerance*length:return False
+    for corner in profile.corners:
+        start=tuple(a-b for a,b in zip(corner.start,corner.center))
+        end=tuple(a-b for a,b in zip(corner.end,corner.center))
+        radial=tuple(a-b for a,b in zip(point,corner.center))
+        # A convex corner's removed sector turns less than pi. Points outside
+        # that sector are constrained by other corners/straight side planes.
+        if (start[0]*radial[1]-start[1]*radial[0]>=-tolerance*profile.radius_mm
+                and radial[0]*end[1]-radial[1]*end[0]>=-tolerance*profile.radius_mm
+                and math.hypot(*radial)>profile.radius_mm+tolerance):return False
+    return True
+
+
+def _rounded_witness(chart,uv,center,profile,chart_polygon,projected_polygon):
+    """Find a surface witness inside the exact tangent-plane rounded contour.
+
+    Infer the local chart projection from already sampled contour vertices.
+    Unlike assuming V follows normal×U, this also respects reversed inner faces
+    and regular skew charts. Bounded residual updates accommodate curvature.
+    """
+    target=profile.interior_point
+    x_axis=center.tangent_u;z_axis=hinge._cross(x_axis,center.normal)
+    uu=math.fsum(u*u for u,v in chart_polygon);uvv=math.fsum(u*v for u,v in chart_polygon)
+    vv=math.fsum(v*v for u,v in chart_polygon);det=uu*vv-uvv*uvv
+    if det<=1e-12:raise ValueError('The rounded cell has a collapsed surface chart.')
+    coefficients=[]
+    for axis in (0,1):
+        pu=math.fsum(p[axis]*q[0] for p,q in zip(projected_polygon,chart_polygon))
+        pv=math.fsum(p[axis]*q[1] for p,q in zip(projected_polygon,chart_polygon))
+        coefficients.append(((pu*vv-pv*uvv)/det,(pv*uu-pu*uvv)/det))
+    (xu,xv),(zu,zv)=coefficients;det=xu*zv-xv*zu
+    if abs(det)<=1e-8:raise ValueError('The rounded cell cannot be projected safely on this surface.')
+    def step(delta):return ((delta[0]*zv-xv*delta[1])/det,(xu*delta[1]-delta[0]*zu)/det)
+    du,dv=step(target)
+    for _ in range(5):
+        sample=chart.sample(uv[0]+du,uv[1]+dv)
+        delta=_sub(sample.point_mm,center.point_mm)
+        projected=(_dot(delta,x_axis),_dot(delta,z_axis))
+        if _inside_rounded(profile,projected):return sample
+        one,two=step((target[0]-projected[0],target[1]-projected[1]));du+=one;dv+=two
+    raise ValueError('Fusion could not locate a stable rounded-cell interior. Reduce fillet or Cell size.')
 
 
 def _segment_distance(a, b, c, d):
@@ -289,16 +362,27 @@ def _segment_distance(a, b, c, d):
 
 
 def _check_webs(cells, web):
+    limit=web-.01
+    if limit<=0:return
+    squared=(limit+1e-9)**2  # Conservative slack for bounding-box roundoff only.
+    def bounds(points):return tuple((min(p[i] for p in points),max(p[i] for p in points)) for i in range(3))
+    def separated(one,two):
+        return sum(max(a[0]-b[1],b[0]-a[1],0)**2 for a,b in zip(one,two))>=squared
+    shapes=[]
+    for cell in cells:
+        segments=tuple((a,b,bounds((a,b))) for a,b in zip(cell.world_polygon,cell.world_polygon[1:]+cell.world_polygon[:1]))
+        shapes.append((bounds(cell.world_polygon),segments))
     for index, one in enumerate(cells):
-        for two in cells[index + 1:]:
+        for other,two in enumerate(cells[index + 1:],index+1):
             if one.cell_key is not None and one.cell_key==two.cell_key:continue
             if _length(_sub(one.center.point_mm, two.center.point_mm)) > one.radius_mm + two.radius_mm + web + .02:
                 continue
-            minimum = min(_segment_distance(a, b, c, d)
-                          for a, b in zip(one.world_polygon, one.world_polygon[1:] + one.world_polygon[:1])
-                          for c, d in zip(two.world_polygon, two.world_polygon[1:] + two.world_polygon[:1]))
-            if minimum < web - .01:
-                raise ValueError("Surface distortion reduces the requested web between neighboring cells. Increase pitch/web or choose a smaller surface region.")
+            if separated(shapes[index][0],shapes[other][0]):continue
+            for a,b,abox in shapes[index][1]:
+                for c,d,bbox in shapes[other][1]:
+                    if separated(abox,bbox):continue
+                    if _segment_distance(a,b,c,d)<limit:
+                        raise ValueError("Surface distortion reduces the requested web between neighboring cells. Increase pitch/web or choose a smaller surface region.")
 
 
 def _containment(body, point_mm):
@@ -387,6 +471,10 @@ def _prism_for_cell(manager, cell, inward, outward):
     frame = hinge.HingeFrame(cell.center.point_mm, cell.center.tangent_u,
                              cell.center.normal, hinge._cross(cell.center.tangent_u, cell.center.normal))
     try:
+        if getattr(cell,'rounded_profile',None) is not None:
+            from .rounded_prism import prism
+            return _solid(prism(frame,cell.rounded_profile,-inward,outward),
+                          'The rounded pattern cell did not form one solid.')
         return _solid(_direct_prism(frame, cell.polygon, -inward, outward),
                       "The projected pattern cell did not form one solid.")
     except ValueError as error:
@@ -600,7 +688,7 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False, _plate=
                 raise ValueError("A pattern cell did not change material. Remove overlapping selections or adjust its placement.")
             details['result_application_ms'] += (time.perf_counter()-stage)*1000
         if recorded.get(cell.face_index, 0) < 3:
-            diagnostics.append({"point_mm": cell.center.point_mm, "normal": cell.center.normal,
+            diagnostics.append({"point_mm": cell.samples[0].point_mm, "normal": cell.center.normal,
                 "face_index": cell.face_index, "through_depth_mm": through_depth if settings.mode == "through" else None,
                 "first_exit_mm": center_wall[0] if center_wall else None,
                 "next_entry_mm": center_wall[1] if center_wall and math.isfinite(center_wall[1]) else None})

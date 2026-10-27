@@ -61,7 +61,9 @@ identity, name, visibility, feature ID and history count. The shared store allow
 one owned Pattern/Grille/Truss layout per body; these cannot be independently
 stacked on the same body. Edit uses the original plate before the owned cut.
 
-Shared settings recipe **11** contains26 fields. Versions1–10 gain only the
+The0.23.0 shared settings recipe **12** contains27 fields. The separate common
+`pattern_fillet_mm` defaults to0 for exact versions1–11 and is inactive for
+Planar truss. Versions1–10 gain the
 previously absent `truss_fillet_mm=0` default; versions1–9 also gain the absent
 `truss_bays=6` and `truss_axis=long` defaults. Exact old schemas
 remain strict; reading an old recipe does not write attributes or alter geometry.

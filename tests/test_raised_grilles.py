@@ -72,7 +72,7 @@ class VersionFiveTests(unittest.TestCase):
         from Partelier.partelier.tools.patterns import recipe
         from types import SimpleNamespace as N
         settings=PatternSettings(pattern='grille_cross',layout_mode='fill').to_dict()
-        settings={k:v for k,v in settings.items() if not k.startswith(('mount_','truss_'))};settings.pop('grille_profile');settings.pop('grille_height_mm')
+        settings={k:v for k,v in settings.items() if not k.startswith(('mount_','truss_'))};settings.pop('grille_profile');settings.pop('grille_height_mm');settings.pop('pattern_fillet_mm')
         record=N(feature_id='test')
         value={'version':5,'tool':'surface_pattern','feature_id':'test','settings':settings,
                'sources':{'body':'body','faces':['face']}}

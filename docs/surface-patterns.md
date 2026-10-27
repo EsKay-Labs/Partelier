@@ -1,5 +1,73 @@
 # Surface patterns
 
+## Warren and common cell fillets (0.23.0)
+
+The general menu entry is now **Surface patterns** (internal alias `honeycomb`).
+It starts with hexagons and offers16 shapes/mosaics, including **Warren lattice**.
+Perforations and Grip texture retain the same shared shape choices. Planar truss
+remains the separate rectangular uniform-plate tool.
+
+Warren uses repeating2:1 triangular windows, alternating45° diagonals and
+horizontal chords, with no vertical posts. It uses the existing bounded tiled
+layout: Cell size measures nominal horizontal window width, Minimum gap is the
+perpendicular material reserve, and Border protects real face trims. Auto fit
+retains its normal size/density choices; Fill face gives tightly repeated bands
+at the requested size/gap. Cylinders use the existing physical arc-length chart,
+quantized periodic repeat and seam checks. Full-wrap mosaic rotation remains
+0°/180°; the existing curvature/trim/first-wall guards still apply. Other supported
+charts are subject to those same guards, not an arbitrary-surface guarantee.
+
+**Cell fillet (mm)** rounds cell-profile corners in Through, Engrave, Emboss and
+Flat colour, and grille apertures. Zero preserves the previous perimeter exactly,
+including the built-in rounding of Rounded triangles/hexagons. Positive radius
+replaces that built-in radius; circles/slots already have smooth profiles and
+remain unchanged. The separate **Junction fillet** controls Planar truss only.
+This is perimeter rounding through the feature depth, not a top-edge/cap fillet
+or a fillet of the selected surface's outside border.
+
+Whole mapped cells use exact tangent arcs/cylindrical prism faces in their local
+projection plane, then intersect the original wall or conformal depth band.
+On curved faces, the resulting perimeter follows that native intersection; the
+specified radius describes the local cell profile. Clipped cells round the full
+original profile **before** border/decomposition clipping, avoiding artificial
+fillets/webs between trim fragments. Border-cut ends remain trimmed. Trim/sheared
+and raised/chamfer grille paths use inscribed chords with maximum0.01mm sag and
+at most128 points; all loft levels/base share the same contour. Too large,
+collapsed or over-complex radii fail explicitly, preserving the requested value
+and previous valid preview. There is no silent radius clamp.
+
+The shared `fillet.py` planner provides strict convex arcs, exact areas and interior
+witnesses. `rounded_prism.py` builds one healed analytic body per regular tool or
+one complete dense grille; Planar truss reuses it. No feature/boolean is added per
+corner. Original sharp samples conservatively bound first-wall depth/curvature;
+exact rounded cells add a verified on-surface interior witness. AABB pruning of
+web checks skips only provably separated cell/edge pairs, retaining the physical
+gap threshold. Cached opaque preview meshes and original source body identities
+are preserved; Flat colour retains its intentional separate material body.
+
+Recipe12 stores27 strict settings, adding `pattern_fillet_mm=0`. Exact recipes1–11
+gain only that absent field in memory; explicit Rebuild writes12. Saved truss
+radius stays independent. Older schemas cannot encode the new Warren shape.
+
+Fusion2705.1.30 checks cover Warren full-wrap cylinders with Whole/Clip/Fill,
+hexagons on cylinders, engraved Warren, embossed pentagons, Flat colour rounded
+squares, circle no-op, oversized-radius refusal, raised/chamfer/flat louvers and a
+225-opening exact dense grid. Preview cleanup and Create/Edit/Rebuild preserve
+target identity/count/history and restore the caller.40 temporary analytic profile
+checks cover all11 polygon families, and the existing Planar truss regression
+passes after sharing its builder. Simulated-host UI checks at320/380/440px cover
+Warren/radius help,27-field snapshots, Edit, stale pushes and rejection behavior.
+
+Observed preparation was about0.45s for20 Warren cells,3.38s for100 Fill cells,
+and1.14s for225 dense rounded grille openings (one body and9 wall queries).
+These are fixture timings, not a universal preview promise. Physical printing,
+manual CEF orbit/pointer and save/reopen acceptance are not established here.
+Evidence: [surface-cell-fillet-0.23.0.json](validation/surface-cell-fillet-0.23.0.json).
+
+Actual full-wrap cylinder with Warren cells and0.7mm radius after Rebuild:
+
+![Warren lattice with rounded cell perimeters](validation/images/warren-cylinder-fillet-0.23.0.png)
+
 Version 0.9.0 adds one pattern workflow behind Honeycomb, Perforations and
 Texture in the existing HTML palette. These entries start different presets of
 the same tool. Hinge and snap-fit geometry remains locked at the user-approved
@@ -13,7 +81,7 @@ and existing holes remain protected.
 
 ## Use
 
-Choose one of 15 shapes or mosaics, then **Through holes**, **Engrave**,
+Choose one of16 shapes or mosaics, then **Through holes**, **Engrave**,
 **Emboss** or **Flat colour**. In **0.13.4**, **Select faces** immediately opens
 non-modal face selection. Normal clicks add sides without discarding earlier
 faces; the complete set stays blue. **No preview computes until Done**.
