@@ -319,7 +319,7 @@ window.PartelierIllustrations = (() => {
         }
         const mosaics = ["triangle","rounded_triangle","pentagon","octagon","trihex","octagon_square","cairo","rhombille","rounded_hexagon","elongated_hexagon"];
         if (String(settings.pattern).startsWith("grille_")) {
-            const cross=settings.pattern==="grille_cross",louver=settings.pattern==="grille_louver";
+            const cross=settings.pattern==="grille_cross",deflection=settings.pattern==="grille_deflection",diffuser=settings.pattern==="grille_diffuser",louver=["grille_louver","grille_deflection","grille_diffuser"].includes(settings.pattern);
             const finite=(value,fallback)=>Number.isFinite(value)?value:fallback;
             const angle=((finite(settings.rotation_deg,0)%360)+360)%360,tilt=Math.max(0,Math.min(45,finite(settings.louver_angle_deg,45)));
             const pitch=Math.max(.1,finite(settings.pitch_mm,7)),rib=Math.max(.01,finite(settings.web_mm,2));
@@ -332,6 +332,17 @@ window.PartelierIllustrations = (() => {
                 bars.push(`<rect x="${cx-310}" y="${cy+position}" width="620" height="${thickness}"/>`);
                 if(cross)bars.push(`<rect x="${cx+position}" y="${cy-310}" width="${thickness}" height="620"/>`);
             }
+            if(deflection)bars.push(`<rect data-grille-centre-rib="true" x="${cx-310}" y="${cy-thickness/2}" width="620" height="${thickness}"/>`);
+            if(diffuser){
+                bars.length=0;
+                const w=width/2-border,h=106-border,q=thickness/Math.sqrt(2),reserve=q+thickness/2;
+                bars.push(`<rect x="${cx-w}" y="${cy-h}" width="${2*w}" height="${2*h}"/>`);
+                for(let d=0;d<Math.min(w,h)-reserve;d+=step){
+                    const gap=Math.min(step-thickness,Math.min(w,h)-d-reserve),a=w-d,b=h-d;
+                    const holes=[[[-a+q,b],[-a+gap+q,b-gap],[a-gap-q,b-gap],[a-q,b]],[[a,b-q],[a-gap,b-gap-q],[a-gap,-b+gap+q],[a,-b+q]],[[a-q,-b],[a-gap-q,-b+gap],[-a+gap+q,-b+gap],[-a+q,-b]],[[-a,-b+q],[-a+gap,-b+gap+q],[-a+gap,b-gap-q],[-a,b-q]]];
+                    bars.push(...holes.map(points=>`<polygon data-diffuser-aperture="true" points="${points.map(([x,y])=>`${cx+x},${cy-y}`).join(' ')}" fill="#edf4ff" stroke="none"/>`));
+                }
+            }
             const screw={M3:[3,6.72],M4:[4,8.96],M5:[5,11.2],M6:[6,13.44]}[settings.mount_screw] || [4,8.96];
             const mounting=["plain","countersink"].includes(settings.mount_mode),head=(finite(settings.mount_head_mm,0)||screw[1])*(1+finite(settings.mount_head_extra_percent,10)/100);
             const bore=Math.max(2,Math.min(14,(screw[0]+finite(settings.mount_clearance_mm,.3))*scale/2));
@@ -340,10 +351,11 @@ window.PartelierIllustrations = (() => {
             const mountingArt=mounting?`<g data-mounting-mode="${settings.mount_mode}">${[20+inset,20+width-inset].map(x=>[22+inset,234-inset].map(y=>`<g data-mounting-hole="true"><rect x="${x<cx?20:20+width-inset-land}" y="${y<cy?22:234-inset-land}" width="${inset+land}" height="${inset+land}" fill="#7697be" stroke="#365f88"/>${settings.mount_mode==="countersink"?`<circle cx="${x}" cy="${y}" r="${seat}" fill="#dbe7f8" stroke="#365f88"/>`:""}<circle cx="${x}" cy="${y}" r="${bore}" fill="#fff" stroke="#365f88"/></g>`).join("")).join("")}</g>`:"";
             const rise=Math.min(52,12+height*4),shift=louver?rise*Math.tan(tilt*Math.PI/180):0,bevel=settings.grille_profile==="chamfer"?3:0;
             const section=raised?`<g data-grille-profile="${settings.grille_profile}" data-grille-height="${height}" data-grille-tilt="${louver?tilt:0}"><rect x="300" y="55" width="120" height="160" rx="5" fill="#edf4ff" stroke="#8aa8cf"/><text x="360" y="74" text-anchor="middle" fill="#365f88" font-size="11">Back to bed</text><g clip-path="url(#grille-raised-section)">${[0,1,2,3].map(i=>{const x=286+i*32;return `<path d="M${x} 185V160L${x+shift} ${160-rise+bevel}L${x+shift+bevel} ${160-rise}H${x+shift+12-bevel}L${x+shift+12} ${160-rise+bevel}L${x+12} 160V185Z" fill="#7697be" stroke="#365f88"/>`;}).join("")}</g><path d="M306 187H414" stroke="#bd501c" stroke-width="3"/><text x="360" y="204" text-anchor="middle" fill="#365f88" font-size="10">Height ${height} mm${louver?` · ${tilt}°`:""}</text></g>`:louver?`<g data-grille-section="${tilt}"><rect x="300" y="72" width="120" height="118" rx="5" fill="#edf4ff" stroke="#8aa8cf"/><text x="360" y="92" text-anchor="middle" fill="#365f88" font-size="11">Section</text><g clip-path="url(#grille-section)">${[0,1,2,3].map(i=>{const x=286+i*32,shift=Math.tan(tilt*Math.PI/180)*48;return `<path d="M${x},114h12l${shift},48h-12z" fill="#7697be" stroke="#365f88"/>`;}).join("")}</g><text x="360" y="179" text-anchor="middle" fill="#365f88" font-size="11">Tilt ${tilt}°</text></g>`:"";
-            return `<svg viewBox="0 0 440 270" role="img" aria-label="Grille direction and opening sample" data-pattern-surface="panel" data-pattern-cell="${settings.pattern}" data-grille-direction="${angle}"><defs><clipPath id="grille-opening"><rect x="${20+border}" y="${22+border}" width="${width-2*border}" height="${212-2*border}"/></clipPath><clipPath id="grille-raised-section"><rect x="302" y="85" width="116" height="101"/></clipPath><clipPath id="grille-section"><rect x="302" y="109" width="116" height="57"/></clipPath></defs><rect x="20" y="22" width="${width}" height="212" rx="6" fill="#365f88"/><rect x="${20+border}" y="${22+border}" width="${width-2*border}" height="${212-2*border}" fill="#edf4ff"/><g clip-path="url(#grille-opening)"><g transform="rotate(${-angle} ${cx} ${cy})" fill="#7697be" stroke="#365f88" stroke-width=".4">${bars.join("")}</g></g>${mountingArt}${section}<text x="220" y="258" text-anchor="middle" fill="#365f88" font-size="12">${cross?"Crossed grid":louver?"Louvers":"Parallel bars"} · direction ${angle}°</text></svg>`;
+            const name=diffuser?"Four-way diffuser":deflection?"Two-way deflection":cross?"Standard grid":louver?"Fixed louvers":"Linear bars";
+            return `<svg viewBox="0 0 440 270" role="img" aria-label="${name} fixed grille sample" data-pattern-surface="panel" data-pattern-cell="${settings.pattern}" data-grille-direction="${angle}"><defs><clipPath id="grille-opening"><rect x="${20+border}" y="${22+border}" width="${width-2*border}" height="${212-2*border}"/></clipPath><clipPath id="grille-raised-section"><rect x="302" y="85" width="116" height="101"/></clipPath><clipPath id="grille-section"><rect x="302" y="109" width="116" height="57"/></clipPath></defs><rect x="20" y="22" width="${width}" height="212" rx="6" fill="#365f88"/><rect x="${20+border}" y="${22+border}" width="${width-2*border}" height="${212-2*border}" fill="#edf4ff"/><g clip-path="url(#grille-opening)"><g transform="rotate(${-angle} ${cx} ${cy})" fill="#7697be" stroke="#365f88" stroke-width=".4">${bars.join("")}</g></g>${mountingArt}${section}<text x="220" y="258" text-anchor="middle" fill="#365f88" font-size="12">${name} · ${louver?`fixed tilt ${tilt}°`:`direction ${angle}°`}</text></svg>`;
         }
         if(settings.mode==="inlay") {
-            if(mosaics.includes(settings.pattern)) return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} flat colour sample" data-pattern-surface="panel" data-pattern-mode="inlay"><image href="pattern-previews/${settings.pattern}.svg?v=0.24.1" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#365f88" font-size="12">Flat colour · flush surface · two material parts</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
+            if(mosaics.includes(settings.pattern)) return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} flat colour sample" data-pattern-surface="panel" data-pattern-mode="inlay"><image href="pattern-previews/${settings.pattern}.svg?v=0.25.0" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#365f88" font-size="12">Flat colour · flush surface · two material parts</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
             const cells=Array.from({length:5},(_,row)=>Array.from({length:8},(_,col)=>{
                 const x=52+col*44+(row%2)*22,y=45+row*39;
                 if(settings.pattern==="circle") return `<circle cx="${x}" cy="${y}" r="15" fill="#267de1"/>`;
@@ -356,7 +368,7 @@ window.PartelierIllustrations = (() => {
         }
         if (mosaics.includes(settings.pattern)) {
             const mode = ["through","engrave","emboss"].includes(settings.mode) ? settings.mode : "through";
-            return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} polygon pattern sample" data-pattern-surface="panel" data-pattern-mode="${mode}"><image href="pattern-previews/${settings.pattern}.svg?v=0.24.1" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#536b8c" font-family="Segoe UI,sans-serif" font-size="9">Pattern sample · exact live preview follows your selected surface</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
+            return `<svg viewBox="0 0 440 270" role="img" aria-label="${settings.pattern} polygon pattern sample" data-pattern-surface="panel" data-pattern-mode="${mode}"><image href="pattern-previews/${settings.pattern}.svg?v=0.25.0" x="24" y="10" width="392" height="230"/><text x="220" y="257" text-anchor="middle" fill="#536b8c" font-family="Segoe UI,sans-serif" font-size="9">Pattern sample · exact live preview follows your selected surface</text><g data-pattern-cell="${settings.pattern}"/></svg>`;
         }
         const pattern = ["hexagon", "circle", "diamond", "square", "slot"].includes(settings.pattern) ? settings.pattern : "hexagon";
         const mode = ["through", "engrave", "emboss"].includes(settings.mode) ? settings.mode : "through";

@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass, fields
 import math
 from .tiles import TILED_PATTERNS
 from ..truss.planner import STYLES
+from .grille_styles import GRILLES
 
 
 @dataclass(frozen=True)
@@ -50,7 +51,7 @@ class PatternSettings:
         self.validate()
 
     def validate(self):
-        if self.pattern not in ("hexagon", "circle", "diamond", "square", "slot", "grille_parallel", "grille_cross", "grille_louver")+TILED_PATTERNS+STYLES:
+        if self.pattern not in ("hexagon", "circle", "diamond", "square", "slot")+GRILLES+TILED_PATTERNS+STYLES:
             raise ValueError("Choose a supported pattern shape or polygon mosaic.")
         if self.mode not in ("through", "engrave", "emboss", "inlay"):
             raise ValueError("Choose through, engrave, emboss or flat colour.")
@@ -72,6 +73,8 @@ class PatternSettings:
             raise ValueError("Louver tilt must be between 0 and 45 degrees from the surface normal.")
         if self.pattern.startswith('grille_') and (self.mode != 'through' or self.layout_mode != 'fill'):
             raise ValueError("Grilles use through openings with fixed opening width and rib thickness.")
+        if self.pattern=='grille_diffuser' and (self.rotation_deg or self.offset_u_mm or self.offset_v_mm):
+            raise ValueError('Four-way diffusers are centred and aligned to the plate. Set Direction and offsets to 0.')
         if self.grille_profile not in ('flat','raised','chamfer'):
             raise ValueError('Choose Flat, Raised or Chamfered grille profile.')
         if not .2 <= self.grille_height_mm <= 20:

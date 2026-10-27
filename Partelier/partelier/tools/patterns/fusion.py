@@ -8,6 +8,7 @@ The caller owns command rollback, persistence, and preview visibility leases.
 
 from dataclasses import dataclass, replace
 import math
+from .grille_styles import ANGLED
 import threading
 import time
 
@@ -238,7 +239,7 @@ def _mapped_cells(faces, settings, *, _return_layouts=False):
             accept=accept)
         layouts.append(layout)
         pieces=[]
-        fillet_radius=settings.pattern_fillet_mm if settings.pattern not in ('circle','slot') and settings.pattern!='grille_louver' else 0
+        fillet_radius=settings.pattern_fillet_mm if settings.pattern not in ('circle','slot') and settings.pattern not in ANGLED else 0
         for ordinal,cell in enumerate(layout.cells):
             parts=fragments[cell] if settings.edge_mode=='clip' else (cell,)
             exact_radius=fillet_radius
@@ -440,7 +441,7 @@ def _wall(design, body, point_mm, outward):
 def _cell_depth(design, body, cell, settings):
     normal = cell.center.normal
     firsts, entries = [], []
-    wall_distances = [] if settings.pattern=='grille_louver' else None
+    wall_distances = [] if settings.pattern in ANGLED else None
     center_wall = None
     for sample in cell.samples:
         distance, entry = _wall(design, body, sample.point_mm, normal)
@@ -614,7 +615,7 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False, _plate=
     _trace_geometry("source_copy.end")
     bands = {}
     louver_faces={}
-    if settings.pattern=='grille_louver':
+    if settings.pattern in ANGLED:
         from .grilles import prepare_louver_face
         for index in sorted({cell.face_index for cell in mapped}):
             louver_faces[index]=prepare_louver_face(faces[index],settings)
@@ -645,7 +646,7 @@ def _prepare_pattern_impl(design, faces, settings, *, _historical=False, _plate=
         stage = time.perf_counter()
         _trace_geometry("tool.prism.begin",cell=cell_index,total=len(mapped),face_index=cell.face_index)
         if settings.mode == "through":
-            if settings.pattern=="grille_louver":
+            if settings.pattern in ANGLED:
                 from .grilles import louver_cutter
                 cutter=louver_cutter(cell,settings,through_depth,louver_faces[cell.face_index])
             else:

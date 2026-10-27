@@ -1,0 +1,622 @@
+{
+  "version": "0.25.0",
+  "python_tests": 1088,
+  "node_suites": 5,
+  "settings_fields": 27,
+  "recipe_version": 13,
+  "browser": {
+    "checks": [
+      {
+        "width": 300,
+        "fiveRealStyles": true,
+        "tiltShownForDirectionalStyles": true,
+        "diffuserAlignedToFace": true,
+        "correctIllustratedHelp": true,
+        "validSettings": true,
+        "noHorizontalOverflow": true
+      },
+      {
+        "width": 380,
+        "fiveRealStyles": true,
+        "tiltShownForDirectionalStyles": true,
+        "diffuserAlignedToFace": true,
+        "correctIllustratedHelp": true,
+        "validSettings": true,
+        "noHorizontalOverflow": true
+      },
+      {
+        "width": 520,
+        "fiveRealStyles": true,
+        "tiltShownForDirectionalStyles": true,
+        "diffuserAlignedToFace": true,
+        "correctIllustratedHelp": true,
+        "validSettings": true,
+        "noHorizontalOverflow": true
+      }
+    ],
+    "errors": []
+  },
+  "native_cases": [
+    {
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_deflection",
+        "profile": "chamfer",
+        "height_mm": 2,
+        "louver_angle_deg": 30,
+        "report_path": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\grille_deflection-chamfer.json"
+      },
+      "success": true,
+      "prepare_ms": 68.96849999611732,
+      "openings": 6,
+      "timings": {
+        "source_and_plan_ms": 24.385099997743964,
+        "temporary_geometry_ms": 41.676400003780145,
+        "total_ms": 66.06150000152411,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 2.0,
+        "underside_limit_deg": 45,
+        "louver_angle_deg": 30.0
+      },
+      "analytic_wall_angles": [
+        0.0,
+        30.0
+      ],
+      "directional_aperture_witnesses": 12,
+      "create_ms": 138.3032999947318,
+      "edit_rebuild_ms": 367.6749000005657,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_deflection",
+        "profile": "flat",
+        "height_mm": 2,
+        "louver_angle_deg": 30,
+        "report_path": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\grille_deflection-flat.json"
+      },
+      "success": true,
+      "prepare_ms": 84.05149999452988,
+      "openings": 6,
+      "timings": {
+        "source_and_plan_ms": 21.754699999291915,
+        "temporary_geometry_ms": 59.389800000644755,
+        "total_ms": 81.14469999418361,
+        "wall_checks_ms": 11.988099991867784,
+        "tool_construction_ms": 29.103600012604147,
+        "tool_clip_ms": 5.567300002439879,
+        "result_application_ms": 10.023599999840371,
+        "batch_used": false,
+        "louver_face_setups": 1
+      },
+      "analytic_wall_angles": [
+        0.0,
+        30.0
+      ],
+      "directional_aperture_witnesses": 6,
+      "create_ms": 126.3697999966098,
+      "edit_rebuild_ms": 324.5050999976229,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 2,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_deflection",
+        "profile": "raised",
+        "height_mm": 2,
+        "history": true,
+        "report_path": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\grille_deflection-history.json"
+      },
+      "success": true,
+      "prepare_ms": 46.92159999831347,
+      "openings": 6,
+      "timings": {
+        "source_and_plan_ms": 18.181200000981335,
+        "temporary_geometry_ms": 25.931699994544033,
+        "total_ms": 44.11289999552537,
+        "raised_profile": "raised",
+        "raised_body_creations": 2,
+        "raised_height_mm": 2.0,
+        "underside_limit_deg": 45,
+        "louver_angle_deg": 45.0
+      },
+      "analytic_wall_angles": [
+        0.0,
+        45.0
+      ],
+      "directional_aperture_witnesses": 12,
+      "create_ms": 140.9819000036805,
+      "edit_rebuild_ms": 297.37890000251355,
+      "named_group_edit_delete": true,
+      "delete_restored_source": true,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_deflection",
+        "profile": "chamfer",
+        "height_mm": 2,
+        "louver_angle_deg": 45,
+        "pattern_fillet_mm": 0.2,
+        "mount_mode": "countersink",
+        "preview": true,
+        "tilt_edit_cycle": true,
+        "screenshot": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\grille_deflection.png",
+        "report_path": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\grille_deflection-mounted45.json"
+      },
+      "success": true,
+      "prepare_ms": 292.4219999986235,
+      "openings": 6,
+      "timings": {
+        "source_and_plan_ms": 33.131199998024385,
+        "temporary_geometry_ms": 160.18590000021504,
+        "total_ms": 281.6467000011471,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 2.0,
+        "underside_limit_deg": 45,
+        "louver_angle_deg": 45.0,
+        "mounting_ms": 64.5102999988012,
+        "mount_holes": 4,
+        "mount_border_restores": 0,
+        "mount_hole_diameter_mm": 4.3,
+        "mount_head_diameter_mm": 9.856000000000002,
+        "mount_countersink_depth_mm": 2.778000000000001,
+        "mount_inset_mm": 6.628000000000001,
+        "mount_preflight_ms": 9.94640000135405,
+        "mount_border_mm": 12.756000000000002,
+        "requested_border_mm": 7.0
+      },
+      "analytic_wall_angles": [
+        0.0,
+        14.51082,
+        35.26439,
+        44.00703,
+        45.0
+      ],
+      "directional_aperture_witnesses": 12,
+      "mount_bore_and_seat_witnesses": 4,
+      "solid_border_witnesses": 300,
+      "cached_preview_draw_cleanup": true,
+      "preview_triangles": 1740,
+      "create_ms": 387.3321000064607,
+      "edit_rebuild_ms": 1253.3870000042953,
+      "tilt_edit_cycle": [
+        {
+          "requested": 0,
+          "measured_wall_angles": [
+            0.0
+          ]
+        },
+        {
+          "requested": 20,
+          "measured_wall_angles": [
+            0.0,
+            5.38152,
+            14.43276,
+            19.37006,
+            20.0
+          ]
+        },
+        {
+          "requested": 45,
+          "measured_wall_angles": [
+            0.0,
+            14.51082,
+            35.26439,
+            44.00703,
+            45.0
+          ]
+        }
+      ],
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_deflection",
+        "profile": "raised",
+        "height_mm": 2,
+        "louver_angle_deg": 30,
+        "report_path": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\grille_deflection-raised.json"
+      },
+      "success": true,
+      "prepare_ms": 52.10629999783123,
+      "openings": 6,
+      "timings": {
+        "source_and_plan_ms": 24.612499997601844,
+        "temporary_geometry_ms": 24.549499998101965,
+        "total_ms": 49.16199999570381,
+        "raised_profile": "raised",
+        "raised_body_creations": 2,
+        "raised_height_mm": 2.0,
+        "underside_limit_deg": 45,
+        "louver_angle_deg": 30.0
+      },
+      "analytic_wall_angles": [
+        0.0,
+        30.0
+      ],
+      "directional_aperture_witnesses": 12,
+      "create_ms": 122.84920000092825,
+      "edit_rebuild_ms": 301.935900002718,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_diffuser",
+        "profile": "chamfer",
+        "height_mm": 2,
+        "louver_angle_deg": 30,
+        "report_path": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\grille_diffuser-chamfer.json"
+      },
+      "success": true,
+      "prepare_ms": 112.51269999775104,
+      "openings": 12,
+      "timings": {
+        "source_and_plan_ms": 30.489099997794256,
+        "temporary_geometry_ms": 78.78830000117887,
+        "total_ms": 109.27739999897312,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 2.0,
+        "underside_limit_deg": 45,
+        "louver_angle_deg": 30.0
+      },
+      "analytic_wall_angles": [
+        0.0,
+        22.20765,
+        30.0
+      ],
+      "directional_aperture_witnesses": 24,
+      "create_ms": 205.13020000362303,
+      "edit_rebuild_ms": 565.2946999980486,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_diffuser",
+        "profile": "flat",
+        "height_mm": 2,
+        "louver_angle_deg": 30,
+        "report_path": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\grille_diffuser-flat.json"
+      },
+      "success": true,
+      "prepare_ms": 248.38810000073863,
+      "openings": 12,
+      "timings": {
+        "source_and_plan_ms": 36.03750000183936,
+        "temporary_geometry_ms": 208.28459999756888,
+        "total_ms": 244.32250000245403,
+        "wall_checks_ms": 38.72800000681309,
+        "tool_construction_ms": 99.48620000068331,
+        "tool_clip_ms": 19.487799996568356,
+        "result_application_ms": 48.412100004497916,
+        "batch_used": false,
+        "louver_face_setups": 1
+      },
+      "analytic_wall_angles": [
+        0.0,
+        22.20765,
+        30.0
+      ],
+      "directional_aperture_witnesses": 12,
+      "create_ms": 155.30299999954877,
+      "edit_rebuild_ms": 569.6421000029659,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 2,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_diffuser",
+        "profile": "raised",
+        "height_mm": 2,
+        "history": true,
+        "report_path": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\grille_diffuser-history.json"
+      },
+      "success": true,
+      "prepare_ms": 68.3052000022144,
+      "openings": 12,
+      "timings": {
+        "source_and_plan_ms": 19.939799996791407,
+        "temporary_geometry_ms": 44.90470000018831,
+        "total_ms": 64.84449999697972,
+        "raised_profile": "raised",
+        "raised_body_creations": 2,
+        "raised_height_mm": 2.0,
+        "underside_limit_deg": 45,
+        "louver_angle_deg": 45.0
+      },
+      "analytic_wall_angles": [
+        0.0,
+        35.26439,
+        45.0
+      ],
+      "directional_aperture_witnesses": 24,
+      "create_ms": 170.68480000307318,
+      "edit_rebuild_ms": 408.4791999994195,
+      "named_group_edit_delete": true,
+      "delete_restored_source": true,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_diffuser",
+        "profile": "chamfer",
+        "height_mm": 2,
+        "louver_angle_deg": 45,
+        "pattern_fillet_mm": 0.2,
+        "mount_mode": "countersink",
+        "preview": true,
+        "tilt_edit_cycle": true,
+        "screenshot": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\grille_diffuser.png",
+        "report_path": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\grille_diffuser-mounted45.json"
+      },
+      "success": true,
+      "prepare_ms": 329.6753000031458,
+      "openings": 8,
+      "timings": {
+        "source_and_plan_ms": 39.056499997968785,
+        "temporary_geometry_ms": 200.01259999844478,
+        "total_ms": 326.8121000000974,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 2.0,
+        "underside_limit_deg": 45,
+        "louver_angle_deg": 45.0,
+        "mounting_ms": 63.5861000046134,
+        "mount_holes": 4,
+        "mount_border_restores": 0,
+        "mount_hole_diameter_mm": 4.3,
+        "mount_head_diameter_mm": 9.856000000000002,
+        "mount_countersink_depth_mm": 2.778000000000001,
+        "mount_inset_mm": 6.628000000000001,
+        "mount_preflight_ms": 9.38529999984894,
+        "mount_border_mm": 12.756000000000002,
+        "requested_border_mm": 7.0
+      },
+      "analytic_wall_angles": [
+        0.0,
+        5.59809,
+        25.23904,
+        32.39077,
+        35.26439,
+        39.74249,
+        43.73949,
+        44.44422,
+        45.0
+      ],
+      "directional_aperture_witnesses": 16,
+      "mount_bore_and_seat_witnesses": 4,
+      "solid_border_witnesses": 300,
+      "cached_preview_draw_cleanup": true,
+      "preview_triangles": 1988,
+      "create_ms": 477.3806000011973,
+      "edit_rebuild_ms": 1533.2009999983711,
+      "tilt_edit_cycle": [
+        {
+          "requested": 0,
+          "measured_wall_angles": [
+            0.0
+          ]
+        },
+        {
+          "requested": 20,
+          "measured_wall_angles": [
+            0.0,
+            2.04318,
+            9.73569,
+            13.00175,
+            14.43276,
+            16.8374,
+            19.20311,
+            19.64538,
+            20.0
+          ]
+        },
+        {
+          "requested": 45,
+          "measured_wall_angles": [
+            0.0,
+            5.59809,
+            25.23904,
+            32.39077,
+            35.26439,
+            39.74249,
+            43.73949,
+            44.44422,
+            45.0
+          ]
+        }
+      ],
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_diffuser",
+        "profile": "raised",
+        "height_mm": 2,
+        "louver_angle_deg": 30,
+        "report_path": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\grille_diffuser-raised.json"
+      },
+      "success": true,
+      "prepare_ms": 80.59540000249399,
+      "openings": 12,
+      "timings": {
+        "source_and_plan_ms": 25.623299996368587,
+        "temporary_geometry_ms": 51.27980000543175,
+        "total_ms": 76.90310000180034,
+        "raised_profile": "raised",
+        "raised_body_creations": 2,
+        "raised_height_mm": 2.0,
+        "underside_limit_deg": 45,
+        "louver_angle_deg": 30.0
+      },
+      "analytic_wall_angles": [
+        0.0,
+        22.20765,
+        30.0
+      ],
+      "directional_aperture_witnesses": 24,
+      "create_ms": 181.5193000002182,
+      "edit_rebuild_ms": 481.6595000011148,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    },
+    {
+      "fusion_version": "2705.1.30",
+      "context": {
+        "pattern": "grille_louver",
+        "profile": "raised",
+        "rotation_deg": 225,
+        "louver_angle_deg": 45,
+        "report_path": "C:\\Users\\SKTech\\Desktop\\Programming_Projects\\Apps\\Fusion360\\Partelier\\output\\grille-families\\old-louvers-regression.json"
+      },
+      "success": true,
+      "prepare_ms": 63.28940000094008,
+      "openings": 9,
+      "timings": {
+        "source_and_plan_ms": 21.75060000445228,
+        "temporary_geometry_ms": 38.60049999639159,
+        "total_ms": 60.35110000084387,
+        "raised_profile": "raised",
+        "raised_body_creations": 2,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "louver_angle_deg": 45.0
+      },
+      "analytic_wall_angles": [
+        0.0,
+        35.26439,
+        45.0
+      ],
+      "create_ms": 140.86800000222865,
+      "edit_rebuild_ms": 350.66850000293925,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true
+    }
+  ],
+  "pip_coupon": {
+    "version": "0.25.0",
+    "experimental": true,
+    "success": true,
+    "physical_print_tested": false,
+    "fusion_version": "2705.1.30",
+    "coupons": [
+      {
+        "clearance_mm": 0.25,
+        "bodies": 3,
+        "bed_slot_mm": 2.29128784747792,
+        "minimum_pivot_caliper_mm": 3.5355339059327378,
+        "motion_degrees": [
+          -90,
+          90
+        ],
+        "rotation_sample_step_deg": 15,
+        "sampled_intersection_checks": 52,
+        "minimum_radial_gap_mm": 0.24738260935010895,
+        "swept_blade_to_blade_gap_mm": 3.858015947127024,
+        "underside_limit_deg": 45
+      },
+      {
+        "clearance_mm": 0.35,
+        "bodies": 3,
+        "bed_slot_mm": 2.736786436680802,
+        "minimum_pivot_caliper_mm": 3.5355339059327378,
+        "motion_degrees": [
+          -90,
+          90
+        ],
+        "rotation_sample_step_deg": 15,
+        "sampled_intersection_checks": 52,
+        "minimum_radial_gap_mm": 0.3472874315082947,
+        "swept_blade_to_blade_gap_mm": 3.858015947127024,
+        "underside_limit_deg": 45
+      },
+      {
+        "clearance_mm": 0.45,
+        "bodies": 3,
+        "bed_slot_mm": 3.132091952673165,
+        "minimum_pivot_caliper_mm": 3.5355339059327378,
+        "motion_degrees": [
+          -90,
+          90
+        ],
+        "rotation_sample_step_deg": 15,
+        "sampled_intersection_checks": 52,
+        "minimum_radial_gap_mm": 0.4471922536664805,
+        "swept_blade_to_blade_gap_mm": 3.858015947127024,
+        "underside_limit_deg": 45
+      }
+    ],
+    "parts": 9,
+    "print_file": "Partelier-PIP-louver-clearance.3mf",
+    "stl_file": "Partelier-PIP-louver-clearance.stl",
+    "caller_unchanged": true
+  },
+  "pip_export": {
+    "parts": 9,
+    "millimetres": true,
+    "closed_edges": true,
+    "physical_print_tested": false,
+    "sha256": {
+      "Partelier-PIP-louver-clearance.3mf": "ee74f5b6b28e467a9283d691f59e42bb579f45cae0cfb70606c3052bf5d122c2",
+      "Partelier-PIP-louver-clearance.stl": "b8f9695113ba52e54fd18a9a479841f9dd3c2db2aa43e73435e810693447921d"
+    }
+  },
+  "limits": [
+    "Physical PIP release/friction remains untested.",
+    "Production grilles have fixed blades, with CAD tilt adjustment; no moving register is advertised.",
+    "Browser checks are not manual Fusion CEF pointer acceptance.",
+    "The three-case extra native request exceeded its transport timeout, but all individual reports completed successfully."
+  ]
+}

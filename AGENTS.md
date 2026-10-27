@@ -69,7 +69,7 @@ Edit/Rebuild before adding the other first-release helpers.
 - `Partelier/partelier/tools/truss/`: pure bounded triangular-window planning and
   one-solid Fusion adaptation. Shares the HTML pattern session, plate inspector,
   cached mesh and same-body Cut persistence. See docs/planar-truss.md for scope;
-  shared settings recipe12 adds pattern_fillet_mm and reads exact versions1–11.
+  shared settings recipe13 retains27 fields and reads exact versions1–12.
 - `docs/`: product plan, architecture, development and AI workflow guidance.
 - `.ai/templates/`: manually selected task prompts, not auto-loaded instructions.
 Use docs/architecture.md for module boundaries and docs/development.md for setup
@@ -196,3 +196,8 @@ See docs/fusion-validation.md. Local mocks remain distinct from native evidence.
 - pattern_fillet_mm is independent of truss_fillet_mm. Exact27-field snapshots and recipe12; exactv1–11 inject0 read-only, and legacy versions refuse 'warren'. Zero preserves previous built-in rounded variants; positive radius overrides them. Circles/slots are already smooth.
 - Whole-cell fillets use shared analytic Profile/prism construction; round original polygons before trim decomposition to avoid fragment seams. Preserve Cell.original_polygon_mm only for actual positive-radius clipping. Trim/sheared/raised paths use <=0.01mm sag/128point strokes shared across levels. Never silently clamp a requested radius.
 - Keep source safety rays/physical gap threshold, actual on-surface interior witnesses and conservative AABB pruning. Retain cached mesh rendering; no native feature per corner, no duplicate source bodies. See docs/surface-patterns.md and surface-cell-fillet-0.23.0 validation evidence.
+
+## Fixed grille families (0.25.0)
+- `patterns/grille_styles.py` adds opposed Two-way deflection and Four-way diffuser to the existing linear/grid/louver types. Per-hole flow directions drive shared cutters/raised lofts. The diffuser remains centred/aligned; nonzero Direction/offsets are rejected, not ignored. Preserve the central/diagonal rib widths, bounded aperture counts and bed-relative45° proof.
+- Settings remain27 fields; recipe13 admits the new enums, while exact versions1–12 remain read-only compatible and refuse those enums. Preview remains a cached opaque mesh. Use the same body/history and per-tool Saved features.
+- `tools/fusion/PipLouverCoupon.py` is a separate experimental captive-pivot print test, not a production moving/register option. Its generated3MF/STL and instructions are in examples/print-tests/pip-louver. Native motion/solid/overhang checks are not physical release/friction evidence. Wait for a real print before promoting the mechanism to the app. See docs/grille-families.md.

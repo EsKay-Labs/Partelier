@@ -22,7 +22,8 @@
         selection_scope: [["faces", "Selected faces"], ["body", "Whole body"]],
         edge_mode: [["clip", "Clip at border"], ["whole", "Whole cells only"]]
     };
-    const grilleChoices = [["grille_parallel","Parallel bars"],["grille_cross","Crossed grid"],["grille_louver","Louvers"]];
+    const grilleChoices = [["grille_parallel","Linear bars"],["grille_cross","Standard · crossed grid"],["grille_louver","Fixed louvers"],["grille_deflection","Two-way deflection"],["grille_diffuser","Four-way diffuser"]];
+    const angledGrille = () => ["grille_louver","grille_deflection","grille_diffuser"].includes(state.settings.pattern);
     const trussChoices = [["truss_warren","Warren · zigzag"],["truss_pratt","Pratt · inward diagonals"],["truss_howe","Howe · outward diagonals"]];
     const grille = () => state.settings.pattern.startsWith("grille_");
     const truss = () => state.settings.pattern.startsWith("truss_");
@@ -157,7 +158,7 @@
         if(direction.parentElement!==directionHome)directionHome.append(direction);
         direction.children[0].textContent=isGrille?"Direction (°)":"Rotation (°)";
         direction.classList.remove("full-width-parameter");
-        $("grille-direction-presets").hidden=!isGrille;
+        $("grille-direction-presets").hidden=!isGrille||state.settings.pattern==="grille_diffuser";
         for(const angle of [0,45,90]) {
             const button=$("grille-direction-"+angle), selected=Number.isFinite(state.settings.rotation_deg)&&Math.abs(((state.settings.rotation_deg%360)+360)%360-angle)<1e-8;
             button.disabled=committing;button.classList.toggle("selected",selected);button.setAttribute("aria-pressed",String(selected));
@@ -181,9 +182,9 @@
         $("pattern-grille_profile").parentElement.hidden=!isGrille;
         $("pattern-grille_profile").parentElement.classList.remove("full-width-parameter");
         $("pattern-grille_height_mm").parentElement.hidden=!raised;
-        $("pattern-louver_angle_deg").parentElement.hidden=state.settings.pattern!=="grille_louver";
+        $("pattern-louver_angle_deg").parentElement.hidden=!angledGrille();
         $("pattern-offset_u_mm").parentElement.hidden=isGrille||isTruss;
-        $("pattern-offset_v_mm").parentElement.hidden=isTruss;
+        $("pattern-offset_v_mm").parentElement.hidden=isTruss||state.settings.pattern==="grille_diffuser";
         for (const input of $("pattern-settings").querySelectorAll("[name]")) input.disabled = committing;
         const depth = $("pattern-depth_mm"), through = state.settings.mode === "through";
         depth.disabled = committing || through; depth.parentElement.hidden = through;
@@ -194,7 +195,7 @@
         if(raised || mounting || isTruss) $("pattern-selection_scope").disabled=true;
         $("pattern-selection_scope").parentElement.hidden=isTruss;
         for(const name of ["rotation_deg","offset_u_mm","offset_v_mm"])if(isTruss)$("pattern-"+name).parentElement.hidden=true;
-        if(!isTruss)$("pattern-rotation_deg").parentElement.hidden=false;
+        if(!isTruss)$("pattern-rotation_deg").parentElement.hidden=state.settings.pattern==="grille_diffuser";
         $("pattern-truss_bays").parentElement.hidden=!isTruss;
         $("pattern-truss_bays").disabled=committing||!isTruss;
         $("pattern-truss_bays").step=state.settings.pattern==="truss_warren"?"1":"2";
@@ -228,6 +229,8 @@
         $("pattern-depth_mm").parentElement.children[0].textContent = state.settings.mode === "inlay" ? "Colour depth" : "Depth / height";
         if(isGrille) $("pattern-layout-note").textContent="Επίπεδες επιφάνειες · σταθερό άνοιγμα και πλάτος νεύρου. Rotation αλλάζει την κατεύθυνση. Οι περσίδες χρειάζονται ορθογώνια πλάκα σταθερού πάχους.";
         if(raised) $("pattern-layout-note").textContent="Πίσω πλευρά στο bed · ένα ορθογώνιο face πλάκας σταθερού πάχους. Έως 200 ανοίγματα. Κλίση περσίδας 0–45° από την κάθετο, αρχικά 45°. Το Height μετριέται πάνω από το face.";
+        if(state.settings.pattern==="grille_deflection")$("pattern-layout-note").textContent="Δύο αντίθετες τράπεζες με κεντρικό νεύρο. Σταθερά πτερύγια, κλίση 0–45° στο σχέδιο. Μία ορθογώνια επιφάνεια.";
+        if(state.settings.pattern==="grille_diffuser")$("pattern-layout-note").textContent="Τέσσερις κατευθύνσεις με διαγώνια στηρίγματα και συμπαγές κέντρο. Κεντραρισμένο στην ορθογώνια επιφάνεια. Σταθερή κλίση 0–45° στο σχέδιο.";
         if(state.settings.mode==="inlay") $("pattern-layout-note").textContent += " Flat colour: επίπεδη επιφάνεια, ξεχωριστό μέρος για χρωματισμό. Το βάθος πρέπει να αφήνει υλικό από κάτω.";
         if(isTruss)$("pattern-layout-note").textContent="Μία ορθογώνια πλάκα σταθερού πάχους. Το αρχικό πάχος διατηρείται. Warren: 2–64 bays. Pratt / Howe: ζυγός αριθμός για συμμετρία.";
     }
@@ -484,6 +487,9 @@
                 $("pattern-pitch_mm").value = state.settings.pitch_mm;
             }
             state.settings[input.name] = input.name === "size_locked" ? input.value === "true" : input.value;
+            if(input.name==="pattern"&&input.value==="grille_diffuser"){
+                for(const key of ["rotation_deg","offset_u_mm","offset_v_mm"]){state.settings[key]=0;$("pattern-"+key).value="0";$("pattern-"+key).setCustomValidity("");}
+            }
             if((input.name==="grille_profile" && input.value!=="flat" || input.name==="mount_mode" && input.value!=="off") && !editing()) {
                 state.settings.selection_scope="faces"; $("pattern-selection_scope").value="faces";
             }
@@ -523,5 +529,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.24.1" }); renderArt(); render();
+    trace("boot", { build:"0.25.0" }); renderArt(); render();
 })();

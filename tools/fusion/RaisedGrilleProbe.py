@@ -84,6 +84,26 @@ def border_witnesses(adapter,body,settings,width,depth,thickness,timings):
     return count
 
 
+def directional_witnesses(adapter,prepared,face,settings,thickness):
+    """Interior aperture samples follow each bank's own physical shear."""
+    from importlib import import_module
+    flow=import_module(adapter.__package__+'.grille_styles').flow_uv
+    chart=adapter.SurfaceMap(face);checked=0
+    raised=settings.grille_profile!='flat';height=settings.grille_height_mm
+    for cell in prepared.layouts[0].cells:
+        direction=flow(settings,cell.center_mm,chart.bounds)
+        for level in ((-thickness/2,height/2) if raised else (-thickness/2,)):
+            shift=0 if level<0 and raised else abs(level)*math.tan(math.radians(settings.louver_angle_deg))
+            uv=tuple(a+shift*b for a,b in zip(cell.center_mm,direction))
+            if not (chart.bounds[0]+settings.border_mm+.01<uv[0]<chart.bounds[1]-settings.border_mm-.01
+                    and chart.bounds[2]+settings.border_mm+.01<uv[1]<chart.bounds[3]-settings.border_mm-.01):continue
+            sample=chart.sample(*uv);point=adapter._add(sample.point_mm,sample.normal,level)
+            assert not adapter._containment(prepared.result_body,point),(settings.pattern,cell.center_mm,level,point)
+            checked+=1
+    assert checked>=2
+    return checked
+
+
 def run(context):
     context=context or {}
     root=Path(__file__).resolve().parents[2]
@@ -115,6 +135,7 @@ def run(context):
         base=design.rootComponent.features.baseFeatures.add();assert base.startEdit()
         body=design.rootComponent.bRepBodies.add(shape,base);assert base.finishEdit()
         body=base.bodies.item(0);body.name='Raised grille fixture'
+        original_volume=float(body.volume)
         token=body.entityToken
         face=next(f for f in body.faces if abs(f.pointOnFace.z-thickness/10)<1e-7)
         settings=settings_module.PatternSettings(pattern=context.get('pattern','grille_parallel'),layout_mode='fill',
@@ -145,7 +166,7 @@ def run(context):
         prepared=recipe.prepare_edit_pattern(design,prior,settings) if prior else adapter.prepare_pattern(design,(face,),settings)
         report['prepare_ms']=(time.perf_counter()-start)*1000
         report['openings']=prepared.cell_count;report['timings']=prepared.timings
-        if settings.pattern=='grille_louver':
+        if settings.pattern in ('grille_louver','grille_deflection','grille_diffuser'):
             report['analytic_wall_angles']=louver_angles(prepared.result_body,settings,thickness)
         assert body==design.findEntityByToken(token)[0] and design.rootComponent.bRepBodies.count==1
         assert abs(prepared.result_body.boundingBox.minPoint.z)<1e-7
@@ -156,7 +177,9 @@ def run(context):
         # by preparation already carry world coordinates after restoring history.
         for sample in prepared.accepted_samples[:3]:
             point=adapter._add(sample['point_mm'],sample['normal'],-thickness/2)
-            if settings.mount_mode=='off':assert not adapter._containment(prepared.result_body,point)
+            if settings.mount_mode=='off' and settings.pattern not in ('grille_deflection','grille_diffuser'):assert not adapter._containment(prepared.result_body,point)
+        if settings.pattern in ('grille_deflection','grille_diffuser'):
+            report['directional_aperture_witnesses']=directional_witnesses(adapter,prepared,face,settings,thickness)
         if settings.mount_mode!='off':
             mounting_witnesses(adapter,prepared.result_body,settings,width,depth,thickness,prepared.timings)
             report['mount_bore_and_seat_witnesses']=4
@@ -174,6 +197,9 @@ def run(context):
         history=design.timeline.count
         start=time.perf_counter()
         anchor=recipe.rebuild_pattern(design,prior,prepared) if prior else recipe.create_pattern(design,prepared)
+        if context.get('history'):
+            operation_history=importlib.import_module(name+'.operations')
+            operation_history.capture(design,anchor,'pattern',settings.to_dict(),history,editing=prior is not None)
         report['create_ms']=(time.perf_counter()-start)*1000
         assert design.rootComponent.bRepBodies.count==1 and design.findEntityByToken(token)[0]==body
         features=1 if prior else 3 if raised else 2
@@ -263,6 +289,13 @@ def run(context):
             camera_fixture=app.activeViewport.camera;camera_fixture.viewOrientation=core.ViewOrientations.IsoTopRightViewOrientation
             camera_fixture.isFitView=True;app.activeViewport.camera=camera_fixture
             assert app.activeViewport.saveAsImageFile(str(picture),900,650)
+        if context.get('history'):
+            operation_history.capture(design,anchor,'pattern',recipe.read_edit_target(design,body).settings.to_dict(),design.timeline.count,editing=True)
+            saved=operation_history.snapshot(design);assert len(saved)==1 and saved[0]['alias']=='grilles'
+            operation_history.delete(design,saved[0]['id'])
+            assert not operation_history.snapshot(design) and body.isValid and design.findEntityByToken(token)[0]==body
+            assert design.rootComponent.bRepBodies.count==1 and abs(body.volume-original_volume)<1e-9
+            report.update(named_group_edit_delete=True,delete_restored_source=True)
         report.update(success=True,same_body=True,flat_back=True,owned_features=3 if raised or prior else 2)
     finally:
         if owned is not None and owned.isValid:owned.close(False)

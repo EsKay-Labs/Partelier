@@ -11,7 +11,14 @@ separate lists; ordinary surface patterns stay together. Edit highlights the
 chosen feature and loads its dimensions for Rebuild. Source-body ownership and
 existing timeline dependency guards remain. See [saved features](docs/selection-history.md).
 
-**Current code:** experimental 0.13.0 provides surface patterns, an editable separate-pin hinge
+**Current release: 0.25.0.** Grilles now has Linear bars, Standard grid, Fixed
+louvers, Two-way deflection and Four-way diffuser. Directional profiles retain
+the 0–45° tilt control, optional fillets/raised profiles, mounting and saved
+Edit/Delete. A separate [print-in-place louver trial](examples/print-tests/pip-louver/README.md)
+includes a ready 3MF/STL clearance ladder; physical printing remains untested.
+See [grille families and validation](docs/grille-families.md).
+
+**Earlier foundation (0.13.0):** surface patterns, an editable separate-pin hinge
 and four snap-fit families: Hook latch, Ball detent, Torsion latch and Annular
 ring. Hook latch also offers straight, tapered or twin arms. Snap-fits include
 optional 45-degree root/receiver roofs and complete eligible outer-edge chamfers;

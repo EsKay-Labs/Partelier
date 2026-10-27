@@ -1,5 +1,10 @@
 # Surface patterns
 
+Grilles 0.25.0 adds **Two-way deflection** and **Four-way diffuser**, alongside
+Linear bars, Standard grid and Fixed louvers. Shared tilt, fillet, raised profile,
+mounting and Saved features remain available. See [grille families](grille-families.md)
+for their exact geometry, recipe 13 compatibility and the separate print-in-place trial.
+
 ## Warren and common cell fillets (0.23.0)
 
 The general menu entry is now **Surface patterns** (internal alias `honeycomb`).

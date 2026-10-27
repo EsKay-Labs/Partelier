@@ -4,7 +4,7 @@ from dataclasses import dataclass, replace
 import math
 
 
-GRILLES=('grille_parallel','grille_cross','grille_louver')
+from .grille_styles import GRILLES, flow_uv, diffuser_layout
 
 
 def build_layout(settings,bounds,period_u_mm,max_cells,accept):
@@ -22,6 +22,8 @@ def build_layout(settings,bounds,period_u_mm,max_cells,accept):
             or bounds[1]<=bounds[0] or bounds[3]<=bounds[2]):
         raise ValueError('Select a finite planar grille region.')
     low_u,high_u,low_v,high_v=bounds
+    if settings.pattern=='grille_diffuser':
+        return diffuser_layout(settings,bounds,max_cells,accept)
     b=settings.border_mm
     inner=(low_u+b,high_u-b,low_v+b,high_v-b)
     if inner[1]<=inner[0] or inner[3]<=inner[2]:return Layout((),settings.pitch_mm,settings.pitch_mm,'fill')
@@ -46,11 +48,20 @@ def build_layout(settings,bounds,period_u_mm,max_cells,accept):
                                   (radius,v+opening/2),(-radius,v+opening/2)))
         polygon=rectangle(polygon,inner)
         if not polygon or area(polygon)<1e-7:continue
-        midpoint=tuple(sum(point[i] for point in polygon)/len(polygon) for i in (0,1))
-        cell=Cell(midpoint,tuple((u-midpoint[0],w-midpoint[1]) for u,w in polygon))
-        checks+=1
-        if accept is None or accept(cell):cells.append(cell)
-        if len(cells)>max_cells:raise density_error(settings,[(high_u-low_u)*(high_v-low_v)],face_cells=len(cells))
+        polygons=(polygon,)
+        if settings.pattern=='grille_deflection':
+            from .clipping import halfplane
+            def bank(sign):
+                level=sign*settings.web_mm/2
+                line=tuple((center[0]+x*c-level*s,center[1]+x*s+level*c) for x in (-radius,radius))
+                return halfplane(polygon,*line,inside=sign>0)
+            polygons=tuple(p for p in (bank(-1),bank(1)) if p and area(p)>1e-7)
+        for polygon in polygons:
+            midpoint=tuple(sum(point[i] for point in polygon)/len(polygon) for i in (0,1))
+            cell=Cell(midpoint,tuple((u-midpoint[0],w-midpoint[1]) for u,w in polygon))
+            checks+=1
+            if accept is None or accept(cell):cells.append(cell)
+            if len(cells)>max_cells:raise density_error(settings,[(high_u-low_u)*(high_v-low_v)],face_cells=len(cells))
     return Layout(tuple(cells),pitch,pitch,'fill',opening,1,checks)
 
 
@@ -58,6 +69,10 @@ def build_layout(settings,bounds,period_u_mm,max_cells,accept):
 class LouverFace:
     inner_points_mm: tuple
     across: tuple
+    bounds: tuple = ()
+    origin_mm: tuple = ()
+    tangent_u: tuple = ()
+    tangent_v: tuple = ()
 
 
 def prepare_louver_face(face,settings):
@@ -87,7 +102,7 @@ def prepare_louver_face(face,settings):
     chart_center=chart.sample((lo+hi)/2,(bottom+top)/2)
     across=tuple(-math.sin(angle)*a+math.cos(angle)*v for a,v in zip(chart_center.tangent_u,chart_center.tangent_v))
     inner=tuple(chart.sample(u,v).point_mm for u,v in ((lo+b,bottom+b),(hi-b,bottom+b),(hi-b,top-b),(lo+b,top-b)))
-    return LouverFace(inner,across)
+    return LouverFace(inner,across,chart.bounds,chart_center.point_mm,chart_center.tangent_u,chart_center.tangent_v)
 
 
 def louver_cutter(cell,settings,through_depth,context):
@@ -99,7 +114,14 @@ def louver_cutter(cell,settings,through_depth,context):
     frame=adapter.hinge.HingeFrame(cell.center.point_mm,cell.center.tangent_u,
         cell.center.normal,adapter.hinge._cross(cell.center.tangent_u,cell.center.normal))
     slope=math.tan(math.radians(settings.louver_angle_deg))
-    shear=(-slope*adapter._dot(context.across,frame.x_axis),-slope*adapter._dot(context.across,frame.z_axis))
+    across=context.across
+    if settings.pattern in ('grille_deflection','grille_diffuser'):
+        delta=adapter._sub(cell.center.point_mm,context.origin_mm)
+        uv=(adapter._dot(delta,context.tangent_u)+(context.bounds[0]+context.bounds[1])/2,
+            adapter._dot(delta,context.tangent_v)+(context.bounds[2]+context.bounds[3])/2)
+        direction=flow_uv(settings,uv,context.bounds)
+        across=tuple(direction[0]*u+direction[1]*v for u,v in zip(context.tangent_u,context.tangent_v))
+    shear=(-slope*adapter._dot(across,frame.x_axis),-slope*adapter._dot(across,frame.z_axis))
     polygon=cell.polygon
     if settings.pattern_fillet_mm:
         from .fillet import profile,stroke

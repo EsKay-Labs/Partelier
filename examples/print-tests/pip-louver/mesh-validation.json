@@ -1,0 +1,51 @@
+{
+  "parts": [
+    {
+      "triangles": 832,
+      "watertight_edge_counts": true,
+      "positive_volume_mm3": 2399.5961639764673
+    },
+    {
+      "triangles": 76,
+      "watertight_edge_counts": true,
+      "positive_volume_mm3": 283.7199679033332
+    },
+    {
+      "triangles": 76,
+      "watertight_edge_counts": true,
+      "positive_volume_mm3": 283.71996790333327
+    },
+    {
+      "triangles": 816,
+      "watertight_edge_counts": true,
+      "positive_volume_mm3": 2376.559303934164
+    },
+    {
+      "triangles": 76,
+      "watertight_edge_counts": true,
+      "positive_volume_mm3": 282.5199747033323
+    },
+    {
+      "triangles": 76,
+      "watertight_edge_counts": true,
+      "positive_volume_mm3": 282.51997470333237
+    },
+    {
+      "triangles": 800,
+      "watertight_edge_counts": true,
+      "positive_volume_mm3": 2353.2402634507016
+    },
+    {
+      "triangles": 76,
+      "watertight_edge_counts": true,
+      "positive_volume_mm3": 281.32000550332754
+    },
+    {
+      "triangles": 76,
+      "watertight_edge_counts": true,
+      "positive_volume_mm3": 281.3200055033274
+    }
+  ],
+  "all_on_bed": true,
+  "units": "mm"
+}
