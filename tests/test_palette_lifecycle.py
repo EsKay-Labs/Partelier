@@ -33,6 +33,7 @@ class Item:
         self.isVisible = False
         self.commandCreated = Event()
         self.incomingFromHTML = Event()
+        self.closed = Event()
         self.execution_count = 0
         self.sent_messages = []
 
@@ -89,6 +90,7 @@ class PaletteLifecycleTests(unittest.TestCase):
         core.CommandCreatedEventHandler = object
         core.CommandEventHandler = object
         core.HTMLEventHandler = object
+        core.UserInterfaceGeneralEventHandler = object
         core.Application = SimpleNamespace(get=lambda: application)
         core.PaletteDockingStates = SimpleNamespace(PaletteDockStateRight="right")
         adsk = ModuleType("adsk")
@@ -127,6 +129,49 @@ class PaletteLifecycleTests(unittest.TestCase):
         self.assertIsNot(old, current)
         self.assertTrue(current.isVisible)
         self.assertEqual(len(current.incomingFromHTML.handlers), 1)
+
+    def test_close_cancels_every_tool_and_reopen_rejects_old_page_requests(self):
+        managers=[SimpleNamespace(cancel_palette=Mock()) for _ in range(4)]
+        self.library._hinge_commands,self.library._snap_commands,self.library._pattern_commands,self.library._detail_commands=managers
+        self.library.show();old=self.library._palette;old_html=self.library._html_handler;closed=self.library._close_handler
+        self.assertEqual(len(old.closed.handlers),1)
+        closed.notify(None)
+        for manager in managers:manager.cancel_palette.assert_called_once_with()
+        self.assertFalse(old.isValid);self.assertIsNone(self.library._palette)
+        with self.assertRaisesRegex(ValueError,'closed'):self.library.handle_message('ready',self.request)
+        self.library.show();new=self.library._palette
+        self.assertTrue(new.isVisible);self.assertIsNot(new,old)
+        args=SimpleNamespace(action='hinge_begin',data='malformed old input')
+        old_html.notify(args);self.assertFalse(json.loads(args.returnData)['ok'])
+        closed.notify(None)
+        self.assertIs(self.library._palette,new,'a delayed Close from an old page must not close the replacement')
+        for manager in managers:manager.cancel_palette.assert_called_once_with()
+
+    def test_close_continues_cleanup_after_one_tool_fails(self):
+        bad=SimpleNamespace(cancel_palette=Mock(side_effect=RuntimeError('visibility restore failed')))
+        good=SimpleNamespace(cancel_palette=Mock())
+        self.library._hinge_commands=bad;self.library._pattern_commands=good
+        self.library.show();palette=self.library._palette
+        with self.assertRaisesRegex(RuntimeError,'visibility restore failed'):self.library.close()
+        good.cancel_palette.assert_called_once_with()
+        self.assertFalse(palette.isValid);self.assertTrue(self.library._palette_closed)
+
+    def test_close_signal_is_detached_on_stop(self):
+        self.library.show();palette=self.library._palette;handler=self.library._close_handler
+        self.library.stop()
+        self.assertNotIn(handler,palette.closed.handlers)
+
+    def test_close_cancels_a_queued_delete_before_its_native_execute(self):
+        self.library.show();command=SimpleNamespace(execute=Event(),destroy=Event())
+        deletion=self.library._operation_delete
+        deletion.pending=(object(),'a824b03c-044b-467b-8b12-19e85e6d3510')
+        deletion.created.notify(SimpleNamespace(command=command))
+        self.library.close()
+        with patch.object(self.module.operations,'delete') as remove:
+            for handler in command.execute.handlers:handler.notify(SimpleNamespace(executeFailed=False))
+            remove.assert_not_called()
+        for handler in command.destroy.handlers:handler.notify(None)
+        self.assertFalse(deletion.busy)
 
     def test_stop_continues_after_handler_cleanup_failure_and_preserves_other_ui(self):
         unrelated = self.ui.palettes.add("unrelated")

@@ -132,6 +132,12 @@ Partelier folder after native validation; add packaging only when needed.
 - Keep host pushes newer than delayed acknowledgments; reject older revisions
   and retired session IDs. Retired IDs are page-local so fresh Connect recovery
   works. Version the top-level HTML URL and all assets from the manifest.
+- Main palette Close cancels all owned tool sessions and queued work (0.25.1).
+  Keep the native closed handler, strict page-generation guard and clean page
+  recreation. Each manager owns cancel_palette and skips cancelled openings;
+  completed features remain. Close must never revive a stale HTML request or
+  preempt an unrelated command. Native synchronous calls finish at their next
+  event boundary; do not claim immediate interruption. See docs/palette-close.md.
 - Native finish stages must keep explicit edge membership: no automatic cap
   tangent-chain expansion, and no re-finishing newly created blend borders.
   Preserve the frozen original side-curve ownership and hole-safe neck bounds.

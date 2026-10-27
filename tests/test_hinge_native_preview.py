@@ -115,6 +115,15 @@ class NativePreviewLifecycleTests(unittest.TestCase):
         self.adapter.create_hinge.assert_not_called()
         self.adapter.rebuild_hinge.assert_not_called()
 
+    def test_a_session_closed_during_its_state_push_cannot_queue_new_native_work(self):
+        runner=self.module.NativePreviewRunner(self.logs.append)
+        compute,done,failed=Mock(),Mock(),Mock()
+        runner.request(SimpleNamespace(closed=True),compute,done,failed)
+        runner.request(SimpleNamespace(cancel_requested=True),compute,done,failed)
+        self.assertFalse(runner.busy);self.assertIsNone(runner._definition)
+        self.assertEqual(self.compute_commands,[])
+        compute.assert_not_called();done.assert_not_called();failed.assert_not_called()
+
     def test_new_request_between_destroy_and_queued_next_supersedes_older_pending_work(self):
         runner = self.module.NativePreviewRunner(self.logs.append)
         self.addCleanup(runner.stop)

@@ -88,6 +88,7 @@ class HingeCommands:
         self._opening = False
         self._state_callback = None
         self._palette_pending = None
+        self._cancelled_palette_opening = False
         self._palette_action_busy = False
         self._last_palette_state = self._idle_palette_state()
         self._context_handlers = []
@@ -185,6 +186,7 @@ class HingeCommands:
         prompt, selection_filter = prompts[target]
         session.phase = "selecting"
         session._status(prompt)
+        session._ensure_design()
         previous_preview = session.preview
         previous_hidden = session._preview_hidden_bodies
         previous_visible = getattr(previous_preview, "isVisible", True) if previous_preview is not None else True
@@ -214,6 +216,29 @@ class HingeCommands:
         session.selection_entities[target] = entity
         session.changed(target)
         return True
+
+    def cancel_palette(self):
+        sessions=[session for session in self._sessions if session.palette_mode and not session.closed]
+        if self._palette_pending is not None and self._opening:self._cancelled_palette_opening=True
+        self._palette_pending=None
+        ui=adsk.core.Application.get().userInterface
+        picking=any(session.picking_target for session in sessions) and self._palette_action_busy
+        errors=[]
+        pending_work=any(session.phase!='created' for session in sessions)
+        for session in sessions:
+            try:
+                session.cancel_requested=session.phase!='created'
+                session.generation+=1
+                self._cancel_native_preview(session)
+                session.clear_preview()
+                if session.phase!='created':
+                    session.phase='cancelled';session.message='Hinge cancelled. Original bodies are unchanged.'
+                session.close()
+            except Exception as error:errors.append(str(error))
+        preview_id=self._native_preview._command_id if self._native_preview else None
+        if pending_work and (picking or ui.activeCommand in (CREATE_COMMAND_ID,EDIT_COMMAND_ID,preview_id)):
+            ui.terminateActiveCommand()
+        if errors:raise RuntimeError('Could not cancel the hinge completely. '+'; '.join(errors))
 
     def palette_action(self, action, session_id, revision=None, settings_dict=None, target=None):
         if self._palette_action_busy:
@@ -263,6 +288,7 @@ class HingeCommands:
                     else:
                         session.phase = "opening"
                         session._status("Creating the hinge…" if not session.editing else "Rebuilding the hinge…")
+                        if session.closed or getattr(session,'cancel_requested',False):raise ValueError('The hinge was cancelled before Create.')
                         self._palette_pending = session
                         try:
                             self._launch(EDIT_COMMAND_ID if session.editing else CREATE_COMMAND_ID)
@@ -448,6 +474,7 @@ class HingeCommands:
         self._pending_settings = None
         self._palette_pending = None
         self._opening = False
+        self._cancelled_palette_opening = False
         self._last_palette_state = self._idle_palette_state()
         self._publish_palette()
 
@@ -687,6 +714,8 @@ class _Session:
         return HingeSettings.from_dict(values)
 
     def _ensure_design(self):
+        if self.closed or getattr(self,'cancel_requested',False):
+            raise ValueError('This hinge session was cancelled. Start again.')
         try:
             active = _active_design()
         except ValueError:
@@ -1051,6 +1080,10 @@ class _Created(adsk.core.CommandCreatedEventHandler):
         self.owner._opening = False
         pending = self.owner._palette_pending
         self.owner._palette_pending = None
+        if self.owner._cancelled_palette_opening:
+            self.owner._cancelled_palette_opening=False
+            args.command.isAutoExecute=True;args.command.isOKButtonVisible=False
+            return
         try:
             if pending is not None:
                 session = pending

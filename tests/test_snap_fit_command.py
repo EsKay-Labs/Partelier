@@ -113,6 +113,31 @@ class SnapCommandTests(unittest.TestCase):
     def preview(self, session):
         return self.action(session, "snap_preview")
 
+    def test_close_restores_sources_and_cancels_queued_snap_commit(self):
+        session=self.begin();visibility=(self.a.isLightBulbOn,self.b.isLightBulbOn);self.preview(session);group=session.preview
+        self.action(session,'snap_commit');self.manager.cancel_palette()
+        self.assertTrue(session.closed);self.assertFalse(group.isValid);self.assertIsNone(self.manager._pending)
+        self.assertEqual((self.a.isLightBulbOn,self.b.isLightBulbOn),visibility)
+        command=NS(execute=Event(),destroy=Event())
+        self.module._Created(self.manager).notify(NS(command=command))
+        for handler in command.execute.handlers:handler.notify(NS(executeFailed=False))
+        self.module.create_snap_fit.assert_not_called()
+
+    def test_close_while_waiting_for_a_pick_does_not_advance_to_the_next_face(self):
+        def choose(*args):
+            self.manager.cancel_palette();return NS(entity=self.a)
+        self.ui.selectEntity.side_effect=choose
+        with self.assertRaises(ValueError):self.manager.begin_palette(SnapFitSettings().to_dict())
+        self.assertIsNone(self.manager._session);self.assertEqual(self.ui.selectEntity.call_count,1)
+        self.ui.terminateActiveCommand.assert_called_once_with()
+
+    def test_close_in_opening_push_does_not_launch_snap_create(self):
+        session=self.begin();self.preview(session)
+        self.manager.set_state_callback(lambda state:self.manager.cancel_palette() if state['phase']=='opening' else None)
+        definition=self.manager._registration[0];definition.execute.reset_mock()
+        with self.assertRaisesRegex(ValueError,'cancelled'):self.action(session,'snap_commit')
+        definition.execute.assert_not_called();self.assertIsNone(self.manager._pending)
+
     def test_registration_is_idempotent_and_stop_preserves_unrelated_ui(self):
         self.manager.start()
         self.assertEqual(len(self.definitions), 1)

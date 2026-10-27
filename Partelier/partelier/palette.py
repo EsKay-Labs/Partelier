@@ -26,6 +26,9 @@ class ToolLibrary:
     def __init__(self):
         self._created_handler = None
         self._html_handler = None
+        self._close_handler = None
+        self._page_generation = 0
+        self._palette_closed = False
         self._palette = None
         self._workspace_id = None
         self._panel_id = None
@@ -40,6 +43,7 @@ class ToolLibrary:
     def start(self, workspace_id, panel_id, input_check_id, report_error, hinge_commands=None, snap_commands=None, pattern_commands=None, detail_commands=None):
         if self._created_handler is not None:
             return
+        self._palette_closed = False
         self._workspace_id = workspace_id
         self._panel_id = panel_id
         self._input_check_id = input_check_id
@@ -90,6 +94,7 @@ class ToolLibrary:
         return self._has_palette_manager(self._pattern_commands)
 
     def _operations_changed(self,message):
+        if self._palette_closed:return
         import adsk.fusion
         design=adsk.fusion.Design.cast(adsk.core.Application.get().activeProduct)
         self._publish_state('operations_state',{'items':operations.snapshot(design),'message':message})
@@ -114,7 +119,7 @@ class ToolLibrary:
     def _publish_state(self, action, snapshot):
         """Best-effort UI notification; a closed palette cannot fail geometry."""
         palette = self._palette
-        if self._created_handler is None or palette is None or not palette.isValid:
+        if self._palette_closed or self._created_handler is None or palette is None or not palette.isValid:
             return
         try:
             # Qt sends an asynchronous 'response' acknowledgement. An empty
@@ -139,10 +144,33 @@ class ToolLibrary:
                 try:
                     if self._html_handler is not None:
                         palette.incomingFromHTML.remove(self._html_handler)
+                    if self._close_handler is not None:
+                        palette.closed.remove(self._close_handler)
                 finally:
                     palette.deleteMe()
         finally:
             self._html_handler = None
+            self._close_handler = None
+
+    def close(self):
+        """Retire this page before cancelling tools; stale HTML cannot restart it."""
+        self._palette_closed = True
+        self._page_generation += 1
+        errors = []
+        for manager in (self._hinge_commands, self._snap_commands, self._pattern_commands, self._detail_commands, self._operation_delete):
+            cancel = getattr(manager, 'cancel_palette', None)
+            if callable(cancel):
+                try:
+                    cancel()
+                except Exception as error:
+                    errors.append(str(error))
+                    adsk.core.Application.get().log('Partelier Close cleanup failed:\n'+traceback.format_exc())
+        try:
+            self._release_palette()
+        except Exception as error:
+            errors.append(str(error))
+        if errors:
+            raise RuntimeError('Partelier could not finish cancelling. '+ '; '.join(errors))
 
     def show(self):
         ui = adsk.core.Application.get().userInterface
@@ -162,14 +190,21 @@ class ToolLibrary:
             if palette is None:
                 raise RuntimeError("Fusion could not open the tool library.")
             self._palette = palette
+            self._page_generation += 1
+            self._palette_closed = False
             self._html_handler = _HTMLMessage(self)
+            self._close_handler = _PaletteClosed(self)
             palette.incomingFromHTML.add(self._html_handler)
+            if palette.closed.add(self._close_handler) is False:
+                raise RuntimeError('Fusion could not register Close cancellation.')
             palette.dockingState = adsk.core.PaletteDockingStates.PaletteDockStateRight
         palette.isVisible = True
 
     def handle_message(self, action, raw_data):
         if self._created_handler is None:
             raise RuntimeError("The tool library has stopped. Run the add-in again.")
+        if self._palette_closed:
+            raise ValueError('This Partelier window is closed. Open the tool library again.')
         request = read_request(action, raw_data)
         if self._operation_delete is not None and self._operation_delete.busy and action not in ('operations_list','diagnostic_log'):
             raise ValueError('Wait for operation deletion to finish.')
@@ -321,6 +356,8 @@ class ToolLibrary:
         })
 
     def stop(self):
+        self._palette_closed=True
+        self._page_generation+=1
         ui = adsk.core.Application.get().userInterface
         errors = []
 
@@ -380,10 +417,14 @@ class _HTMLMessage(adsk.core.HTMLEventHandler):
     def __init__(self, owner):
         super().__init__()
         self.owner = owner
+        self.generation = owner._page_generation
 
     def notify(self, args):
         if args.action == "response":
             args.returnData = "OK"
+            return
+        if self.generation != self.owner._page_generation or self.owner._palette_closed:
+            args.returnData = json.dumps({'protocol':PROTOCOL_VERSION,'ok':False,'message':'This Partelier window has closed. Open the tool library again.'})
             return
         started=time.perf_counter()
         request_id=None
@@ -403,3 +444,19 @@ class _HTMLMessage(adsk.core.HTMLEventHandler):
             emit('bridge.request.exception',action=args.action,request_id=request_id,error=traceback.format_exc(),elapsed_ms=(time.perf_counter()-started)*1000)
             args.returnData = json.dumps({"protocol": PROTOCOL_VERSION, "ok": False, "message": "Fusion could not complete the request. See its log."})
             adsk.core.Application.get().log(f"Partelier HTML bridge request failed:\n{traceback.format_exc()}")
+
+
+class _PaletteClosed(adsk.core.UserInterfaceGeneralEventHandler):
+    def __init__(self, owner):
+        super().__init__()
+        self.owner = owner
+        self.generation = owner._page_generation
+
+    def notify(self, args):
+        if self.generation != self.owner._page_generation or self.owner._palette is None or self.owner._palette_closed:
+            return
+        try:
+            self.owner.close()
+        except Exception:
+            adsk.core.Application.get().log('Partelier Close cancellation failed:\n'+traceback.format_exc())
+            self.owner._report_error('Partelier could not fully cancel the current tool. See the Fusion log.')

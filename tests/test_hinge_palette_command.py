@@ -61,6 +61,31 @@ class HingePaletteCommandTests(unittest.TestCase):
         self.drain_native_preview_events()
         return self.owner.palette_state() if action == "hinge_preview" else result
 
+    def test_palette_close_clears_preview_and_does_not_terminate_an_unrelated_command(self):
+        session=self.open_palette();self.action(session,'hinge_preview');group=session.preview
+        self.ui.activeCommand='UnrelatedCommand';self.ui.terminateActiveCommand.reset_mock()
+        self.owner.cancel_palette()
+        self.assertTrue(session.closed);self.assertEqual(session.phase,'cancelled')
+        self.assertFalse(group.isValid);self.assertEqual(self.owner._sessions,[])
+        self.ui.terminateActiveCommand.assert_not_called()
+
+    def test_close_during_opening_push_does_not_launch_hinge_create(self):
+        session=self.open_palette();self.action(session,'hinge_preview')
+        self.owner.set_state_callback(lambda state:self.owner.cancel_palette() if state['phase']=='opening' else None)
+        definition=self.ui.commandDefinitions.itemById(self.module.CREATE_COMMAND_ID);definition.execute.reset_mock()
+        with self.assertRaisesRegex(ValueError,'cancelled'):self.action(session,'hinge_commit')
+        definition.execute.assert_not_called();self.adapter.create_hinge.assert_not_called()
+
+    def test_cancelled_queued_palette_create_cannot_open_the_legacy_dialog(self):
+        session=self.open_palette();self.action(session,'hinge_preview')
+        self.owner._palette_pending=session;self.owner._opening=True
+        self.owner.cancel_palette()
+        command=native_fakes.Command()
+        self.module._Created(self.owner,False).notify(SimpleNamespace(command=command))
+        self.assertTrue(command.isAutoExecute);self.assertFalse(command.isOKButtonVisible)
+        self.assertEqual(command.commandInputs.items,{})
+        self.adapter.create_hinge.assert_not_called();self.assertFalse(self.owner._cancelled_palette_opening)
+
     def test_begin_picks_directly_without_launching_any_command_or_inputs(self):
         session = self.open_palette()
         self.assertIsNone(session.command)

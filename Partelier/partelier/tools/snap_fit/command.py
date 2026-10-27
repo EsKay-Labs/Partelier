@@ -194,6 +194,7 @@ class SnapCommands:
         session.phase = "selecting"
         session.message = prompt
         self._publish(session)
+        session.ensure_design()
         try:
             selection = adsk.core.Application.get().userInterface.selectEntity(prompt, filters)
         except RuntimeError:
@@ -210,6 +211,20 @@ class SnapCommands:
         session.clear_preview();session.selections.clear();session.edit_target=None;session.edit_error=None
         session.picking_target=None;session.phase='selecting'
         session.message='Selection reset. Pick face A to start again. Dimensions kept.'
+
+    def cancel_palette(self):
+        session=self._session or self._pending
+        self._pending=None
+        if session is None:return
+        pending_work=session.phase!='created'
+        session.cancel_requested=pending_work
+        picking=bool(session.picking_target) and self._busy
+        try:
+            session.close()
+        finally:
+            ui=adsk.core.Application.get().userInterface
+            if pending_work and (picking or ui.activeCommand==COMMIT_COMMAND_ID):
+                ui.terminateActiveCommand()
 
     def palette_action(self, action, session_id, revision=None, settings_dict=None, target=None):
         session = self._session
@@ -236,6 +251,7 @@ class SnapCommands:
                     session.phase = "opening"
                     session.message = "Rebuilding snap-fit…" if session.editing else "Creating snap-fit…"
                     self._publish(session)
+                    if session.closed or getattr(session,'cancel_requested',False):raise ValueError('The snap-fit was cancelled before Create.')
                     self._pending = session
                     definition = self._registration[0]
                     try:
@@ -305,7 +321,7 @@ class _Session:
                 "previewCurrent": self.preview_current}
 
     def ensure_design(self):
-        if self.closed or _active_design() != self.design:
+        if self.closed or getattr(self,'cancel_requested',False) or _active_design() != self.design:
             raise ValueError("The active design changed. Start a new snap-fit session.")
 
     def set_selection(self, key, entity):
@@ -473,6 +489,9 @@ class _Created(adsk.core.CommandCreatedEventHandler):
         command = args.command
         command.isExecutedWhenPreEmpted = False
         command.isRepeatable = False
+        if session is None or session.closed or getattr(session,'cancel_requested',False):
+            command.isAutoExecute=True;command.isOKButtonVisible=False
+            return
         try:
             if session is None or session.closed or self.owner._session is not session:
                 raise ValueError("Start snap-fit creation from the Partelier palette.")
@@ -509,7 +528,7 @@ class _Execute(adsk.core.CommandEventHandler):
         self.session = session
 
     def notify(self, args):
-        if self.session.command is None or self.session.phase != "opening":
+        if self.session.command is None or self.session.phase != "opening" or getattr(self.session,'cancel_requested',False):
             args.executeFailed = True
             args.executeFailedMessage = "The snap-fit transaction did not initialize. Refresh preview to retry."
             return

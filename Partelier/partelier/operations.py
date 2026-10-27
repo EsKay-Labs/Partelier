@@ -281,6 +281,8 @@ class DeleteCommand:
         class Execute(core.CommandEventHandler):
             def notify(self, args):
                 try:
+                    if owner.pending is None:
+                        return
                     design, identity = owner.pending
                     if core.Application.get().activeProduct != design:
                         raise ValueError('Return to the original design before deleting the operation.')
@@ -329,6 +331,12 @@ class DeleteCommand:
         except Exception:
             self.pending = None
             raise
+
+    def cancel_palette(self):
+        self.pending=None
+        self.message='Feature deletion cancelled.'
+        ui=self.core.Application.get().userInterface
+        if ui.activeCommand==self.command_id:ui.terminateActiveCommand()
 
     def stop(self):
         ui = self.core.Application.get().userInterface

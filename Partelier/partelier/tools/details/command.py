@@ -99,6 +99,7 @@ class DetailCommands(lifecycle.PatternCommands):
             'Select support face A.' if target=='face_a' else 'Select support face B on the same body.' if session.settings.kind=='ribs' else 'Select the lid inside face facing A.')
         filters='Features,SolidBodies,Faces' if target=='edit_target' else 'PlanarFaces'
         session.picking_target=target;session.phase='selecting';session.message=prompt;self.publish(session)
+        session.ensure_design()
         try:choice=core.Application.get().userInterface.selectEntity(prompt+' Esc resets all selections.',filters)
         except RuntimeError:choice=None
         session.ensure_design()
@@ -126,7 +127,9 @@ class DetailCommands(lifecycle.PatternCommands):
                 else:
                     if not session.preview_current or session.phase!='preview' or self.runner.busy:raise ValueError('Wait for the current detail preview before Create.')
                     store.validate(session.prepared);session.phase='opening';session.message='Applying the reviewed detail…'
-                    self.publish(session);self._pending=session
+                    self.publish(session)
+                    if session.closed or getattr(session,'cancel_requested',False):raise ValueError('The detail was cancelled before Create.')
+                    self._pending=session
                     if self._registration[0].execute() is False:self._pending=None;raise RuntimeError('Fusion could not open the detail transaction.')
             elif action=='detail_focus':
                 if self.runner.busy:raise ValueError('Wait for preview computation before picking again.')

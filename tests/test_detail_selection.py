@@ -33,6 +33,16 @@ class DetailSelectionTests(unittest.TestCase):
         self.session.validate=lambda:setattr(self.session,'phase','ready' if all(self.session.faces) else 'selecting')
         self.a=NS(isValid=True);self.b=NS(isValid=True)
 
+    def test_close_releases_the_side_picker_and_retires_its_preview(self):
+        picker=NS(stop=Mock())
+        session=NS(closed=False,side_picker=picker,picking_target='lip_sides',phase='selecting',
+                   owner=self.owner,clear_preview=Mock(),faces=(self.a,self.b),revision=0)
+        self.owner._session=session
+        self.module._Session.close(session)
+        self.assertTrue(session.closed);self.assertIsNone(self.owner._session);self.assertIsNone(session.side_picker)
+        picker.stop.assert_called_once_with();self.owner.runner.cancel.assert_called_once_with(session)
+        session.clear_preview.assert_called_once_with();self.assertEqual(session.phase,'cancelled')
+
     def test_face_a_auto_advances_to_b_and_publishes_each_active_step(self):
         self.ui.selectEntity.side_effect=[NS(entity=self.a),NS(entity=self.b)]
         self.owner.pick(self.session,'face_a')

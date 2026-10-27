@@ -93,6 +93,8 @@ class NativePreviewRunner:
     def request(self, tag, compute, completed, failed):
         if self._stopped:
             raise RuntimeError("The hinge preview driver has stopped. Run Partelier again.")
+        if getattr(tag,'closed',False) is True or getattr(tag,'cancel_requested',False) is True:
+            return
         self._start()
         self._retire_invalid_command()
         self._serial += 1

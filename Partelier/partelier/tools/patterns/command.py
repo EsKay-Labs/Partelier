@@ -101,6 +101,23 @@ class PatternCommands:
         self._pending=None
         if errors:raise RuntimeError("Pattern cleanup needs another Stop attempt. "+str(errors[0]))
 
+    def cancel_palette(self):
+        """Close overrides the ordinary busy guard, without uninstalling tools."""
+        session=self._session or self._pending
+        self._pending=None
+        if session is None:return
+        pending_work=session.phase!='created'
+        session.cancel_requested=pending_work
+        picking=bool(session.picking_target) and self._busy
+        command_id=self._registration[0].id if self._registration else None
+        self.runner.cancel(session)
+        try:
+            session.close()
+        finally:
+            ui=core.Application.get().userInterface
+            if pending_work and (picking or ui.activeCommand in (command_id,getattr(self.runner,'_command_id',None))):
+                ui.terminateActiveCommand()
+
     def begin_palette(self,settings_dict,editing=False,selected_entity=None):
         emit('pattern.begin',editing=editing,busy=self.busy,existing_session=self._session is not None,
              active_command=_active_command(),settings=settings_dict)
@@ -180,6 +197,7 @@ class PatternCommands:
                             else 'Select the first face. Use Add faces for more sides. Esc cancels picking.'),'Faces'
         else:raise ValueError("Use the current pattern selection scope.")
         session.picking_target='edit_target' if session.editing else 'body';session.phase='selecting';session.message=prompt;self.publish(session)
+        session.ensure_design()
         faces=[]
         emit('pattern.pick.wait',session_id=session.session_id,target=target,filters=filters,count=len(faces),
              active_command=_active_command())
@@ -241,7 +259,9 @@ class PatternCommands:
                         raise ValueError("Wait for the current pattern preview before creating it.")
                     recipe.validate_preview_sources(session.prepared)
                     session.phase='opening';session.message='Rebuilding pattern…' if session.editing else 'Creating pattern…'
-                    self.publish(session);self._pending=session
+                    self.publish(session)
+                    if session.closed or getattr(session,'cancel_requested',False):raise ValueError('The pattern was cancelled before Create.')
+                    self._pending=session
                     if self._registration[0].execute() is False:
                         self._pending=None;raise RuntimeError("Fusion could not open the pattern transaction.")
             elif action=='pattern_focus':
@@ -291,7 +311,7 @@ class _Session:
                 'suggestedSizeMm':min(sizes) if sizes else None}
 
     def ensure_design(self):
-        if self.closed or _design()!=self.design:raise ValueError("The active design changed. Start a new pattern.")
+        if self.closed or getattr(self,'cancel_requested',False) or _design()!=self.design:raise ValueError("The active design changed. Start a new pattern.")
 
     def set_faces(self,faces):
         self.clear_preview();self.faces=tuple(faces);self.validate()
@@ -465,6 +485,9 @@ class _Created(core.CommandCreatedEventHandler):
         emit('pattern.commit.created',has_pending=self.owner._pending is not None)
         session=self.owner._pending;self.owner._pending=None;command=args.command
         command.isExecutedWhenPreEmpted=False;command.isRepeatable=False
+        if session is None or session.closed or getattr(session,'cancel_requested',False):
+            command.isAutoExecute=True;command.isOKButtonVisible=False
+            return
         try:
             if session is None or session.closed:raise ValueError("Start the pattern from the Partelier palette.")
             session.ensure_design();session.command=command
@@ -485,7 +508,7 @@ class _Created(core.CommandCreatedEventHandler):
 class _Execute(core.CommandEventHandler):
     def __init__(self,session):super().__init__();self.session=session
     def notify(self,args):
-        if self.session.command is None or self.session.phase!='opening':
+        if self.session.command is None or self.session.phase!='opening' or getattr(self.session,'cancel_requested',False):
             args.executeFailed=True;args.executeFailedMessage='The pattern transaction did not initialize.';return
         self.session.execute(args)
 

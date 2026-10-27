@@ -255,6 +255,31 @@ class PatternCommandTests(unittest.TestCase):
         self.module._Created(self.manager).notify(NS(command=command))
         return command
 
+    def test_palette_close_cancels_a_queued_preview_and_late_callback_cannot_draw(self):
+        session=self.begin();self.action(session,'pattern_preview')
+        self.manager.cancel_palette()
+        self.assertTrue(session.closed);self.assertIsNone(self.manager._session)
+        self.manager.runner.finish()
+        self.fusion.preview_pattern.assert_not_called();self.recipe.create_pattern.assert_not_called()
+        self.assertTrue(self.body.isLightBulbOn)
+
+    def test_palette_close_clears_ready_preview_and_pending_commit(self):
+        session=self.begin();self.preview(session);group=session.preview
+        self.action(session,'pattern_commit');self.assertIs(self.manager._pending,session)
+        self.manager.cancel_palette()
+        self.assertIsNone(self.manager._pending);self.assertFalse(group.isValid)
+        self.assertTrue(self.body.isLightBulbOn);self.assertEqual(session.phase,'cancelled')
+        command=self.native_command(session)
+        for handler in command.execute.handlers:handler.notify(NS(executeFailed=False))
+        self.recipe.create_pattern.assert_not_called()
+
+    def test_palette_close_during_opening_push_does_not_launch_create(self):
+        session=self.begin();self.preview(session)
+        self.manager.set_state_callback(lambda state:self.manager.cancel_palette() if state['phase']=='opening' else None)
+        definition=self.manager._registration[0];definition.execute.reset_mock()
+        with self.assertRaisesRegex(ValueError,'cancelled'):self.action(session,'pattern_commit')
+        definition.execute.assert_not_called();self.assertIsNone(self.manager._pending)
+
     def test_truss_preview_message_and_commit_use_the_reviewed_result(self):
         make=self.fusion.prepare_pattern.side_effect
         def prepare(*args):

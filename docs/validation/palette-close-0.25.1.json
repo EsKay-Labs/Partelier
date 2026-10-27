@@ -1,0 +1,33 @@
+{
+  "version": "0.25.1",
+  "python_tests": 1103,
+  "node_ui_suites": 5,
+  "native": {
+    "version": "0.25.1",
+    "success": true,
+    "fusion_version": "2705.1.30",
+    "callback_invoked_programmatically": true,
+    "ready_preview_removed": true,
+    "visibility_restored": true,
+    "created_feature_preserved": true,
+    "old_page_and_close_rejected_after_reopen": true,
+    "queued_preview_not_computed": true,
+    "late_driver_did_not_draw": true,
+    "tool_registered_after_close": true,
+    "caller_unchanged": true
+  },
+  "source_sha256": {
+    "palette.py": "e53eb24a9d75f54ad852b8e49f6f8aa14755f24add366caab89479f07e2304c2",
+    "operations.py": "50ee43583033168c1dc1699f6de76c7678387c9a90d27b52cdb221bd1f54af28",
+    "tools/hinge/command.py": "21acd6043de114f3049f5be3dc11f63ac6d08d32e82698aa2bab2022646a5346",
+    "tools/hinge/native_preview.py": "3006fba299725cdc629d5b1eace7d6f08c26a85de7c269593ed37ac85c991229",
+    "tools/snap_fit/command.py": "30ebb338041aa9e19a4d8dc30401ee44f6419d8b7a0f0d63e56ece5d8f159052",
+    "tools/patterns/command.py": "e29df0eb598eede7b585ee60380eca8157c45caeee8ba5d38c7bd4d25c04e08c",
+    "tools/details/command.py": "33eebbad14670e13dbef9f37d3dc103da8877687a89cf3097826586d6b49c6d3"
+  },
+  "limits": [
+    "Native registered Close callback invoked programmatically, not a manual pointer test of Fusion X.",
+    "An already-running synchronous Fusion geometry call can only be cancelled at its next event boundary.",
+    "Existing created features are preserved; Close does not Undo completed work."
+  ]
+}

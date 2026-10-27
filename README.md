@@ -11,7 +11,11 @@ separate lists; ordinary surface patterns stay together. Edit highlights the
 chosen feature and loads its dimensions for Rebuild. Source-body ownership and
 existing timeline dependency guards remain. See [saved features](docs/selection-history.md).
 
-**Current release: 0.25.0.** Grilles now has Linear bars, Standard grid, Fixed
+**Current release: 0.25.1.** Main palette **Close / X** now cancels previews,
+selection and queued tool actions. Reopening starts a fresh page; completed
+features are kept. See [Close behaviour and checks](docs/palette-close.md).
+
+Grilles 0.25.0 added Linear bars, Standard grid, Fixed
 louvers, Two-way deflection and Four-way diffuser. Directional profiles retain
 the 0–45° tilt control, optional fillets/raised profiles, mounting and saved
 Edit/Delete. A separate [print-in-place louver trial](examples/print-tests/pip-louver/README.md)
