@@ -1,0 +1,143 @@
+{
+  "release": "0.22.0",
+  "date": "2026-10-27",
+  "python_tests": 1052,
+  "node_suites": [
+    "test_palette_ui.cjs",
+    "test_patterns_ui.cjs",
+    "test_snap_fit_ui.cjs",
+    "test_details_ui.cjs"
+  ],
+  "native": {
+    "version": "0.22.0",
+    "fusion_version": "2705.1.30",
+    "cases": [
+      {
+        "style": "truss_warren",
+        "axis": "long",
+        "radius_mm": 0.8,
+        "arc_faces": 21,
+        "material_witnesses": 49,
+        "prepare_and_verify_ms": 67.51
+      },
+      {
+        "style": "truss_warren",
+        "axis": "short",
+        "radius_mm": 0.3,
+        "arc_faces": 21,
+        "material_witnesses": 49,
+        "prepare_and_verify_ms": 39.07
+      },
+      {
+        "style": "truss_pratt",
+        "axis": "long",
+        "radius_mm": 0.8,
+        "arc_faces": 36,
+        "material_witnesses": 84,
+        "prepare_and_verify_ms": 57.28
+      },
+      {
+        "style": "truss_pratt",
+        "axis": "short",
+        "radius_mm": 0.3,
+        "arc_faces": 36,
+        "material_witnesses": 84,
+        "prepare_and_verify_ms": 60.23
+      },
+      {
+        "style": "truss_howe",
+        "axis": "long",
+        "radius_mm": 0.8,
+        "arc_faces": 36,
+        "material_witnesses": 84,
+        "prepare_and_verify_ms": 58.41
+      },
+      {
+        "style": "truss_howe",
+        "axis": "short",
+        "radius_mm": 0.3,
+        "arc_faces": 36,
+        "material_witnesses": 84,
+        "prepare_and_verify_ms": 59.4
+      },
+      {
+        "style": "truss_pratt",
+        "bays": 64,
+        "inclined": false,
+        "radius_mm": 0.5,
+        "arc_faces": 384,
+        "material_witnesses": 896,
+        "prepare_and_verify_ms": 1075.73
+      },
+      {
+        "style": "truss_pratt",
+        "bays": 6,
+        "inclined": true,
+        "radius_mm": 0.5,
+        "arc_faces": 36,
+        "material_witnesses": 84,
+        "prepare_and_verify_ms": 86.26
+      }
+    ],
+    "edits": [
+      {
+        "style": "truss_pratt",
+        "radius_mm": 0.8,
+        "material_witnesses": 84
+      },
+      {
+        "style": "truss_howe",
+        "radius_mm": 1.2,
+        "material_witnesses": 84
+      },
+      {
+        "style": "truss_warren",
+        "radius_mm": 0,
+        "material_witnesses": 0
+      },
+      {
+        "style": "truss_warren",
+        "radius_mm": 1.0,
+        "material_witnesses": 49
+      }
+    ],
+    "success": true,
+    "oversize_refusal": "Junction fillet is too large for the truss windows. Use less than 6.602 mm, reduce Bays or increase the plate size. Your radius was not changed.",
+    "same_body_and_history": true,
+    "preview_cleanup": true,
+    "legacy_read_only_then_rebuild": true,
+    "caller_unchanged": true
+  },
+  "material_witnesses": 1631,
+  "browser": {
+    "checks": [
+      {
+        "width": 320,
+        "trussOnlyControl": true,
+        "defaultSharp": true,
+        "illustratedInsideCornerHelp": true,
+        "noOverflow": true
+      },
+      {
+        "width": 380,
+        "trussOnlyControl": true,
+        "defaultSharp": true,
+        "illustratedInsideCornerHelp": true,
+        "noOverflow": true
+      },
+      {
+        "width": 440,
+        "trussOnlyControl": true,
+        "defaultSharp": true,
+        "illustratedInsideCornerHelp": true,
+        "noOverflow": true
+      }
+    ],
+    "errors": []
+  },
+  "limits": [
+    "Programmatic native selection; manual CEF pointer/orbit not checked",
+    "Rectangular uniform plate, original flat back and thickness",
+    "Physical printing, structural loads, save/reopen not tested"
+  ]
+}

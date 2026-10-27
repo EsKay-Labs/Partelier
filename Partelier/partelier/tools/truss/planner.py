@@ -23,6 +23,7 @@ class Plan:
     bay_span_mm: float
     open_area_mm2: float
     material_area_mm2: float
+    rounded_holes: tuple = ()
 
 
 def _ccw(polygon):
@@ -47,18 +48,18 @@ def _window(triangle,inner,width):
     return polygon
 
 
-def plan(bounds,style,bays,member_mm,frame_mm,axis='long'):
+def plan(bounds,style,bays,member_mm,frame_mm,axis='long',fillet_mm=0):
     if style not in STYLES or axis not in ('long','short'):
         raise ValueError('Choose Warren, Pratt or Howe and a long/short span direction.')
     if type(bays) is not int or not 2<=bays<=MAX_BAYS:
         raise ValueError('Truss Bays must be a whole number from 2 to 64.')
     if style!='truss_warren' and bays%2:
         raise ValueError('Pratt and Howe need an even number of Bays for a symmetric centre.')
-    values=(*bounds,member_mm,frame_mm)
+    values=(*bounds,member_mm,frame_mm,fillet_mm)
     if len(bounds)!=4 or any(isinstance(v,bool) or not isinstance(v,(float,int)) or not math.isfinite(v) for v in values):
         raise ValueError('Truss dimensions must be finite numbers.')
     lo,hi,bottom,top=bounds
-    if hi<=lo or top<=bottom or not .4<=member_mm<=100 or not .5<=frame_mm<=1000:
+    if hi<=lo or top<=bottom or not .4<=member_mm<=100 or not .5<=frame_mm<=1000 or not 0<=fillet_mm<=1000:
         raise ValueError('Use Member width 0.4–100 mm and Frame width 0.5–1000 mm on a positive rectangular region.')
     outer=((lo,bottom),(hi,bottom),(hi,top),(lo,top))
     use_u=(hi-lo>=top-bottom)==(axis=='long')
@@ -90,5 +91,9 @@ def plan(bounds,style,bays,member_mm,frame_mm,axis='long'):
     def mapped(point):return point if use_u else (point[1],point[0])
     holes=tuple(_ccw(mapped(point) for point in hole) for hole in holes)
     members=tuple(tuple(mapped(point) for point in line) for line in members)
-    opened=math.fsum(clipping.area(hole) for hole in holes)
-    return Plan(outer,holes,members,'u' if use_u else 'v',step,opened,clipping.area(outer)-opened)
+    if fillet_mm:
+        from .rounding import window
+        rounded=tuple(window(hole,fillet_mm) for hole in holes)
+    else:rounded=()
+    opened=math.fsum(hole.area_mm2 for hole in rounded) if rounded else math.fsum(clipping.area(hole) for hole in holes)
+    return Plan(outer,holes,members,'u' if use_u else 'v',step,opened,clipping.area(outer)-opened,rounded)

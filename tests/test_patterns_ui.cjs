@@ -2,7 +2,7 @@
 // Exercise all three actual controllers through one native-message fixture.
 const assert = require("node:assert/strict"), fs = require("node:fs"), vm = require("node:vm"), path = require("node:path");
 const ui = path.join(__dirname, "..", "Partelier", "partelier", "ui"), html = fs.readFileSync(path.join(ui, "palette.html"), "utf8");
-const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3, mount_mode: "off", mount_screw: "M4", mount_clearance_mm: .3, mount_head_extra_percent: 10, mount_head_mm: 0, mount_inset_mm: 0, truss_bays: 6, truss_axis: "long" };
+const defaults = { pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3, mount_mode: "off", mount_screw: "M4", mount_clearance_mm: .3, mount_head_extra_percent: 10, mount_head_mm: 0, mount_inset_mm: 0, truss_bays: 6, truss_axis: "long", truss_fillet_mm: 0 };
 const idle = () => ({ sessionId: null, revision: 0, phase: "idle", editing: false, settings: null, selections: {}, message: "" });
 function fixture(options = {}) {
     const ids = new Map();
@@ -92,14 +92,37 @@ function fixture(options = {}) {
     assert.equal(trussUI.$("pattern-border_mm").parentElement.children[0].textContent,"Frame width (mm)");
     assert.equal(trussUI.$("pattern-truss_bays").parentElement.hidden,false);
     assert.equal(trussUI.$("pattern-truss_axis").parentElement.hidden,false);
+    assert.equal(trussUI.$("pattern-truss_fillet_mm").parentElement.hidden,false);
+    assert.equal(trussUI.$("pattern-truss_fillet_mm").value,"0");
+    assert.equal(trussUI.$("pattern-truss_fillet_mm").min,"0");
+    assert.equal(trussUI.$("pattern-truss_fillet_mm").max,"1000");
     assert(trussUI.$("pattern-illustration").innerHTML.includes('data-truss-style="truss_warren"'));
     await trussUI.begin();assert.equal(trussUI.snapshot().settings.truss_bays,6);
     assert.equal(trussUI.$("create-pattern-button").textContent,"Create truss");
-    for(const name of ["pattern","truss_bays","truss_axis","web_mm","border_mm"]) {
+    for(const name of ["pattern","truss_bays","truss_axis","web_mm","border_mm","truss_fillet_mm"]) {
         await trussUI.click("pattern-help-"+name);assert(trussUI.$("pattern-help-title").textContent.length>6);
         assert(trussUI.$("pattern-help-image").innerHTML.includes('data-help-image="truss_'));
         await trussUI.click("pattern-help-close");
     }
+    await trussUI.input("truss_fillet_mm",1.25);
+    assert.equal(trussUI.snapshot().settings.truss_fillet_mm,1.25);
+    assert.equal(Object.keys(trussUI.requests.filter(([a])=>a==="pattern_preview").at(-1)[1].settings).length,26,"fillet preview keeps the complete strict settings snapshot");
+    const beforeInvalidRadius=trussUI.requests.filter(([a])=>a==="pattern_preview").length;
+    for(const value of [-1,"", "Infinity",1000.1]){
+        await trussUI.input("truss_fillet_mm",value);
+        assert.equal(trussUI.$("pattern-settings").checkValidity(),false);
+        assert.equal(trussUI.requests.filter(([a])=>a==="pattern_preview").length,beforeInvalidRadius,"invalid radius is blocked locally");
+    }
+    await trussUI.input("truss_fillet_mm",0);
+    assert.equal(trussUI.$("pattern-settings").checkValidity(),true,"zero is the valid sharp-corner option");
+    trussUI.config.failPreview=true;await trussUI.input("truss_fillet_mm",1000);
+    assert.equal(trussUI.$("pattern-truss_fillet_mm").value,"1000","host refusal must not silently clamp the requested radius");
+    assert.equal(trussUI.$("create-pattern-button").disabled,true);
+    await trussUI.input("truss_fillet_mm",0);
+    await trussUI.click("pattern-help-truss_fillet_mm");
+    assert(trussUI.$("pattern-help-image").innerHTML.includes("Q"),"help contrasts sharp and rounded inside window corners");
+    assert(trussUI.$("pattern-help-description").textContent.includes("προσθέτοντας υλικό"));
+    await trussUI.click("pattern-help-close");
     await trussUI.input("pattern","truss_pratt");await trussUI.input("truss_bays",8);
     assert.equal(trussUI.snapshot().settings.pattern,"truss_pratt");assert.equal(trussUI.snapshot().settings.truss_bays,8);
     await trussUI.input("truss_axis","short");assert.equal(trussUI.snapshot().settings.truss_axis,"short");
@@ -109,6 +132,13 @@ function fixture(options = {}) {
     await trussUI.input("pattern","truss_warren");assert.equal(trussUI.$("pattern-settings").checkValidity(),true);
     await trussUI.click("cancel-pattern-button");await trussUI.select("honeycomb");
     assert.equal(trussUI.$("pattern-truss_bays").parentElement.hidden,true);
+    assert.equal(trussUI.$("pattern-truss_fillet_mm").parentElement.hidden,true);
+    assert.equal(trussUI.$("pattern-truss_fillet_mm").disabled,true);
+    trussUI.config.saved={...defaults,pattern:"truss_howe",web_mm:2,border_mm:3,truss_fillet_mm:2.4};
+    await trussUI.click("edit-pattern-button");
+    assert.equal(trussUI.$("pattern-truss_fillet_mm").value,"2.4","Edit restores the saved radius");
+    assert.equal(trussUI.$("pattern-truss_fillet_mm").parentElement.hidden,false);
+    await trussUI.click("cancel-pattern-button");await trussUI.select("truss");await trussUI.select("honeycomb");
     assert.equal(trussUI.$("pattern-cell_size_mm").parentElement.hidden,false);
     assert.equal(trussUI.$("pattern-rotation_deg").parentElement.hidden,false);
     assert.equal(trussUI.$("pattern-offset_v_mm").parentElement.hidden,false);
@@ -443,9 +473,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.21.1"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.22.0"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.21.1"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.22.0"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.begin();await logged.click("pattern-select-surface");await logged.click("pattern-finish-faces");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.begin();const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));

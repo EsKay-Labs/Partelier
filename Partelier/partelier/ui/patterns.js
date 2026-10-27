@@ -3,8 +3,8 @@
 // One pattern session serves the honeycomb, perforation and texture presets.
 (() => {
     const $ = id => document.getElementById(id);
-    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3, mount_mode: "off", mount_screw: "M4", mount_clearance_mm: .3, mount_head_extra_percent: 10, mount_head_mm: 0, mount_inset_mm: 0, truss_bays: 6, truss_axis: "long" });
-    const presets = { honeycomb: { pattern: "hexagon", mode: "through" }, perforation: { pattern: "circle", mode: "through" }, knurl: { pattern: "diamond", mode: "emboss" }, truss: {pattern:"truss_warren",mode:"through",layout_mode:"fill",web_mm:2,border_mm:3,selection_scope:"faces",rotation_deg:0,offset_u_mm:0,offset_v_mm:0,grille_profile:"flat",mount_mode:"off",truss_bays:6,truss_axis:"long"}, grilles: { pattern: "grille_parallel", mode: "through", layout_mode: "fill", pitch_mm: 7, web_mm: 2, border_mm: 7, edge_mode: "clip", rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0 } };
+    const defaults = Object.freeze({ pattern: "hexagon", mode: "through", pitch_mm: 19.5, web_mm: 7, depth_mm: 1, border_mm: 7, rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0, selection_scope: "faces", layout_mode: "auto", edge_mode: "clip", density: "balanced", size_locked: false, louver_angle_deg: 45, grille_profile: "flat", grille_height_mm: 3, mount_mode: "off", mount_screw: "M4", mount_clearance_mm: .3, mount_head_extra_percent: 10, mount_head_mm: 0, mount_inset_mm: 0, truss_bays: 6, truss_axis: "long", truss_fillet_mm: 0 });
+    const presets = { honeycomb: { pattern: "hexagon", mode: "through" }, perforation: { pattern: "circle", mode: "through" }, knurl: { pattern: "diamond", mode: "emboss" }, truss: {pattern:"truss_warren",mode:"through",layout_mode:"fill",web_mm:2,border_mm:3,selection_scope:"faces",rotation_deg:0,offset_u_mm:0,offset_v_mm:0,grille_profile:"flat",mount_mode:"off",truss_bays:6,truss_axis:"long",truss_fillet_mm:0}, grilles: { pattern: "grille_parallel", mode: "through", layout_mode: "fill", pitch_mm: 7, web_mm: 2, border_mm: 7, edge_mode: "clip", rotation_deg: 0, offset_u_mm: 0, offset_v_mm: 0 } };
     const choices = {
         pattern: [["hexagon", "Hexagons"], ["rounded_hexagon", "Rounded hexagons"], ["elongated_hexagon", "Elongated hexagons"],
             ["triangle", "Triangles · alternating"], ["rounded_triangle", "Rounded triangles"], ["pentagon", "Pentagons"],
@@ -200,6 +200,8 @@
         $("pattern-truss_bays").step=state.settings.pattern==="truss_warren"?"1":"2";
         $("pattern-truss_axis").parentElement.hidden=!isTruss;
         $("pattern-truss_axis").disabled=committing||!isTruss;
+        $("pattern-truss_fillet_mm").parentElement.hidden=!isTruss;
+        $("pattern-truss_fillet_mm").disabled=committing||!isTruss;
         $("pattern-scope-note").hidden = !editing();
         for (const name of ["density", "size_locked"]) {
             const control = $("pattern-"+name); control.parentElement.hidden = state.settings.layout_mode !== "auto";
@@ -418,7 +420,7 @@
         for (const [value, text] of choices[name]) { const option = document.createElement("option"); option.value = value; option.textContent = text; input.append(option); }
         input.value = defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
     }
-    for (const [container, fields] of [["pattern-size-fields", [["truss_bays", "Bays"], ["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Border"], ["depth_mm", "Relief height"], ["louver_angle_deg", "Louver tilt (°)"], ["grille_height_mm", "Height above face (mm)"]]], ["pattern-mount-fields", [["mount_clearance_mm","Hole allowance (mm)"],["mount_head_extra_percent","Head allowance (%)"],["mount_head_mm","Head Ø · 0 = Auto (mm)"],["mount_inset_mm","Edge to centre · 0 = Auto (mm)"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
+    for (const [container, fields] of [["pattern-size-fields", [["truss_bays", "Bays"], ["cell_size_mm", "Cell size"], ["pitch_mm", "Pitch"], ["web_mm", "Minimum gap"], ["border_mm", "Border"], ["truss_fillet_mm", "Junction fillet (mm)"], ["depth_mm", "Relief height"], ["louver_angle_deg", "Louver tilt (°)"], ["grille_height_mm", "Height above face (mm)"]]], ["pattern-mount-fields", [["mount_clearance_mm","Hole allowance (mm)"],["mount_head_extra_percent","Head allowance (%)"],["mount_head_mm","Head Ø · 0 = Auto (mm)"],["mount_inset_mm","Edge to centre · 0 = Auto (mm)"]]], ["pattern-placement-fields", [["rotation_deg", "Rotation (°)"], ["offset_u_mm", "U offset (mm)"], ["offset_v_mm", "V offset (mm)"]]]]) {
         for (const [name, caption] of fields) {
             const item = document.createElement("div"); item.className = "parameter-item";
             const label = document.createElement("label"); label.htmlFor = `pattern-${name}`; label.textContent = caption;
@@ -426,6 +428,7 @@
             if (!signed.has(name)) input.min = "0";
             if (name === "truss_bays") {input.min="2";input.max="64";input.step="1";}
             if (name === "louver_angle_deg") input.max="45";
+            if (name === "truss_fillet_mm") input.max="1000";
             if (name === "grille_height_mm") {input.min="0.2";input.max="20";}
             if (name.startsWith("mount_")) input.max=({mount_clearance_mm:2,mount_head_extra_percent:30,mount_head_mm:40,mount_inset_mm:1000})[name];
             input.value = name === "cell_size_mm" ? defaults.pitch_mm-defaults.web_mm : defaults[name]; item.append(label, input); addHelp(item,name,caption); $(container).append(item);
@@ -455,7 +458,7 @@
         if (input.name === "selection_scope" && editing()) { input.value = state.settings.selection_scope; message("Create a new pattern to change between selected faces and a whole body.", true); return; }
         if (input.id === "pattern-cell_size_mm") { /* Derived locally; the host retains its strict snapshot contract. */ }
         else if (input.type === "number") {
-            const value = Number(input.value), zeroAllowed = ["border_mm","louver_angle_deg","mount_clearance_mm","mount_head_extra_percent","mount_head_mm","mount_inset_mm"].includes(input.name);
+            const value = Number(input.value), zeroAllowed = ["truss_fillet_mm","border_mm","louver_angle_deg","mount_clearance_mm","mount_head_extra_percent","mount_head_mm","mount_inset_mm"].includes(input.name);
             const okay = input.value.trim() !== "" && Number.isFinite(value) && (signed.has(input.name) || (zeroAllowed ? value >= 0 : value > 0));
             if (input.name === "web_mm" && sized && okay && $("pattern-cell_size_mm").checkValidity()) {
                 state.settings.pitch_mm = Number((Number($("pattern-cell_size_mm").value)+value).toFixed(6));
@@ -518,5 +521,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.21.1" }); renderArt(); render();
+    trace("boot", { build:"0.22.0" }); renderArt(); render();
 })();

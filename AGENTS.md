@@ -69,7 +69,7 @@ Edit/Rebuild before adding the other first-release helpers.
 - `Partelier/partelier/tools/truss/`: pure bounded triangular-window planning and
   one-solid Fusion adaptation. Shares the HTML pattern session, plate inspector,
   cached mesh and same-body Cut persistence. See docs/planar-truss.md for scope;
-  shared settings recipe 10 adds truss_bays/truss_axis and reads versions 1–9.
+  shared settings recipe11 adds truss_fillet_mm and reads exact versions1–10.
 - `docs/`: product plan, architecture, development and AI workflow guidance.
 - `.ai/templates/`: manually selected task prompts, not auto-loaded instructions.
 Use docs/architecture.md for module boundaries and docs/development.md for setup
@@ -185,3 +185,8 @@ See docs/fusion-validation.md. Local mocks remain distinct from native evidence.
 - Existing ball_detent is labelled Rounded push-fit. Compact lid preset is explicit-only, not automatic on family selection/Edit. Preserve the21-field snap settings and recipe3.
 - Rounded push-fit accepts coplanar inner or outer sidewalls. Use local arm/nose/engagement free-space checks on both source bodies, plus existing exact root/socket/overlap guards. Whole-body exterior-plane checks remain on hook/torsion. Do not remove walls or create duplicate source bodies to enable an interior mechanism.
 - This is a flexible-arm rounded detent, not a rigid bump fit or force solver. Show inner/outer sidewall diagrams in collapsed Examples; horizontal lid/rim faces belong to locating lip/groove. Native geometry evidence and limits are in docs/snap-fit-design.md and rounded-pushfit-0.21.1.json.
+
+## Truss junction fillets (0.22.0)
+- truss_fillet_mm is a radius, default0 (sharp); exact26-field snapshots, recipe11. Exact recipes1–10 inject0 only in memory and explicit Rebuild saves11. Never silently shrink the radius.
+- Round triangular window corners in2D through the original thickness; add junction material without rounding the outer/cap edges. rounding.py owns exact tangent arc/area planning; rounded_prism.py constructs one healed BRep with analytic arcs/cylinders, no per-corner features/booleans. Radius0 stays on the original planar prism path.
+- Preserve same target body and BaseFeature/Cut history. Tests and scoped native evidence: docs/planar-truss.md and truss-fillet-0.22.0.json. No structural/print-force claims follow from fillets.

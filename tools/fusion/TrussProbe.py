@@ -90,7 +90,7 @@ def run(context):
         history=design.timeline.count;start=time.perf_counter();recipe.create_pattern(design,prepared)
         report['create_ms']=(time.perf_counter()-start)*1000
         target=recipe.read_edit_target(design,body);feature_id=target.record.feature_id
-        assert target.settings==settings and target.record.recipe['version']==2 and target.recipe['version']==10
+        assert target.settings==settings and target.record.recipe['version']==2 and target.recipe['version']==11
         assert design.timeline.count==history+2 and design.rootComponent.bRepBodies.count==1
         changes=[replace(settings,truss_bays=settings.truss_bays+2)] if settings.truss_bays<64 else [replace(settings,web_mm=settings.web_mm+.1)]
         if context.get('edit_cycle'):

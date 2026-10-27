@@ -1,10 +1,10 @@
-# Planar truss — 0.17.0
+# Planar truss — 0.22.0
 
 ## Use
 
 Choose **Patterns > Planar truss**. Select one rectangular face of a uniform solid
 plate, then **Done**. Set the layout, Bays, Member width, Frame width and Span
-direction. Preview shows the actual cut body. **Create truss** confirms it;
+direction and optional Junction fillet. Preview shows the actual cut body. **Create truss** confirms it;
 **Edit existing** loads its saved settings and **Rebuild truss** updates that same
 body. Cancel removes the temporary preview and restores source visibility.
 
@@ -14,11 +14,12 @@ body. Cancel removes the temporary preview and restores source visibility.
 | Bays | Initially 6; Warren accepts 2–64, Pratt/Howe accept even counts 2–64 |
 | Member width | Initially 2 mm, measured perpendicular to each diagonal/post; 0.4–100 mm |
 | Frame width | Initially 3 mm of solid perimeter; 0.5–1000 mm |
+| Junction fillet | Radius in mm at interior window corners; initially0 for sharp corners; the requested radius must fit every window |
 | Span direction | Along long side initially, or along short side; measured in the selected plate |
 | Thickness | Original plate thickness, preserved throughout |
 
 The interface hides unrelated pattern/grille controls and empty advanced groups.
-All five controls have illustrated contextual help. The small drawing follows the
+Controls have illustrated contextual help. The small drawing follows the
 layout/count/direction; it is a schematic, separate from the real Fusion preview.
 
 Warren has one alternating zigzag with no intermediate vertical posts and
@@ -60,11 +61,56 @@ identity, name, visibility, feature ID and history count. The shared store allow
 one owned Pattern/Grille/Truss layout per body; these cannot be independently
 stacked on the same body. Edit uses the original plate before the owned cut.
 
-Shared settings recipe **10** contains 25 fields. Versions 1–9 gain only the
-previously absent `truss_bays=6` and `truss_axis=long` defaults. Exact old schemas
+Shared settings recipe **11** contains26 fields. Versions1–10 gain only the
+previously absent `truss_fillet_mm=0` default; versions1–9 also gain the absent
+`truss_bays=6` and `truss_axis=long` defaults. Exact old schemas
 remain strict; reading an old recipe does not write attributes or alter geometry.
 New truss styles are refused in old recipe versions. Grilles and other pattern
 settings retain their existing dimensions and behaviour.
+
+## Junction fillets (0.22.0)
+
+**Junction fillet (mm)** rounds the three inside corners of every triangular
+opening. It adds material where diagonals/posts meet the frame and each other;
+the nominal member widths away from junctions, outer rectangular silhouette,
+plate thickness and flat back are preserved. It is a through-thickness planar
+fillet, without rounding the top/bottom cap edges or outside perimeter. Zero
+uses the original sharp construction exactly. Saved recipes10 and earlier load
+zero without modifying the existing model; explicit Rebuild saves recipe11.
+
+The pure planner computes tangent endpoints/centres and exact circular-segment
+areas. Equal radius must leave distinct positive straight portions on every
+window edge; too large or numerically collapsed radii are refused before native
+body allocation, with a fit limit and no automatic clamp. The previous valid
+preview remains until suitable inputs are supplied.
+
+The native adapter creates exact Arc3D edges and cylindrical side faces with
+shared cap topology in a **single** healed BRepBodyDefinition. This reuses the
+sharp-window frame/separation proofs because rounded holes are strict subsets.
+There are no polygonal approximations, per-corner fillet features or per-window
+booleans. Exact volume, single solid lump and one outward shell are checked.
+Create/Rebuild still use the same owned cutter BaseFeature + Cut on the original
+body; no extra final bodies or timeline entries are added for fillets.
+
+Actual Fusion result, Warren with0.8mm junction radius:
+
+![Warren with internal junction fillets](validation/images/truss-fillet-0.22.0.png)
+
+1052 Python tests and four Node suites pass. Browser checks at320/380/440px
+verify the truss-only radius control, sharp default, illustrated help and no
+overflow; DOM regressions cover26-field snapshots, Edit restoration and an
+oversized radius retained after refusal. Native Fusion2705.1.30 passes all three
+styles in both directions, a60° inclined plate,384 exact cylindrical fillet faces
+at64bays/128windows, preview cleanup, four style/radius Rebuilds (including zero),
+read-only recipe10 loading followed by upgrade, and oversize refusal. Original
+body/name/visibility/history and caller restoration remain unchanged. Native
+checks inspect arc/cylinder radii, exact volume and1631 material/void witnesses.
+
+The128-window case completed preparation plus independent geometry checks in
+about1.08s on this fixture; this is not a universal preview timing. Native
+selection is programmatic; manual CEF picking/orbit, save/reopen and physical
+printing/load acceptance are not established by these tests. Evidence:
+[truss-fillet-0.22.0.json](validation/truss-fillet-0.22.0.json).
 
 ## Supported geometry and limits
 

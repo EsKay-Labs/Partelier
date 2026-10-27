@@ -74,19 +74,25 @@ class TrussGeometryTests(unittest.TestCase):
     def test_settings_reject_silent_modes_and_allow_member_width_independent_of_pitch(self):
         settings=PatternSettings(pattern='truss_warren',layout_mode='fill',web_mm=2,border_mm=3)
         self.assertEqual(PatternSettings.from_dict(settings.to_dict()),settings)
+        self.assertEqual(settings.truss_fillet_mm,0.0)
+        self.assertEqual(replace(settings,truss_fillet_mm=1.5).truss_fillet_mm,1.5)
+        self.assertEqual(replace(settings,truss_fillet_mm=1000).truss_fillet_mm,1000.0)
         for fields in ({'mode':'emboss'},{'selection_scope':'body'},{'truss_bays':2.5},{'truss_bays':True},
                        {'pattern':'truss_pratt','truss_bays':3},{'rotation_deg':45},{'border_mm':0},
                        {'mount_mode':'plain'},{'grille_profile':'raised'},{'truss_axis':'world_z'}):
             with self.subTest(fields=fields),self.assertRaises(ValueError):replace(settings,**fields)
+        for radius in (-.01,1000.01,True,None,'1',math.nan,math.inf,10**400):
+            with self.subTest(radius=radius),self.assertRaises(ValueError):replace(settings,truss_fillet_mm=radius)
         self.assertEqual(replace(settings,pitch_mm=1).web_mm,2)
 
     def test_legacy_version_nine_adds_only_truss_defaults_without_changing_or_writing_settings(self):
         from Partelier.partelier.tools.patterns import recipe
-        settings=PatternSettings().to_dict();settings.pop('truss_bays');settings.pop('truss_axis')
+        settings=PatternSettings().to_dict();settings.pop('truss_bays');settings.pop('truss_axis');settings.pop('truss_fillet_mm')
         value={'version':9,'tool':'surface_pattern','feature_id':'owned','settings':settings,
                'sources':{'body':'body','faces':['face']}}
         raw=json.dumps(value);parsed,loaded=recipe._parse(raw,N(feature_id='owned'))
         self.assertEqual(parsed,value);self.assertEqual(loaded.truss_bays,6);self.assertEqual(loaded.truss_axis,'long')
+        self.assertEqual(loaded.truss_fillet_mm,0.0)
         self.assertEqual(loaded.border_mm,settings['border_mm'])
         value['settings']['truss_bays']=6
         with self.assertRaises(ValueError):recipe._parse(json.dumps(value),N(feature_id='owned'))
