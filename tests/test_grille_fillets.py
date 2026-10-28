@@ -71,9 +71,10 @@ class GrilleFilletTests(unittest.TestCase):
         self.assertAlmostEqual(prepared.result_body.volume,source.volume-sum(p.area_mm2 for p in profiles)*3/1000)
         self.assertEqual(source.volume,1.2);self.assertEqual(prepared.timings['grid_body_creations'],1)
 
-    def prepare_raised(self,profile='raised',pattern='grille_cross',radius=.4,created=None,angle=20,chamfer=0,height=2):
-        source=N(volume=3.6);chart=Chart();face=object()
-        plate=Plate(face,source,chart,FRAME,((-20,-15),(20,-15),(20,15),(-20,15)),3,(0,0,1))
+    def prepare_raised(self,profile='raised',pattern='grille_cross',radius=.4,created=None,angle=20,chamfer=0,height=2,mounted=False):
+        source=N(volume=3.6);chart=Chart((-50,50,-40,40)) if mounted else Chart();face=object()
+        left,right,bottom,top=chart.bounds
+        plate=Plate(face,source,chart,FRAME,((left,bottom),(right,bottom),(right,top),(left,top)),3,(0,0,1))
         hole=((-4,-2),(4,-2),(4,2),(-4,2));cell=Cell((0.,0.),hole)
         layout=Layout((cell,),7,7,'fill',5)
         native=N(TemporaryBRepManager=N(get=lambda:object()),BooleanTypes=N(UnionBooleanType='union'))
@@ -86,6 +87,10 @@ class GrilleFilletTests(unittest.TestCase):
         def plan(*args):plans.append(args);return original_plan(*args)
         def union(manager,target,tool,operation,message):target.volume+=tool.volume
         settings=self.settings(pattern=pattern,grille_profile=profile,grille_height_mm=height,louver_angle_deg=angle,pattern_fillet_mm=radius,grille_chamfer_mm=chamfer)
+        if mounted:
+            from Partelier.partelier.tools.patterns import mounting
+            settings=replace(settings,mount_mode='countersink')
+            settings=replace(settings,border_mm=mounting.border_for_screw(settings))
         with patch.object(fusion,'_api',return_value=(None,native)),patch.object(raised_grilles,'build_layout',return_value=layout),\
                 patch.object(perforated_prism,'create',side_effect=base) as create,\
                 patch.object(perforated_prism,'create_plan',side_effect=lambda plan:N(volume=plan.volume_mm3/1000)),\
@@ -126,6 +131,18 @@ class GrilleFilletTests(unittest.TestCase):
                     self.assertEqual(lower,clipping.offset_convex(((-20,-15),(20,-15),(20,15),(-20,15)),start+low) if start+low else ((-20,-15),(20,-15),(20,15),(-20,15)))
                 _,_,_,plain=self.prepare_raised('raised',shape,height=height)
                 self.assertEqual(plain[0][1],plain[0][3])
+
+    def test_screw_envelope_is_completely_outside_the_raised_frame_at_every_level(self):
+        from Partelier.partelier.tools.patterns import mounting
+        for profile in ('raised','chamfer'):
+            result,_,_,segments=self.prepare_raised(profile,'grille_louver',mounted=True)
+            band=mounting.frame_inset(result.settings)
+            for args in segments:
+                for contour in (args[1],args[3]):
+                    self.assertGreaterEqual(min(p[0] for p in contour),-50+band-1e-8)
+                    self.assertLessEqual(max(p[0] for p in contour),50-band+1e-8)
+                    self.assertGreaterEqual(min(p[1] for p in contour),-40+band-1e-8)
+                    self.assertLessEqual(max(p[1] for p in contour),40-band+1e-8)
 
     def test_chamfer_size_never_silently_shrinks_or_creates_shapes_before_refusal(self):
         for size in (1,1.5,2):

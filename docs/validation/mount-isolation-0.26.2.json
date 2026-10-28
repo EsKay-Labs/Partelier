@@ -1,0 +1,770 @@
+{
+  "release": "0.26.2",
+  "date": "2026-10-28",
+  "fusion_version": "2705.1.30",
+  "requirement": "Mounting holes must not cut or interrupt grilles or their chamfers.",
+  "local": {
+    "python_unittest": {
+      "passed": 1114
+    },
+    "node_ui_suites": [
+      "palette",
+      "snap_fit",
+      "details",
+      "operations",
+      "patterns"
+    ],
+    "compileall": true,
+    "diff_check": true
+  },
+  "native_cases": {
+    "louver": {
+      "version": "0.26.2",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "mount_raised_geometry_checks": [
+        {
+          "before_mm3": 5159.3751531080015,
+          "after_mm3": 5159.3751531080015,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 6020.91258483067,
+          "after_mm3": 6020.91258483067,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        }
+      ],
+      "prepare_ms": 135.8777999994345,
+      "openings": 7,
+      "timings": {
+        "source_and_plan_ms": 12.820500000088941,
+        "temporary_geometry_ms": 58.893800000078045,
+        "total_ms": 134.35239999671467,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "chamfer_size_mm": 0.5,
+        "chamfer_angle_deg": 45,
+        "frame_ramp_height_mm": 3.0,
+        "frame_ramp_run_mm": 3.0,
+        "frame_base_inset_mm": 13.556000000000001,
+        "frame_top_inset_mm": 16.556,
+        "louver_angle_deg": 45.0,
+        "mounting_ms": 18.68129999638768,
+        "mount_holes": 4,
+        "mount_border_restores": 0,
+        "mount_clearance_cuts": 0,
+        "mount_flat_band_mm": 13.556000000000001,
+        "mount_hole_diameter_mm": 4.3,
+        "mount_head_diameter_mm": 9.856000000000002,
+        "mount_countersink_depth_mm": 2.778000000000001,
+        "mount_inset_mm": 7.428000000000001,
+        "mount_preflight_ms": 17.380599994794466,
+        "mount_border_mm": 21.056,
+        "requested_border_mm": 7.0
+      },
+      "analytic_bevel_angles": {
+        "measured_planes": 32,
+        "min_deg": 44.999999999999936,
+        "max_deg": 45.00000000000014,
+        "full_height_mounting_walls": 0
+      },
+      "frame_ramp_witnesses": {
+        "inside_outside_samples": 24,
+        "full_height_slope_faces": 11,
+        "height_mm": 3.0,
+        "base_inset_mm": 13.556000000000001,
+        "top_inset_mm": 16.556
+      },
+      "analytic_wall_angles": [
+        0.0,
+        45.0
+      ],
+      "mount_bore_and_seat_witnesses": 4,
+      "solid_border_witnesses": 300,
+      "through_opening_witnesses": 0,
+      "cached_preview_draw_cleanup": true,
+      "preview_triangles": 968,
+      "create_ms": 193.7227000016719,
+      "edit_rebuild_ms": 407.73780000017723,
+      "rebuilt_bevel_angles": {
+        "measured_planes": 24,
+        "min_deg": 44.999999999999886,
+        "max_deg": 45.00000000000009,
+        "full_height_mounting_walls": 0
+      },
+      "rebuilt_frame_ramp_witnesses": {
+        "inside_outside_samples": 24,
+        "full_height_slope_faces": 9,
+        "height_mm": 3.4,
+        "base_inset_mm": 13.556000000000001,
+        "top_inset_mm": 16.956
+      },
+      "named_group_edit_delete": true,
+      "delete_restored_source": true,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "pattern": "grille_louver",
+        "profile": "chamfer",
+        "width_mm": 90,
+        "depth_mm": 80,
+        "mount_mode": "countersink",
+        "verify_mount_isolation": true,
+        "history": true,
+        "preview": true
+      }
+    },
+    "parallel-raised": {
+      "version": "0.26.2",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "mount_raised_geometry_checks": [
+        {
+          "before_mm3": 3313.8470160000015,
+          "after_mm3": 3313.8470160000015,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 3755.8406160000022,
+          "after_mm3": 3755.8406160000022,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        }
+      ],
+      "prepare_ms": 94.23120000428753,
+      "openings": 9,
+      "timings": {
+        "source_and_plan_ms": 9.494899997662287,
+        "temporary_geometry_ms": 38.65080000105081,
+        "total_ms": 92.5619000045117,
+        "raised_profile": "raised",
+        "raised_body_creations": 2,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "chamfer_size_mm": 0.0,
+        "chamfer_angle_deg": 0,
+        "frame_ramp_height_mm": 0,
+        "frame_ramp_run_mm": 0,
+        "frame_base_inset_mm": 13.556000000000001,
+        "frame_top_inset_mm": 13.556000000000001,
+        "louver_angle_deg": 0,
+        "mounting_ms": 8.253600004536565,
+        "mount_holes": 4,
+        "mount_border_restores": 0,
+        "mount_clearance_cuts": 0,
+        "mount_flat_band_mm": 13.556000000000001,
+        "mount_hole_diameter_mm": 4.3,
+        "mount_head_diameter_mm": 9.856000000000002,
+        "mount_countersink_depth_mm": 0.0,
+        "mount_inset_mm": 7.428000000000001,
+        "mount_preflight_ms": 10.954000004858244,
+        "mount_border_mm": 14.056000000000001,
+        "requested_border_mm": 7.0
+      },
+      "mount_bore_and_seat_witnesses": 4,
+      "solid_border_witnesses": 300,
+      "through_opening_witnesses": 0,
+      "create_ms": 159.4891999993706,
+      "edit_rebuild_ms": 444.37489999836544,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "width_mm": 90,
+        "depth_mm": 80,
+        "verify_mount_isolation": true,
+        "pattern": "grille_parallel",
+        "profile": "raised",
+        "mount_mode": "plain"
+      }
+    },
+    "cross-chamfer": {
+      "version": "0.26.2",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "mount_raised_geometry_checks": [
+        {
+          "before_mm3": 5441.582990483822,
+          "after_mm3": 5441.582990483822,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 6121.479981416945,
+          "after_mm3": 6121.479981416945,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        }
+      ],
+      "prepare_ms": 2595.1523000039742,
+      "openings": 54,
+      "timings": {
+        "source_and_plan_ms": 223.3157999944524,
+        "temporary_geometry_ms": 1779.4520000024932,
+        "total_ms": 2593.673800001852,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "chamfer_size_mm": 0.5,
+        "chamfer_angle_deg": 45,
+        "frame_ramp_height_mm": 3.0,
+        "frame_ramp_run_mm": 3.0,
+        "frame_base_inset_mm": 13.556000000000001,
+        "frame_top_inset_mm": 16.556,
+        "louver_angle_deg": 0,
+        "mounting_ms": 164.82250000262866,
+        "mount_holes": 4,
+        "mount_border_restores": 0,
+        "mount_clearance_cuts": 0,
+        "mount_flat_band_mm": 13.556000000000001,
+        "mount_hole_diameter_mm": 4.3,
+        "mount_head_diameter_mm": 9.856000000000002,
+        "mount_countersink_depth_mm": 2.778000000000001,
+        "mount_inset_mm": 7.428000000000001,
+        "mount_preflight_ms": 11.646099999779835,
+        "mount_border_mm": 18.056,
+        "requested_border_mm": 7.0
+      },
+      "analytic_bevel_angles": {
+        "measured_planes": 868,
+        "min_deg": 44.99999999999968,
+        "max_deg": 45.00000000000024,
+        "full_height_mounting_walls": 0
+      },
+      "frame_ramp_witnesses": {
+        "inside_outside_samples": 24,
+        "full_height_slope_faces": 4,
+        "height_mm": 3.0,
+        "base_inset_mm": 13.556000000000001,
+        "top_inset_mm": 16.556
+      },
+      "mount_bore_and_seat_witnesses": 4,
+      "solid_border_witnesses": 300,
+      "through_opening_witnesses": 0,
+      "create_ms": 4530.618600001617,
+      "edit_rebuild_ms": 13967.534100003832,
+      "rebuilt_bevel_angles": {
+        "measured_planes": 868,
+        "min_deg": 44.99999999999968,
+        "max_deg": 45.00000000000024,
+        "full_height_mounting_walls": 0
+      },
+      "rebuilt_frame_ramp_witnesses": {
+        "inside_outside_samples": 24,
+        "full_height_slope_faces": 4,
+        "height_mm": 3.4,
+        "base_inset_mm": 13.556000000000003,
+        "top_inset_mm": 16.956000000000003
+      },
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "width_mm": 90,
+        "depth_mm": 80,
+        "verify_mount_isolation": true,
+        "pattern": "grille_cross",
+        "profile": "chamfer",
+        "mount_mode": "countersink",
+        "pattern_fillet_mm": 0.25
+      }
+    },
+    "deflection": {
+      "version": "0.26.2",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "mount_raised_geometry_checks": [
+        {
+          "before_mm3": 5434.9687104413415,
+          "after_mm3": 5434.9687104413415,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 6324.33974216401,
+          "after_mm3": 6324.33974216401,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 4655.580878974669,
+          "after_mm3": 4655.580878974669,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 5331.635646770342,
+          "after_mm3": 5331.635646770342,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 6324.33974216401,
+          "after_mm3": 6324.33974216401,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        }
+      ],
+      "prepare_ms": 116.15750000055414,
+      "openings": 8,
+      "timings": {
+        "source_and_plan_ms": 12.935700004163664,
+        "temporary_geometry_ms": 60.07059999683406,
+        "total_ms": 114.59190000459785,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "chamfer_size_mm": 0.5,
+        "chamfer_angle_deg": 45,
+        "frame_ramp_height_mm": 3.0,
+        "frame_ramp_run_mm": 3.0,
+        "frame_base_inset_mm": 13.556000000000001,
+        "frame_top_inset_mm": 16.556,
+        "louver_angle_deg": 45.0,
+        "mounting_ms": 8.841899994877167,
+        "mount_holes": 4,
+        "mount_border_restores": 0,
+        "mount_clearance_cuts": 0,
+        "mount_flat_band_mm": 13.556000000000001,
+        "mount_hole_diameter_mm": 4.3,
+        "mount_head_diameter_mm": 9.856000000000002,
+        "mount_countersink_depth_mm": 0.0,
+        "mount_inset_mm": 7.428000000000001,
+        "mount_preflight_ms": 10.489300002518576,
+        "mount_border_mm": 21.056,
+        "requested_border_mm": 7.0
+      },
+      "analytic_bevel_angles": {
+        "measured_planes": 36,
+        "min_deg": 44.99999999999988,
+        "max_deg": 45.00000000000014,
+        "full_height_mounting_walls": 0
+      },
+      "frame_ramp_witnesses": {
+        "inside_outside_samples": 24,
+        "full_height_slope_faces": 12,
+        "height_mm": 3.0,
+        "base_inset_mm": 13.556000000000001,
+        "top_inset_mm": 16.556
+      },
+      "analytic_wall_angles": [
+        0.0,
+        45.0
+      ],
+      "directional_aperture_witnesses": 16,
+      "mount_bore_and_seat_witnesses": 4,
+      "solid_border_witnesses": 300,
+      "through_opening_witnesses": 0,
+      "create_ms": 188.00589999591466,
+      "edit_rebuild_ms": 425.87530000309926,
+      "rebuilt_bevel_angles": {
+        "measured_planes": 28,
+        "min_deg": 44.99999999999988,
+        "max_deg": 45.000000000000135,
+        "full_height_mounting_walls": 0
+      },
+      "rebuilt_frame_ramp_witnesses": {
+        "inside_outside_samples": 24,
+        "full_height_slope_faces": 10,
+        "height_mm": 3.4,
+        "base_inset_mm": 13.556000000000001,
+        "top_inset_mm": 16.956
+      },
+      "tilt_edit_cycle": [
+        {
+          "requested": 0,
+          "measured_wall_angles": [
+            0.0
+          ],
+          "bevel_angles": {
+            "measured_planes": 36,
+            "min_deg": 44.999999999999986,
+            "max_deg": 45.00000000000001,
+            "full_height_mounting_walls": 0
+          }
+        },
+        {
+          "requested": 20,
+          "measured_wall_angles": [
+            0.0,
+            20.0
+          ],
+          "bevel_angles": {
+            "measured_planes": 36,
+            "min_deg": 44.999999999999886,
+            "max_deg": 45.000000000000156,
+            "full_height_mounting_walls": 0
+          }
+        },
+        {
+          "requested": 45,
+          "measured_wall_angles": [
+            0.0,
+            45.0
+          ],
+          "bevel_angles": {
+            "measured_planes": 28,
+            "min_deg": 44.99999999999988,
+            "max_deg": 45.000000000000135,
+            "full_height_mounting_walls": 0
+          }
+        }
+      ],
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "width_mm": 90,
+        "depth_mm": 80,
+        "verify_mount_isolation": true,
+        "pattern": "grille_deflection",
+        "profile": "chamfer",
+        "mount_mode": "plain",
+        "tilt_edit_cycle": true
+      }
+    },
+    "diffuser": {
+      "version": "0.26.2",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "mount_raised_geometry_checks": [
+        {
+          "before_mm3": 5227.324751385869,
+          "after_mm3": 5227.324751385869,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 6135.36075024118,
+          "after_mm3": 6135.36075024118,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 5985.248687313041,
+          "after_mm3": 5985.248687313041,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 6223.824836851416,
+          "after_mm3": 6223.824836851416,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 6135.36075024118,
+          "after_mm3": 6135.36075024118,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 6391.570898741727,
+          "after_mm3": 6391.570898741727,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 5872.104822656875,
+          "after_mm3": 5872.104822656875,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        },
+        {
+          "before_mm3": 6135.36075024118,
+          "after_mm3": 6135.36075024118,
+          "removed_raised_mm3": 0.0,
+          "corner_clearance_cuts": 0
+        }
+      ],
+      "prepare_ms": 245.2488999988418,
+      "openings": 12,
+      "timings": {
+        "source_and_plan_ms": 20.56589999847347,
+        "temporary_geometry_ms": 116.2966999982018,
+        "total_ms": 243.20959999749903,
+        "raised_profile": "chamfer",
+        "raised_body_creations": 3,
+        "raised_height_mm": 3.0,
+        "underside_limit_deg": 45,
+        "chamfer_size_mm": 0.5,
+        "chamfer_angle_deg": 45,
+        "frame_ramp_height_mm": 3.0,
+        "frame_ramp_run_mm": 3.0,
+        "frame_base_inset_mm": 13.556000000000001,
+        "frame_top_inset_mm": 16.556,
+        "louver_angle_deg": 45.0,
+        "mounting_ms": 38.93260000040755,
+        "mount_holes": 4,
+        "mount_border_restores": 0,
+        "mount_clearance_cuts": 0,
+        "mount_flat_band_mm": 13.556000000000001,
+        "mount_hole_diameter_mm": 4.3,
+        "mount_head_diameter_mm": 9.856000000000002,
+        "mount_countersink_depth_mm": 2.778000000000001,
+        "mount_inset_mm": 7.428000000000001,
+        "mount_preflight_ms": 12.786300001607742,
+        "mount_border_mm": 21.056,
+        "requested_border_mm": 7.0
+      },
+      "analytic_bevel_angles": {
+        "measured_planes": 52,
+        "min_deg": 44.99999999999988,
+        "max_deg": 45.00000000000009,
+        "full_height_mounting_walls": 0
+      },
+      "frame_ramp_witnesses": {
+        "inside_outside_samples": 24,
+        "full_height_slope_faces": 16,
+        "height_mm": 3.0,
+        "base_inset_mm": 13.556000000000001,
+        "top_inset_mm": 16.556
+      },
+      "analytic_wall_angles": [
+        35.26439,
+        45.0
+      ],
+      "directional_aperture_witnesses": 24,
+      "mount_bore_and_seat_witnesses": 4,
+      "solid_border_witnesses": 300,
+      "through_opening_witnesses": 0,
+      "create_ms": 249.0609000014956,
+      "edit_rebuild_ms": 760.3405999980168,
+      "rebuilt_bevel_angles": {
+        "measured_planes": 52,
+        "min_deg": 44.99999999999995,
+        "max_deg": 45.00000000000009,
+        "full_height_mounting_walls": 0
+      },
+      "rebuilt_frame_ramp_witnesses": {
+        "inside_outside_samples": 24,
+        "full_height_slope_faces": 16,
+        "height_mm": 3.4,
+        "base_inset_mm": 13.556000000000001,
+        "top_inset_mm": 16.956
+      },
+      "chamfer_edit_cycle": [
+        {
+          "requested_mm": 0.25,
+          "actual_mm": 0.25,
+          "bevel_angles": {
+            "measured_planes": 52,
+            "min_deg": 44.9999999999999,
+            "max_deg": 45.00000000000023,
+            "full_height_mounting_walls": 0
+          }
+        },
+        {
+          "requested_mm": 0.7,
+          "actual_mm": 0.7,
+          "bevel_angles": {
+            "measured_planes": 52,
+            "min_deg": 44.99999999999994,
+            "max_deg": 45.00000000000004,
+            "full_height_mounting_walls": 0
+          }
+        },
+        {
+          "requested_mm": 0,
+          "actual_mm": 0.5,
+          "bevel_angles": {
+            "measured_planes": 52,
+            "min_deg": 44.99999999999995,
+            "max_deg": 45.00000000000009,
+            "full_height_mounting_walls": 0
+          }
+        }
+      ],
+      "inset_edit_cycle": [
+        {
+          "requested_mm": 6.628,
+          "actual_mm": 6.628,
+          "border_mm": 21.055999999999997
+        },
+        {
+          "requested_mm": 8.25,
+          "actual_mm": 8.25,
+          "border_mm": 22.677999999999997
+        },
+        {
+          "requested_mm": 0,
+          "actual_mm": 7.428000000000001,
+          "border_mm": 21.856
+        }
+      ],
+      "named_group_edit_delete": true,
+      "delete_restored_source": true,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 3,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "width_mm": 90,
+        "depth_mm": 80,
+        "verify_mount_isolation": true,
+        "pattern": "grille_diffuser",
+        "profile": "chamfer",
+        "mount_mode": "countersink",
+        "inset_edit_cycle": true,
+        "chamfer_edit_cycle": true,
+        "history": true
+      }
+    },
+    "flat": {
+      "version": "0.26.2",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "mount_raised_geometry_checks": [],
+      "prepare_ms": 1661.5994999956456,
+      "openings": 90,
+      "timings": {
+        "source_and_plan_ms": 143.53719999780878,
+        "temporary_geometry_ms": 1403.713700005028,
+        "total_ms": 1659.1696000032243,
+        "wall_checks_ms": 300.65129997819895,
+        "tool_construction_ms": 341.14350003073923,
+        "tool_clip_ms": 182.2412999899825,
+        "result_application_ms": 577.5476000053459,
+        "batch_used": false,
+        "mounting_ms": 67.84260000131326,
+        "mount_holes": 4,
+        "mount_border_restores": 0,
+        "mount_clearance_cuts": 0,
+        "mount_flat_band_mm": 13.556000000000001,
+        "mount_hole_diameter_mm": 4.3,
+        "mount_head_diameter_mm": 9.856000000000002,
+        "mount_countersink_depth_mm": 2.778000000000001,
+        "mount_inset_mm": 7.428000000000001,
+        "mount_preflight_ms": 14.802700003201608,
+        "mount_border_mm": 13.556000000000001,
+        "requested_border_mm": 7.0
+      },
+      "mount_bore_and_seat_witnesses": 4,
+      "solid_border_witnesses": 300,
+      "through_opening_witnesses": 0,
+      "create_ms": 855.5119000011473,
+      "edit_rebuild_ms": 3652.873900005943,
+      "same_body": true,
+      "flat_back": true,
+      "owned_features": 2,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "width_mm": 90,
+        "depth_mm": 80,
+        "verify_mount_isolation": true,
+        "pattern": "grille_cross",
+        "profile": "flat",
+        "mount_mode": "countersink"
+      }
+    },
+    "too-small": {
+      "version": "0.26.2",
+      "fusion_version": "2705.1.30",
+      "success": true,
+      "mount_raised_geometry_checks": [],
+      "expected_refusal": "Mounting border 21.06 mm leaves no grille area. Reduce Border or screw/head size, or use a larger plate.",
+      "model_unchanged_before_cleanup": true,
+      "caller_document_unchanged": true,
+      "discarded_without_saving": true,
+      "requested": {
+        "pattern": "grille_louver",
+        "profile": "chamfer",
+        "width_mm": 40,
+        "depth_mm": 40,
+        "mount_mode": "countersink",
+        "verify_mount_isolation": true,
+        "expect_refusal": "Mounting border"
+      }
+    }
+  },
+  "browser": {
+    "checks": [
+      {
+        "width": 300,
+        "height": 760,
+        "visibleEditableChamfer": true,
+        "screwInsetBesideSize": true,
+        "mountingSummaryRecalculated": true,
+        "illustratedHelp": true,
+        "flatAndOtherToolsHideChamfer": true,
+        "noHorizontalOverflow": true
+      },
+      {
+        "width": 380,
+        "height": 760,
+        "visibleEditableChamfer": true,
+        "screwInsetBesideSize": true,
+        "mountingSummaryRecalculated": true,
+        "illustratedHelp": true,
+        "flatAndOtherToolsHideChamfer": true,
+        "noHorizontalOverflow": true
+      },
+      {
+        "width": 380,
+        "height": 513,
+        "visibleEditableChamfer": true,
+        "screwInsetBesideSize": true,
+        "mountingSummaryRecalculated": true,
+        "illustratedHelp": true,
+        "flatAndOtherToolsHideChamfer": true,
+        "noHorizontalOverflow": true
+      },
+      {
+        "width": 520,
+        "height": 760,
+        "visibleEditableChamfer": true,
+        "screwInsetBesideSize": true,
+        "mountingSummaryRecalculated": true,
+        "illustratedHelp": true,
+        "flatAndOtherToolsHideChamfer": true,
+        "noHorizontalOverflow": true
+      }
+    ],
+    "errors": []
+  },
+  "raised_geometry_preservation": {
+    "pre_post_volume_checks": 19,
+    "maximum_removed_mm3": 0.0,
+    "measurement_starts_mm_above_face": 0.001,
+    "production_mounting_operations": "Difference only: four bores and optional four conical seats; no corner clearances or pad restoration."
+  },
+  "installed": {
+    "version": "0.26.2",
+    "safe_reload_caller_unchanged": true,
+    "width": 380,
+    "docked_height": 513
+  },
+  "source_sha256": {
+    "Partelier/partelier/tools/patterns/settings.py": "9eb5077e201aee42b65d096a192f7e2d5f8d2745802ade00da4e038678f0e08f",
+    "Partelier/partelier/tools/patterns/recipe.py": "b02e7007dcbb95bd3af690f80e3070b101cbc5edb8305caa7d14d4f9ac9a9d66",
+    "Partelier/partelier/tools/patterns/raised_grilles.py": "4b4010c8bc0ded4d41a290a1cf2bc185742fb9ec015a36ff5b55e8cfd43916bc",
+    "Partelier/partelier/tools/patterns/mounting.py": "f904a390809a043220531bbb0385688e08c29a6a6756d492bd473fa1f1795952",
+    "Partelier/partelier/tools/patterns/profile_loft.py": "4b9215f644c2e651c1efb15d730e348bf87a58350f05ce2eb3bb282915bc1658"
+  },
+  "transport_note": "Rounded crossed grid completed after the MCP response deadline; its success/cleanup report was verified before continuing.",
+  "scope": [
+    "Head space and the complete raised footprint are separated before layout; effective aperture border may increase with profile/height/tilt.",
+    "Requested height/opening/rib sizes and explicit screw inset stay exact; insufficient area is refused before aperture construction.",
+    "Native comparison measures the same prepared grille before/after holes; it does not claim enabling mounting retains the unmounted aperture extent.",
+    "Head access, complete M4 bores/seats, Edit cycles, cached preview, source identity/history and grouped Delete verified in scratch documents.",
+    "Headless simulated-host UI evidence does not establish manual CEF picking/orbit or physical printing."
+  ]
+}

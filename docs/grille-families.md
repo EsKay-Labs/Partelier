@@ -1,7 +1,8 @@
 # Fixed grille families
 
-Version0.26.1 slopes the external raised frame through its full Height, including
-mounting recesses. **Rib top bevel** independently finishes the thin fins.
+Version0.26.2 keeps mounting holes in flat space outside the entire raised frame;
+it no longer cuts corner clearances into grilles/chamfers. The external frame
+retains its full-height slope. **Rib top bevel** independently finishes the fins.
 Auto screw centres retain the0.8mm inward shift. **Screw inset** is beside Screw size
 under Advanced → Mounting holes. See [grille controls](grilles.md).
 
@@ -40,11 +41,12 @@ and at most two loft segments; it creates no native feature per aperture or
 corner. The bed-relative side-normal proof still refuses underside slopes beyond
 45°. These are geometry checks, not physical print or airflow guarantees.
 
-The settings snapshot has exactly28 fields. Recipe15 defines the full-height
+The settings snapshot has exactly28 fields. Recipe16 defines independent flat
+mounting space; recipe15 introduced the full-height
 frame transition. Recipe14 added the independent
-rib bevel size; recipe13 first admitted the two new shape enums. Exact versions1–14
+rib bevel size; recipe13 first admitted the two new shape enums. Exact versions1–15
 remain readable without rewriting them; versions1–12 refuse the new enums.
-Explicit Create/Rebuild writes15. Existing source-body ownership is preserved.
+Explicit Create/Rebuild writes16. Existing source-body ownership is preserved.
 
 ## Print-in-place trial
 

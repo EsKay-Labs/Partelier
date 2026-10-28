@@ -6,6 +6,25 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.26.2 mounting outside the intact grille
+
+Seven isolated MCP cases pass on Fusion2705.1.30: five grille styles, a Flat
+regression and an insufficient-area refusal. Mounting now performs bore/seat
+differences only in the flat original plate. Profile-dependent border reservation
+keeps the complete raised footprint outside the head band before layout.
+Nineteen pre/post-mount measurements clip above the face and find zero removed
+raised volume. Combined with difference-only production operations and the
+bounded frame footprint, this checks preservation of the fins, frame and chamfer,
+rather than merely checking that the surviving slopes retain45° angles.
+Head access, bores/seats, tilt/size/inset Edit cycles, cached preview, same-body
+history and grouped Delete pass. Every fixture is discarded and the caller is
+restored. One rounded-grid measurement exceeded the MCP response deadline; its
+completed report confirmed success and cleanup before the next case ran.
+Local checks pass1114 Python tests, five Node suites, compilation and whitespace.
+The browser checks cover300/380/520px and380×513, with the new effective-border
+summary and no corner-block artwork. Release0.26.2 reloads without model changes.
+See [report](validation/mount-isolation-0.26.2.json).
+
 ## 0.26.1 full-height external grille frame
 
 The clarified requirement is a continuous sloped external frame from its root

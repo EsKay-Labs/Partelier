@@ -33,6 +33,11 @@ def mounting_witnesses(adapter,body,settings,width,depth,thickness,timings):
         for y in (-depth/2+inset,depth/2-inset):
             assert not adapter._containment(body,(x+radius-.04,y,.08))
             assert adapter._containment(body,(x+radius+.04,y,.08))
+            if settings.grille_profile!='flat':
+                for angle in (0,math.pi/2,math.pi,3*math.pi/2):
+                    for rise in (.05,settings.grille_height_mm*.8):
+                        assert not adapter._containment(body,(x+(head-.03)*math.cos(angle),
+                            y+(head-.03)*math.sin(angle),thickness+rise)),'Raised material blocks the screw head.'
             if sink:
                 at=thickness-sink/2;edge=(radius+head)/2
                 assert not adapter._containment(body,(x+edge-.04,y,at))
@@ -162,6 +167,28 @@ def run(context):
     original_component=original.activeComponent if original else None
     report={'version':json.loads((root/'Partelier/Partelier.manifest').read_text(encoding='utf-8'))['version'],
         'fusion_version':app.version,'context':context,'success':False}
+    if context.get('verify_mount_isolation'):
+        mounting=importlib.import_module(name+'.tools.patterns.mounting')
+        original_apply=mounting.apply;report['mount_raised_geometry_checks']=[]
+        def checked_apply(prepared,plate,mount):
+            result=original_apply(prepared,plate,mount)
+            if prepared.settings.grille_profile!='flat':
+                prism=importlib.import_module(name+'.tools.patterns.prism').prism
+                slab=prism(plate.frame,plate.outer,.001,prepared.settings.grille_height_mm+.02)
+                manager=native.TemporaryBRepManager.get();volumes=[]
+                for source in (prepared.result_body,result.result_body):
+                    upper=adapter._copy(manager,source)
+                    adapter._boolean(manager,upper,slab,native.BooleanTypes.IntersectionBooleanType,'Could not measure raised geometry.')
+                    volumes.append(float(upper.volume)*1000)
+                # Production mounting now performs Difference operations only.
+                # Equal upper volumes therefore prove it removed no raised
+                # material at all, including fins and the complete chamfer.
+                assert abs(volumes[0]-volumes[1])<1e-6,(volumes,prepared.settings)
+                assert result.timings['mount_clearance_cuts']==0
+                report['mount_raised_geometry_checks'].append({'before_mm3':volumes[0],'after_mm3':volumes[1],
+                    'removed_raised_mm3':volumes[0]-volumes[1],'corner_clearance_cuts':0})
+            return result
+        mounting.apply=checked_apply
     owned=None
     try:
         if app.userInterface.activeCommand not in ('','SelectCommand'):

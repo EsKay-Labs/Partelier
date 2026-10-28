@@ -45,6 +45,28 @@ class MountPlanTests(unittest.TestCase):
         self.assertAlmostEqual(mounting.border_for_screw(replace(self.settings,mount_inset_mm=8)),14.128)
         self.assertEqual(mounting.border_for_screw(replace(self.settings,mount_mode='off')),7)
 
+    def test_raised_profiles_reserve_flat_head_space_before_the_complete_frame(self):
+        for pattern in ('grille_parallel','grille_cross','grille_louver','grille_deflection','grille_diffuser'):
+            for profile in ('raised','chamfer'):
+                settings=replace(self.settings,pattern=pattern,grille_profile=profile,web_mm=2,pitch_mm=7)
+                band=mounting.frame_inset(settings)
+                self.assertAlmostEqual(band,13.556)
+                effective=mounting.border_for_screw(settings)
+                angled=pattern in ('grille_louver','grille_deflection','grille_diffuser')
+                expected=band+(3 if profile=='chamfer' else 0)+(3 if angled else 0)+(1 if profile=='chamfer' else 0)+.5
+                self.assertAlmostEqual(effective,expected)
+                self.assertEqual(mounting.border_for_screw(replace(settings,border_mm=40)),40)
+                self.assertEqual(mounting.border_for_screw(replace(settings,mount_mode='off')),7)
+
+    def test_unsafe_old_corner_clearance_is_rejected_before_copy_or_any_cut(self):
+        from Partelier.partelier.tools.patterns import fusion
+        settings=replace(self.settings,grille_profile='chamfer',border_mm=22)
+        prepared=N(settings=settings,timings={'frame_base_inset_mm':4},result_body=object())
+        native=N(TemporaryBRepManager=N(get=lambda:object()),BooleanTypes=N())
+        with patch.object(fusion,'_api',return_value=(None,native)),patch.object(fusion,'_copy') as copy,patch.object(fusion,'_boolean') as boolean:
+            with self.assertRaisesRegex(ValueError,'flat border'):mounting.apply(prepared,None,self.plan())
+        copy.assert_not_called();boolean.assert_not_called()
+
     def test_dispatch_resolves_border_before_inspection_and_repeat_planning(self):
         from Partelier.partelier.tools.patterns import fusion,flat_plate
         plate=N(outer=((-30,-25),(30,-25),(30,25),(-30,25)),thickness_mm=3)

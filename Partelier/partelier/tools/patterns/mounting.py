@@ -1,4 +1,4 @@
-"""Four optional supported mounting lands and analytic through/countersunk holes.
+"""Four optional holes in a reserved flat band outside the intact grille frame.
 
 Preset head envelopes are from the Böllhoff ISO 10642 catalogue, not a claim
 that every M-size head is identical. Custom measured head diameter is supported.
@@ -17,14 +17,9 @@ AUTO_INSET_EXTRA_MM=.8
 MIN_BARREL_MM=.2
 
 
-def border_for_screw(settings):
-    """Resolve the solid perimeter before generating any repeat or native tool.
-
-    A whole head and its material rim must fit between the outer edge and the
-    first opening. Retain the user's larger minimum; Off adds no restriction.
-    """
-    settings.validate()
-    if settings.mount_mode=='off':return settings.border_mm
+def frame_inset(settings):
+    """Flat mounting band ending outside the complete raised frame footprint."""
+    if settings.mount_mode=='off':return 0.
     nominal,head=SCREWS[settings.mount_screw]
     hole=nominal+settings.mount_clearance_mm
     head=(settings.mount_head_mm or head)*(1+settings.mount_head_extra_percent/100)
@@ -34,7 +29,23 @@ def border_for_screw(settings):
     inset=settings.mount_inset_mm or radius+EDGE_MM+AUTO_INSET_EXTRA_MM
     if inset<radius+EDGE_MM-1e-8:
         raise ValueError(f'Mounting centres need at least {radius+EDGE_MM:.2f} mm from the outside edges. Use 0 for Auto.')
-    return max(settings.border_mm,inset+radius)
+    return inset+radius
+
+
+def border_for_screw(settings):
+    """Reserve flat head space AND the intact frame before aperture planning."""
+    settings.validate()
+    if settings.mount_mode=='off':return settings.border_mm
+    band=frame_inset(settings);extra=0.
+    if settings.grille_profile!='flat':
+        from .grille_styles import ANGLED
+        from .raised_grilles import chamfer_size
+        height=settings.grille_height_mm
+        cap=chamfer_size(replace(settings,border_mm=max(settings.border_mm,band)))
+        shear=math.tan(math.radians(settings.louver_angle_deg)) if settings.pattern in ANGLED else 0.
+        # Whole outer ramp + worst fin lean + bevel mitres + a frame gap.
+        extra=(height if settings.grille_profile=='chamfer' else 0)+height*shear+2*cap+.5
+    return max(settings.border_mm,band+extra)
 
 
 @dataclass(frozen=True)
@@ -83,49 +94,24 @@ def plan(settings,bounds,thickness_mm):
 
 def apply(prepared,plate,mount):
     from . import fusion as a
-    from .prism import prism
     started=time.perf_counter()
     core,native=a._api();manager=native.TemporaryBRepManager.get()
-    result=a._copy(manager,prepared.result_body)
     operations=native.BooleanTypes
+    band=mount.inset_mm+mount.land_radius_mm
+    if (prepared.settings.border_mm+1e-8<band or
+            prepared.settings.grille_profile!='flat' and prepared.timings.get('frame_base_inset_mm',-1)+1e-8<band):
+        raise ValueError('Mounting needs a clear flat border outside the raised frame. Update the preview with the current mounting settings.')
+    result=a._copy(manager,prepared.result_body)
     def tool(center,low,high,first,last=None):
         one=core.Point3D.create(*(v/10 for v in plate.world(*center,low)))
         two=core.Point3D.create(*(v/10 for v in plate.world(*center,high)))
         shape=manager.createCylinderOrCone(one,first/10,two,(first if last is None else last)/10)
         return a._solid(shape,'Fusion could not create a mounting cylinder or countersink.')
     def boolean(target,other,operation):
-        return a._boolean(manager,target,other,operation,'A mounting land or hole disconnected the grille. Increase Border or reduce screw size.')
-    def block(bounds,low,high):
-        lo,hi,bottom,top=bounds
-        return prism(plate.frame,((lo,bottom),(hi,bottom),(hi,top),(lo,top)),low,high)
-    # Full corner blocks avoid the thin crescents left when circular clearances
-    # meet inclined or chamfered fin ends. All material stays inside the plate.
-    restores=0
-    if prepared.settings.border_mm+1e-8<mount.inset_mm+mount.land_radius_mm:
-        for bounds in mount.land_bounds_mm:
-            land=block(bounds,-plate.thickness_mm-.02,.02)
-            boolean(land,plate.body,operations.IntersectionBooleanType)
-            expected=(bounds[1]-bounds[0])*(bounds[3]-bounds[2])*plate.thickness_mm/1000
-            if abs(float(land.volume)-expected)>max(1e-8,expected*1e-7):
-                raise ValueError('The mounting land is not fully supported by the original plate.')
-            boolean(result,land,operations.UnionBooleanType)
-            restores+=1
-    if prepared.settings.grille_profile!='flat':
-        # Seats stay on the original front plane. Clear fins/frame above the
-        # reserved lands so the head can reach that plane from the outside.
-        for bounds in mount.land_bounds_mm:
-            if prepared.settings.grille_profile=='chamfer':
-                # Expanding clearance through the full rise leaves sloped
-                # recess walls, instead of cutting new vertical frame steps.
-                from . import profile_loft
-                lo,hi,bottom,top=bounds
-                loop=((lo,bottom),(hi,bottom),(hi,top),(lo,top))
-                height=prepared.settings.grille_height_mm+.02
-                expanded=tuple((x+(-height if x==lo else height),z+(-height if z==bottom else height)) for x,z in loop)
-                clear=profile_loft.create(plate.frame,loop,(),expanded,(),0,height)
-            else:
-                clear=block(bounds,0,prepared.settings.grille_height_mm+.02)
-            boolean(result,clear,operations.DifferenceBooleanType)
+        return a._boolean(manager,target,other,operation,'A mounting hole disconnected the plate. Increase Border or reduce screw size.')
+    # The layout has already reserved a flat screw band outside the complete
+    # frame. Only the bore and seat remove material; never clear corner blocks
+    # or frustums through the grille, and never rebuild mounting pads afterward.
     radius=mount.hole_diameter_mm/2
     for center in mount.centers_mm:
         before=float(result.volume)
@@ -138,13 +124,9 @@ def apply(prepared,plate,mount):
         if abs(before-float(result.volume)-expected)>max(1e-8,expected*1e-6):
             raise ValueError('A mounting hole did not retain its complete bore and head seat.')
     elapsed=(time.perf_counter()-started)*1000
-    def reserved(point):
-        x,z=plate.local(point)
-        return any(lo-.01<=x<=hi+.01 and bottom-.01<=z<=top+.01 for lo,hi,bottom,top in mount.land_bounds_mm)
-    samples=tuple(sample for sample in prepared.accepted_samples if not reserved(sample['point_mm']))
-    prepared=replace(prepared,result_body=result,accepted_samples=samples,timings={**prepared.timings,
+    prepared=replace(prepared,result_body=result,timings={**prepared.timings,
         'mounting_ms':elapsed,'total_ms':prepared.timings.get('total_ms',0)+elapsed,
-        'mount_holes':4,'mount_border_restores':restores,'mount_hole_diameter_mm':mount.hole_diameter_mm,
+        'mount_holes':4,'mount_border_restores':0,'mount_clearance_cuts':0,'mount_flat_band_mm':band,'mount_hole_diameter_mm':mount.hole_diameter_mm,
         'mount_head_diameter_mm':mount.head_diameter_mm,'mount_countersink_depth_mm':mount.countersink_depth_mm,
         'mount_inset_mm':mount.inset_mm})
     return prepared

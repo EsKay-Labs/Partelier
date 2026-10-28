@@ -120,7 +120,7 @@ class PatternRecipeTests(unittest.TestCase):
             spec.loader.exec_module(self.module)
         self.module.STORE = self.store
         self.module.colour_store=NS(selection_anchor=lambda selected,group:selected,read=Mock(return_value=None),apply=Mock())
-        self.saved = {"version": 15, "tool": "surface_pattern", "feature_id": self.record.feature_id,
+        self.saved = {"version": 16, "tool": "surface_pattern", "feature_id": self.record.feature_id,
                       "settings": self.settings.to_dict(), "sources": deepcopy(self.tokens)}
         self.write_recipe(self.saved)
 
@@ -244,7 +244,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,changed)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],15);self.assertEqual(saved['settings'],changed.to_dict())
+        self.assertEqual(saved['version'],16);self.assertEqual(saved['settings'],changed.to_dict())
         legacy['settings']['grille_chamfer_mm']=0;self.write_recipe(legacy)
         with self.assertRaisesRegex(ValueError,'settings'):self.read()
 
@@ -259,11 +259,24 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,target.settings)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],15);self.assertEqual(saved['settings'],legacy['settings'])
+        self.assertEqual(saved['version'],16);self.assertEqual(saved['settings'],legacy['settings'])
+
+    def test_version_fifteen_mounting_stays_unchanged_until_explicit_flat_band_rebuild(self):
+        legacy=deepcopy(self.saved);legacy['version']=15
+        legacy['settings'].update(pattern='grille_parallel',mode='through',layout_mode='fill',
+            grille_profile='chamfer',mount_mode='countersink',mount_inset_mm=8.25)
+        self.write_recipe(legacy);raw=self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value
+        target=self.read();self.assertEqual(target.settings.to_dict(),legacy['settings'])
+        self.assertEqual(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value,raw)
+        self.assertIn('flat screw band',self.module.edit_notice(target));self.assert_no_persistence()
+        prepared=self.module.prepare_edit_pattern(self.design,target,target.settings)
+        self.module.rebuild_pattern(self.design,target,prepared)
+        saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
+        self.assertEqual(saved['version'],16);self.assertEqual(saved['settings'],legacy['settings'])
 
     def test_recipe_envelope_and_exact_settings_are_strict_on_public_edit_read(self):
         malformed = []
-        for key, value in (("version", True), ("version", 16), ("tool", "snap_fit"), ("feature_id", "another-pattern")):
+        for key, value in (("version", True), ("version", 17), ("tool", "snap_fit"), ("feature_id", "another-pattern")):
             damaged = deepcopy(self.saved)
             damaged[key] = value
             malformed.append(damaged)
@@ -307,7 +320,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,settings)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],15)
+        self.assertEqual(saved['version'],16)
         self.assertEqual(saved['settings']['layout_mode'],'fixed')
         self.assertEqual(saved['settings']['pitch_mm'],legacy['settings']['pitch_mm'])
 
@@ -336,7 +349,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,changed)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],15);self.assertEqual(saved['settings']['truss_fillet_mm'],1.25)
+        self.assertEqual(saved['version'],16);self.assertEqual(saved['settings']['truss_fillet_mm'],1.25)
         self.assertEqual(saved['sources'],legacy['sources'])
 
     def test_every_legacy_schema_injects_only_absent_fields_and_refuses_a_new_fillet_field(self):
@@ -385,7 +398,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,changed)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],15)
+        self.assertEqual(saved['version'],16)
         self.assertEqual(saved['settings']['pattern_fillet_mm'],.75)
         self.assertEqual(saved['settings']['truss_fillet_mm'],2.25)
 
@@ -429,7 +442,7 @@ class PatternRecipeTests(unittest.TestCase):
         prepared=self.module.prepare_edit_pattern(self.design,target,target.settings)
         self.module.rebuild_pattern(self.design,target,prepared)
         saved=json.loads(self.anchor.attributes.itemByName(self.module.GROUP,'recipe').value)
-        self.assertEqual(saved['version'],15)
+        self.assertEqual(saved['version'],16)
         self.assertEqual(saved['settings']['louver_angle_deg'],45)
         for key,value in legacy['settings'].items():self.assertEqual(saved['settings'][key],value)
 

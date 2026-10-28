@@ -139,7 +139,11 @@
         const s=state.settings,heads={M3:6.72,M4:8.96,M5:11.2,M6:13.44};
         if(!grille() || s.mount_mode==="off")return s.border_mm;
         const radius=(s.mount_head_mm || heads[s.mount_screw])*(1+s.mount_head_extra_percent/100)/2+1.2;
-        return Math.max(s.border_mm,(s.mount_inset_mm || radius+1.3)+radius);
+        const band=(s.mount_inset_mm || radius+1.3)+radius;
+        if(s.grille_profile==="flat")return Math.max(s.border_mm,band);
+        const height=s.grille_height_mm,cap=s.grille_profile==="chamfer"?(s.grille_chamfer_mm || Math.min(.6,height/2,s.web_mm/4,Math.max(s.border_mm,band)/4)):0;
+        const shear=["grille_louver","grille_deflection","grille_diffuser"].includes(s.pattern)?Math.tan(s.louver_angle_deg*Math.PI/180):0;
+        return Math.max(s.border_mm,band+(s.grille_profile==="chamfer"?height:0)+height*shear+2*cap+.5);
     }
     function renderArt() { $("pattern-illustration").innerHTML = window.PartelierIllustrations.renderPattern({...state.settings,border_mm:mountingBorder()}); }
     function availability(committing) {
@@ -177,7 +181,7 @@
             const hole=size?.[0]+state.settings.mount_clearance_mm,head=(state.settings.mount_head_mm || size?.[1])*(1+state.settings.mount_head_extra_percent/100);
             const inset=state.settings.mount_inset_mm || head/2+2.5,fmt=value=>Number(value.toFixed(2));
             $("pattern-mount-summary").textContent=Number.isFinite(hole+head+inset)
-                ? `4 corners · Ø${fmt(hole)} mm`+(state.settings.mount_mode==="countersink"?` · 90° seat Ø${fmt(head)} mm · depth ${fmt((head-hole)/2)} mm`:"")+` · centre inset ${fmt(inset)} mm · Border used ${fmt(mountingBorder())} mm (auto for ${state.settings.mount_screw}). Calculated before the pattern preview.`
+                ? `4 corners · Ø${fmt(hole)} mm`+(state.settings.mount_mode==="countersink"?` · 90° seat Ø${fmt(head)} mm · depth ${fmt((head-hole)/2)} mm`:"")+` · centre inset ${fmt(inset)} mm · Border used ${fmt(mountingBorder())} mm (auto for ${state.settings.mount_screw}). Flat screw space is reserved before preview; the grille frame stays continuous.`
                 : "Check the mounting settings.";
         }
         $("pattern-grille_profile").parentElement.hidden=!isGrille;
@@ -533,5 +537,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.26.1" }); renderArt(); render();
+    trace("boot", { build:"0.26.2" }); renderArt(); render();
 })();

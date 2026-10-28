@@ -69,7 +69,7 @@ Edit/Rebuild before adding the other first-release helpers.
 - `Partelier/partelier/tools/truss/`: pure bounded triangular-window planning and
   one-solid Fusion adaptation. Shares the HTML pattern session, plate inspector,
   cached mesh and same-body Cut persistence. See docs/planar-truss.md for scope;
-  shared settings recipe15 retains28 fields and reads exact versions1–14.
+  shared settings recipe16 retains28 fields and reads exact versions1–15.
 - `docs/`: product plan, architecture, development and AI workflow guidance.
 - `.ai/templates/`: manually selected task prompts, not auto-loaded instructions.
 Use docs/architecture.md for module boundaries and docs/development.md for setup
@@ -218,3 +218,9 @@ See docs/fusion-validation.md. Local mocks remain distinct from native evidence.
 - User clarified that Raised + chamfer must slope to the root of the EXTERNAL frame, not just its top edge. This supersedes the external-cap-only0.26.0 behavior. The rim has a continuous45° taper through the whole Height; retain the previous top footprint when possible, widening the root only within the plate. Refuse collisions instead of leaving a vertical wall or changing openings/height.
 - Mounting clearances for this profile expand with elevation through the same rise, leaving sloped recess walls rather than cutting vertical steps into the new rim. Reuse profile_loft's bounded closed-solid path with zero holes; ordinary Raised stays vertical. Keep one source body/history and cached mesh.
 - grille_chamfer_mm controls only the small fin-top bevel, labelled Rib top bevel. It must not control the full-height external slope. Exact28-field recipe15 reads versions1–14 without writes; old chamfer records show the full-height transition notice before explicit Rebuild. See docs/grilles.md and grille-ramp-0.26.1 validation evidence.
+
+## Mounting must preserve the grille (0.26.2)
+- Supersedes corner-block/frustum clearances: mounting may cut ONLY bores/seats in the original flat plate. Never subtract mounting clearance from the raised frame, fins or chamfer, and never restore pads after pattern planning.
+- Reserve the complete flat head band first (inset+head radius+1.2mm rim), then the whole raised frame outside that band. Resolve effective aperture Border before planning: flat band + ramp run + worst fin lean + twice fin bevel +0.5mm frame gap. Keep a larger user minimum. Refuse insufficient area; never reduce requested height/opening/rib sizes to fit screws.
+- All raised frame contours stay inside that flat band boundary at every height. UI summary/help must explain the profile-dependent Border. Keep original28 settings, exact recipe16 with v1–15 read-only compatibility and an explicit old-mounted Rebuild notice.
+- Native validation clips the pre-hole and post-hole shapes above the face and requires equal raised volumes; production mounting performs differences only, so no raised material may be removed. Also check head access, complete bores/seats, same body/history and grouped Delete. See mount-isolation-0.26.2 evidence.

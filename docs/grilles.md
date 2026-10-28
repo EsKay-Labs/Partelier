@@ -34,14 +34,20 @@ selection, preview-after-Done and in-place Create/Edit/Rebuild workflow.
 
 ## Raised profiles for back-to-bed printing
 
-Version 0.26.1 makes the **external frame** in Raised + chamfer slope all the way
+Version 0.26.2 preserves the continuous external frame around mounting holes;
+they now occupy a flat band outside the complete raised frame. No corner blocks,
+frustums, fins or chamfers are cut away for screw access. Height/tilt/profile
+contribute to the effective aperture border before preview. This can require
+more flat space or a larger plate; opening width, rib width and height stay exact.
+
+Version 0.26.1 made the **external frame** in Raised + chamfer slope all the way
 from the selected face to its raised top, with no vertical step below a small
 cap bevel. The sloped transition covers the whole Height. Its horizontal run
 equals that height. The top footprint stays where possible and the root widens
 inside the original plate; a taller frame can move the top inward. Incompatible
 openings/borders fail explicitly rather than silently changing dimensions.
-Mounting recesses also slope through the whole height, avoiding new vertical
-steps around their clearance regions. The plate thickness/flat back stay intact.
+The plate thickness/flat back stay intact. The0.26.1 mounting-recess clearances
+are superseded by the uninterrupted frame and separate flat screw band.
 
 **Rib top bevel (mm)** is separate: it finishes only the thin fins' upper edges,
 not the external frame. Zero uses Auto:
@@ -51,7 +57,7 @@ half Rib width. Geometry that does not fit is refused without shrinking it.
 The fin shear stops at the start of the bevel so it cannot distort its45° angle.
 This changes only the top segment; the main fin still has the selected tilt.
 
-Recipe15 retains the28-field snapshot. Exact versions1–14 remain readable
+Recipe16 retains the28-field snapshot. Exact versions1–15 remain readable
 without changing the saved geometry or metadata. Versions1–13 gain the absent
 rib-bevel field only in memory. An Edit notice explains the new full-height
 frame before explicit Rebuild. The original plate perimeter is not rounded.
@@ -138,6 +144,12 @@ Evidence: [grille-tilt-0.16.1.json](validation/grille-tilt-0.16.1.json).
 
 ## Optional mounting holes
 
+The0.26.2 mounting pass removes no material above the plate face. Native checks
+compare pre-hole/post-hole raised volumes in19 preparations/rebuilds and retain
+the full continuous frame. Seven cases include all five styles, Flat and a
+too-small plate refusal; local checks pass1114 Python tests and five Node suites.
+See [mount-isolation-0.26.2.json](validation/mount-isolation-0.26.2.json).
+
 **Mounting · optional** defaults to Off. Choose **4 plain holes** or **4
 countersunk holes · 90°**, then M3/M4/M5/M6. Hole allowance defaults to **0.3 mm
 added to the diameter**, so M4 creates a 4.3 mm through hole. This is a chosen
@@ -177,6 +189,20 @@ the host resolves the effective solid perimeter from the screw/head envelope:
 
 `border used = max(requested minimum, inset + rim radius)`
 
+That formula still applies to **Flat**. For Raised profiles since0.26.2:
+
+`flat screw band = inset + rim radius`
+
+`profile space = ramp run + Height × tan(tilt) + 2 × rib top bevel + 0.5 mm`
+
+`border used = max(requested minimum, flat screw band + profile space)`
+
+Ramp run is Height for Raised + chamfer, otherwise0; fin lean is0 for the
+nondirectional styles. The actual frame root is at or inside the inner edge
+of the flat band. M4 with default3mm Height/2mm ribs uses18.056mm border for
+chamfered linear bars/grid, or21.056mm for45° directional fins. The flat band
+itself is13.556mm. These reserves precede layout and never cut the completed frame.
+
 This reserves the whole head plus surrounding material inside a continuous
 perimeter, rather than filling only four corners after making a pattern.
 Plain and Countersunk both reserve head access. A custom measured head or explicit
@@ -186,7 +212,7 @@ Switching to a smaller screw recalculates from the original requested minimum,
 so a previous automatic enlargement does not become a permanent user setting.
 No extra toggle or setting is added. Off uses the original requested border.
 
-| Screw | Border with catalogue head, +10%, Auto inset and 7 mm minimum |
+| Screw | Flat profile border with catalogue head, +10%, Auto inset and 7 mm minimum |
 | --- | ---: |
 | M3 | 11.092 mm |
 | M4 (default) | 13.556 mm |
@@ -217,16 +243,12 @@ Evidence: [grille-auto-border-0.16.2.json](validation/grille-auto-border-0.16.2.
 These geometric checks do not prove physical screw fit, strength, printing,
 pointer/orbit behavior, save/reopen or Undo/Redo.
 
-Both mounting modes reserve four solid corner blocks within the original plate,
-with at least 1.2 mm material beyond the selected head envelope. Hole positions
-leave an additional 0.5 mm to the exterior; the blocks reach the exterior corners
-and join a frame with Border >=1 mm. Blocks must be separated from one another.
-The automatic perimeter already contains the original plate material in these
-regions. A fallback for internal narrow-border callers retains corner restoration.
-Raised fins/frame above the blocks are cleared
-to the original front face, so the head has access and a flat seating plane.
-Neither the plate footprint nor its back is enlarged. Four analytic cylinders
-and optional conical seats cut the holes; no feature is created per hole.
+Both mounting modes reserve flat plate material around the head envelope,
+including its1.2mm material rim. The complete raised frame starts farther in.
+There is no corner restoration or raised-clearance fallback. An unsafe stale
+preparation is refused before copying/cutting. Four analytic cylinders and
+optional conical seats cut only the original plate; no feature is created per
+hole. The plate footprint and its back remain unchanged.
 
 Mounting requires one rectangular uniform solid plate face. An excessive minimum
 border, inadequate plate size, invalid inset or excessive countersink depth is

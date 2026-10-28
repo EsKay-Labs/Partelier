@@ -1,9 +1,9 @@
 # Surface patterns
 
-Grilles0.26.1 slopes the external frame through its full height, including
-mounting recesses. **Rib top bevel** (0=Auto) independently finishes the fins;
+Grilles0.26.2 reserves flat mounting space outside the intact raised frame;
+its full-height slope stays continuous. **Rib top bevel** independently finishes the fins;
 Auto screws retain their0.8mm inward shift and accessible **Screw inset**.
-The shared settings have28 fields and recipe15, with exactv1–14 read-only
+The shared settings have28 fields and recipe16, with exactv1–15 read-only
 migration. See [grille controls](grilles.md) for dimensions and validation.
 
 Grilles 0.25.0 adds **Two-way deflection** and **Four-way diffuser**, alongside

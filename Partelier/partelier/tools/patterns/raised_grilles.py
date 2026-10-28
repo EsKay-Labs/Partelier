@@ -92,8 +92,14 @@ def prepare(design,faces,settings,body,signature,tokens,started,*,historical=Fal
     ramp=settings.grille_profile=='chamfer'
     rim_top=max(height,reveal+cap) if ramp else reveal
     rim_base=rim_top-height if ramp else reveal
+    if settings.mount_mode!='off':
+        from .mounting import frame_inset
+        # Keep a continuous frame completely inside the flat screw band.
+        # Mounting may remove bores/seats there, never pieces of this frame.
+        rim_base=max(rim_base,frame_inset(settings))
+        rim_top=rim_base+(height if ramp else 0)
     def section(z,inset=0):
-        distance=rim_base+z if ramp else reveal
+        distance=rim_base+(z if ramp else 0)
         boundary=clipping.offset_convex(outer,distance) if distance else outer
         # Freeze the slat shear at the start of the bevel. Its horizontal
         # offset then equals its rise, making EVERY bevel plane 45° to the bed.
