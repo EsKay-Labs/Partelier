@@ -41,13 +41,14 @@
             }
             groups.push(group);
         };
-        const implemented=new Set(["hinge","snap","lid","alignment","ribs","honeycomb","perforation","knurl","truss","grilles"]);
+        const implemented=new Set(["hinge","snap","lid","alignment","ribs","honeycomb","perforation","knurl","truss","grilles","fan"]);
         for (const [id,label] of categories)append(label,tools.filter(tool=>tool.category===id&&implemented.has(tool.id)));
         $("tool-select").replaceChildren(...groups); $("tool-select").value = state.selected;
         $("tool-count").textContent = `${implemented.size} tools`;
     }
 
     function renderArt() {
+        if(state.selected==='fan'){$("detail-illustration").innerHTML=window.PartelierFanArt?.render(window.PartelierFanData.defaults)||'';return;}
         const canSeparate = ["hinge", "snap", "slider", "pockets", "lid", "alignment"].includes(state.selected);
         if (!canSeparate) state.exploded = false;
         $("detail-illustration").innerHTML = art.render(state.selected, { exploded: state.exploded, length: state.hingeSettings.length_mm, outputMode: state.hingeSettings.output_mode, leafProfile: state.hingeSettings.leaf_profile, screwHoles: state.hingeSettings.screw_holes, chamferEdges: state.hingeSettings.chamfer_edges, filletEdges: state.hingeSettings.fillet_edges, knuckleProfile: state.hingeSettings.knuckle_profile, knuckleCount: state.hingeSettings.knuckle_count, webProfile: state.hingeSettings.web_profile });
@@ -203,7 +204,7 @@
         $("hinge-settings").setAttribute("aria-busy", String(committing));
         const hinge = state.selected === "hinge", valid = $("hinge-settings").checkValidity(), active = !!activeSession();
         window.PartelierHingeActive = active || state.busy;
-        const detailLocked = !!window.PartelierDetails?.isActive() || !!window.PartelierDetails?.isBusy();
+        const detailLocked = !!window.PartelierDetails?.isActive() || !!window.PartelierDetails?.isBusy() || !!window.PartelierFans?.isActive() || !!window.PartelierFans?.isBusy();
         const palette = paletteMode(), ready = !!sessionId() && selectionsReady(), busy = state.busy || state.session?.phase === "opening";
         $("begin-hinge-button").disabled = !hinge || !palette || !valid || busy || active || detailLocked;
         $("begin-hinge-button").textContent = active ? "Geometry selected" : "Select faces & edge";
@@ -252,7 +253,7 @@
         updateActions();
         return true;
     }
-    window.fusionJavaScriptHandler = { handle(action, data) { try { if(window.PartelierOperations?.handle(action,data))return "OK"; if (action === "hinge_state" && applyHingeState(JSON.parse(data))) pushedStateVersion++; else { window.PartelierSnap?.handle(action, data); window.PartelierPatterns?.handle(action, data); window.PartelierDetails?.handle(action, data); } return "OK"; } catch (_) { return "FAILED"; } } };
+    window.fusionJavaScriptHandler = { handle(action, data) { try { if(window.PartelierOperations?.handle(action,data))return "OK"; if (action === "hinge_state" && applyHingeState(JSON.parse(data))) pushedStateVersion++; else { window.PartelierSnap?.handle(action, data); window.PartelierPatterns?.handle(action, data); window.PartelierDetails?.handle(action, data); window.PartelierFans?.handle(action, data); } return "OK"; } catch (_) { return "FAILED"; } } };
 
     function renderFavorite() {
         const favorite = state.favorites.has(state.selected); $("favorite-button").textContent = favorite ? "★" : "☆";
@@ -264,10 +265,12 @@
         const snapTool = tool.id === "snap" && !!window.PartelierSnap;
         const patternTool = !!window.PartelierPatterns?.matches(tool.id);
         const detailTool = !!window.PartelierDetails?.matches(tool.id);
+        const fanTool = !!window.PartelierFans?.matches(tool.id);
+        window.PartelierFans?.select(tool.id);
         window.PartelierDetails?.select(tool.id);
-        $("planned-tool").hidden = tool.id === "hinge" || snapTool || patternTool || detailTool;
-        $("hinge-action-dock").hidden = snapTool || patternTool || detailTool;
-        $("hinge-help").hidden = snapTool || patternTool || detailTool;
+        $("planned-tool").hidden = tool.id === "hinge" || snapTool || patternTool || detailTool || fanTool;
+        $("hinge-action-dock").hidden = snapTool || patternTool || detailTool || fanTool;
+        $("hinge-help").hidden = snapTool || patternTool || detailTool || fanTool;
         window.PartelierSnap?.select(tool.id);
         window.PartelierPatterns?.select(tool.id);
         $("detail-category").textContent = categories.find(([id]) => id === tool.category)[1];
@@ -357,10 +360,12 @@
             const result = await send("ready"); state.connected = true; state.capabilities = new Set(Array.isArray(result.capabilities) ? result.capabilities : []);
             if (!state.dirty && result.hingeDefaults && !result.hingeState?.settings) { state.hingeSettings = { ...hingeDefaults, ...result.hingeDefaults }; syncHingeFields(); }
             $("connection-status").classList.add("connected"); $("connection-status").setAttribute("aria-label","Fusion connected"); $("connection-status").setAttribute("title","Fusion connected"); $("connection-status").replaceChildren(); $("connection-status").append(document.createElement("i"), "Fusion connected");
-            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.26.2";
+            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.27.0";
             if (window.PartelierSnap?.connect(result)) { state.selected = "snap"; renderToolMenu(); renderDetail(); }
             const patternAlias = window.PartelierPatterns?.connect(result);
             if (patternAlias) { state.selected = patternAlias; renderToolMenu(); renderDetail(); }
+            const fanAlias=window.PartelierFans?.connect(result);
+            if(fanAlias){state.selected=fanAlias;renderToolMenu();renderDetail();}
             const detailAlias=window.PartelierDetails?.connect(result);
             if(detailAlias){state.selected=detailAlias;renderToolMenu();renderDetail();}
             updateActions();
@@ -403,10 +408,10 @@
     $("input-check-button").addEventListener("click", async () => { $("input-check-button").disabled = true; try { await send("open_input_check"); $("about-dialog").close(); } catch (error) { $("bridge-message").textContent = error.message; } finally { $("input-check-button").disabled = !state.connected; } });
     document.addEventListener("keydown", event => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); $("tool-select").focus(); } });
     window.PartelierSelectionUI?.register('hinge',{active:()=>!!sessionId()&&state.selected==='hinge',busy:()=>state.busy,reset:()=>runAction(async()=>{cancelPendingUpdate();await sessionAction('hinge_reset');})});
-    window.PartelierPickFromModel=()=>{const key=state.selected==='hinge'?'hinge':state.selected==='snap'?'snap':window.PartelierDetails?.matches(state.selected)?'detail':'pattern';$("edit-"+key+"-button").click();};
+    window.PartelierPickFromModel=()=>{if(state.selected==='fan'){$('fan-edit').click();return;}const key=state.selected==='hinge'?'hinge':state.selected==='snap'?'snap':window.PartelierDetails?.matches(state.selected)?'detail':'pattern';$("edit-"+key+"-button").click();};
     window.PartelierOpenOperation=(response,alias)=>{
         if(response.hingeState)applyHingeState(response.hingeState);
-        window.PartelierSnap?.connect(response);window.PartelierPatterns?.connect(response);window.PartelierDetails?.connect(response);
+        window.PartelierSnap?.connect(response);window.PartelierPatterns?.connect(response);window.PartelierDetails?.connect(response);window.PartelierFans?.connect(response);
         state.selected=alias;renderToolMenu();renderDetail();
         if(sessionId()&&selectionsReady())scheduleUpdate();
     };

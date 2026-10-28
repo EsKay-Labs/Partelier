@@ -5,18 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
     <title>Partelier · CAD details</title>
-    <link rel="stylesheet" href="palette.css?v=0.26.2">
-    <script src="catalog.js?v=0.26.2" defer></script>
-    <script src="illustrations.js?v=0.26.2" defer></script>
-    <script src="pattern-help.js?v=0.26.2" defer></script>
-    <script src="selection-ui.js?v=0.26.2" defer></script>
-    <script src="workspace-flow.js?v=0.26.2" defer></script>
-    <script src="snap.js?v=0.26.2" defer></script>
-    <script src="patterns.js?v=0.26.2" defer></script>
-    <script src="detail-examples.js?v=0.26.2" defer></script>
-    <script src="details.js?v=0.26.2" defer></script>
-    <script src="operations.js?v=0.26.2" defer></script>
-    <script src="palette.js?v=0.26.2" defer></script>
+    <link rel="stylesheet" href="palette.css?v=0.27.0">
+    <script src="catalog.js?v=0.27.0" defer></script>
+    <script src="illustrations.js?v=0.27.0" defer></script>
+    <script src="pattern-help.js?v=0.27.0" defer></script>
+    <script src="selection-ui.js?v=0.27.0" defer></script>
+    <script src="workspace-flow.js?v=0.27.0" defer></script>
+    <script src="snap.js?v=0.27.0" defer></script>
+    <script src="patterns.js?v=0.27.0" defer></script>
+    <script src="detail-examples.js?v=0.27.0" defer></script>
+    <script src="details.js?v=0.27.0" defer></script>
+    <script src="fan-data.js?v=0.27.0" defer></script>
+    <script src="fan-art.js?v=0.27.0" defer></script>
+    <script src="fans.js?v=0.27.0" defer></script>
+    <script src="operations.js?v=0.27.0" defer></script>
+    <script src="palette.js?v=0.27.0" defer></script>
 </head>
 <body>
     <header class="app-header">
@@ -158,6 +161,17 @@
             </form>
             <details class="guide-disclosure" id="detail-examples"><summary>Examples &amp; help</summary><div id="detail-example"></div></details>
         </div>
+        <div id="fan-tool" hidden>
+            <div class="selection-actions"><button id="fan-new" type="button" class="create-button">New fan</button><button id="fan-edit" type="button" class="secondary-button">Edit from model</button></div>
+            <p id="fan-availability" class="helper-copy"></p><p id="fan-message" class="helper-copy" role="status"></p>
+            <form id="fan-settings"><div id="fan-basic-fields" class="parameter-list basic-grid"></div>
+                <details class="guide-disclosure" id="fan-blade-group"><summary>Blade shape &amp; twist</summary><div id="fan-blade-fields" class="parameter-list basic-grid"></div></details>
+                <details class="guide-disclosure" id="fan-hub-group"><summary>Hub &amp; shaft fit</summary><div id="fan-hub-fields" class="parameter-list basic-grid"></div></details>
+                <details class="guide-disclosure" id="fan-frame-group"><summary>Frame &amp; guard</summary><div id="fan-frame-fields" class="parameter-list basic-grid"></div></details>
+            </form>
+            <details class="guide-disclosure"><summary>Optional references</summary><p class="helper-copy">Without a reference: centred at the document origin, along Z. Fit opening places the rotor on a circular edge. A sketch outline controls blade widths.</p><div class="selection-actions"><button id="fan-pick-circle" class="selection-button" type="button">Fit circular opening</button><button id="fan-pick-outline" class="selection-button" type="button">Use sketch outline</button><button id="fan-reset" type="button" class="secondary-button">Reset references</button></div></details>
+            <details class="guide-disclosure"><summary>Examples &amp; help</summary><div id="fan-example" class="parameter-help-illustration"></div><p class="helper-copy">PC presets specify frame sizes and hole spacing. The rotor and shaft interface are original, adjustable geometry. Check motor fit with a hub coupon. Propeller presets use diameter × geometric pitch; airflow, speed, balance and strength require physical validation. Centrifugal blowers are deferred.</p></details>
+        </div>
         <div id="planned-tool"><div id="parameter-list" class="parameter-list"></div><p id="inputs-note" class="helper-copy">Planned tool · creation is not available yet.</p></div>
         <details class="guide-disclosure" id="hinge-help">
             <summary>Help &amp; examples</summary>
@@ -195,8 +209,10 @@
         <p id="detail-status" class="helper-copy">Live preview</p><p id="detail-message" class="helper-copy" role="status"></p>
         <div class="action-buttons"><button id="cancel-detail-button" type="button" class="secondary-button">Cancel</button><button id="retry-detail-button" type="button" class="secondary-button" hidden>Retry preview</button><button id="create-detail-button" type="button" class="create-button">Create detail</button></div>
     </section>
+    <section class="action-dock" id="fan-action-dock" aria-label="Fan actions" hidden><div class="dock-status"><p id="fan-status" class="live-preview-status" role="status"></p><button id="fan-retry" class="secondary-button" type="button">Refresh</button></div><div class="action-buttons"><button id="fan-cancel" type="button" class="secondary-button">Cancel</button><button id="fan-create" type="button" class="create-button">Create fan</button></div></section>
+    <dialog id="fan-help-dialog" class="pattern-help-dialog" aria-labelledby="fan-help-title"><button id="fan-help-close" type="button" class="dialog-close icon-button" aria-label="Close help">×</button><h2 id="fan-help-title"></h2><p id="fan-help-description"></p><div id="fan-help-image" class="parameter-help-illustration"></div></dialog>
     <dialog id="detail-help-dialog" class="pattern-help-dialog" aria-labelledby="detail-help-title"><button id="detail-help-close" type="button" class="dialog-close icon-button" aria-label="Close help">×</button><h2 id="detail-help-title"></h2><p id="detail-help-description"></p><div id="detail-help-image" class="parameter-help-illustration"></div></dialog>
-    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.26.2</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure hinges, snap-fits and surface patterns here, then select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached details become part of your selected bodies. Optional hinge pins and Flat colour material regions add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
+    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.27.0</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure hinges, snap-fits, surface patterns and fan rotors here, then select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached details become part of your selected bodies. Optional hinge pins and Flat colour material regions add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
     <dialog id="pattern-parameter-help" class="pattern-help-dialog" aria-labelledby="pattern-help-title" aria-describedby="pattern-help-description">
         <button id="pattern-help-close" type="button" class="dialog-close icon-button" aria-label="Κλείσιμο βοήθειας" autofocus>×</button>
         <p class="eyebrow">PATTERNS · ΟΔΗΓΟΣ ΡΥΘΜΙΣΗΣ</p>

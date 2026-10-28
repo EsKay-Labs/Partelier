@@ -131,8 +131,8 @@ class PaletteLifecycleTests(unittest.TestCase):
         self.assertEqual(len(current.incomingFromHTML.handlers), 1)
 
     def test_close_cancels_every_tool_and_reopen_rejects_old_page_requests(self):
-        managers=[SimpleNamespace(cancel_palette=Mock()) for _ in range(4)]
-        self.library._hinge_commands,self.library._snap_commands,self.library._pattern_commands,self.library._detail_commands=managers
+        managers=[SimpleNamespace(cancel_palette=Mock()) for _ in range(5)]
+        self.library._hinge_commands,self.library._snap_commands,self.library._pattern_commands,self.library._detail_commands,self.library._fan_commands=managers
         self.library.show();old=self.library._palette;old_html=self.library._html_handler;closed=self.library._close_handler
         self.assertEqual(len(old.closed.handlers),1)
         closed.notify(None)
@@ -530,6 +530,22 @@ class PaletteLifecycleTests(unittest.TestCase):
         self.assertIn('detail-palette',reply['capabilities']);self.assertIn('detail-edit',reply['capabilities'])
         self.assertEqual(len(reply['detailDefaults']),21)
         values=manager.begin_palette.call_args.args[0];self.assertEqual(values['kind'],'ribs');self.assertEqual(values['rib_count'],3)
+
+    def test_fan_begin_routes_defaults_and_excludes_other_active_tools(self):
+        state={'sessionId':None,'phase':'idle','revision':0,'settings':None}
+        manager=SimpleNamespace(set_state_callback=Mock(),begin_palette=Mock(return_value=state),palette_action=Mock(return_value=state),palette_state=Mock(return_value=state),busy=False)
+        self.library._fan_commands=manager
+        payload=json.dumps({'protocol':1,'requestId':'fan-test','settings':{'style':'slim'},'editing':False})
+        reply=json.loads(self.library.handle_message('fan_begin',payload))
+        self.assertIn('fan-palette',reply['capabilities']);self.assertIn('fan-edit',reply['capabilities'])
+        self.assertEqual(len(reply['fanDefaults']),40)
+        self.assertEqual(manager.begin_palette.call_args.args[0]['style'],'slim')
+        manager.palette_state.return_value={**state,'sessionId':'active-fan','phase':'preview'}
+        with self.assertRaisesRegex(ValueError,'fan'):
+            self.library.handle_message('detail_begin',json.dumps({'protocol':1,'requestId':'details','settings':{},'editing':False}))
+        manager.palette_state.return_value=state
+        self.library._hinge_commands=SimpleNamespace(set_state_callback=Mock(),begin_palette=Mock(),palette_action=Mock(),palette_state=Mock(return_value={'sessionId':'hinge','phase':'preview'}),busy=False)
+        with self.assertRaisesRegex(ValueError,'hinge'):self.library.handle_message('fan_begin',payload)
 
     def test_detail_and_existing_tool_owners_are_mutually_exclusive(self):
         manager=self.detail_manager({'sessionId':'active-detail','phase':'preview','revision':0,'settings':None})

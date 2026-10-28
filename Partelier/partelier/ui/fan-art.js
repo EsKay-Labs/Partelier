@@ -1,0 +1,9 @@
+"use strict";
+// Original explanatory diagrams; never presented as the Fusion CAD preview.
+window.PartelierFanArt = Object.freeze({render(s,field="style"){
+ const prop=s.style.startsWith("prop"),n=Math.min(16,s.blade_count),ring=s.style==="ring",frame=s.output.startsWith("rotor_");
+ const blades=Array.from({length:n},(_,i)=>`<path transform="rotate(${360*i/n} 150 114)" d="M166 103C188 76 220 61 240 89Q252 109 224 116L170 129Z" fill="#9bb7d7" stroke="#375e88" stroke-width="1.5"/>`).join("");
+ const side=/angle|pitch|thickness|camber|fillet|round|height|depth|clearance/.test(field);
+ const body=side?`<path d="M35 136Q100 87 262 65L271 76Q130 103 42 146Z" fill="#9bb7d7" stroke="#375e88" stroke-width="2"/><path d="M30 158H280M48 153V174M264 153V174" fill="none" stroke="#8194a9"/><path d="M104 129L203 90" stroke="#d1642c" stroke-width="3"/><text x="150" y="36" text-anchor="middle" fill="#375e88" font-size="12">Blade section / side view · schematic</text>`:`${frame?'<rect x="29" y="8" width="242" height="212" rx="9" fill="#e3eaf3" stroke="#71869f"/><circle cx="150" cy="114" r="100" fill="#f8fafc" stroke="#71869f"/>':''}${ring?'<circle cx="150" cy="114" r="95" stroke="#375e88" stroke-width="7" fill="none"/>':''}${blades}<circle cx="150" cy="114" r="26" fill="#c7d5e5" stroke="#375e88" stroke-width="2"/><circle cx="150" cy="114" r="6" fill="white" stroke="#375e88"/><path d="M53 217H247" stroke="#d1642c" stroke-width="2"/><path d="M53 211V223M247 211V223" stroke="#d1642c"/><text x="150" y="237" text-anchor="middle" fill="#375e88" font-size="12">${prop?'Air propeller':'Fan rotor'} · Ø${s.diameter_mm} mm · ${n} blades</text>`;
+ return `<svg viewBox="0 0 300 250" role="img" aria-label="${side?'Blade section':'Fan top view'} explanatory diagram">${body}</svg>`;
+}});

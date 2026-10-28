@@ -5,7 +5,7 @@
  const section=alias=>["honeycomb","perforation","knurl"].includes(alias)?"surface":alias;
  let sequence=0,busy=false,deleting=false,connected=false,items=[],confirmation=null;
  let selected=$("tool-select").value,editingId=null,timer,rendered,listVersion=0,refreshQueued=false;
- const locked=()=>!!window.PartelierHingeActive||!!window.PartelierSnap?.isActive()||!!window.PartelierSnap?.isBusy()||!!window.PartelierPatterns?.isActive()||!!window.PartelierPatterns?.isBusy()||!!window.PartelierDetails?.isActive()||!!window.PartelierDetails?.isBusy();
+ const locked=()=>!!window.PartelierFans?.isActive()||!!window.PartelierFans?.isBusy()||!!window.PartelierHingeActive||!!window.PartelierSnap?.isActive()||!!window.PartelierSnap?.isBusy()||!!window.PartelierPatterns?.isActive()||!!window.PartelierPatterns?.isBusy()||!!window.PartelierDetails?.isActive()||!!window.PartelierDetails?.isBusy();
  const unavailable=()=>busy||deleting||locked();
  function message(text,error=false){
   for(const id of ["operations-message","section-features-message"]){const node=$(id);node.textContent=text;node.classList.toggle("is-error",error);node.hidden=!text;}

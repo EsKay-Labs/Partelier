@@ -20,7 +20,7 @@ def prepare(prepared):
         timings={**prepared.timings,'display_capture_ms':(time.perf_counter()-started)*1000})
 
 
-def capture(design,body,checkpoint=None):
+def capture(design,body,checkpoint=None,*,coarse=False):
     """Caller owns rollback. Export exactly one owned copy, then remove it."""
     hinge._require_main_thread()
     _,native=hinge._api()
@@ -45,6 +45,7 @@ def capture(design,body,checkpoint=None):
         if feature.bodies.count!=1:raise ValueError('Display scratch geometry must contain exactly one solid.')
         managed=feature.bodies.item(0)
         if managed.isTemporary:raise ValueError('Display export requires a document-owned solid.')
+        managed.isLightBulbOn=True
         with tempfile.TemporaryDirectory(prefix='partelier-display-') as folder:
             path=Path(folder)/'preview.stl'
             stage('options.create')
@@ -54,14 +55,15 @@ def capture(design,body,checkpoint=None):
             stage('options.binary');options.isBinaryFormat=True
             stage('options.units');options.unitType=native.DistanceUnits.CentimeterDistanceUnits
             stage('options.utility');options.sendToPrintUtility=False
-            stage('options.quality');options.meshRefinement=native.MeshRefinementSettings.MeshRefinementMedium
+            stage('options.quality');options.meshRefinement=(native.MeshRefinementSettings.MeshRefinementLow if coarse else native.MeshRefinementSettings.MeshRefinementMedium)
             stage('export.execute')
             if exporter.execute(options) is False:raise ValueError('Fusion could not export preview triangles.')
             stage('export.finished')
             # Release export/body wrappers while their native owner still exists.
             options=None;managed=None;exporter=None
-            if not path.is_file() or path.stat().st_size>84+50*MAX_TRIANGLES:
-                raise ValueError('The preview export is missing or exceeds its display budget.')
+            if not path.is_file():raise ValueError('Fusion did not write the preview export.')
+            if path.stat().st_size>84+50*MAX_TRIANGLES:
+                raise ValueError('The preview export exceeds its display budget.')
             data=read_binary_stl(path.read_bytes())
             stage('arrays.ready')
             return data

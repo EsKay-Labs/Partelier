@@ -56,6 +56,17 @@ class ExportDisplayTests(unittest.TestCase):
         feature.deleteMe.assert_called_once_with()
         self.assertFalse(state.path.parent.exists())
 
+    def test_opt_in_coarse_fan_mesh_preserves_default_pattern_quality(self):
+        design,feature,state,native=self.fixture()
+        native.MeshRefinementSettings.MeshRefinementLow='low'
+        execute=design.exportManager.execute
+        def coarse(option):
+            self.assertEqual(option.meshRefinement,'low')
+            return execute(option)
+        design.exportManager.execute=coarse
+        with patch.object(display.hinge,'_api',return_value=(None,native)):
+            self.assertEqual(display.capture(design,object(),coarse=True).triangle_count,1)
+
     def test_export_route_cannot_access_the_failed_mesh_calculator_api(self):
         root=Path(__file__).parents[1]
         for relative in ('Partelier/partelier/tools/patterns/display_export.py',

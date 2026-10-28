@@ -6,6 +6,31 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.27.0 Fans & Propellers
+
+The seven approved A–G families pass isolated native solid construction on
+Fusion 2705.1.30. Eight additional cases cover all four PC families at40mm,
+a140mm rotor/frame/guard mesh, CW handedness, a D-shaft/set-screw hub coupon and
+a254mm four-blade propeller. Prepared output is a positive-volume single-lump
+solid per body; scratch history and bodies are removed.
+
+Native persistence checks pass same-body Rebuild with name and visibility
+preservation, optional frame/guard addition/removal, exact operation Delete with
+an unrelated body preserved, circular placement and a sketch planform. The full
+compute-preview → Create → Edit → Rebuild → queued-cancel lifecycle passes in a
+disposable document. Installed0.27.0 also passes HTML message routing, opaque
+preview and Cancel cleanup. Every completed fixture restores its caller.
+
+Local checks pass1129 Python tests and six Node suites. A headless Edge check
+covers the real HTML page, preset/custom values, illustrated help and300/380/520px
+widths at513px height. Native PC120 preview contains58,280 triangles. A native
+cached shaft edit measured about0.14s for geometry; this excludes mesh capture
+and UI delivery, and is not a general timing guarantee.
+
+No physical print, safe operating speed, balance, strength, cooling/thrust/noise,
+save/reopen or Undo/Redo claim follows from these checks. See the
+[feature guide](fans-and-propellers.md) and [report](validation/fans-0.27.0.json).
+
 ## 0.26.2 mounting outside the intact grille
 
 Seven isolated MCP cases pass on Fusion2705.1.30: five grille styles, a Flat

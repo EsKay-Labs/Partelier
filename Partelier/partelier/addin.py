@@ -14,6 +14,7 @@ from .tools.hinge.command import HingeCommands
 from .tools.snap_fit.command import SnapCommands
 from .tools.patterns.command import PatternCommands
 from .tools.details.command import DetailCommands
+from .tools.fans.command import FanCommands
 from . import diagnostics
 
 
@@ -29,6 +30,7 @@ _hinge_commands = None
 _snap_commands = None
 _pattern_commands = None
 _detail_commands = None
+_fan_commands = None
 
 
 def report_error(summary):
@@ -59,7 +61,7 @@ def report_error(summary):
 
 def start():
     """Register owned commands once and show the HTML tool library on Run."""
-    global _created_handler, _hinge_commands, _snap_commands, _pattern_commands, _detail_commands
+    global _created_handler, _hinge_commands, _snap_commands, _pattern_commands, _detail_commands, _fan_commands
     version=json.loads((Path(__file__).resolve().parent.parent/'Partelier.manifest').read_text(encoding='utf-8'))['version']
     diagnostics.start(version)
     if _created_handler is not None:
@@ -90,9 +92,11 @@ def start():
         _pattern_commands.start()
         _detail_commands=DetailCommands(report_error=report_error)
         _detail_commands.start()
+        _fan_commands=FanCommands(report_error=report_error)
+        _fan_commands.start()
         _tool_library.start(
             WORKSPACE_ID, PANEL_ID, COMMAND_ID, report_error,
-            hinge_commands=_hinge_commands, snap_commands=_snap_commands, pattern_commands=_pattern_commands, detail_commands=_detail_commands,
+            hinge_commands=_hinge_commands, snap_commands=_snap_commands, pattern_commands=_pattern_commands, detail_commands=_detail_commands, fan_commands=_fan_commands,
         )
         _tool_library.show()
         diagnostics.emit('addin.ready',version=version,loaded_addin=__file__)
@@ -103,7 +107,7 @@ def start():
 
 def stop():
     """Remove only this add-in's command, controls, and retained handlers."""
-    global _created_handler, _hinge_commands, _snap_commands, _pattern_commands, _detail_commands
+    global _created_handler, _hinge_commands, _snap_commands, _pattern_commands, _detail_commands, _fan_commands
     diagnostics.emit('addin.stop.begin')
     app = adsk.core.Application.get()
     ui = app.userInterface
@@ -127,6 +131,7 @@ def stop():
         if _pattern_commands is not None:
             attempt(_pattern_commands.stop)
         if _detail_commands is not None:attempt(_detail_commands.stop)
+        if _fan_commands is not None:attempt(_fan_commands.stop)
         workspace = attempt(lambda: ui.workspaces.itemById(WORKSPACE_ID))
         panel = attempt(lambda: workspace.toolbarPanels.itemById(PANEL_ID)) if workspace else None
         control = attempt(lambda: panel.controls.itemById(COMMAND_ID)) if panel else None
@@ -143,6 +148,7 @@ def stop():
         _snap_commands = None
         _pattern_commands = None
         _detail_commands = None
+        _fan_commands = None
         _sessions.clear()
     for error in errors:
         app.log(f"Partelier shutdown cleanup failed:\n{error}")

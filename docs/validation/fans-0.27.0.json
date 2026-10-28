@@ -1,0 +1,365 @@
+{
+  "version": "0.27.0",
+  "date": "2026-10-28",
+  "fusion_version": "2705.1.30",
+  "status": "passed",
+  "local": {
+    "python_tests": 1129,
+    "node_suites": 6,
+    "compilation": true,
+    "ui": {
+      "success": true,
+      "dimensions": [
+        {
+          "width": 300,
+          "overflow": 0
+        },
+        {
+          "width": 380,
+          "overflow": 0
+        },
+        {
+          "width": 520,
+          "overflow": 0
+        }
+      ],
+      "requests": [
+        "ready",
+        "operations_list",
+        "fan_begin",
+        "diagnostic_log",
+        "operations_list",
+        "fan_preview",
+        "fan_preview",
+        "fan_preview",
+        "fan_commit"
+      ],
+      "errors": []
+    },
+    "preset_planning_cases": 36
+  },
+  "native_families": [
+    {
+      "params": {
+        "style": "axial",
+        "size": "pc120"
+      },
+      "geometry_ms": 4148.378600002616,
+      "timings": {
+        "blade_loft_ms": 402.08980000170413,
+        "prototype_finish_ms": 746.2587999980315,
+        "prototype_volume_ms": 276.0201999990386,
+        "repeat_ms": 2352.226499999233,
+        "result_volume_ms": 0.1396000006934628,
+        "prepare_ms": 3947.083899998688,
+        "prototype_blades": 1,
+        "blade_count": 7,
+        "bodies": 1,
+        "sector_gap_deg": 15.181074774245936
+      },
+      "bodies": 1,
+      "snapshot_cleanup": true,
+      "caller_restored": true
+    },
+    {
+      "params": {
+        "style": "wide",
+        "size": "pc120",
+        "report": "wide.json",
+        "image": "wide.png"
+      },
+      "geometry_ms": 2295.6922000012128,
+      "timings": {
+        "blade_loft_ms": 109.71330000029411,
+        "prototype_finish_ms": 210.7927999968524,
+        "prototype_volume_ms": 137.13029999780701,
+        "repeat_ms": 1649.0445999952499,
+        "result_volume_ms": 0.059300000430084765,
+        "prepare_ms": 2232.0074000017485,
+        "prototype_blades": 1,
+        "blade_count": 9,
+        "bodies": 1,
+        "sector_gap_deg": 5.7848486620949515
+      },
+      "bodies": 1,
+      "snapshot_cleanup": true,
+      "caller_restored": true
+    },
+    {
+      "params": {
+        "style": "slim",
+        "size": "pc120",
+        "settings": {
+          "output": "rotor_guard"
+        },
+        "report": "slim.json",
+        "image": "slim.png"
+      },
+      "geometry_ms": 1339.078299999528,
+      "timings": {
+        "blade_loft_ms": 96.82489999977406,
+        "prototype_finish_ms": 193.5998999979347,
+        "prototype_volume_ms": 40.80709999834653,
+        "repeat_ms": 823.1130999993184,
+        "result_volume_ms": 0.061400001868605614,
+        "prepare_ms": 1275.256900000386,
+        "prototype_blades": 1,
+        "blade_count": 9,
+        "bodies": 3,
+        "sector_gap_deg": 5.445356466513417
+      },
+      "bodies": 3,
+      "snapshot_cleanup": true,
+      "caller_restored": true
+    },
+    {
+      "params": {
+        "style": "ring",
+        "size": "pc120",
+        "settings": {
+          "shaft_shape": "d",
+          "set_screw_diameter_mm": 3
+        },
+        "report": "ring.json",
+        "image": "ring.png"
+      },
+      "geometry_ms": 1549.9450999996043,
+      "timings": {
+        "blade_loft_ms": 84.46079999703215,
+        "prototype_finish_ms": 186.9492999976501,
+        "prototype_volume_ms": 89.23710000090068,
+        "repeat_ms": 792.7335999993375,
+        "result_volume_ms": 0.08030000026337802,
+        "prepare_ms": 1488.3625000002212,
+        "prototype_blades": 1,
+        "blade_count": 7,
+        "bodies": 1,
+        "sector_gap_deg": 15.181074774245936
+      },
+      "bodies": 1,
+      "snapshot_cleanup": true,
+      "caller_restored": true
+    },
+    {
+      "params": {
+        "style": "prop2",
+        "size": "prop5030",
+        "report": "prop2.json",
+        "image": "prop2.png"
+      },
+      "geometry_ms": 480.89140000229236,
+      "timings": {
+        "blade_loft_ms": 89.85399999801302,
+        "prototype_finish_ms": 164.16649999882793,
+        "prototype_volume_ms": 33.452999996370636,
+        "repeat_ms": 103.12299999350216,
+        "result_volume_ms": 0.06209999992279336,
+        "prepare_ms": 422.3904999962542,
+        "prototype_blades": 1,
+        "blade_count": 2,
+        "bodies": 1,
+        "sector_gap_deg": 130.6744805294228
+      },
+      "bodies": 1,
+      "snapshot_cleanup": true,
+      "caller_restored": true
+    },
+    {
+      "params": {
+        "style": "prop3",
+        "size": "prop6040",
+        "settings": {
+          "edge_round_mm": 0.1
+        },
+        "report": "prop3.json",
+        "image": "prop3.png"
+      },
+      "geometry_ms": 1959.7622000001138,
+      "timings": {
+        "blade_loft_ms": 391.2326999998186,
+        "prototype_finish_ms": 411.0188000049675,
+        "prototype_volume_ms": 111.52320000110194,
+        "repeat_ms": 685.052299995732,
+        "result_volume_ms": 0.0824999951873906,
+        "prepare_ms": 1791.2274999980582,
+        "prototype_blades": 1,
+        "blade_count": 3,
+        "bodies": 1,
+        "sector_gap_deg": 72.76151145714687
+      },
+      "bodies": 1,
+      "snapshot_cleanup": true,
+      "caller_restored": true
+    },
+    {
+      "params": {
+        "style": "prop4",
+        "size": "prop1045",
+        "report": "prop4.json",
+        "image": "prop4.png"
+      },
+      "geometry_ms": 706.6090000007534,
+      "timings": {
+        "blade_loft_ms": 92.7471000031801,
+        "prototype_finish_ms": 174.62370000430383,
+        "prototype_volume_ms": 33.72250000393251,
+        "repeat_ms": 266.05279999785125,
+        "result_volume_ms": 0.0714999987394549,
+        "prepare_ms": 632.6021000058972,
+        "prototype_blades": 1,
+        "blade_count": 4,
+        "bodies": 1,
+        "sector_gap_deg": 37.043958625859155
+      },
+      "bodies": 1,
+      "snapshot_cleanup": true,
+      "caller_restored": true
+    }
+  ],
+  "native_additional_cases": {
+    "success": true,
+    "cases": [
+      {
+        "style": "axial",
+        "size": "pc40",
+        "settings": {},
+        "success": true,
+        "bodies": 1,
+        "ms": 820.8215999984532
+      },
+      {
+        "style": "wide",
+        "size": "pc40",
+        "settings": {},
+        "success": true,
+        "bodies": 1,
+        "ms": 1115.874499999336
+      },
+      {
+        "style": "slim",
+        "size": "pc40",
+        "settings": {},
+        "success": true,
+        "bodies": 1,
+        "ms": 3543.4840000016266
+      },
+      {
+        "style": "ring",
+        "size": "pc40",
+        "settings": {},
+        "success": true,
+        "bodies": 1,
+        "ms": 995.4300000026706
+      },
+      {
+        "style": "axial",
+        "size": "pc140",
+        "settings": {
+          "output": "rotor_guard"
+        },
+        "triangles": [
+          58328,
+          484,
+          668
+        ],
+        "success": true,
+        "bodies": 3,
+        "ms": 4038.6467999996967
+      },
+      {
+        "style": "wide",
+        "size": "pc92",
+        "settings": {
+          "rotation": "cw"
+        },
+        "success": true,
+        "bodies": 1,
+        "ms": 1963.4386000034283
+      },
+      {
+        "style": "axial",
+        "size": "pc40",
+        "settings": {
+          "output": "hub_test",
+          "shaft_shape": "d",
+          "set_screw_diameter_mm": 2
+        },
+        "triangles": [
+          558
+        ],
+        "success": true,
+        "bodies": 1,
+        "ms": 126.78820000292035
+      },
+      {
+        "style": "prop4",
+        "size": "prop1045",
+        "settings": {},
+        "triangles": [
+          33036
+        ],
+        "success": true,
+        "bodies": 1,
+        "ms": 2343.2904000001145
+      }
+    ],
+    "caller_restored": true
+  },
+  "persistence_and_references": {
+    "success": true,
+    "created": true,
+    "cache_update_ms": 144.01960000395775,
+    "cache_hit": true,
+    "same_body_edit": true,
+    "three_outputs": true,
+    "remove_optional_outputs": true,
+    "opaque_mesh": true,
+    "delete_preserves_other_body": true,
+    "sketch_planform": true,
+    "circle_fit": true,
+    "caller_restored": true
+  },
+  "production_session_lifecycle": {
+    "success": true,
+    "native_preview_create_rebuild": true,
+    "same_body": true,
+    "queued_close_cleanup": true,
+    "preview_triangles": 58280,
+    "preview_timings": {
+      "rotor_cache_hit": true,
+      "prepare_ms": 123.86800000240328,
+      "prototype_blades": 1,
+      "blade_count": 7,
+      "bodies": 1,
+      "sector_gap_deg": 15.181074774245936
+    },
+    "caller_restored": true
+  },
+  "installed_html_integration": {
+    "version": "0.27.0",
+    "success": true,
+    "capabilities": true,
+    "preview": true,
+    "cancel_cleanup": true,
+    "html_version": true,
+    "caller_restored": true
+  },
+  "implementation": {
+    "recipe_version": 1,
+    "settings_fields": 40,
+    "output": "one owned BaseFeature",
+    "prototype_blades": 1,
+    "span_stations": 9,
+    "preview": "coarse opaque cached STL mesh; no graphics BRep bodies",
+    "geometry_cache": "one-entry unbored rotor, per session"
+  },
+  "limits": [
+    "No physical print or operating rotor test",
+    "No verified RPM, balance, strength, fatigue, airflow, pressure, thrust or noise performance",
+    "PC dimensions do not establish motor compatibility",
+    "Save/reopen and Undo/Redo not validated",
+    "Nine-station sketch sampling does not reproduce arbitrary intervening outline detail",
+    "Rebuild/Delete guard later features and external geometry edits",
+    "Centrifugal blower deferred"
+  ]
+}

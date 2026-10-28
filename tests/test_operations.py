@@ -53,6 +53,17 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(op.snapshot(self.design),[{'id':self.identity,'tool':'detail','alias':'lid','name':self.meta['name'],'canDelete':True}])
         self.assertEqual(self.deletions,[])
 
+    def test_one_owned_feature_gets_edit_delete_metadata_without_native_group(self):
+        self.features=self.features[:2];self.design.timeline.count=2;self.design.timeline.markerPosition=2
+        self.design.timeline.item=lambda i:NS(entity=self.features[i])
+        self.anchor.attributes.values.pop((op.GROUP,'operation'))
+        op.capture(self.design,self.anchor,'detail',{'kind':'lid'},1)
+        record=op.resolve(self.design,self.identity)
+        self.assertEqual(record['meta']['features'],['tools'])
+        self.assertTrue(op.snapshot(self.design)[0]['canDelete'])
+        op.delete(self.design,self.identity)
+        self.assertEqual(self.deletions,['tools'])
+
     def test_native_suffix_deletes_in_reverse_and_keeps_sources(self):
         op.delete(self.design,self.identity)
         self.assertEqual(self.deletions,['groove','lip','tools'])

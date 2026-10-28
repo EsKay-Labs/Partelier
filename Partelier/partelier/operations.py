@@ -14,8 +14,9 @@ RECIPES = (
     ('sktech_veyra_hinge_8c319ce2', 'recipe', 'hinge'),
     ('sktech_partelier_snap_fit_389f7bf1', 'recipe', 'snap'),
     ('sktech_partelier_surface_pattern_23bc07a1', 'recipe', 'pattern'),
+    ('sktech_partelier_fans_e46bf1a9', 'recipe', 'fan'),
 )
-TITLES = {'lid': 'Lid lip & groove', 'alignment': 'Alignment pins',
+TITLES = {'fan':'Fans & Propellers','lid': 'Lid lip & groove', 'alignment': 'Alignment pins',
           'ribs': 'Ribs & gussets', 'hinge': 'Pin hinge', 'snap': 'Snap-fit',
           'grilles': 'Grille', 'truss': 'Planar truss', 'honeycomb': 'Surface pattern',
           'perforation': 'Surface pattern', 'knurl': 'Surface texture'}
@@ -225,11 +226,15 @@ def capture(design, anchor, tool, settings, start, *, editing=False):
         features = tuple(design.timeline.item(i).entity for i in range(start, end + 1))
     if any(entity is None or not getattr(entity, 'entityToken', None) for entity in features):
         raise ValueError('The operation contains unsupported timeline entries.')
-    group = design.timeline.timelineGroups.add(start, end)
-    if group is None:
-        raise ValueError('Fusion could not group the operation history.')
-    group.name = 'Partelier · ' + record['name']
-    group.isCollapsed = False
+    # Fusion needs at least two timeline entries for a group. A standalone
+    # owned BaseFeature is already one coherent operation and gets the same
+    # exact Edit/Delete metadata without an artificial second history entry.
+    if start < end:
+        group = design.timeline.timelineGroups.add(start, end)
+        if group is None:
+            raise ValueError('Fusion could not group the operation history.')
+        group.name = 'Partelier · ' + record['name']
+        group.isCollapsed = False
     value = {'id': record['id'], 'tool': tool, 'name': record['name'],
              'features': [entity.entityToken for entity in features]}
     for feature in features:

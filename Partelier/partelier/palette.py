@@ -12,6 +12,7 @@ from .palette_protocol import PROTOCOL_VERSION, SESSION_ACTIONS, SNAP_SESSION_AC
 from .tools.hinge.settings import HingeSettings
 from .tools.snap_fit.settings import SnapFitSettings
 from .tools.patterns.settings import PatternSettings
+from .tools.fans.settings import FanSettings
 from .diagnostics import emit
 from . import operations
 
@@ -38,9 +39,10 @@ class ToolLibrary:
         self._snap_commands = None
         self._pattern_commands = None
         self._detail_commands = None
+        self._fan_commands = None
         self._operation_delete = None
 
-    def start(self, workspace_id, panel_id, input_check_id, report_error, hinge_commands=None, snap_commands=None, pattern_commands=None, detail_commands=None):
+    def start(self, workspace_id, panel_id, input_check_id, report_error, hinge_commands=None, snap_commands=None, pattern_commands=None, detail_commands=None, fan_commands=None):
         if self._created_handler is not None:
             return
         self._palette_closed = False
@@ -52,6 +54,8 @@ class ToolLibrary:
         self._snap_commands = snap_commands
         self._pattern_commands = pattern_commands
         self._detail_commands = detail_commands
+        self._fan_commands = fan_commands
+        if self._has_palette_manager(fan_commands):fan_commands.set_state_callback(lambda state:self._publish_state('fan_state',state))
         if self._has_palette_manager(detail_commands):detail_commands.set_state_callback(lambda state:self._publish_state('detail_state',state))
         ui = adsk.core.Application.get().userInterface
         panel = self._panel(ui)
@@ -157,7 +161,7 @@ class ToolLibrary:
         self._palette_closed = True
         self._page_generation += 1
         errors = []
-        for manager in (self._hinge_commands, self._snap_commands, self._pattern_commands, self._detail_commands, self._operation_delete):
+        for manager in (self._hinge_commands, self._snap_commands, self._pattern_commands, self._detail_commands, self._fan_commands, self._operation_delete):
             cancel = getattr(manager, 'cancel_palette', None)
             if callable(cancel):
                 try:
@@ -215,14 +219,14 @@ class ToolLibrary:
             design=native_api.Design.cast(adsk.core.Application.get().activeProduct)
             if design is None:raise ValueError('Open a Fusion Design to view its operations.')
             if action!='operations_list':
-                for manager,label in ((self._hinge_commands,'hinge'),(self._snap_commands,'snap-fit'),(self._pattern_commands,'pattern'),(self._detail_commands,'Small detail')):
+                for manager,label in ((self._hinge_commands,'hinge'),(self._snap_commands,'snap-fit'),(self._pattern_commands,'pattern'),(self._detail_commands,'Small detail'),(self._fan_commands,'fan')):
                     self._require_idle_other_tool(manager,label)
                 operations.expand(design)
                 record=operations.resolve(design,request.operation_id)
                 if action=='operation_delete':self._operation_delete.launch(design,request.operation_id)
                 else:
                     from .tools.details.settings import DetailSettings
-                    managers={'hinge':(self._hinge_commands,HingeSettings()),'snap':(self._snap_commands,SnapFitSettings()),
+                    managers={'fan':(self._fan_commands,FanSettings()),'hinge':(self._hinge_commands,HingeSettings()),'snap':(self._snap_commands,SnapFitSettings()),
                               'pattern':(self._pattern_commands,PatternSettings()),'detail':(self._detail_commands,DetailSettings(kind=record['alias']) if record['tool']=='detail' else DetailSettings())}
                     manager,defaults=managers[record['tool']]
                     if not self._has_palette_manager(manager):raise ValueError('Run Partelier to edit this operation.')
@@ -235,6 +239,17 @@ class ToolLibrary:
             for entry in request.diagnostics:
                 emit('ui.'+entry['event'],ui_at=entry['at'],context=entry['context'])
             return json.dumps({'protocol':PROTOCOL_VERSION,'requestId':request.request_id,'ok':True})
+        if action.startswith(('hinge_','snap_','pattern_','detail_')) and not action.endswith('_status'):
+            self._require_idle_other_tool(self._fan_commands,'fan')
+        fan_snapshot=None
+        if action.startswith('fan_'):
+            if not self._has_palette_manager(self._fan_commands):raise RuntimeError('Run Partelier to enable Fans & Propellers.')
+            if action=='fan_begin':
+                for manager,label in ((self._hinge_commands,'hinge'),(self._snap_commands,'snap-fit'),(self._pattern_commands,'pattern'),(self._detail_commands,'Small detail')):
+                    self._require_idle_other_tool(manager,label)
+                fan_snapshot=self._fan_commands.begin_palette(request.settings.to_dict(),editing=request.editing)
+            elif action=='fan_status':fan_snapshot=self._fan_commands.palette_state()
+            else:fan_snapshot=self._fan_commands.palette_action(action,request.session_id,revision=request.revision,settings_dict=request.settings.to_dict() if request.settings else None,target=request.target)
         snapshot = None
         snap_snapshot = None
         pattern_snapshot = None
@@ -319,6 +334,9 @@ class ToolLibrary:
             else:
                 self._hinge_commands.launch_edit()
         capabilities = ["input-check"]
+        if self._has_palette_manager(self._fan_commands):
+            capabilities.extend(['fan-palette','fan-edit'])
+            if fan_snapshot is None:fan_snapshot=self._fan_commands.palette_state()
         if self._operation_delete is not None:capabilities.append("operation-history")
         if self._has_palette_manager(self._detail_commands):
             capabilities.extend(['detail-palette','detail-edit'])
@@ -352,7 +370,7 @@ class ToolLibrary:
             "patternDefaults": PatternSettings().to_dict(),
             "patternState": pattern_snapshot,
             'detailDefaults':DetailSettings().to_dict(),
-            'detailState':detail_snapshot,
+            'detailState':detail_snapshot,'fanDefaults':FanSettings().to_dict(),'fanState':fan_snapshot,
         })
 
     def stop(self):
@@ -376,6 +394,7 @@ class ToolLibrary:
         if self._has_palette_pattern():
             attempt(lambda:self._pattern_commands.set_state_callback(None))
         if self._has_palette_manager(self._detail_commands):attempt(lambda:self._detail_commands.set_state_callback(None))
+        if self._has_palette_manager(self._fan_commands):attempt(lambda:self._fan_commands.set_state_callback(None))
         if self._operation_delete is not None:attempt(self._operation_delete.stop)
         self._operation_delete=None
         attempt(self._release_palette)
@@ -393,6 +412,7 @@ class ToolLibrary:
         self._snap_commands = None
         self._pattern_commands = None
         self._detail_commands = None
+        self._fan_commands = None
         for error in errors:
             adsk.core.Application.get().log(f"Partelier UI cleanup failed:\n{error}")
 

@@ -5,13 +5,22 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
+**Current release: 0.27.0.** **Mechanisms → Fans & Propellers** adds PC axial,
+wide-blade, slim and tip-ring rotors, plus 2/3/4-blade air propellers. Choose a
+40–140 mm PC dimensional preset or Custom, configure blade widths/twist and the
+shaft fit, and optionally generate a separate mounting frame and guard. A hub
+coupon, circular-opening fit and sketch planform are included. Preview is cached;
+Saved features provides guarded Edit/Delete. These are geometry prototypes,
+without verified cooling, balance, speed or strength ratings. Blowers are deferred.
+See [Fans & Propellers](docs/fans-and-propellers.md).
+
 **New in 0.24.0:** every tool shows **Features in this section** with direct
 **Edit / Delete…** actions for each saved operation. Trusses and grilles have
 separate lists; ordinary surface patterns stay together. Edit highlights the
 chosen feature and loads its dimensions for Rebuild. Source-body ownership and
 existing timeline dependency guards remain. See [saved features](docs/selection-history.md).
 
-**Current release: 0.25.1.** Main palette **Close / X** now cancels previews,
+**Earlier 0.25.1:** Main palette **Close / X** now cancels previews,
 selection and queued tool actions. Reopening starts a fresh page; completed
 features are kept. See [Close behaviour and checks](docs/palette-close.md).
 

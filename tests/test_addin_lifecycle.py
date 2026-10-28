@@ -180,6 +180,15 @@ class AddinLifecycleTests(unittest.TestCase):
             def start(manager):manager.start_count+=1
             def stop(manager):manager.stop_count+=1
         detail.DetailCommands=DetailManager
+        fan_name='Partelier.partelier.tools.fans.command'
+        fan=ModuleType(fan_name)
+        self.fan_managers=[]
+        class FanManager:
+            def __init__(manager,**kwargs):
+                manager.start_count=0;manager.stop_count=0;self.fan_managers.append(manager)
+            def start(manager):manager.start_count+=1
+            def stop(manager):manager.stop_count+=1
+        fan.FanCommands=FanManager
         path = Path(__file__).parents[1] / "Partelier/partelier/addin.py"
         spec = importlib.util.spec_from_file_location(
             "Partelier.partelier._addin_lifecycle_test", path,
@@ -187,7 +196,7 @@ class AddinLifecycleTests(unittest.TestCase):
         self.module = importlib.util.module_from_spec(spec)
         with patch.dict("sys.modules", {
             "adsk": adsk, "adsk.core": core, "adsk.fusion": fusion,
-            palette_name: palette, hinge_name: hinge, snap_name: snap, pattern_name: pattern, detail_name: detail,
+            palette_name: palette, hinge_name: hinge, snap_name: snap, pattern_name: pattern, detail_name: detail, fan_name: fan,
         }):
             spec.loader.exec_module(self.module)
         self.module.diagnostics=SimpleNamespace(start=Mock(),emit=Mock())
@@ -228,6 +237,14 @@ class AddinLifecycleTests(unittest.TestCase):
         self.assertIs(self.library.start_calls[0][1]['detail_commands'],self.detail_managers[0])
         self.module.stop();self.assertEqual(self.detail_managers[0].stop_count,1)
         self.assertIsNone(self.module._detail_commands)
+
+    def test_fan_manager_is_started_stopped_and_passed_to_the_library(self):
+        self.module.start()
+        self.assertEqual(self.fan_managers[0].start_count,1)
+        self.assertIs(self.library.start_calls[0][1]['fan_commands'],self.fan_managers[0])
+        self.module.stop()
+        self.assertEqual(self.fan_managers[0].stop_count,1)
+        self.assertIsNone(self.module._fan_commands)
 
     def test_detail_stop_failure_still_releases_the_library_and_other_managers(self):
         self.module.start();self.detail_managers[0].stop=Mock(side_effect=RuntimeError('detail stop'))

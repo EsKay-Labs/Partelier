@@ -328,3 +328,13 @@ dialog { max-width: 380px; }
 .parameter-help { color: #4a6381; }
 .parameter-help:hover { background: #bbcee6; color: #214d83; }
 .section-heading h2 { font-weight: 650; }
+
+/* Independent rotor workflow uses the same compact selection/action rhythm. */
+#fan-tool .selection-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+#fan-tool .selection-actions button { min-height: 34px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; }
+#fan-tool .selection-actions .selection-button { width: 100%; text-align: left; }
+#fan-tool .selection-actions .is-selected { background: var(--selection-soft); border-color: var(--selection); color: #234f80; }
+#fan-tool .parameter-item:has(select[name="style"]), #fan-tool .parameter-item:has(select[name="output"]) { grid-column: 1 / -1; }
+#fan-message { overflow-wrap: anywhere; }
+#fan-message:empty { display: none; }
+#fan-message.error { color: #8c352a; background: #f7e5df; padding: 8px; border-radius: 5px; }

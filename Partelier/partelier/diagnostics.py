@@ -41,7 +41,7 @@ def start(version, *, path=None):
     with _lock:
         _path=Path(path) if path is not None else None
         _run_id=str(uuid.uuid4());_sequence=0;_enabled=True
-        emit('addin.start',version=version,pid=os.getpid(),loaded_diagnostics_build='0.26.2')
+        emit('addin.start',version=version,pid=os.getpid(),loaded_diagnostics_build='0.27.0')
 
 
 def emit(event, **fields):
