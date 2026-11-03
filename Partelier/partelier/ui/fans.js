@@ -2,7 +2,7 @@
 (() => {
  const $=id=>document.getElementById(id),D=window.PartelierFanData,defaults=D.defaults,clone=v=>JSON.parse(JSON.stringify(v));
  const styles=[["axial","PC axial"],["wide","Wide blade"],["slim","Slim rotor"],["ring","Tip-ring rotor"],["prop2","2-blade propeller"],["prop3","3-blade propeller"],["prop4","4-blade propeller"],["blower","Radial blower impeller"]];
- const choices={style:styles,output:[["rotor","Rotor only"],["rotor_frame","Rotor + frame"],["rotor_guard","Rotor + frame + guard"],["hub_test","Hub fit coupon"]],shaft_shape:[["round","Round"],["d","D-shaft"]],pitch_mode:[["twist","Root / middle / tip angles"],["pitch","Constant geometric pitch"]],rotation:[["ccw","CCW · viewed from above"],["cw","CW · viewed from above"]],outline_mode:[["generated","Generated planform"],["sketch","Selected sketch profile"]]};
+ const choices={style:styles,volute_mounts:[[true,"On · 4 bosses"],[false,"Off"]],output:[["blower_housing","Rotor + volute + lid"],["rotor","Rotor only"],["rotor_frame","Rotor + frame"],["rotor_guard","Rotor + frame + guard"],["hub_test","Hub fit coupon"]],shaft_shape:[["round","Round"],["d","D-shaft"]],pitch_mode:[["twist","Root / middle / tip angles"],["pitch","Constant geometric pitch"]],rotation:[["ccw","CCW · viewed from above"],["cw","CW · viewed from above"]],outline_mode:[["generated","Generated planform"],["sketch","Selected sketch profile"]]};
  const terminal=new Set(["idle","cancelled","created"]),retired=new Set();
  const state={selected:false,settings:clone(defaults),session:null,revision:0,connected:false,caps:new Set(),busy:false,expecting:false,error:false};
  let sequence=0,hostRevision=-1,pushVersion=0,timer,poll,previewFlight=false,queued=false,queue=Promise.resolve(),helpTrigger;
@@ -14,7 +14,7 @@
  const message=(text,error=false)=>{$("fan-message").textContent=text;$("fan-message").classList.toggle("error",error);};
  function options(input,items){input.replaceChildren(...items.map(([value,text])=>{const o=document.createElement("option");o.value=value;o.textContent=text;return o;}));}
  function sync(){
-  options($("fan-output"),choices.output.filter(([key])=>state.settings.style!=="blower"||["rotor","hub_test"].includes(key)));
+  options($("fan-output"),choices.output.filter(([key])=>state.settings.style==="blower"?["rotor","hub_test","blower_housing"].includes(key):key!=="blower_housing"));
   options($("fan-size_preset"),[["custom","Custom"],...Object.keys(state.settings.style.startsWith("prop")?D.propSizes:D.pcSizes).map(k=>[k,k.startsWith("pc")?k.slice(2)+" mm PC frame":({prop5030:'5 × 3 in',prop6040:'6 × 4 in',prop8040:'8 × 4 in',prop1045:'10 × 4.5 in'})[k]])]);
   for(const input of $("fan-settings").querySelectorAll("[name]"))input.value=state.settings[input.name];
  }
@@ -48,6 +48,8 @@
  }
  function visible(name){
   const s=state.settings,coupon=s.output==="hub_test";
+  if(name.startsWith("volute_"))return s.style==="blower"&&s.output==="blower_housing";
+  if(s.style==="blower"&&D.groups.frame.includes(name))return name==="tip_gap_mm"?!coupon:s.output==="blower_housing"&&(["axial_clearance_mm"].includes(name)||name==="mount_hole_mm"&&s.volute_mounts);
   if(name.startsWith("blower_"))return s.style==="blower"&&!coupon;
   if(s.style==="blower"&&D.groups.blade.includes(name))return false;
   if(coupon&&D.groups.blade.includes(name))return false;
@@ -88,7 +90,7 @@
  $("fan-settings").addEventListener("submit",e=>e.preventDefault());
  $("fan-settings").addEventListener("input",e=>{
   const input=e.target,name=input.name;if(!Object.hasOwn(defaults,name))return;
-  state.settings[name]=typeof defaults[name]==="number"?Number(input.value):input.value;
+  state.settings[name]=typeof defaults[name]==="number"?Number(input.value):typeof defaults[name]==="boolean"?input.value==="true":input.value;
   if(name==="style"||name==="size_preset"){
    const prop=state.settings.style.startsWith("prop");let size=state.settings.size_preset;
    if(name==="style"&&size==="custom")size=prop?"prop5030":"pc120";

@@ -4,6 +4,7 @@ The caller owns the native transaction. Edit is guarded at the timeline end;
 there is no replacement result body, hidden backup, or copied complete shape.
 """
 
+from ... import refresh_context
 from contextlib import contextmanager
 from dataclasses import dataclass,replace
 import json
@@ -68,7 +69,7 @@ def _owned(entity,identity,anchor):
 
 
 def _read(design,anchor,kind=None):
-    if design.timeline.markerPosition!=design.timeline.count:raise ValueError('Move the timeline to the end before editing a detail.')
+    if design.timeline.markerPosition!=refresh_context.end(design):raise ValueError('Move the timeline to the end before editing a detail.')
     tag=anchor.attributes.itemByName(GROUP,'record')
     if tag is None:raise ValueError('Select a created Small detail or its timeline feature.')
     value,settings=_parse(tag.value)
@@ -81,10 +82,10 @@ def _read(design,anchor,kind=None):
             raise ValueError('The detail no longer owns its native history.')
         _healthy(feature)
     indices.extend(f.timelineObject.index for f in features)
-    if indices!=list(range(indices[0],indices[0]+len(indices))) or indices[-1]+1!=design.timeline.count:
+    if indices!=list(range(indices[0],indices[0]+len(indices))) or indices[-1]+1!=refresh_context.end(design):
         raise ValueError('Edit this detail at the end of the timeline. Preserve or move later features before Rebuild.')
     targets=tuple(_body(_resolve(design,t),design.rootComponent) for t in value['sources']['bodies'])
-    if [json.loads(_json(a.h._body_signature(b))) for b in targets]!=value['results']:
+    if [json.loads(_json(a.h._body_signature(b))) for b in targets]!=value['results'] and not refresh_context.authorized(design,anchor):
         raise ValueError('The detail result was modified. Preserve those edits before Rebuild.')
     with _history(design,anchor,before=False):
         tools=_items(anchor.bodies)

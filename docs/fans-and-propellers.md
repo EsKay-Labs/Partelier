@@ -1,7 +1,7 @@
 # Fans & Propellers
 
 Version 0.27.0 adds an independent tool under **Mechanisms → Fans & Propellers**.
-The first release implements the approved A–G families. The additional H family now generates a straight radial blower impeller; a volute housing remains deferred. These are original geometric rotors, not copies of commercial blades
+The first release implements the approved A–G families. The additional H family now generates a straight radial blower impeller; an optional scroll housing and removable inlet lid are implemented. These are original geometric rotors, not copies of commercial blades
 or a simulation of cooling, pressure, noise, balance or strength.
 
 ## Start without drawing anything
@@ -101,7 +101,7 @@ cached outlines. It never runs a mesh calculator or creates graphics BRep bodies
 while orbiting. Native scratch features are removed inside the rollback compute
 command; Create saves one owned BaseFeature, without per-blade history.
 
-An exact version-2 recipe stores all 43 fields, references, output mappings and
+An exact version-3 recipe stores all 50 fields, references, output mappings and
 body signatures. Rebuild updates the same rotor body, preserving names and
 visibility. Optional frame/guard outputs can be added or removed. External body
 edits, changed references and later timeline dependencies are guarded. Delete
@@ -124,8 +124,7 @@ Three dedicated controls set **Vane height**, **Backplate thickness** and
 **Vane thickness**. Hub height stays independent; the backplate starts at the
 bottom of the hub. The flat backplate can face the print bed. Twist, chord,
 camber, sketch outline, rotation and root finishing controls are hidden because
-this symmetric radial geometry does not use them. Supported outputs are Rotor
-only and Hub fit coupon. An axial square frame is not a blower volute and is
+this symmetric radial geometry does not use them. Supported outputs are Rotor only, Hub fit coupon and Rotor + volute + lid. An axial square frame is not a blower volute and is
 therefore explicitly refused, as is a sketch vane outline. No aerodynamic or
 physical printing result is inferred from the geometry.
 
@@ -133,10 +132,55 @@ The generator unions temporary primitives and trims the diameter once; it does
 not add native features per vane. The unbored impeller uses the existing geometry
 cache, so shaft changes can reuse it. Create/Edit/Delete retain the shared fan
 ownership contract. Exact old 40-field recipe-1 fans remain read-only compatible;
-new writes use recipe 2 with 43 fields. Legacy data cannot claim the new style.
+new writes use recipe 3 with 50 fields; exact 43-field recipe-2 records also remain readable. Legacy data cannot claim the new style.
 
 Local planner/recipe and simulated UI tests cover the added scope. The isolated
 Fusion test passed preparation (71 ms on the tested PC60 fixture), cached-mesh
 creation/cleanup, same-body shaft and vane Rebuild, and exact owned Delete,
 restoring the caller. See [native evidence](validation/blower-impeller.json).
 Physical fit, balance and operation remain user tests.
+
+
+## Blower scroll housing and removable lid
+
+Choose **Rotor + volute + lid** for three independently owned bodies. The housing
+has a flat floor, a growing Archimedean scroll chamber, a central motor-shaft
+opening, and a tangential outlet pointing along local -Y. The separate lid has a
+central axial inlet. **Scroll expansion** also defines the outlet width;
+**Outlet extension** controls its projection beyond the large scroll radius.
+**Housing wall / lid** controls the radial wall allowance and floor/lid thickness.
+
+Radial tip gap and axial clearance keep the rotor separate from the housing;
+Lid separation additionally keeps the removable lid off the top wall. Inlet0
+means hub diameter plus twice the housing wall. The motor opening is a clearance
+hole, not a bearing or motor mounting seat. Optional four peripheral bosses have
+matching through-bores in the lid and housing; Mount hole diameter is exact.
+There are no threads, screw-head seats or sealing claims.
+
+The scroll is explicitly polygonal: a bounded 64–256-segment approximation, with
+a 0.02 mm chord-sag target (less than 0.03 mm at the largest allowed size). Radial
+inflation protects minimum rotor clearance between vertices. No native feature
+is created per segment. The housing uses temporary solids and cached display
+meshes; edits to housing dimensions reuse the cached unbored rotor.
+
+Native PC60 fixture passed in 274 ms, using 93 scroll segments and 3000 display
+triangles. It checked three disjoint solids, open inlet/outlet/motor/screw paths,
+preview cleanup, same-body housing edits, removal of optional bodies and exact
+owned Delete, restoring the caller. See [volute evidence](validation/blower-volute.json).
+These timings are fixture observations; print fit, motor installation and airflow
+remain physical tests. The lid/housing need separate print orientations.
+
+
+In the 0.29.0 upstream-update fixture, changing the real source sketch circle
+from radius 30 to 35 mm regenerated the referenced rotor diameter from 58.8 to
+68.8 mm. The update retained owned body identities and timeline size; a repeated
+refresh was a no-op (observed refresh 139 ms). A separate sketch-only blade-outline
+edit was detected by the revision gate and rebuilt the same rotor (2.42 s), without
+adding bodies or timeline steps. See
+[family update evidence](validation/auto-update-families.json).
+
+Headless full-palette checks at 300, 380 and 520 px verified visible volute fields,
+mounting-hole toggles, field/help separation, and scroll/lip help dialogs without
+horizontal overflow or browser errors. Screenshots were inspected at the compact
+width. The bridge was mocked; this is layout evidence, not native Fusion execution.
+See [UI evidence](validation/volute-ui.json).

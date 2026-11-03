@@ -1,0 +1,250 @@
+{
+  "cases": [
+    {
+      "family": "slider",
+      "motion": {
+        "poses": 9,
+        "stages": [
+          "slide"
+        ],
+        "angle_min_deg": 0.0,
+        "angle_max_deg": 0.0,
+        "travel_y_mm": 15.7,
+        "travel_z_mm": 0.0,
+        "seconds": 0.019499299996823538,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 2,
+      "triangles": 64,
+      "seconds": 0.8259362000026158
+    },
+    {
+      "family": "dovetail",
+      "motion": {
+        "poses": 9,
+        "stages": [
+          "slide"
+        ],
+        "angle_min_deg": 0.0,
+        "angle_max_deg": 0.0,
+        "travel_y_mm": 15.7,
+        "travel_z_mm": 0.0,
+        "seconds": 0.02794529999664519,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 2,
+      "triangles": 64,
+      "seconds": 0.7966928000023472
+    },
+    {
+      "family": "bayonet",
+      "motion": {
+        "poses": 17,
+        "stages": [
+          "unlock",
+          "withdraw"
+        ],
+        "angle_min_deg": -30.0,
+        "angle_max_deg": -0.0,
+        "travel_y_mm": 0.0,
+        "travel_z_mm": 8.3,
+        "seconds": 0.08840249999775551,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 2,
+      "triangles": 1302,
+      "seconds": 0.835111299995333
+    },
+    {
+      "family": "clevis",
+      "motion": {
+        "poses": 13,
+        "stages": [
+          "pivot"
+        ],
+        "angle_min_deg": -60,
+        "angle_max_deg": 60,
+        "travel_y_mm": 0.0,
+        "travel_z_mm": 0.0,
+        "seconds": 0.045233400000142865,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 3,
+      "triangles": 1008,
+      "seconds": 0.740078299997549
+    },
+    {
+      "family": "barrel",
+      "motion": {
+        "poses": 13,
+        "stages": [
+          "hinge"
+        ],
+        "angle_min_deg": 0.0,
+        "angle_max_deg": 150.0,
+        "travel_y_mm": 0.0,
+        "travel_z_mm": 0.0,
+        "seconds": 0.05778160000045318,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 3,
+      "triangles": 1562,
+      "seconds": 0.7899280999990879
+    },
+    {
+      "family": "concealed",
+      "motion": {
+        "poses": 13,
+        "stages": [
+          "hinge"
+        ],
+        "angle_min_deg": 0.0,
+        "angle_max_deg": 150.0,
+        "travel_y_mm": 0.0,
+        "travel_z_mm": 0.0,
+        "seconds": 0.05564030000095954,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 3,
+      "triangles": 1190,
+      "seconds": 0.7792657999962103
+    },
+    {
+      "family": "pip_hinge",
+      "motion": {
+        "poses": 13,
+        "stages": [
+          "hinge"
+        ],
+        "angle_min_deg": 0.0,
+        "angle_max_deg": 150.0,
+        "travel_y_mm": 0.0,
+        "travel_z_mm": 0.0,
+        "seconds": 0.04554550000466406,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 2,
+      "triangles": 952,
+      "seconds": 0.6635911999983364
+    },
+    {
+      "family": "pip_louver",
+      "motion": {
+        "poses": 39,
+        "stages": [
+          "vane 1",
+          "vane 2",
+          "vane 3"
+        ],
+        "angle_min_deg": -90,
+        "angle_max_deg": 90,
+        "travel_y_mm": 0.0,
+        "travel_z_mm": 0.0,
+        "seconds": 1.4450061999959871,
+        "continuous_sweep": false,
+        "underside_limit_deg": 45
+      },
+      "ok": true,
+      "bodies": 4,
+      "triangles": 1340,
+      "seconds": 3.300201099998958
+    },
+    {
+      "family": "linked_louver",
+      "motion": {
+        "sampled_angles_deg": [
+          0,
+          10,
+          20,
+          30,
+          40,
+          50,
+          60
+        ],
+        "pairwise_checks": 196,
+        "continuous_sweep": false,
+        "seconds": 2.552519899996696,
+        "linkage": "parallel cranks with equal pitch",
+        "requires_assembly_fasteners": true
+      },
+      "ok": true,
+      "bodies": 8,
+      "triangles": 3296,
+      "seconds": 5.520056100001966
+    },
+    {
+      "family": "parallel_lift",
+      "motion": {
+        "sampled_angles_deg": [
+          0,
+          10,
+          20,
+          30,
+          40,
+          50,
+          60
+        ],
+        "pairwise_checks": 196,
+        "continuous_sweep": false,
+        "maximum_lift_mm": 25.980762113533157,
+        "parallel_plate": true,
+        "requires_assembly_fasteners": true,
+        "seconds": 0.30552479999460047
+      },
+      "ok": true,
+      "bodies": 8,
+      "triangles": 3088,
+      "seconds": 1.8648198999944725
+    },
+    {
+      "family": "swing_hinge",
+      "motion": {
+        "opening_angles_deg": [
+          0,
+          5,
+          10,
+          15,
+          20,
+          25,
+          30,
+          35,
+          40,
+          45,
+          50,
+          55,
+          60,
+          65,
+          70,
+          75,
+          80,
+          85,
+          90
+        ],
+        "pairwise_checks": 532,
+        "output_rotation_deg": 90,
+        "continuous_sweep": false,
+        "requires_external_fasteners": true,
+        "seconds": 0.8931259999953909
+      },
+      "ok": true,
+      "bodies": 8,
+      "triangles": 3246,
+      "seconds": 2.3694280000054277
+    }
+  ],
+  "ok": true
+}

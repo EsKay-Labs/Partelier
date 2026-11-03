@@ -3,6 +3,7 @@
 import json
 import traceback
 import time
+import uuid
 from pathlib import Path
 from urllib.parse import quote
 
@@ -109,7 +110,10 @@ class ToolLibrary:
         if self._palette_closed:return
         import adsk.fusion
         design=adsk.fusion.Design.cast(adsk.core.Application.get().activeProduct)
-        self._publish_state('operations_state',{'items':operations.snapshot(design),'message':message})
+        value={'items':operations.snapshot(design),'message':message}
+        automatic=getattr(self,'_automatic_updates',None)
+        if automatic is not None:value['autoUpdate']=automatic.enabled()
+        self._publish_state('operations_state',value)
 
     def _require_idle_other_tool(self, manager, name):
         """One palette selection/preview owner at a time, including error recovery."""
@@ -169,6 +173,8 @@ class ToolLibrary:
         self._palette_closed = True
         self._page_generation += 1
         errors = []
+        automatic=getattr(self,'_automatic_updates',None)
+        if automatic:automatic.cancel_palette()
         for manager in (self._hinge_commands, self._snap_commands, self._pattern_commands, self._detail_commands, self._fan_commands, self._mechanism_commands, self._finishing_commands, self._operation_delete):
             cancel = getattr(manager, 'cancel_palette', None)
             if callable(cancel):
@@ -184,35 +190,60 @@ class ToolLibrary:
         if errors:
             raise RuntimeError('Partelier could not finish cancelling. '+ '; '.join(errors))
 
+    def _new_palette(self, ui, identity=PALETTE_ID, visible=False):
+        self._release_palette()
+        palette = ui.palettes.itemById(identity)
+        if palette is not None:
+            palette.deleteMe()
+        bundle = Path(__file__).resolve().parent.parent
+        version = json.loads((bundle / "Partelier.manifest").read_text(encoding="utf-8"))["version"]
+        html_uri = (Path(__file__).parent / "ui" / "palette.html").resolve().as_uri() + "?v=" + quote(str(version), safe="")
+        palette = ui.palettes.add(
+            identity, "Partelier · Tool library", html_uri,
+            visible, True, True, 380, 760, True,
+        )
+        if palette is None:
+            raise RuntimeError("Fusion could not open the tool library.")
+        self._palette = palette
+        self._page_generation += 1
+        self._palette_closed = False
+        self._html_handler = _HTMLMessage(self)
+        self._close_handler = _PaletteClosed(self)
+        palette.incomingFromHTML.add(self._html_handler)
+        if palette.closed.add(self._close_handler) is False:
+            raise RuntimeError('Fusion could not register Close cancellation.')
+        return palette
+
     def show(self):
         ui = adsk.core.Application.get().userInterface
         palette = self._palette
-        created = False
-        if palette is None or not palette.isValid:
+        created = palette is None or not palette.isValid
+        recovered = False
+        try:
+            if created:
+                palette = self._new_palette(ui)
+            palette.isVisible = True
+        except RuntimeError as error:
+            if 'pArea' not in str(error):
+                raise
+            # Fusion can retain a broken dock area for an otherwise valid ID.
+            # A fresh ID and visible-at-creation bypass that saved dock entry.
+            # One bounded retry only; unrelated display failures still propagate.
+            emit('palette.display.recovering',error=str(error),fallback='fresh_floating')
             self._release_palette()
-            palette = ui.palettes.itemById(PALETTE_ID)
-            if palette is not None:
-                palette.deleteMe()
-            bundle = Path(__file__).resolve().parent.parent
-            version = json.loads((bundle / "Partelier.manifest").read_text(encoding="utf-8"))["version"]
-            html_uri = (Path(__file__).parent / "ui" / "palette.html").resolve().as_uri() + "?v=" + quote(str(version), safe="")
-            palette = ui.palettes.add(
-                PALETTE_ID, "Partelier · Tool library", html_uri,
-                False, True, True, 380, 760, True,
-            )
-            if palette is None:
-                raise RuntimeError("Fusion could not open the tool library.")
-            self._palette = palette
-            self._page_generation += 1
-            self._palette_closed = False
-            self._html_handler = _HTMLMessage(self)
-            self._close_handler = _PaletteClosed(self)
-            palette.incomingFromHTML.add(self._html_handler)
-            if palette.closed.add(self._close_handler) is False:
-                raise RuntimeError('Fusion could not register Close cancellation.')
-            created = True
-        palette.isVisible = True
-        if created:
+            try:
+                palette = self._new_palette(ui, PALETTE_ID+'_recovery_'+uuid.uuid4().hex, True)
+                try:
+                    palette.dockingState = adsk.core.PaletteDockingStates.PaletteDockStateFloating
+                except RuntimeError as docking_error:
+                    emit('palette.docking.unavailable',error=str(docking_error),fallback='native_default')
+                if not palette.isVisible:
+                    palette.isVisible = True
+            except Exception:
+                self._release_palette()
+                raise
+            created = recovered = True
+        if created and not recovered:
             # A new native docking area may not exist until the palette is
             # visible. Docking is a layout preference, not a startup gate.
             try:
@@ -227,8 +258,21 @@ class ToolLibrary:
         if self._palette_closed:
             raise ValueError('This Partelier window is closed. Open the tool library again.')
         request = read_request(action, raw_data)
+        automatic=getattr(self,'_automatic_updates',None)
+        if automatic is not None and automatic.busy and action not in ('operations_list','diagnostic_log') and not action.endswith('_status'):
+            raise ValueError('Wait for automatic feature updates to finish.')
         if self._operation_delete is not None and self._operation_delete.busy and action not in ('operations_list','diagnostic_log'):
             raise ValueError('Wait for operation deletion to finish.')
+        if action in ('auto_update_status','auto_update_toggle'):
+            import adsk.fusion as native
+            from .auto_refresh import GROUP
+            design=native.Design.cast(adsk.core.Application.get().activeProduct)
+            if design is None:raise ValueError('Open a Fusion Design.')
+            if action=='auto_update_toggle':
+                design.rootComponent.attributes.add(GROUP,'enabled','true' if request.enabled else 'false')
+                if automatic is not None and request.enabled:automatic.reset_failure(design)
+            tag=design.rootComponent.attributes.itemByName(GROUP,'enabled')
+            return json.dumps({'protocol':PROTOCOL_VERSION,'requestId':request.request_id,'ok':True,'autoUpdate':automatic.enabled() if automatic is not None else tag is None or tag.value=='true'})
         operation_alias=None
         operation_items=None
         if action in ('operations_list','operation_edit','operation_delete'):
@@ -243,7 +287,7 @@ class ToolLibrary:
                 if action=='operation_delete':self._operation_delete.launch(design,request.operation_id)
                 else:
                     from .tools.details.settings import DetailSettings
-                    managers={'mechanism':(self._mechanism_commands,MechanismSettings()),'fan':(self._fan_commands,FanSettings()),'hinge':(self._hinge_commands,HingeSettings()),'snap':(self._snap_commands,SnapFitSettings()),
+                    managers={'finishing':(self._finishing_commands,FinishingSettings()),'mechanism':(self._mechanism_commands,MechanismSettings()),'fan':(self._fan_commands,FanSettings()),'hinge':(self._hinge_commands,HingeSettings()),'snap':(self._snap_commands,SnapFitSettings()),
                               'pattern':(self._pattern_commands,PatternSettings()),'detail':(self._detail_commands,DetailSettings(kind=record['alias']) if record['tool']=='detail' else DetailSettings())}
                     manager,defaults=managers[record['tool']]
                     if not self._has_palette_manager(manager):raise ValueError('Run Partelier to edit this operation.')

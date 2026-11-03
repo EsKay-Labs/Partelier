@@ -18,6 +18,7 @@ from .tools.fans.command import FanCommands
 from .tools.mechanisms.command import MechanismCommands
 from .tools.finishing.command import FinishingCommands
 from . import diagnostics
+from .auto_refresh import AutomaticUpdates
 
 
 COMMAND_ID = "sktech_partelier_honeycomb_inputs_7947c039"
@@ -28,6 +29,8 @@ PANEL_ID = "SolidScriptsAddinsPanel"
 _created_handler = None
 _sessions = []
 _tool_library = ToolLibrary()
+_automatic_updates = AutomaticUpdates(_tool_library)
+_tool_library._automatic_updates = _automatic_updates
 _hinge_commands = None
 _snap_commands = None
 _pattern_commands = None
@@ -106,6 +109,7 @@ def start():
             WORKSPACE_ID, PANEL_ID, COMMAND_ID, report_error,
             hinge_commands=_hinge_commands, snap_commands=_snap_commands, pattern_commands=_pattern_commands, detail_commands=_detail_commands, fan_commands=_fan_commands, finishing_commands=_finishing_commands, mechanism_commands=_mechanism_commands,
         )
+        _automatic_updates.start()
         _tool_library.show()
         diagnostics.emit('addin.ready',version=version,loaded_addin=__file__)
     except Exception:
@@ -131,6 +135,7 @@ def stop():
     try:
         if ui.activeCommand == COMMAND_ID:
             attempt(ui.terminateActiveCommand)
+        attempt(_automatic_updates.stop)
         attempt(_tool_library.stop)
         if _hinge_commands is not None:
             attempt(_hinge_commands.stop)

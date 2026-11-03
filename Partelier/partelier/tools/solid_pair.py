@@ -8,6 +8,7 @@ No tool settings, user-body deletion, hidden backups or geometry planners live
 here. The conservative fingerprint is reused from the validated hinge adapter.
 """
 
+from .. import refresh_context
 from contextlib import contextmanager
 from dataclasses import dataclass
 import json
@@ -128,7 +129,7 @@ class SolidPairStore:
         _, fusion = _api()
         if not _valid(design) or design.designType != fusion.DesignTypes.ParametricDesignType:
             raise ValueError("Use a parametric Design document with history enabled.")
-        if design.timeline.markerPosition != design.timeline.count:
+        if design.timeline.markerPosition != refresh_context.end(design):
             raise ValueError("Move the history marker to the end before using this tool.")
 
     def _attribute(self, entity, name, value):
@@ -243,7 +244,7 @@ class SolidPairStore:
             raise ValueError("The selected body does not belong to this tool result.")
         for role, body in zip(ROLES, targets):
             if (not self._owned(body, recipe["feature_id"], role)
-                    or _signature(body) != recipe["results"][role]):
+                    or (_signature(body) != recipe["results"][role] and not refresh_context.authorized(design,anchor))):
                 raise ValueError("The result bodies were edited after creation. Preserve those edits before rebuilding.")
         base, _ = self._feature_set(design, recipe)
         if base != anchor:

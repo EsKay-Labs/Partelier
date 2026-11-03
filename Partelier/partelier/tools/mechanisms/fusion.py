@@ -20,9 +20,15 @@ class Prepared:
     timings: dict
     record: object = None
     meshes: tuple = ()
+    targets: tuple = ()
+    tools: tuple = ()
+    source_signature: tuple = ()
 
 
-def prepare(design,settings,record=None):
+def prepare(design,settings,record=None,references=None):
+    if settings.output_mode=='attached':
+        from . import attachment
+        return attachment.prepare(design,settings,record,references or {})
     import adsk.core as core
     import adsk.fusion as native
     started=time.perf_counter();s=settings;p=planner.plan(s)
@@ -74,6 +80,15 @@ def prepare(design,settings,record=None):
         boolean(tongue,cylinder((s.pin_diameter_mm+2*g)/2,-.1,h+.1),cut)
         pin=cylinder(s.pin_diameter_mm/2,-t,h+t)
         bodies=[fork,tongue,pin]
+    elif s.family=='linked_louver':
+        from .linked_louver import build
+        bodies,names=build(s,core,native,m);p=replace(p,names=tuple(names))
+    elif s.family=='swing_hinge':
+        from .swing_hinge import build
+        bodies,names=build(s,core,native,m);p=replace(p,names=tuple(names))
+    elif s.family=='parallel_lift':
+        from .parallel_lift import build
+        bodies,names=build(s,core,native,m);p=replace(p,names=tuple(names))
     elif s.family=='pip_louver':
         # Adapted from our own PipLouverCoupon: bed-open teardrop sockets and
         # diamond pivots. Vanes print upright, all bodies touching Z=0.
@@ -132,7 +147,9 @@ def prepare(design,settings,record=None):
             for side,lo,hi in p.knuckles:
                 if side==0:boolean(bodies[0],cylinder(bore+.2,lo,hi),union)
             boolean(bodies[0],pin,union)
-    transform=core.Matrix3D.create();transform.translation=core.Vector3D.create(s.x_mm/10,s.y_mm/10,s.z_mm/10)
+    transform=core.Matrix3D.create()
+    transform.setToRotation(math.radians(s.placement_angle_deg),core.Vector3D.create(0,0,1),core.Point3D.create(0,0,0))
+    transform.translation=core.Vector3D.create(s.x_mm/10,s.y_mm/10,s.z_mm/10)
     for body in bodies:
         if not m.transform(body,transform):raise ValueError('Could not position mechanism.')
     # A failed empty intersection is ambiguous. Difference must succeed and

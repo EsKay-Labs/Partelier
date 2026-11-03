@@ -6,9 +6,9 @@
  const defaults={kind:"lid",lip_layout:"closed",lip_sides:15,lip_height_mm:2.5,lip_width_mm:1.2,lip_inset_mm:.8,lip_clearance_mm:.25,axial_clearance_mm:.3,lead_mm:.2,pin_diameter_mm:2.5,pin_height_mm:4,pin_clearance_mm:.3,pin_inset_mm:0,pin_count:2,socket_floor_mm:.5,rib_width_mm:2,rib_height_a_mm:12,rib_height_b_mm:12,rib_count:3,rib_margin_mm:5,rib_style:"triangle"};
  const titles={lid:"Lid lip & groove",alignment:"Alignment pins",ribs:"Ribs & gussets"};
  const fields={
-  lip_layout:["Lip layout","Continuous perimeter: χείλος και αυλάκι σε ορθογώνιο, πλήρη κύκλο ή κυρτό πολύγωνο 3–10 ευθύγραμμων πλευρών. Selected sides (μόνο ορθογώνιο): επίλεξε τις πλευρές πάνω στο μοντέλο και πάτησε Done. Το χείλος και το ταιριαστό αυλάκι δημιουργούνται μόνο εκεί."],
+  lip_layout:["Lip layout","Continuous perimeter: χείλος και αυλάκι σε ορθογώνιο, κύκλο ή κλειστό επίπεδο περίγραμμα με ευθείες/καμπύλες (έως 64 ακμές). Τα offsets πρέπει να παραμένουν ενιαία χωρίς να διασταυρώνονται. Selected sides (μόνο ορθογώνιο): επίλεξε τις πλευρές πάνω στο μοντέλο και πάτησε Done. Το χείλος και το ταιριαστό αυλάκι δημιουργούνται μόνο εκεί."],
   lip_height_mm:["Lip height (mm)","Ύψος του χείλους από το face A προς το καπάκι. Πρέπει να ξεπερνά το κενό ανάμεσα στα δύο faces τουλάχιστον κατά 0.2 mm."],
-  lip_width_mm:["Lip width (mm)","Πλάτος του συνεχόμενου ορθογώνιου χείλους. Η βάση του πρέπει να πατάει ολόκληρη στο υλικό του A."],
+  lip_width_mm:["Lip width (mm)","Πλάτος του συνεχόμενου χείλους, κάθετα στο περίγραμμα. Η βάση του πρέπει να πατάει ολόκληρη στο υλικό του A."],
   lip_inset_mm:["Edge inset (mm)","Απόσταση από την εξωτερική περίμετρο του A μέχρι την εξωτερική πλευρά του χείλους. Πρέπει να χωρά και το περιθώριο του αυλακιού."],
   lip_clearance_mm:["Side clearance (mm)","Πλευρικό κενό σε κάθε πλευρά του χείλους μέσα στο αυλάκι. Δεν αλλάζει το μέγεθος της αρχικής περιμέτρου."],
   axial_clearance_mm:["End clearance (mm)","Επιπλέον βάθος στο αυλάκι ή στην οπή, πέρα από την άκρη του χείλους/πείρου, ώστε να μη βρίσκει στον πάτο."],

@@ -1,0 +1,44 @@
+{
+  "version": "0.29.0",
+  "fusion": "2706.1.14",
+  "python_tests": 1195,
+  "node_suites": 6,
+  "compile": true,
+  "diff_check": true,
+  "palette_widths": [
+    300,
+    320,
+    380,
+    520
+  ],
+  "tool_entries": 13,
+  "mechanism_families": 11,
+  "mechanism_widths": [
+    300,
+    380,
+    520
+  ],
+  "geometry_native_reports": [
+    "mechanisms-0.29.0.json",
+    "attached-mechanisms-0.29.0.json",
+    "linked-louver-0.29.0.json",
+    "parallel-lift-0.29.0.json",
+    "swing-hinge-0.29.0.json",
+    "blower-volute.json",
+    "general-lip.json"
+  ],
+  "automatic_reports": [
+    "auto-update-chain-0.29.0.json",
+    "auto-update-families.json",
+    "auto-update-mechanisms-0.29.0.json",
+    "auto-update-session-0.29.0.json",
+    "auto-update-rollback-0.29.0.json"
+  ],
+  "startup_reports": [
+    "startup-0.29.0.json",
+    "palette-recovery-0.29.0.json"
+  ],
+  "physical_prints_tested": false,
+  "continuous_motion_sweeps_tested": false,
+  "hardware_pockets_excluded": true
+}

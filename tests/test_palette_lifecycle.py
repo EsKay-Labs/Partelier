@@ -92,7 +92,7 @@ class PaletteLifecycleTests(unittest.TestCase):
         core.HTMLEventHandler = object
         core.UserInterfaceGeneralEventHandler = object
         core.Application = SimpleNamespace(get=lambda: application)
-        core.PaletteDockingStates = SimpleNamespace(PaletteDockStateRight="right")
+        core.PaletteDockingStates = SimpleNamespace(PaletteDockStateRight="right",PaletteDockStateFloating="floating")
         adsk = ModuleType("adsk")
         adsk.core = core
         path = Path(__file__).parents[1] / "Partelier/partelier/palette.py"
@@ -164,6 +164,40 @@ class PaletteLifecycleTests(unittest.TestCase):
             palette._visible=value
         with patch.object(Item,'isVisible',property(lambda palette:palette._visible,visible),create=True):
             with self.assertRaisesRegex(RuntimeError,'Display failed'):self.library.show()
+
+    def test_broken_saved_dock_area_recreates_visible_floating_palette_once(self):
+        retired=[]
+        def visible(palette,value):
+            if value and palette.id==self.module.PALETTE_ID:
+                retired.append(palette)
+                raise RuntimeError('2 : InternalValidationError : pArea')
+            palette._visible=value
+        with patch.object(Item,'isVisible',property(lambda palette:palette._visible,visible),create=True):
+            self.library.show()
+            current=self.library._palette
+            self.assertTrue(current.isVisible)
+            self.assertEqual(current.dockingState,'floating')
+            self.assertTrue(self.ui.palettes.last_arguments[2], 'Recovery requests visible at creation.')
+            self.assertEqual(self.ui.palettes.creations,2)
+            self.assertFalse(retired[0].isValid)
+            self.assertEqual(retired[0].incomingFromHTML.handlers,[])
+            self.assertEqual(retired[0].closed.handlers,[])
+            self.assertEqual(len(current.incomingFromHTML.handlers),1)
+            self.assertEqual(len(current.closed.handlers),1)
+            self.library.show()
+            self.assertEqual(self.ui.palettes.creations,2)
+            self.library.close()
+            self.assertFalse(current.isValid)
+
+    def test_broken_dock_recovery_is_bounded_and_cleans_failed_replacement(self):
+        def visible(palette,value):
+            if value:raise RuntimeError('2 : InternalValidationError : pArea')
+            palette._visible=value
+        with patch.object(Item,'isVisible',property(lambda palette:palette._visible,visible),create=True):
+            with self.assertRaisesRegex(RuntimeError,'pArea'):self.library.show()
+        self.assertEqual(self.ui.palettes.creations,2)
+        self.assertEqual(self.ui.palettes.items,{})
+        self.assertIsNone(self.library._palette)
 
     def test_close_cancels_every_tool_and_reopen_rejects_old_page_requests(self):
         managers=[SimpleNamespace(cancel_palette=Mock()) for _ in range(7)]
@@ -573,7 +607,7 @@ class PaletteLifecycleTests(unittest.TestCase):
         payload=json.dumps({'protocol':1,'requestId':'fan-test','settings':{'style':'slim'},'editing':False})
         reply=json.loads(self.library.handle_message('fan_begin',payload))
         self.assertIn('fan-palette',reply['capabilities']);self.assertIn('fan-edit',reply['capabilities'])
-        self.assertEqual(len(reply['fanDefaults']),43)
+        self.assertEqual(len(reply['fanDefaults']),50)
         self.assertEqual(manager.begin_palette.call_args.args[0]['style'],'slim')
         manager.palette_state.return_value={**state,'sessionId':'active-fan','phase':'preview'}
         with self.assertRaisesRegex(ValueError,'fan'):
@@ -667,11 +701,13 @@ class PaletteLifecycleTests(unittest.TestCase):
         design=object();fake_native=SimpleNamespace(Design=SimpleNamespace(cast=lambda value:design))
         fake_adsk=ModuleType('adsk');fake_adsk.core=self.module.adsk.core;fake_adsk.fusion=fake_native
         self.module.adsk.core.Application.get().activeProduct=design
-        record={'id':identity,'tool':'detail','alias':'lid','anchor':anchor}
-        with patch.dict('sys.modules',{'adsk':fake_adsk,'adsk.fusion':fake_native}),patch.object(self.module.operations,'resolve',return_value=record),patch.object(self.module.operations,'snapshot',return_value=[]),patch.object(self.module.operations,'expand'):
-            result=json.loads(self.library.handle_message('operation_edit',json.dumps({'protocol':1,'requestId':'open','operationId':identity})))
-        self.assertEqual(result['operationAlias'],'lid')
-        self.assertEqual(manager.begin_palette.call_args.kwargs,{'editing':True,'selected_entity':anchor})
+        for tool,alias in (('detail','lid'),('finishing','finishing'),('mechanism','mechanism'),('fan','fan')):
+            setattr(self.library,'_'+tool+'_commands',manager)
+            record={'id':identity,'tool':tool,'alias':alias,'anchor':anchor}
+            with patch.dict('sys.modules',{'adsk':fake_adsk,'adsk.fusion':fake_native}),patch.object(self.module.operations,'resolve',return_value=record),patch.object(self.module.operations,'snapshot',return_value=[]),patch.object(self.module.operations,'expand'):
+                result=json.loads(self.library.handle_message('operation_edit',json.dumps({'protocol':1,'requestId':'open','operationId':identity})))
+            self.assertEqual(result['operationAlias'],alias)
+            self.assertEqual(manager.begin_palette.call_args.kwargs,{'editing':True,'selected_entity':anchor})
 
     def test_operation_edit_respects_other_preview_owner(self):
         self.detail_manager({'sessionId':'active','phase':'preview'})

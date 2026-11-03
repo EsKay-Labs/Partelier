@@ -239,6 +239,11 @@ def prepare(design,settings,placement=IDENTITY,references=None,outline=(),record
         if settings.output in ('rotor_frame','rotor_guard'):
             frame,front=_frame(manager,settings,plan,core,native);bodies.append(frame);names.append('Fan frame')
             if settings.output=='rotor_guard':bodies.append(_guard(manager,settings,front,core,native));names.append('Fan guard')
+        if settings.output=='blower_housing':
+            from . import volute
+            stage=time.perf_counter();housing,lid,volute_plan=volute.build(manager,settings,plan,core,native)
+            bodies.extend((housing,lid));names.extend(('Blower volute housing','Blower inlet lid'))
+            stages['volute_ms']=(time.perf_counter()-stage)*1000;stages['volute_segments']=volute_plan.segments
         transform=core.Matrix3D.create();origin,x,y,z=placement
         transform.setWithCoordinateSystem(core.Point3D.create(*(v/10 for v in origin)),core.Vector3D.create(*x),core.Vector3D.create(*y),core.Vector3D.create(*z))
         for body in bodies:

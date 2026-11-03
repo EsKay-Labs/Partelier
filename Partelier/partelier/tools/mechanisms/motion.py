@@ -43,6 +43,16 @@ def validate(prepared):
     import adsk.core as core
     import adsk.fusion as native
     from ..patterns import fusion as a
+    if prepared.settings.output_mode=='attached':raise ValueError('Attached movement depends on both source shapes; this fixture only certifies sampled separate-part motion.')
+    if prepared.settings.family=='linked_louver':
+        from .linked_louver import motion
+        return motion(prepared.settings,core,native,native.TemporaryBRepManager.get())
+    if prepared.settings.family=='swing_hinge':
+        from .swing_hinge import motion
+        return motion(prepared.settings,core,native,native.TemporaryBRepManager.get())
+    if prepared.settings.family=='parallel_lift':
+        from .parallel_lift import motion
+        return motion(prepared.settings,core,native,native.TemporaryBRepManager.get())
     start=time.perf_counter();s=prepared.settings;poses=path(s)
     manager=native.TemporaryBRepManager.get()
     for pose in poses:

@@ -159,6 +159,7 @@ def _current_features(design, record):
         recipe = _data(anchor.attributes.itemByName(group, 'pair' if record['tool'] == 'snap' else 'solid'))
     tokens = [recipe['base'] if record['tool'] in ('detail','finishing') else recipe['base_feature']]
     combines = recipe.get('combines', {})
+    if record['tool']=='mechanism' and recipe.get('attachment'):combines=recipe['attachment']['combines']
     tokens.extend(combines.values() if isinstance(combines, dict) else combines)
     colour = anchor.attributes.itemByName(group, 'flat_colour')
     if colour is not None:
@@ -203,6 +204,8 @@ def capture(design, anchor, tool, settings, start, *, editing=False):
                 previous.append(found[0])
         if len(previous) == len(meta['features']) and tuple(previous) == features:
             _members(design, record)
+            from .auto_refresh import capture as capture_update
+            capture_update(design,anchor)
             return
         # Pattern mode conversions may add/remove their owned colour/Cut nodes.
         # Regroup only their current exact, consecutive recipe-owned features.
@@ -245,6 +248,8 @@ def capture(design, anchor, tool, settings, start, *, editing=False):
             raise ValueError('Fusion could not save native feature ownership.')
     if anchor.attributes.add(GROUP, 'operation', json.dumps(value, separators=(',', ':'))) is None:
         raise ValueError('Fusion could not save the operation history.')
+    from .auto_refresh import capture as capture_update
+    capture_update(design,anchor)
 
 
 def delete(design, identity):

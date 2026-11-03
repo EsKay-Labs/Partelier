@@ -1,6 +1,7 @@
 """One owned BaseFeature and exact independent body ownership for fan results."""
 
 from dataclasses import dataclass
+from ... import refresh_context
 import json,uuid
 from .settings import FanSettings
 from . import references
@@ -26,20 +27,21 @@ def parse(raw):
     try:value=json.loads(raw)
     except (ValueError,TypeError) as error:raise ValueError('Fan recipe is damaged.') from error
     keys={'version','tool','feature_id','base_feature','settings','references','results'}
-    if not isinstance(value,dict) or set(value)!=keys or type(value['version']) is not int or value['version'] not in (1,2) or value['tool']!='fan':raise ValueError('Unsupported fan recipe.')
+    if not isinstance(value,dict) or set(value)!=keys or type(value['version']) is not int or value['version'] not in (1,2,3) or value['tool']!='fan':raise ValueError('Unsupported fan recipe.')
     try:
         if not isinstance(value['feature_id'],str) or str(uuid.UUID(value['feature_id']))!=value['feature_id']:raise ValueError()
     except (ValueError,TypeError,AttributeError):raise ValueError('Fan identity is damaged.')
     raw_settings=value['settings']
-    if value['version']==1:
-        added={'blower_height_mm','blower_backplate_mm','blower_vane_mm'}
-        if not isinstance(raw_settings,dict) or set(raw_settings)!=set(FanSettings().to_dict())-added or raw_settings.get('style')=='blower':raise ValueError('Unsupported legacy fan settings.')
+    legacy2={'volute_growth_mm','volute_wall_mm','volute_outlet_mm','volute_inlet_mm','volute_motor_mm','volute_lid_gap_mm','volute_mounts'}
+    added=legacy2|({'blower_height_mm','blower_backplate_mm','blower_vane_mm'} if value['version']==1 else set())
+    if value['version']<3:
+        if not isinstance(raw_settings,dict) or set(raw_settings)!=set(FanSettings().to_dict())-added or raw_settings.get('output')=='blower_housing' or value['version']==1 and raw_settings.get('style')=='blower':raise ValueError('Unsupported legacy fan settings.')
         raw_settings={**raw_settings,**{k:v for k,v in FanSettings().to_dict().items() if k in added}}
     settings=FanSettings.from_dict(raw_settings)
     refs=value['references']
     if not isinstance(refs,dict) or not set(refs)<={'circle','outline'}:raise ValueError('Fan reference data is damaged.')
     results=value['results']
-    count=3 if settings.output=='rotor_guard' else 2 if settings.output=='rotor_frame' else 1
+    count=3 if settings.output in ('rotor_guard','blower_housing') else 2 if settings.output=='rotor_frame' else 1
     if not isinstance(results,list) or len(results)!=count:raise ValueError('Fan output mapping is damaged.')
     tokens=[value['base_feature'],*refs.values()]
     for item in results:
@@ -53,7 +55,7 @@ def parse(raw):
 def read(design,entity):
     from ... import operations
     core,native=_api();operations.expand(design)
-    if design.timeline.markerPosition!=design.timeline.count:raise ValueError('Move the timeline to the end before editing a fan.')
+    if design.timeline.markerPosition!=refresh_context.end(design):raise ValueError('Move the timeline to the end before editing a fan.')
     if getattr(entity,'attributes',None) is None:raise ValueError('Choose a saved fan feature.')
     if entity.attributes.itemByName(GROUP,'recipe') is None:
         parent=getattr(entity,'body',entity);tag=parent.attributes.itemByName(GROUP,'owner')
@@ -63,7 +65,7 @@ def read(design,entity):
     if tag is None:raise ValueError('Select a saved fan result.')
     recipe,settings=parse(tag.value)
     if native.BaseFeature.cast(entity) is None or _resolve(design,recipe['base_feature'])!=entity:raise ValueError('The fan BaseFeature is missing.')
-    if entity.timelineObject.index!=design.timeline.count-1:raise ValueError('This fan has later features. Move/review those before rebuilding it.')
+    if entity.timelineObject.index!=refresh_context.end(design)-1:raise ValueError('This fan has later features. Move/review those before rebuilding it.')
     bodies=tuple(_resolve(design,item['body']) for item in recipe['results'])
     if tuple(entity.bodies)!=bodies:raise ValueError('The fan output bodies changed outside Partelier.')
     for body,item in zip(bodies,recipe['results']):
@@ -106,7 +108,7 @@ def apply(prepared):
             if i<len(visible):body.isLightBulbOn=visible[i]
             if body.attributes.add(GROUP,'owner',_json({'id':identity,'base':base.entityToken})) is None:raise ValueError('Could not save fan body ownership.')
             result.append({'body':body.entityToken,'signature':_body_signature(body)})
-        value={'version':2,'tool':'fan','feature_id':identity,'base_feature':base.entityToken,'settings':prepared.settings.to_dict(),
+        value={'version':3,'tool':'fan','feature_id':identity,'base_feature':base.entityToken,'settings':prepared.settings.to_dict(),
             'references':prepared.references,'results':result}
         if base.attributes.add(GROUP,'recipe',_json(value)) is None:raise ValueError('Could not save the fan dimensions.')
         base.name='Partelier · Fans & Propellers'

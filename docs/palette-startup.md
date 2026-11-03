@@ -1,4 +1,23 @@
-# Palette startup and optional docking — 0.27.1
+# Palette startup and optional docking
+
+## 0.29.0: recover from pArea during display
+
+Fusion can also raise `InternalValidationError : pArea` from `isVisible=True`,
+before the optional docking request. Partelier now makes one bounded recovery:
+remove its event handlers and failed palette, recreate the HTML palette with a
+fresh ID and visibility enabled at creation, and request floating placement.
+The fresh ID bypasses the previous native dock-area entry. Close still destroys
+the replacement and cancels previews. Other display errors propagate normally;
+a failed recovery is cleaned up and never retried in a loop.
+
+Two regression cases cover successful recovery and a second failing display,
+including handler retirement and cleanup. A native fault-injection fixture
+exercises the actual replacement, floating display and Close/reopen in Fusion
+2706.1.14, preserving the caller's document, timeline, bodies and visibility.
+Normal reload also starts 0.29.0 successfully. See
+[native recovery](validation/palette-recovery-0.29.0.json).
+
+## Historical 0.27.1 docking correction
 
 The reported 0.27.0 startup failure was recorded as
 `RuntimeError: 2 : InternalValidationError : pArea` from the native

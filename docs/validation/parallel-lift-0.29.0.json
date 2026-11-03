@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "fusion_version": "2706.1.14",
+  "bodies": [
+    "Fixed lift plate",
+    "Parallel moving plate",
+    "Lift arm A",
+    "Lift arm B",
+    "Fixed spacer A",
+    "Fixed spacer B",
+    "Moving spacer A",
+    "Moving spacer B"
+  ],
+  "motion": {
+    "sampled_angles_deg": [
+      0,
+      10,
+      20,
+      30,
+      40,
+      50,
+      60
+    ],
+    "pairwise_checks": 196,
+    "continuous_sweep": false,
+    "maximum_lift_mm": 25.980762113533157,
+    "parallel_plate": true,
+    "requires_assembly_fasteners": true,
+    "seconds": 0.38765580000108457
+  },
+  "print_layout": {
+    "bodies": 8,
+    "underside_faces_checked": 44,
+    "underside_limit_deg": 45,
+    "physical_print_tested": false
+  },
+  "version": "0.29.0",
+  "local_tests": 2
+}

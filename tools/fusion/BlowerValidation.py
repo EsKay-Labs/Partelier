@@ -40,7 +40,7 @@ def run(context):
         assert second.timings.get('rotor_cache_hit')
         T.apply(second);read=T.read(design,anchor)
         assert read.bodies[0]==body and body.name=='Blower validation' and not body.isLightBulbOn
-        assert read.recipe['version']==2 and read.settings==revised
+        assert read.recipe['version']==3 and read.settings==revised
         report['cases'].append({'name':'edit_shaft_cache','passed':True})
         third=replace(revised,blower_height_mm=revised.blower_height_mm+2,blower_vane_mm=1)
         T.apply(F.prepare(design,third,record=read,geometry_cache=cache));read=T.read(design,anchor)

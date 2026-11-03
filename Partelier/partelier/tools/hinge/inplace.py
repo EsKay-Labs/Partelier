@@ -18,6 +18,7 @@ Full final tools are snapshots: upstream source edits are incorporated by an
 explicit Rebuild, not by automatic add-in recomputation.
 """
 
+from ... import refresh_context
 from contextlib import contextmanager
 from dataclasses import replace
 import json
@@ -225,7 +226,7 @@ def _feature_set(design, recipe):
 
 def _read_target(design, base, selected_body=None):
     adapter = _adapter()
-    if design.timeline.markerPosition != design.timeline.count:
+    if design.timeline.markerPosition != refresh_context.end(design):
         raise _fail("Move the history marker to the end before editing an attached hinge.")
     attribute = base.attributes.itemByName(adapter.ATTRIBUTE_GROUP, adapter.RECIPE_NAME)
     if attribute is None:
@@ -241,7 +242,7 @@ def _read_target(design, base, selected_body=None):
         adapter._require_body(body, "An attached hinge output is no longer one solid.")
         if (body.parentComponent != design.rootComponent or body.assemblyContext is not None
                 or not _owned(body, recipe["feature_id"], role)
-                or adapter._body_signature(body) != recipe["results"][role]):
+                or (adapter._body_signature(body) != recipe["results"][role] and not refresh_context.authorized(design,base))):
             raise _fail("The attached hinge bodies were edited after creation. Preserve those edits before rebuilding.")
     with historical_scope(design, base):
         face_a, face_b, edge = _sources(design, recipe)

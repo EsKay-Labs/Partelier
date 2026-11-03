@@ -5,7 +5,7 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current release: 0.28.0.** Mechanical pairs, face details/labels, radial blower impellers and circular/convex lid lips are now available. Read the [new tools and morning test guide](docs/overnight-0.28.0.md) for exact scope and remaining limits.
+**Current release: 0.29.0.** Attached mechanical pairs, linked louvers, parallel lift and offset four-bar hinges, blower housing, concave/spline lid lips and guarded automatic source updates complete the current implementation list. Startup also recovers from Fusion's `pArea` display error. Read the [new tools and acceptance guide](docs/remaining-tools-0.29.0.md) for setup and practical limits.
 
 **0.27.3 branding:** The approved FIT emblem uses a thinner blue upper bar
 in a compact56px title bar. Rounded cards, controls and action panels accompany
@@ -21,7 +21,7 @@ wide-blade, slim and tip-ring rotors, plus 2/3/4-blade air propellers. Choose a
 shaft fit, and optionally generate a separate mounting frame and guard. A hub
 coupon, circular-opening fit and sketch planform are included. Preview is cached;
 Saved features provides guarded Edit/Delete. These are geometry prototypes,
-without verified cooling, balance, speed or strength ratings. Version0.28 adds a radial blower impeller; volute housings remain deferred.
+without verified cooling, balance, speed or strength ratings. Version0.28 added a radial blower impeller; 0.29 adds the scroll housing, inlet lid and optional mounting holes.
 See [Fans & Propellers](docs/fans-and-propellers.md).
 
 **New in 0.24.0:** every tool shows **Features in this section** with direct
@@ -61,8 +61,9 @@ retain their actual error through automatic previews and parameter changes.
 
 Version 9 recipes support this attached persistence model. A safe deliberate
 Rebuild migrates earlier attached copy-based results; it never deletes unrelated
-bodies. Upstream geometry changes require explicit Rebuild to recalculate the
-stored tool shapes. Preview and Cancel leave no persisted changes.
+bodies. Version0.29 can automatically rebuild enrolled features after source
+edits; older features need an explicit Rebuild to enroll. See
+[automatic updates](docs/automatic-updates.md). Preview and Cancel leave no persisted changes.
 
 The final 0.5.0 native report passes 53 stated expectations: 40 generated
 geometry cases, six explicit larger-fillet refusals, six in-place/migration

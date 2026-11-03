@@ -2,7 +2,7 @@ import unittest
 import math
 import json, uuid
 from dataclasses import replace
-from Partelier.partelier.tools.mechanisms.settings import MechanismSettings, FAMILIES
+from Partelier.partelier.tools.mechanisms.settings import MechanismSettings, FAMILIES,preset
 from Partelier.partelier.tools.mechanisms.planner import plan
 from Partelier.partelier.tools.mechanisms import store
 from Partelier.partelier.tools.mechanisms.motion import path
@@ -36,23 +36,42 @@ class MechanismTests(unittest.TestCase):
 
     def test_saved_recipe_validates_family_body_count_and_ownership(self):
         for family in FAMILIES:
-            settings=MechanismSettings(family=family)
-            value={'version':1,'tool':'mechanism','feature_id':str(uuid.uuid4()),'base_feature':'base',
-                   'settings':settings.to_dict(),'references':{},
+            settings=preset(family)
+            value={'version':2,'tool':'mechanism','feature_id':str(uuid.uuid4()),'base_feature':'base',
+                   'settings':settings.to_dict(),'references':{},'attachment':None,
                    'results':[{'body':str(i),'signature':'0'*64} for i in range(len(plan(settings).names))]}
             raw=json.dumps(value)
             self.assertEqual(store.parse(raw),(value,settings))
-            for patch in ({'version':True},{'version':2},{'references':{'circle':'token'}},{'results':value['results'][:-1]},
+            for patch in ({'version':True},{'version':3},{'references':{'circle':'token'}},{'results':value['results'][:-1]},
                           {'results':[value['results'][0]]*len(value['results'])},{'tool':'fan'}):
                 with self.assertRaises(ValueError):store.parse(json.dumps({**value,**patch}))
+
+    def test_recipe_one_is_read_only_separate_output_migration(self):
+        settings=MechanismSettings();old={k:v for k,v in settings.to_dict().items() if k not in ('output_mode','attachment_overlap_mm','placement_angle_deg','assembly_layout')}
+        value={'version':1,'tool':'mechanism','feature_id':str(uuid.uuid4()),'base_feature':'base','settings':old,'references':{},
+               'results':[{'body':str(i),'signature':'0'*64} for i in range(2)]}
+        parsed,upgraded=store.parse(json.dumps(value))
+        self.assertEqual(parsed,value);self.assertEqual(len(parsed['settings']),14)
+        self.assertEqual(upgraded.output_mode,'separate');self.assertEqual(upgraded.attachment_overlap_mm,.5)
+        with self.assertRaises(ValueError):store.parse(json.dumps({**value,'settings':settings.to_dict()}))
+
+    def test_attached_recipe_requires_exact_join_ownership_and_references(self):
+        s=MechanismSettings(output_mode='attached')
+        value={'version':2,'tool':'mechanism','feature_id':str(uuid.uuid4()),'base_feature':'base','settings':s.to_dict(),
+            'references':{'face_a':'faceA','face_b':'faceB'},'results':[{'body':b,'signature':'0'*64} for b in ('A','B')],
+            'attachment':{'targets':['A','B'],'combines':['joinA','joinB'],'tools':['toolA','toolB'],'tool_signatures':['0'*64]*2}}
+        self.assertEqual(store.parse(json.dumps(value))[1],s)
+        for patch in ({'references':{}},{'attachment':None},{'attachment':{**value['attachment'],'targets':['B','A']}},
+                      {'attachment':{**value['attachment'],'combines':['joinA','joinA']}}):
+            with self.assertRaises(ValueError):store.parse(json.dumps({**value,**patch}))
 
     def test_all_families_have_independent_output_layout(self):
         for family in FAMILIES:
             with self.subTest(family=family):
-                s=MechanismSettings(family=family)
+                s=preset(family)
                 self.assertEqual(MechanismSettings.from_dict(s.to_dict()),s)
                 p=plan(s)
-                self.assertEqual(len(p.names),s.count+1 if family=='pip_louver' else 3 if family in ('clevis','barrel','concealed') else 2)
+                self.assertEqual(len(p.names),8 if family in ('parallel_lift','swing_hinge') else s.count+3 if family=='linked_louver' else s.count+1 if family=='pip_louver' else 3 if family in ('clevis','barrel','concealed') else 2)
 
     def test_captive_louver_bed_slot_retains_pivot_and_swept_spacing(self):
         s=MechanismSettings(family='pip_louver')

@@ -151,8 +151,9 @@ def _lip_outline(face):
         helper=min(((1.,0.,0.),(0.,1.,0.),(0.,0.,1.)),key=lambda axis:abs(a._dot(axis,normal)))
         axis=_unit(h._cross(helper,normal));frame=h.HingeFrame(_xyz(circle.center),axis,normal,h._cross(axis,normal))
         return frame,'circle',circle.radius*10
+    if not 1<=len(edges)<=64:raise ValueError('Continuous lip boundaries support 1–64 connected edges.')
     if not 3<=len(edges)<=10 or any(core.Line3D.cast(edge.geometry) is None for edge in edges):
-        raise ValueError('Continuous lips support rectangles, full circles or convex polygons with 3–10 straight sides. Splines, arcs and concave outlines are not supported.')
+        return None,'native_offset',None
     pending=[(_xyz(edge.startVertex.geometry),_xyz(edge.endVertex.geometry)) for edge in edges]
     first,last=pending.pop(0);points=[first,last]
     while pending:
@@ -162,7 +163,9 @@ def _lip_outline(face):
     if math.dist(points[-1],points[0])>1e-6:raise ValueError('The polygon must close.')
     points=points[:-1];origin=tuple(sum(p[i] for p in points)/len(points) for i in range(3))
     axis=_unit(a._sub(points[1],points[0]));frame=h.HingeFrame(origin,axis,normal,h._cross(axis,normal))
-    return frame,'polygon',planner.convex_outline(tuple(_local(frame,p) for p in points))
+    try:polygon=planner.convex_outline(tuple(_local(frame,p) for p in points))
+    except ValueError:return None,'native_offset',None
+    return frame,'polygon',polygon
 
 
 def _annulus(frame,outer,inner,low,high,top_outer=None,top_inner=None):
@@ -174,6 +177,9 @@ def _annulus(frame,outer,inner,low,high,top_outer=None,top_inner=None):
 
 
 def _shaped_lip_tools(faces,settings,manager,outline):
+    if outline[1]=='native_offset':
+        from . import native_outline
+        return native_outline.tools(faces,settings,manager)
     core,_=h._api();frame,kind,contour=outline;A,B=(face.body for face in faces)
     if settings.lip_layout!='closed':raise ValueError('Circular and polygon lips use Continuous perimeter. Selected sides currently supports rectangles only.')
     if core.Plane.cast(faces[1].geometry) is None or a._dot(frame.y_axis,_normal(faces[1]))>-.99999:

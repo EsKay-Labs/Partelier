@@ -1,0 +1,53 @@
+{
+  "success": true,
+  "cases": [
+    {
+      "kind": "pattern",
+      "success": true,
+      "refresh_ms": 915.647199995874,
+      "updates": [
+        "Surface pattern \u00b7 Circle \u00b7 edde4c"
+      ],
+      "same_bodies_history_and_idempotence": true
+    },
+    {
+      "kind": "grille",
+      "success": true,
+      "refresh_ms": 320.702999997593,
+      "updates": [
+        "Grille \u00b7 Parallel \u00b7 86246f"
+      ],
+      "same_bodies_history_and_idempotence": true
+    },
+    {
+      "kind": "fan_circle",
+      "success": true,
+      "refresh_ms": 138.54790000186767,
+      "updates": [
+        "Fans & Propellers \u00b7 dc2b9f"
+      ],
+      "same_bodies_history_and_idempotence": true
+    },
+    {
+      "kind": "fan_sketch",
+      "success": true,
+      "refresh_ms": 2420.0547999935225,
+      "updates": [
+        "Fans & Propellers \u00b7 ef7bd4"
+      ],
+      "sketch_only_revision_detected": true,
+      "same_bodies_history_and_idempotence": true
+    },
+    {
+      "kind": "lip",
+      "success": true,
+      "refresh_ms": 278.662800003076,
+      "updates": [
+        "Lid lip & groove \u00b7 823018"
+      ],
+      "same_bodies_history_and_idempotence": true
+    }
+  ],
+  "caller_restored": true,
+  "target_version": "0.29.0"
+}

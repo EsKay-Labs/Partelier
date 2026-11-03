@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "checks": {
+    "nonoverlap_inlet_outlet_motor_mounts": true,
+    "same_body_housing_edit_and_cached_rotor": true,
+    "optional_bodies_removed_and_delete": true
+  },
+  "prepare_ms": 274.16599999924074,
+  "timings": {
+    "radial_vanes_ms": 69.21859999783919,
+    "volute_ms": 195.03280000208179,
+    "volute_segments": 93,
+    "prepare_ms": 273.91029999853345,
+    "prototype_blades": 1,
+    "blade_count": 12,
+    "bodies": 3,
+    "sector_gap_deg": 25.95727011928797
+  },
+  "triangles": 3000,
+  "caller_restored": true,
+  "target_version": "0.29.0",
+  "validation_scope": "Isolated native Fusion fixture; caller document restored. Timings are fixture observations."
+}

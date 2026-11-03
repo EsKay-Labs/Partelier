@@ -9,6 +9,7 @@ version 1 full-shape Join/Intersect records remain supported unchanged.
 Tool-specific settings and selected-face recipes belong to the caller.
 """
 
+from ... import refresh_context
 from contextlib import contextmanager
 from dataclasses import dataclass
 import json
@@ -154,7 +155,7 @@ class PatternStore:
         _, fusion = _api()
         if not _valid(design) or design.designType != fusion.DesignTypes.ParametricDesignType:
             raise ValueError("Use a parametric Design document with history enabled.")
-        if design.timeline.markerPosition != design.timeline.count:
+        if design.timeline.markerPosition != refresh_context.end(design):
             raise ValueError("Move the history marker to the end before using the pattern tool.")
 
     def _attribute(self, entity, name, value):
@@ -257,7 +258,7 @@ class PatternStore:
         if selected_body is not None and selected_body != target:
             raise ValueError("The selected body does not belong to this pattern.")
         digest = _cut_signature(target) if recipe['version'] == 2 else _signature(target)
-        if not self._owned(target, recipe["feature_id"], "target") or digest != recipe["result"]:
+        if not self._owned(target, recipe["feature_id"], "target") or (digest != recipe["result"] and not refresh_context.authorized(design,anchor)):
             raise ValueError("The pattern result was edited after creation. Preserve those edits before rebuilding.")
         base, _ = self._feature_set(design, recipe)
         if base != anchor:

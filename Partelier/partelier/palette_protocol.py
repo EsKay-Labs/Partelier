@@ -29,7 +29,7 @@ MECHANISM_SETTINGS_ACTIONS=frozenset({"mechanism_update","mechanism_preview","me
 MECHANISM_SESSION_ACTIONS=MECHANISM_SETTINGS_ACTIONS|{"mechanism_cancel","mechanism_focus","mechanism_reset"}
 FINISHING_SETTINGS_ACTIONS=frozenset({"finishing_update","finishing_preview","finishing_commit"})
 FINISHING_SESSION_ACTIONS=FINISHING_SETTINGS_ACTIONS|{"finishing_cancel","finishing_focus","finishing_reset"}
-ALLOWED_ACTIONS = frozenset({"finishing_begin","finishing_status"})|FINISHING_SESSION_ACTIONS|frozenset({"mechanism_begin","mechanism_status"})|MECHANISM_SESSION_ACTIONS|frozenset({
+ALLOWED_ACTIONS = frozenset({"auto_update_status","auto_update_toggle"})|frozenset({"finishing_begin","finishing_status"})|FINISHING_SESSION_ACTIONS|frozenset({"mechanism_begin","mechanism_status"})|MECHANISM_SESSION_ACTIONS|frozenset({
     "ready", "open_input_check", "hinge_create", "hinge_edit", "hinge_begin", "hinge_status",
     "snap_begin", "snap_status", "pattern_begin", "pattern_status", "pattern_export", "diagnostic_log",
     'fan_begin','fan_status','detail_begin','detail_status','operations_list','operation_edit','operation_delete',
@@ -46,6 +46,7 @@ class PaletteRequest:
     target: str | None = None
     diagnostics: tuple = ()
     operation_id: str | None = None
+    enabled: bool | None = None
 
 
 def read_request(action, raw_data):
@@ -65,6 +66,10 @@ def read_request(action, raw_data):
     request_id = request.get("requestId")
     if not isinstance(request_id, str) or not request_id or len(request_id) > 80:
         raise ValueError("The UI message needs a valid request identifier.")
+    if action in ('auto_update_status','auto_update_toggle'):
+        expected={'protocol','requestId'}|({'enabled'} if action=='auto_update_toggle' else set())
+        if set(request)!=expected or action=='auto_update_toggle' and type(request.get('enabled')) is not bool:raise ValueError('Choose whether automatic updates are enabled.')
+        return PaletteRequest(request_id,enabled=request.get('enabled'))
     if action=='diagnostic_log':
         if set(request)!={'protocol','requestId','entries'}:
             raise ValueError('Unexpected diagnostic message data.')
@@ -122,7 +127,7 @@ def read_request(action, raw_data):
     target = request.get("target")
     targets={'face_a','face_b','edit_target','lip_sides'} if detail else {"faces","add_face","body","edit_target"} if pattern else {"face_a", "face_b", "axis_edge", "edit_target"}
     if fan:targets={'circle','outline','edit_target'}
-    if action.startswith("mechanism_"):targets={'edit_target'}
+    if action.startswith("mechanism_"):targets={'edit_target','face_a','face_b','axis_edge'}
     if action.startswith("finishing_"):targets={'face','edit_target'}
     if action in focus_actions and (not isinstance(target, str) or target not in targets):
         raise ValueError(f"Select a supported {tool_name} geometry target.")

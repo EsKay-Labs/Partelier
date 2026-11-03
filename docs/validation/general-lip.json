@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "cases": [
+    {
+      "kind": "concave",
+      "prepare_ms": 266.6490000010526,
+      "cleanup": true,
+      "native_offset": true,
+      "same_body_create_edit_delete": true,
+      "failed_prepare_cleanup": true
+    },
+    {
+      "kind": "spline",
+      "prepare_ms": 453.32559999951627,
+      "cleanup": true,
+      "native_offset": true,
+      "same_body_create_edit_delete": true,
+      "failed_prepare_cleanup": true
+    }
+  ],
+  "caller_restored": true,
+  "target_version": "0.29.0",
+  "validation_scope": "Isolated native Fusion fixture; caller document restored. Timings are fixture observations."
+}

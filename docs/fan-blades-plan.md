@@ -2,7 +2,7 @@
 
 ## Goal
 Implement approved A–G axial PC rotors and air propellers in an independent tool.
-Blower H is a later phase. Presets are dimensional starting points, not tested
+Blower H now includes a radial impeller and optional scroll housing/inlet lid. Presets are dimensional starting points, not tested
 airflow/pressure/noise or strength ratings. Motor hub interfaces remain measured.
 
 ## Delivery
@@ -31,4 +31,4 @@ operation; performance, strength and balance require physical validation.
 ## Delivery status
 A–G delivered in0.27.0. Local and isolated native checks are recorded in
 [the validation report](validation/fans-0.27.0.json); usage and limits are in
-[Fans & Propellers](fans-and-propellers.md). H remains deferred.
+[Fans & Propellers](fans-and-propellers.md). H geometry and isolated native validation are documented in Fans & Propellers.

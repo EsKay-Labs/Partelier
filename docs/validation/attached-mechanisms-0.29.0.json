@@ -1,0 +1,61 @@
+{
+  "cases": [
+    {
+      "family": "slider",
+      "ok": true,
+      "source_identity_preserved": true,
+      "originals_restored_after_delete": true,
+      "final_bodies_before_delete": 2,
+      "seconds": 1.0534421000011207
+    },
+    {
+      "family": "dovetail",
+      "ok": true,
+      "source_identity_preserved": true,
+      "originals_restored_after_delete": true,
+      "final_bodies_before_delete": 2,
+      "seconds": 0.9444211999980325
+    },
+    {
+      "family": "clevis",
+      "ok": true,
+      "source_identity_preserved": true,
+      "originals_restored_after_delete": true,
+      "final_bodies_before_delete": 3,
+      "seconds": 1.1493243999975675
+    },
+    {
+      "family": "barrel",
+      "ok": true,
+      "source_identity_preserved": true,
+      "originals_restored_after_delete": true,
+      "final_bodies_before_delete": 3,
+      "seconds": 1.2935249999973166
+    },
+    {
+      "family": "concealed",
+      "ok": true,
+      "source_identity_preserved": true,
+      "originals_restored_after_delete": true,
+      "final_bodies_before_delete": 3,
+      "seconds": 1.2329608000000007
+    },
+    {
+      "family": "pip_hinge",
+      "ok": true,
+      "source_identity_preserved": true,
+      "originals_restored_after_delete": true,
+      "final_bodies_before_delete": 2,
+      "seconds": 1.0836144000022614
+    },
+    {
+      "family": "bayonet",
+      "ok": true,
+      "source_identity_preserved": true,
+      "originals_restored_after_delete": true,
+      "final_bodies_before_delete": 2,
+      "seconds": 1.208565400000225
+    }
+  ],
+  "ok": true
+}

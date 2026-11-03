@@ -1,10 +1,16 @@
 "use strict";
 (() => {
  const $=id=>document.getElementById(id),D=window.PartelierMechanismData,defaults=D.defaults,clone=v=>JSON.parse(JSON.stringify(v));
- const choices={family:[["slider","Straight sliding guide"],["dovetail","Dovetail sliding guide"],["bayonet","Bayonet closure"],["clevis","Clevis pivot"],["barrel","Barrel mounting hinge"],["concealed","Recessed single-axis hinge"],["pip_hinge","Captive hinge · print trial"],["pip_louver","Moving louvers · print trial"]],end_stop:[["true","Enabled"],["false","Disabled"]]};
+ const choices={output_mode:[["separate","Separate mating parts"],["attached","Attach to two existing bodies"]],assembly_layout:[["assembled","Assembled"],["print","Print layout"]],family:[["slider","Straight sliding guide"],["dovetail","Dovetail sliding guide"],["bayonet","Bayonet closure"],["clevis","Clevis pivot"],["barrel","Barrel mounting hinge"],["concealed","Recessed single-axis hinge"],["pip_hinge","Captive hinge · print trial"],["pip_louver","Moving louvers · print trial"],["linked_louver","Linked adjustable register"],["parallel_lift","Parallel-lift linkage"],["swing_hinge","Offset four-bar hinge"]],end_stop:[["true","Enabled"],["false","Disabled"]]};
  const terminal=new Set(["idle","cancelled","created"]),retired=new Set();
  const state={selected:false,settings:clone(defaults),session:null,revision:0,connected:false,caps:new Set(),busy:false,expecting:false,error:false};
  let sequence=0,hostRevision=-1,pushVersion=0,timer,poll,previewFlight=false,queued=false,queue=Promise.resolve(),helpTrigger;
+ const supports=document.createElement('div');supports.className='selection-actions';supports.id='mechanism-supports';
+ for(const [target,label] of [['face_a','Select Face A → B'],['face_b','Replace Face B'],['axis_edge','Direction edge (optional)']]){
+  const button=document.createElement('button');button.type='button';button.className='selection-button';button.id='mechanism-pick-'+target;button.textContent=label;
+  button.addEventListener('click',()=>run(async()=>{if(!identity()){await begin(false);return;}clearTimeout(timer);queued=false;await action('mechanism_focus',{target});schedule();}));supports.append(button);
+ }
+ $("mechanism-tool").insertBefore(supports,$("mechanism-settings"));
  const active=()=>!!state.session?.sessionId&&!terminal.has(state.session.phase),identity=()=>active()?state.session.sessionId:null;
  const other=()=>!!window.PartelierHingeActive||[window.PartelierFans,window.PartelierSnap,window.PartelierPatterns,window.PartelierDetails,window.PartelierFinishing].some(m=>m?.isActive()||m?.isBusy());
  const ready=()=>!!identity()&&!state.session?.pickingTarget&&!!state.session?.selections?.surface?.selected;
@@ -43,10 +49,12 @@
  }
  function visible(name){
   const f=state.settings.family;
+  if(name==="assembly_layout")return ["linked_louver","parallel_lift","swing_hinge"].includes(f);
+  if(name==="attachment_overlap_mm")return state.settings.output_mode==="attached";
   if(name==="diameter_mm")return f==="bayonet";
-  if(name==="pin_diameter_mm")return ["clevis","barrel","concealed","pip_hinge","pip_louver"].includes(f);
-  if(name==="count")return !["slider","dovetail","clevis"].includes(f);
-  if(name==="angle_deg")return ["dovetail","bayonet"].includes(f);
+  if(name==="pin_diameter_mm")return ["clevis","barrel","concealed","pip_hinge","pip_louver","linked_louver","parallel_lift","swing_hinge"].includes(f);
+  if(name==="count")return !["slider","dovetail","clevis","parallel_lift","swing_hinge"].includes(f);
+  if(name==="angle_deg")return ["dovetail","bayonet","linked_louver","parallel_lift","swing_hinge"].includes(f);
   if(name==="end_stop")return ["slider","dovetail"].includes(f);
   if(name==="length_mm"||name==="width_mm")return f!=="bayonet";
   return true;
@@ -54,9 +62,15 @@
  function render(){
   const supported=state.connected&&state.caps.has("mechanism-palette"),opening=state.session?.phase==="opening",computing=state.session?.phase==="computing";
   const f=state.settings.family,hinge=["barrel","concealed","pip_hinge"].includes(f);
-  for(const [name,label] of Object.entries({height_mm:hinge?"Barrel radius (mm)":f==="bayonet"?"Engagement height (mm)":"Height (mm)",width_mm:hinge?"Leaf reach (mm)":"Width (mm)",count:f==="bayonet"?"Lug count":f==="pip_louver"?"Vane count":"Knuckle count",pin_diameter_mm:f==="pip_louver"?"Pivot diameter (mm)":"Pin diameter (mm)",angle_deg:f==="bayonet"?"Locking turn (°)":"Dovetail angle (°)"}))$("mechanism-"+name).parentElement.querySelector("label").textContent=label;
+  for(const [name,label] of Object.entries({length_mm:["parallel_lift","swing_hinge"].includes(f)?"Arm length (mm)":"Length (mm)",height_mm:hinge?"Barrel radius (mm)":f==="bayonet"?"Engagement height (mm)":f==="swing_hinge"?"Plate width (mm)":"Height (mm)",width_mm:hinge?"Leaf reach (mm)":["parallel_lift","swing_hinge"].includes(f)?"Pivot spacing (mm)":"Width (mm)",count:f==="bayonet"?"Lug count":["pip_louver","linked_louver","parallel_lift","swing_hinge"].includes(f)?"Vane count":"Knuckle count",pin_diameter_mm:["pip_louver","linked_louver","parallel_lift","swing_hinge"].includes(f)?"Pivot / screw diameter (mm)":"Pin diameter (mm)",angle_deg:f==="bayonet"?"Locking turn (°)":f==="linked_louver"?"Vane opening (°)":f==="parallel_lift"?"Lift angle (°)":f==="swing_hinge"?"Hinge opening (°)":"Dovetail angle (°)"}))$("mechanism-"+name).parentElement.querySelector("label").textContent=label;
   $("mechanism-tool").hidden=!state.selected;$("mechanism-action-dock").hidden=!state.selected;
-  for(const input of $("mechanism-settings").querySelectorAll("[name]")){const show=visible(input.name);input.parentElement.hidden=!show;input.disabled=!show||state.busy||opening;}
+  supports.hidden=state.settings.output_mode!=="attached";
+  $("mechanism-angle_deg").min=["linked_louver","parallel_lift","swing_hinge"].includes(f)?"0":"10";
+  $("mechanism-angle_deg").max=f==="swing_hinge"?"90":"60";
+  const attachedOption=$("mechanism-output_mode").querySelector('option[value="attached"]');if(attachedOption)attachedOption.disabled=['pip_louver','linked_louver','parallel_lift','swing_hinge'].includes(f);
+  $("mechanism-tool").querySelector('p.helper-copy').textContent=state.settings.output_mode==='attached'?'Attach to existing bodies · Face A sets placement; Face B receives the matching part.':'Separate mating parts · document origin + XYZ offset. Existing bodies stay unchanged.';
+  for(const target of ['face_a','face_b','axis_edge']){const button=$('mechanism-pick-'+target);button.classList.toggle('is-selected',!!state.session?.selections?.[target]?.selected);button.disabled=!supported||state.busy||opening||computing||state.session?.editing||other();}
+  for(const input of $("mechanism-settings").querySelectorAll("[name]")){const show=visible(input.name);input.parentElement.hidden=!show;input.disabled=!show||state.busy||opening||(state.session?.editing&&(input.name==="output_mode"||(state.settings.output_mode==="attached"&&input.name==="family")));}
   for(const group of ["placement"])$("mechanism-"+group+"-group").hidden=!D.groups[group].some(visible);
   $("mechanism-availability").hidden=supported;$("mechanism-availability").textContent=state.connected?"Restart Partelier to enable mechanical pairs.":"Open Partelier in Fusion to build the mating parts.";
   $("mechanism-new").hidden=active();$("mechanism-edit").hidden=active();$("mechanism-new").disabled=!supported||state.busy||other()||!valid();$("mechanism-edit").disabled=!supported||!state.caps.has("mechanism-edit")||active()||state.busy||other();
@@ -69,7 +83,7 @@
  }
  for(const [group,names] of Object.entries(D.groups))for(const name of names){
   const item=document.createElement("div");item.className="parameter-item has-parameter-help";
-  if(name==="family")item.classList.add("full-width-parameter");
+  if(["family","output_mode"].includes(name))item.classList.add("full-width-parameter");
   const label=document.createElement("label");label.htmlFor="mechanism-"+name;label.textContent=D.labels[name];
   const input=document.createElement(choices[name]?"select":"input");input.id="mechanism-"+name;input.name=name;input.required=true;
   if(choices[name])options(input,choices[name]);else{input.type="number";input.step=name==="count"?"1":"any";[input.min,input.max]=D.bounds[name]||[0,1000];}
@@ -81,7 +95,13 @@
  $("mechanism-settings").addEventListener("input",e=>{
   const input=e.target,name=input.name;if(!Object.hasOwn(defaults,name))return;
   state.settings[name]=typeof defaults[name]==="boolean"?input.value==="true":typeof defaults[name]==="number"?Number(input.value):input.value;
-  if(name==="family")sync();
+  if(name==="family"){
+   if(input.value==="linked_louver")Object.assign(state.settings,{length_mm:80,width_mm:100,height_mm:18,wall_mm:2,clearance_mm:.3,pin_diameter_mm:3,count:5,angle_deg:30,assembly_layout:"assembled",output_mode:"separate"});
+   else if(input.value==="swing_hinge")Object.assign(state.settings,{length_mm:30,width_mm:40,height_mm:16,wall_mm:2,clearance_mm:.3,pin_diameter_mm:3,angle_deg:30,assembly_layout:"assembled",output_mode:"separate"});
+   else if(input.value==="parallel_lift")Object.assign(state.settings,{length_mm:30,width_mm:50,height_mm:16,wall_mm:2,clearance_mm:.3,pin_diameter_mm:3,angle_deg:30,assembly_layout:"assembled",output_mode:"separate"});
+   else {state.settings.assembly_layout="assembled";if(input.value==="pip_louver")state.settings.output_mode="separate";}
+   sync();
+  }
   state.revision++;state.error=false;render();message(valid()?"Updating live preview…":"Check the dimensions.",!valid());schedule();
  });
  async function begin(editing){state.expecting=true;try{hostRevision=-1;await send("mechanism_begin",{settings:clone(state.settings),editing});}finally{state.expecting=false;}schedule();}

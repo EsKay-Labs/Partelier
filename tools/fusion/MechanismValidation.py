@@ -28,7 +28,7 @@ def run(context):
                 doc=app.documents.add(core.DocumentTypes.FusionDesignDocumentType)
                 design=native.Design.cast(app.activeProduct)
                 before=(design.timeline.count,design.rootComponent.bRepBodies.count)
-                settings=MechanismSettings(family=family)
+                settings=settings_module.preset(family)
                 prepared=fusion.prepare(design,settings)
                 entry['motion']=motion.validate(prepared)
                 assert before==(design.timeline.count,design.rootComponent.bRepBodies.count),'Prepare persisted geometry'

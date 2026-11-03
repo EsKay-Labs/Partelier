@@ -214,6 +214,7 @@ class AddinLifecycleTests(unittest.TestCase):
         }):
             spec.loader.exec_module(self.module)
         self.module.diagnostics=SimpleNamespace(start=Mock(),emit=Mock())
+        self.module._automatic_updates=Mock()
         self.library = self.module._tool_library
 
     def tearDown(self):

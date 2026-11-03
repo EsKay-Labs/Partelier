@@ -1,0 +1,50 @@
+{
+  "success": true,
+  "cases": [
+    {
+      "kind": "hinge_sharp",
+      "success": true,
+      "refresh_ms": 827.635099998588,
+      "updates": [
+        "Pin hinge \u00b7 82a951"
+      ],
+      "retained_targets": true,
+      "unchanged_history": true,
+      "idempotent": true
+    },
+    {
+      "kind": "hinge_fillet",
+      "success": true,
+      "refresh_ms": 1520.74519999951,
+      "updates": [
+        "Pin hinge \u00b7 669ac3"
+      ],
+      "retained_targets": true,
+      "unchanged_history": true,
+      "idempotent": true
+    },
+    {
+      "kind": "snap_hook",
+      "success": true,
+      "refresh_ms": 808.2095999998273,
+      "updates": [
+        "Snap-fit \u00b7 f9ac6b"
+      ],
+      "retained_targets": true,
+      "unchanged_history": true,
+      "idempotent": true
+    },
+    {
+      "kind": "attached_slider",
+      "success": true,
+      "refresh_ms": 279.52150000055553,
+      "updates": [
+        "Mechanical pair \u00b7 7fc540"
+      ],
+      "retained_targets": true,
+      "unchanged_history": true,
+      "idempotent": true
+    }
+  ],
+  "caller_restored": true
+}

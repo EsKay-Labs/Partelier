@@ -34,7 +34,7 @@ const button=(row,text)=>{for(const node of row.children){if(node.textContent===
 const push=()=>api.handle('operations_state',JSON.stringify({items,message:'Feature deleted. Undo restores it.'}));
 (async()=>{
  assert.equal(requests.length,0);assert($('section-features-refresh').disabled);
- api.connect();await flush();assert.equal(requests.length,1);assert.equal(rows().length,0);
+ api.connect();await flush();assert.equal(requests.length,2);assert(requests.some(r=>r.action==='auto_update_status'));assert.equal(rows().length,0);
  api.select('honeycomb');await settle();assert.deepEqual(rows().map(x=>x.dataset.operationId),['a','b','c']);
  for(const alias of ['perforation','knurl']){api.select(alias);await settle();assert.equal(rows().length,3);}
  api.select('truss');await settle();assert.deepEqual(rows().map(x=>x.dataset.operationId),['d','g']);assert(button(find('g'),'Delete').disabled);
@@ -54,7 +54,7 @@ const push=()=>api.handle('operations_state',JSON.stringify({items,message:'Feat
  // Create/Rebuild pushes refresh metadata only, without geometry/picking requests.
  items.push(feature('h','truss','Planar truss · Howe · h'));api.handle('pattern_state',JSON.stringify({phase:'created'}));await settle();api.select('truss');await settle();assert(find('h'));
  deleteFailure=true;await button(find('h'),'Delete').click();await button(find('h'),'Delete feature').click();await flush();assert(find('h'));assert($('section-features-message').textContent.includes('later features'));assert($('section-features-message').classList.contains('is-error'));
- assert(requests.every(x=>['operations_list','operation_edit','operation_delete'].includes(x.action)));
+ assert(requests.every(x=>['operations_list','operation_edit','operation_delete','auto_update_status','auto_update_toggle'].includes(x.action)));
  assert.equal($('operations-list').children.length,items.length);
  console.log('Saved features: section filtering, exact Edit/Delete, cancellation, legacy, native pending/error and stale acknowledgement checks pass.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

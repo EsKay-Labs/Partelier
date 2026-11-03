@@ -6,7 +6,7 @@ import adsk.fusion as native
 from ..patterns import command as lifecycle
 from ..hinge.native_preview import NativePreviewRunner
 from .settings import MechanismSettings
-from . import fusion,store
+from . import fusion,store,attachment
 from ...diagnostics import emit
 
 COMMIT_ID='sktech_partelier_mechanism_commit_23d8c71a'
@@ -57,6 +57,11 @@ class MechanismCommands(lifecycle.PatternCommands):
             entity=selected_entity or (ui.activeSelections.item(0).entity if ui.activeSelections.count==1 else None)
             if entity is not None:session.select_target(entity)
             else:self.pick(session,'edit_target')
+        elif settings.output_mode=='attached':
+            if isinstance(selected_entity,(tuple,list)) and len(selected_entity)==2:
+                session.references={'face_a':selected_entity[0].entityToken,'face_b':selected_entity[1].entityToken}
+                attachment.selection(session.design,session.references);session.validate()
+            else:self.pick(session,'face_a')
         else:session.validate()
         return self.publish(session)
 
@@ -68,15 +73,28 @@ class MechanismCommands(lifecycle.PatternCommands):
         session.validate()
 
     def pick(self,session,target):
-        if target != 'edit_target' or not session.editing:raise ValueError('Choose Edit to select a saved mechanism.')
+        if target not in ('edit_target','face_a','face_b','axis_edge'):raise ValueError('Choose a mounting face or direction edge.')
+        if target=='edit_target' and not session.editing:raise ValueError('Start Edit to select a saved mechanism.')
+        if target!='edit_target' and (session.editing or session.settings.output_mode!='attached'):
+            raise ValueError('Mounting references are selected when creating a new attached mechanism.')
         session.ensure_design();self.runner.cancel(session);session.clear_preview()
-        session.picking_target=target;session.phase='selecting';session.message='Select a saved mechanism.';self.publish(session)
+        prompt={'edit_target':'Select a saved mechanism.','face_a':'Select mounting Face A.','face_b':'Select mounting Face B on the other body.','axis_edge':'Select a straight boundary edge of Face A for direction.'}
+        session.picking_target=target;session.phase='selecting';session.message=prompt[target];self.publish(session)
         self._busy=True
         try:
-            try:selection=core.Application.get().userInterface.selectEntity('Select a saved Partelier mechanism.','SolidBodies,Faces,Edges,Features')
-            except RuntimeError:selection=None
-            if selection is None:self.reset(session)
-            else:session.select_target(selection.entity)
+            targets=('face_a','face_b') if target=='face_a' else (target,)
+            for role in targets:
+                session.picking_target=role;session.message=prompt[role];self.publish(session)
+                try:selection=core.Application.get().userInterface.selectEntity(prompt[role]+' Esc resets references.',
+                    'SolidBodies,Faces,Edges,Features' if role=='edit_target' else 'Edges' if role=='axis_edge' else 'PlanarFaces')
+                except RuntimeError:selection=None
+                if session.closed:return
+                if selection is None:self.reset(session);break
+                if role=='edit_target':session.select_target(selection.entity)
+                else:
+                    if role=='face_a':session.references={}
+                    session.references[role]=selection.entity.entityToken
+                    session.revision+=1;session.validate()
         finally:self._busy=False;session.picking_target=None
         self.publish(session)
 
@@ -113,10 +131,13 @@ class _Session(lifecycle._Session):
         super().__init__(owner,design,settings,editing);self.references={};self.geometry_cache={};self.validate()
 
     def snapshot(self):
-        valid=not self.editing or self.edit_target is not None
+        valid=(not self.editing or self.edit_target is not None) and (self.settings.output_mode=='separate' or {'face_a','face_b'}<=set(self.references))
         return {'sessionId':None if self.closed else self.session_id,'endedSessionId':self.session_id if self.closed else None,
             'revision':self.revision,'phase':self.phase,'editing':self.editing,'settings':self.settings.to_dict(),
-            'selections':{'surface':{'selected':valid,'label':'Saved mechanism' if self.editing else 'Separate parts at document origin / XYZ offset'},
+            'selections':{'surface':{'selected':valid,'label':'Saved mechanism' if self.editing else 'Two mounting bodies' if self.settings.output_mode=='attached' else 'Separate parts at document origin / XYZ offset'},
+                'face_a':{'selected':'face_a' in self.references,'label':'Mounting Face A'},
+                'face_b':{'selected':'face_b' in self.references,'label':'Mounting Face B'},
+                'axis_edge':{'selected':'axis_edge' in self.references,'label':'Direction edge'},
                 'edit_target':{'selected':self.edit_target is not None,'label':'Saved mechanism'}},
             'pickingTarget':self.picking_target,'previewCurrent':self.preview_current,'message':self.message}
 
@@ -127,21 +148,25 @@ class _Session(lifecycle._Session):
     def require_selections(self):
         self.ensure_design();self.settings.validate()
         if self.editing and self.edit_target is None:raise ValueError('Choose the saved mechanism to edit.')
+        if self.settings.output_mode=='attached' and not self.editing:attachment.selection(self.design,self.references)
 
 
     def validate(self):
-        try:self.require_selections();self.phase='ready';self.message='Ready for live preview. Separate mating parts; test clearances before use.'
+        try:self.require_selections();self.phase='ready';self.message='Ready for live preview. Attachment preserves the two source bodies.' if self.settings.output_mode=='attached' else 'Ready for live preview. Separate mating parts; test clearances before use.'
         except ValueError as error:self.phase='selecting';self.message=str(error)
 
     def update(self,values,revision):
         settings=MechanismSettings.from_dict(values)
+        if self.edit_target and (settings.output_mode!=self.edit_target.settings.output_mode or
+                settings.output_mode=='attached' and settings.family!=self.edit_target.settings.family):
+            raise ValueError('Saved mechanisms keep their output mode; attached mechanisms also keep their family. Create a new feature to change these.')
         if type(revision) is not int or not 0<=revision<=1_000_000_000 or revision<self.revision or revision==self.revision and settings!=self.settings:raise ValueError('These mechanism settings are stale.')
         if settings!=self.settings:self.preview_revision=None
         self.settings,self.revision=settings,revision
 
     def prepare(self,settings):
         self.require_selections()
-        return fusion.cache(fusion.prepare(self.design,settings,self.edit_target))
+        return fusion.cache(fusion.prepare(self.design,settings,self.edit_target,dict(self.references)))
 
     def show_preview(self):
         self.require_selections();settings,revision=self.settings,self.revision
@@ -154,14 +179,14 @@ class _Session(lifecycle._Session):
             try:
                 store.validate(prepared);candidate=fusion.draw(prepared)
                 try:
-                    self.visibility.hide(self.edit_target.bodies if self.edit_target else ())
+                    self.visibility.hide(self.edit_target.bodies if self.edit_target else prepared.targets)
                     if self.preview is not None and self.preview.isValid and self.preview.deleteMe() is False:raise ValueError('Could not remove the previous mechanism preview.')
                 except Exception:
                     candidate.deleteMe()
                     if self.preview is None:self.visibility.restore()
                     raise
                 self.preview=candidate;self.prepared=prepared;self.preview_revision=revision;self.phase='preview'
-                self.message=f'{settings.family.replace("_"," ").title()} · {len(prepared.bodies)} separate parts. Test fit and motion before use.'
+                self.message=f'{settings.family.replace("_"," ").title()} · '+('Attached to the same two bodies; only optional pin stays separate.' if settings.output_mode=='attached' else f'{len(prepared.bodies)} separate parts. Test fit and motion before use.')
                 self.owner.publish(self)
             except Exception as error:failed(error)
         self.owner.runner.request(self,lambda:self.prepare(settings),completed,failed)

@@ -1,0 +1,48 @@
+{
+  "ok": true,
+  "fusion_version": "2706.1.14",
+  "bodies": [
+    "Fixed swing plate",
+    "Rotating swing plate",
+    "Short swing arm",
+    "Long swing arm",
+    "Ground spacer A",
+    "Ground spacer D",
+    "Coupler spacer B",
+    "Coupler spacer C"
+  ],
+  "motion": {
+    "opening_angles_deg": [
+      0,
+      5,
+      10,
+      15,
+      20,
+      25,
+      30,
+      35,
+      40,
+      45,
+      50,
+      55,
+      60,
+      65,
+      70,
+      75,
+      80,
+      85,
+      90
+    ],
+    "pairwise_checks": 532,
+    "output_rotation_deg": 90,
+    "continuous_sweep": false,
+    "requires_external_fasteners": true,
+    "seconds": 1.014449300004344
+  },
+  "print_layout": {
+    "bodies": 8,
+    "underside_faces_checked": 44,
+    "underside_limit_deg": 45,
+    "physical_print_tested": false
+  }
+}

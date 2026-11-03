@@ -1,5 +1,27 @@
 # Partelier repository guidance
 
+## Current delivery: 0.29.0
+
+This section supersedes earlier release-specific deferred-scope statements below.
+The current implementation includes attached mechanical pairs (seven two-part
+families), linked louvers, parallel lift and a rotating offset four-bar hinge,
+blower volute/lid, native-offset concave/spline lid perimeters and guarded
+event-driven source updates. Hardware pockets remain excluded by explicit request.
+See docs/remaining-tools-0.29.0.md and docs/automatic-updates.md.
+
+Automatic updates enroll only on successful explicit Create/Rebuild, preserve
+ownership guards and run inside one rollback-capable native command. No timer,
+worker Fusion access or orbit-triggered scan. Old features are not enrolled by
+listing. refresh_context authority is limited to one exact anchor and operation
+end; never broaden its stale-result exception into general edit permissions.
+Multi-part linkages require assembly fasteners and a print layout; do not call
+them print-in-place. Sampled collision checks do not establish physical fit,
+strength, continuous motion or clearance against user cabinetry.
+
+Palette pArea recovery permits one fresh-ID visible floating retry, retires old
+handlers and cleans a failed replacement. Do not suppress unrelated display
+failures or create unbounded retries. Native geometry is unchanged by recovery.
+
 ## Purpose and scope
 Build a Python add-in for Autodesk Fusion that automates time-consuming small
 CAD details on the user's existing designs: hinges, snap-fits, sliding guides,

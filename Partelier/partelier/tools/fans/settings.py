@@ -54,17 +54,25 @@ class FanSettings:
     blower_height_mm:float=10.
     blower_backplate_mm:float=1.6
     blower_vane_mm:float=1.2
+    volute_growth_mm:float=12.
+    volute_wall_mm:float=2.
+    volute_outlet_mm:float=15.
+    volute_inlet_mm:float=0.
+    volute_motor_mm:float=8.
+    volute_lid_gap_mm:float=.2
+    volute_mounts:bool=True
 
     def __post_init__(self):
         enums={'style':STYLES,'size_preset':('custom',*PC_SIZES,*PROPS),'shaft_shape':('round','d'),
             'pitch_mode':('twist','pitch'),'rotation':('ccw','cw'),
-            'output':('rotor','rotor_frame','rotor_guard','hub_test'),'outline_mode':('generated','sketch')}
+            'output':('rotor','rotor_frame','rotor_guard','hub_test','blower_housing'),'outline_mode':('generated','sketch')}
         for name,choices in enums.items():
             if getattr(self,name) not in choices:raise ValueError('Choose a supported '+name.replace('_',' ')+'.')
         for name,lo,hi in [('blade_count',2,16),('guard_spokes',3,12)]:
             value=getattr(self,name)
             if type(value) is not int or not lo<=value<=hi:raise ValueError(f'{name.replace("_"," ")} must be a whole number from {lo} to {hi}.')
-        numeric=set(asdict(self))-set(enums)-{'blade_count','guard_spokes'}
+        if type(self.volute_mounts) is not bool:raise ValueError('Volute mounting holes must be true or false.')
+        numeric=set(asdict(self))-set(enums)-{'blade_count','guard_spokes','volute_mounts'}
         for name in numeric:
             value=getattr(self,name)
             try:valid=type(value) in (float,int) and math.isfinite(value)
@@ -74,7 +82,7 @@ class FanSettings:
         self.validate()
 
     def validate(self):
-        bounds={'blower_height_mm':(2,60),'blower_backplate_mm':(.8,8),'blower_vane_mm':(.6,6),'diameter_mm':(15,500),'hub_diameter_mm':(5,180),'hub_height_mm':(2,100),'shaft_diameter_mm':(.8,60),
+        bounds={'volute_growth_mm':(4,100),'volute_wall_mm':(1,10),'volute_outlet_mm':(3,100),'volute_inlet_mm':(0,480),'volute_motor_mm':(1,100),'volute_lid_gap_mm':(.1,2),'blower_height_mm':(2,60),'blower_backplate_mm':(.8,8),'blower_vane_mm':(.6,6),'diameter_mm':(15,500),'hub_diameter_mm':(5,180),'hub_height_mm':(2,100),'shaft_diameter_mm':(.8,60),
             'shaft_clearance_mm':(0,2),'shaft_flat_mm':(.05,20),'set_screw_diameter_mm':(0,12),
             'root_chord_mm':(2,160),'mid_chord_mm':(2,160),'tip_chord_mm':(2,160),
             'root_angle_deg':(0,75),'mid_angle_deg':(0,75),'tip_angle_deg':(0,75),
@@ -90,10 +98,15 @@ class FanSettings:
         if self.shaft_shape=='d' and self.shaft_flat_mm>=self.shaft_diameter_mm*.7:raise ValueError('D-shaft flat depth is too large for the shaft.')
         if self.set_screw_diameter_mm and (self.set_screw_diameter_mm<1 or self.set_screw_diameter_mm>self.hub_height_mm-2):
             raise ValueError('Set screw hole must be at least 1 mm and leave material above and below it.')
+        if self.output=='blower_housing' and self.style!='blower':raise ValueError('Volute housing output requires the radial blower style.')
         if self.output=='hub_test':return
         if self.hub_diameter_mm>=self.diameter_mm-6:raise ValueError('Rotor diameter must be at least 6 mm larger than the hub.')
         if self.style=='blower':
-            if self.output not in ('rotor','hub_test'):raise ValueError('The radial blower generates an impeller only. A volute housing is not implemented.')
+            if self.output not in ('rotor','hub_test','blower_housing'):raise ValueError('Choose Rotor only, Hub fit coupon or Rotor + volute + lid for the blower.')
+            if self.output=='blower_housing':
+                inlet=self.volute_inlet_mm or self.hub_diameter_mm+2*self.volute_wall_mm
+                if inlet<=self.hub_diameter_mm or inlet>=self.diameter_mm-2*self.volute_wall_mm:raise ValueError('Inlet diameter must exceed Hub diameter and retain material inside the rotor perimeter.')
+                if self.volute_motor_mm<=bore or self.volute_motor_mm>=self.hub_diameter_mm:raise ValueError('Motor opening must exceed the shaft bore and stay smaller than Hub diameter.')
             if self.outline_mode!='generated':raise ValueError('Blower vanes use the radial generator, not a sketch blade outline.')
             if self.blower_vane_mm>=self.hub_diameter_mm*math.sin(math.pi/self.blade_count):raise ValueError('Blower vanes overlap at the hub. Reduce vane thickness/count or enlarge Hub.')
             return
@@ -128,7 +141,7 @@ def preset(style='axial',size='pc120'):
             root_chord_mm=max(4,18*scale),mid_chord_mm=max(5,22*scale),tip_chord_mm=max(4,18*scale),
             root_thickness_mm=max(.8,1.8*scale),tip_thickness_mm=max(.6,1.2*scale),root_fillet_mm=min(.6,.6*scale),
             ring_height_mm=max(4,10*scale),shaft_diameter_mm=2 if width<80 else 3)
-        if style=='blower':values.update(blade_count=12,root_fillet_mm=0,edge_round_mm=0,sweep_deg=0,camber_percent=0,blower_height_mm=max(4,10*scale),blower_backplate_mm=max(.8,1.6*scale),blower_vane_mm=max(.6,1.2*scale))
+        if style=='blower':values.update(blade_count=12,root_fillet_mm=0,edge_round_mm=0,sweep_deg=0,camber_percent=0,blower_height_mm=max(4,10*scale),blower_backplate_mm=max(.8,1.6*scale),blower_vane_mm=max(.6,1.2*scale),volute_growth_mm=max(6,12*scale))
         if style=='wide':values.update(blade_count=9,hub_diameter_mm=max(10,40*scale),mid_chord_mm=max(5,24*scale),tip_chord_mm=max(4,20*scale))
         if style=='slim':values.update(hub_diameter_mm=max(10,44*scale),blade_count=9,hub_height_mm=max(5,10*scale),root_chord_mm=max(4,16*scale),mid_chord_mm=max(5,20*scale),tip_chord_mm=max(4,15*scale),root_angle_deg=25,mid_angle_deg=18,tip_angle_deg=12,root_thickness_mm=max(.8,1.2*scale),tip_thickness_mm=max(.6,.9*scale))
         if style.startswith('prop'):values.update(blade_count=int(style[-1]),pitch_mode='pitch',pitch_mm=width*.6,sweep_deg=4)

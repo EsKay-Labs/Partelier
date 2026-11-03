@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "fusion_version": "2706.1.14",
+  "bodies": [
+    "Split frame back",
+    "Split frame front",
+    "Linked vane 1",
+    "Linked vane 2",
+    "Linked vane 3",
+    "Linked vane 4",
+    "Linked vane 5",
+    "Common crank link"
+  ],
+  "motion": {
+    "sampled_angles_deg": [
+      0,
+      10,
+      20,
+      30,
+      40,
+      50,
+      60
+    ],
+    "pairwise_checks": 196,
+    "continuous_sweep": false,
+    "seconds": 2.846116799999436,
+    "linkage": "parallel cranks with equal pitch",
+    "requires_assembly_fasteners": true
+  },
+  "print_layout": {
+    "bodies": 8,
+    "underside_faces_checked": 464,
+    "underside_limit_deg": 45,
+    "physical_print_tested": false
+  },
+  "local_tests": 3,
+  "scope": "Standalone assembled linkage and separate flat printing layout; external joint/frame hardware required.",
+  "version": "0.29.0"
+}

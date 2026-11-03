@@ -66,9 +66,9 @@ class NewToolProtocolTests(unittest.TestCase):
     def test_only_supported_selection_roles_are_forwarded(self):
         for tool,cls in self.tools:
             raw={'protocol':1,'requestId':'focus','sessionId':str(uuid.uuid4())}
-            allowed=('edit_target',) if tool=='mechanism' else ('face','edit_target')
+            allowed=('edit_target','face_a','face_b','axis_edge') if tool=='mechanism' else ('face','edit_target')
             for target in allowed:self.assertEqual(read_request(tool+'_focus',json.dumps({**raw,'target':target})).target,target)
-            for target in ('body','face_a','outline',None,[]):
+            for target in ('body','outline',None,[]):
                 with self.subTest(tool=tool,target=target),self.assertRaises(ValueError):read_request(tool+'_focus',json.dumps({**raw,'target':target}))
 
     def test_status_is_settings_free_and_cancel_reset_need_only_identity(self):

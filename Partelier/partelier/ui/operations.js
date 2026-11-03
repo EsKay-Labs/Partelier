@@ -90,17 +90,24 @@
  $("saved-operations-button").addEventListener("click",()=>{const browser=$("operations-browser");browser.hidden=false;browser.open=!browser.open;if(browser.open)browser.scrollIntoView({block:"start"});});
  $("operation-pick-model").addEventListener("click",()=>{if(unavailable())return;$("operations-browser").open=false;window.PartelierPickFromModel?.();});
  $("operations-browser").addEventListener("toggle",()=>{const open=$("operations-browser").open;$("operations-browser").hidden=!open;$("saved-operations-button").setAttribute("aria-expanded",String(open));if(open)refresh();});
+ async function automatic(action='auto_update_status'){
+  const input=$('automatic-updates');if(!input||!connected)return;
+  try{const reply=await request(action,action==='auto_update_toggle'?{enabled:input.checked}:{});input.checked=reply.autoUpdate;}
+  catch(error){message(error.message,true);}
+ }
+ $('automatic-updates')?.addEventListener('change',()=>automatic('auto_update_toggle'));
  window.PartelierOperations=Object.freeze({
   refresh,
-  connect(){connected=true;refresh();},
+  connect(){connected=true;refresh();automatic();},
   select(alias){if(selected===alias)return;selected=alias;confirmation=null;message("");render();if(connected)scheduleRefresh();},
   handle(action,raw){
    if(action==="operations_state"){
     const value=JSON.parse(raw);listVersion++;items=value.items||[];deleting=false;confirmation=null;
+    if(typeof value.autoUpdate==='boolean'&&$('automatic-updates'))$('automatic-updates').checked=value.autoUpdate;
     if(!items.some(item=>item.id===editingId))editingId=null;
     message(value.message||"");render();if(refreshQueued&&!busy){refreshQueued=false;scheduleRefresh();}return true;
    }
-   if(["hinge_state","snap_state","pattern_state","detail_state"].includes(action)){
+   if(["hinge_state","snap_state","pattern_state","detail_state","fan_state","mechanism_state","finishing_state"].includes(action)){
     const value=JSON.parse(raw);
     if(["created","cancelled"].includes(value.phase)){confirmation=null;scheduleRefresh();}
     // The tool applies its pushed state after this handler returns.

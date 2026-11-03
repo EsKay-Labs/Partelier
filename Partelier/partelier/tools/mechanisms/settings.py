@@ -1,8 +1,8 @@
 """Bounded independent mechanical pairs. Dimensions in millimetres."""
-from dataclasses import dataclass, asdict, fields
+from dataclasses import dataclass, asdict, fields, replace
 import math
 
-FAMILIES = ('slider', 'dovetail', 'bayonet', 'clevis', 'barrel', 'concealed', 'pip_hinge', 'pip_louver')
+FAMILIES = ('slider', 'dovetail', 'bayonet', 'clevis', 'barrel', 'concealed', 'pip_hinge', 'pip_louver','linked_louver','parallel_lift','swing_hinge')
 
 
 @dataclass(frozen=True)
@@ -21,15 +21,21 @@ class MechanismSettings:
     x_mm: float = 0.
     y_mm: float = 0.
     z_mm: float = 0.
+    output_mode: str = 'separate'
+    attachment_overlap_mm: float = .5
+    placement_angle_deg: float = 0.
+    assembly_layout: str = 'assembled'
 
     def __post_init__(self):
         if type(self.family) is not str or self.family not in FAMILIES:
             raise ValueError('Choose a supported mechanism family.')
         if type(self.end_stop) is not bool: raise ValueError('End stop must be true or false.')
+        if self.output_mode not in ('separate','attached'):raise ValueError('Choose separate parts or attachment to two existing bodies.')
+        if self.assembly_layout not in ('assembled','print'):raise ValueError('Choose assembled or print layout.')
         if type(self.count) is not int or not 2 <= self.count <= 9:
             raise ValueError('Count must be a whole number from 2 to 9.')
         for field in fields(self):
-            if field.name in ('family','end_stop','count'): continue
+            if field.name in ('family','end_stop','count','output_mode','assembly_layout'): continue
             value = getattr(self,field.name)
             try:valid=type(value) in (int,float) and math.isfinite(value)
             except (TypeError,OverflowError):valid=False
@@ -41,10 +47,24 @@ class MechanismSettings:
     def validate(self):
         for name, lo, hi in (('length_mm',12,300),('width_mm',6,150),('height_mm',3,100),
                 ('wall_mm',.8,10),('clearance_mm',.1,2),('diameter_mm',12,150),
-                ('pin_diameter_mm',1,30),('angle_deg',10,60),
+                ('pin_diameter_mm',1,30),('angle_deg',0 if self.family in ('linked_louver','parallel_lift','swing_hinge') else 10,90 if self.family=='swing_hinge' else 60),
                 ('x_mm',-10000,10000),('y_mm',-10000,10000),('z_mm',-10000,10000)):
             if not lo <= getattr(self,name) <= hi: raise ValueError(f'{name.replace("_mm", "").replace("_", " ")} must be {lo:g}–{hi:g}.')
         w,t,h,g = self.width_mm,self.wall_mm,self.height_mm,self.clearance_mm
+        if not .05<=self.attachment_overlap_mm<=5:raise ValueError('Attachment overlap must be 0.05–5 mm.')
+        if not -180<=self.placement_angle_deg<=180:raise ValueError('Placement angle must be between -180 and 180 degrees.')
+        if self.output_mode=='attached' and self.family in ('pip_louver','linked_louver','parallel_lift','swing_hinge'):
+            raise ValueError('This multi-part assembly uses Separate parts.')
+        if self.assembly_layout=='print' and self.family not in ('linked_louver','parallel_lift','swing_hinge'):raise ValueError('Print layout is available for linked louvers, parallel lift and the offset four-bar hinge.')
+        if self.family=='linked_louver':
+            from .linked_louver import validate
+            validate(self)
+        if self.family=='swing_hinge':
+            from .swing_hinge import validate
+            validate(self)
+        if self.family=='parallel_lift':
+            from .parallel_lift import validate
+            validate(self)
         if self.family in ('slider','dovetail'):
             if self.length_mm < 6*t+4*g: raise ValueError('Length must leave room for the carriage and stop.')
             if w < 2*t+2*g: raise ValueError('Rail width is too small for its wall and clearance.')
@@ -83,3 +103,10 @@ class MechanismSettings:
         if type(value) is not dict or set(value) != {f.name for f in fields(cls)}:
             raise ValueError('Mechanism settings are incomplete or unsupported.')
         return cls(**value)
+
+
+def preset(family):
+    if family=='linked_louver':return MechanismSettings(family=family,length_mm=80,width_mm=100,height_mm=18,count=5)
+    if family=='swing_hinge':return MechanismSettings(family=family,length_mm=30,width_mm=40,height_mm=16)
+    if family=='parallel_lift':return MechanismSettings(family=family,length_mm=30,width_mm=50,height_mm=16)
+    return MechanismSettings(family=family)

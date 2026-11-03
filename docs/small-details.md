@@ -11,7 +11,7 @@ Every parameter has contextual text and a local section/dimension illustration.
 
 For **Lid lip & groove** and **Alignment pins**, select **Base face A** and **Lid
 inside face B** on two separate native root bodies. They must be parallel and
-face each other across a nonnegative gap. Alignment pins need straight rectangular outer boundaries. Continuous lip & groove additionally accepts a full circular outer edge or a strictly convex polygon of 3–10 straight sides; Selected sides remains rectangular. A rectangular enclosure rim is supported; inner voids or other
+face each other across a nonnegative gap. Alignment pins need straight rectangular outer boundaries. Continuous lip & groove additionally accepts full circles and bounded general planar outer loops, including concave polygons and splines when Fusion can retain valid nested offsets; Selected sides remains rectangular. A rectangular enclosure rim is supported; inner voids or other
 features are checked against the complete generated support/receiver volumes.
 The lid can have a different outer size if the whole receiver fits in its material.
 No shared seam edge needs to be selected.
@@ -224,9 +224,8 @@ Inner voids are permitted only where these checks still pass.
 Circles use analytical cylinders and cones, with a 45-degree lead-in on both
 sides of the lip. Convex polygons use exact parallel offsets and a single closed
 ring, with a matching offset cap. Neither path approximates circles with polygon
-segments or silently shrinks clearances. Concave contours, splines, mixed line/arc
-boundaries, split-circle edges, and collapsed offsets are refused with an
-explanation. Selected sides and alignment pins retain their rectangular scope.
+segments or silently shrinks clearances. Other simple planar outlines use the native offset path described below.
+Collapsed or split offsets are refused with an explanation. Selected sides and alignment pins retain their rectangular scope.
 
 The existing 21 settings and recipe2 persist unchanged: the historical source
 face determines the contour during explicit Rebuild. Preview uses the existing
@@ -240,3 +239,36 @@ Create, same-body Edit/Rebuild and owned Delete, with restored original volumes
 and a refusal when the requested groove would violate the lid floor. Recorded
 case times were 333/508 ms respectively, not general performance guarantees.
 The caller document was restored. See [native evidence](validation/shaped-lip.json).
+
+
+## General planar outlines: native offsets
+
+Continuous perimeter now also accepts a single simple outer loop of up to 64
+BRep edges, including concave polygons, mixed lines/arcs and spline boundaries.
+Fusion projects the original curves into a disposable sketch and creates native
+parallel offsets through `createOffsetInput`/`addOffset2`. The original curve
+geometry is not sampled into a polygon. Topology matching remains enabled;
+collapsed fillets, split contours or self-intersections are explicitly refused.
+Each completed offset must form one nested ring, with at most 128 offset curves.
+
+One temporary BaseFeature owns the sketches, extrusions and one optional top-ring
+chamfer. Only the generated lip's two upper boundaries receive the 45-degree
+lead-in; source-body edges and receiving geometry are unaffected. Full-volume
+support and receiving-floor checks remain mandatory. All scratch geometry is
+removed before Preview returns, including failures. The existing exact analytic
+rectangle/circle/convex paths stay fast and unchanged. Settings and recipe2 remain
+unchanged; Selected sides still requires a rectangle.
+
+Native concave L and closed fitted-spline fixtures passed Preview preparation,
+complete scratch cleanup, same-body Create/Rebuild/Delete and failed-floor-check
+cleanup. Observed preparation was 267/453 ms respectively, with the caller restored.
+See [general-lip evidence](validation/general-lip.json). These cases establish
+bounded API behavior, not universal support for every spline or physical fit.
+
+
+The 0.29.0 upstream-update fixture changed the source base extrusion from 5 to
+5.3 mm and regenerated the matching lip/groove using its moved face. The original
+two bodies and timeline count were retained; a repeated refresh was a no-op
+(observed refresh 279 ms). The same isolated suite verified through patterns and
+parallel grilles after source thickness changed from 3 to 4 mm (916/321 ms).
+See [family update evidence](validation/auto-update-families.json).

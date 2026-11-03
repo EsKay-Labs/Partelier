@@ -1,0 +1,37 @@
+{
+  "production_service": true,
+  "direct_refresh_called": false,
+  "stages": [
+    {
+      "stage": "setup",
+      "ok": true,
+      "operations": 2,
+      "history": 6,
+      "source_body_count": 1,
+      "baseline_saved": true
+    },
+    {
+      "stage": "change",
+      "queued": true,
+      "command_id": "sktech_source_fixture_change",
+      "height_mm": 6.0
+    },
+    {
+      "stage": "verify",
+      "ok": true,
+      "automatically_refreshed": [
+        "Face detail \u00b7 cb6519",
+        "Face detail \u00b7 1b53fe"
+      ],
+      "history_unchanged": true,
+      "same_source_body": true,
+      "settings_preserved": true,
+      "top_mm": 6.0
+    },
+    {
+      "stage": "finish",
+      "ok": true,
+      "caller_unchanged": true
+    }
+  ]
+}

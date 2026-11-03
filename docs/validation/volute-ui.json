@@ -1,0 +1,87 @@
+{
+  "success": true,
+  "target_version": "0.29.0",
+  "checks": [
+    {
+      "width": 300,
+      "bodyOverflow": 0,
+      "workspaceOverflow": 0,
+      "overlaps": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "dialog": {
+        "width": 274,
+        "overflow": 0
+      }
+    },
+    {
+      "width": 380,
+      "bodyOverflow": 0,
+      "workspaceOverflow": 0,
+      "overlaps": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "dialog": {
+        "width": 354,
+        "overflow": 0
+      }
+    },
+    {
+      "width": 520,
+      "bodyOverflow": 0,
+      "workspaceOverflow": 0,
+      "overlaps": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "dialog": {
+        "width": 410,
+        "overflow": 0
+      }
+    },
+    {
+      "width": 274,
+      "tool": "shaped_lip_help",
+      "overflow": 0
+    },
+    {
+      "width": 354,
+      "tool": "shaped_lip_help",
+      "overflow": 0
+    },
+    {
+      "width": 410,
+      "tool": "shaped_lip_help",
+      "overflow": 0
+    }
+  ],
+  "errors": [],
+  "mount_toggle": true,
+  "scope": "Headless Chromium full palette; mocked Fusion bridge, no native execution"
+}
