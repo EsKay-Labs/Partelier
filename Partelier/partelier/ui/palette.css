@@ -6,6 +6,7 @@
     --accent-soft: #cbd9ec; --focus: #7697c2;
     --selection: #3b6ba4; --selection-soft: #cbdcf2;
     --disabled-bg: #bdc7d4; --disabled-text: #617187;
+    --radius-control: 10px; --radius-card: 15px; --radius-shell: 19px;
     font: 12px "Segoe UI", system-ui, sans-serif;
 }
 * { box-sizing: border-box; }
@@ -338,3 +339,40 @@ dialog { max-width: 380px; }
 #fan-message { overflow-wrap: anywhere; }
 #fan-message:empty { display: none; }
 #fan-message.error { color: #8c352a; background: #f7e5df; padding: 8px; border-radius: 5px; }
+
+/* Partelier signature: a filleted part monogram and a quiet construction drawing. */
+.app-header { position: relative; isolation: isolate; overflow: hidden; min-height: 94px; margin: 10px 10px 0; padding: 14px 13px; gap: 9px; align-items: center; border: 1px solid #41566f; border-radius: var(--radius-shell); background: linear-gradient(115deg,#303d4e 25%,#354e69 100%); box-shadow: 0 3px 9px #233b551c, inset 0 1px #ffffff0d; }
+.app-header::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: 0; height: 1px; background: linear-gradient(90deg,#a4c5e2,transparent 85%); opacity: .45; pointer-events: none; }
+.brand-blueprint { position: absolute; right: -12px; bottom: -12px; width: 238px; height: 104px; z-index: -1; stroke: #9dbddb; stroke-width: 1; opacity: .14; pointer-events: none; }
+.brand { gap: 9px; flex-shrink: 0; border-radius: var(--radius-control); }
+.brand-mark { width: 43px; height: 53px; flex: none; filter: drop-shadow(0 3px 3px #182b4140); }
+.brand-lockup { display: grid; gap: 3px; }
+.brand-kicker { color: #b6c9dd; font-size: 8px; font-weight: 600; letter-spacing: 1.45px; line-height: 1.3; }
+.brand-name { color: #f5f8ff; font-size: 28px; font-weight: 650; line-height: 1; letter-spacing: -1.1px; }
+.brand-tagline { color: #c5d5e7; font-size: 10px; line-height: 1.4; letter-spacing: .15px; }
+.header-meta { align-self: flex-start; gap: 7px; padding-top: 3px; }
+.app-header .header-button, .app-header .icon-button { border-radius: 9px; background: #ffffff0c; border-color: #829db655; }
+.app-header .header-button:hover, .app-header .icon-button:hover { background: #ffffff18; border-color: #a8c0d9; }
+.app-header #connection-status { align-self: center; }
+.tool-picker { margin: 8px 10px 0; padding: 8px 10px; border: 1px solid #91a4bb; border-radius: var(--radius-card); box-shadow: inset 0 1px #ffffff40; }
+.workspace { padding-top: 10px; }
+.hinge-input-group, .geometry-card, .guide-disclosure, .section-features, .operations-browser { border-radius: var(--radius-card); }
+.section-features .operation-row, .operation-confirmation, .parameter-help-illustration, .illustration-stage, .layout-illustration { border-radius: 12px; }
+.parameter-item input, .parameter-item select, #tool-select { border-radius: var(--radius-control); }
+.secondary-button, .create-button, .selection-button, .operation-button, .view-controls button, .grille-direction-presets button, #fan-tool .selection-actions button { border-radius: var(--radius-control); }
+.selection-step::before, .feature-count { border-radius: 7px; }
+.action-dock { margin: 0 10px 10px; padding: 10px; border: 1px solid #91a4bb; border-radius: var(--radius-card); box-shadow: 0 -2px 8px #304b6610; }
+dialog, .pattern-help-dialog { border-radius: 20px; }
+@media (max-width: 359px) {
+    .app-header { min-height: 88px; margin: 8px 8px 0; padding: 12px 10px; gap: 6px; }
+    .brand { gap: 7px; }
+    .brand-mark { width: 34px; height: 45px; }
+    .brand-name { font-size: 25px; }
+    .brand-kicker { font-size: 7px; letter-spacing: 1.1px; }
+    .brand-tagline { font-size: 9px; }
+    .header-meta { gap: 6px; padding-top: 1px; }
+    .header-meta .header-button { padding-left: 7px; padding-right: 7px; }
+    .header-meta .icon-button { width: 27px; height: 27px; }
+    .tool-picker { margin-left: 8px; margin-right: 8px; }
+    .action-dock { margin-left: 8px; margin-right: 8px; }
+}

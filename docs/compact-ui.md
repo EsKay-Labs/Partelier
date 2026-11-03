@@ -1,5 +1,21 @@
 # Compact workflow — 0.20.0
 
+**0.27.2 visual finish:** the existing slate workspace, pale cards, white fields
+and blue actions now use shared rounded corners:10px controls,15px cards and a
+19px header shell. The compact banner has an original filleted/extruded P mark,
+a subtle SVG construction drawing, the Partelier wordmark and the caption
+**Made for the details.** It is94px high (88px below360px width). Saved, connection
+status and About remain in the header. The tool dropdown and bottom action dock
+have rounded surrounding panels. All illustrations are local static SVG/CSS;
+there are no new fonts, packages or animation.
+
+Existing session suites pass. Headless Edge covers all11 tools at300/320/380/520px
+widths and513px height, with no horizontal overflow or brand/control overlap.
+Saved and About open correctly; screenshots were inspected. Installed0.27.2
+opens in Fusion2706.1.14 with the active document/history/body state preserved.
+This is a visual update, without CAD or selection changes. See
+[signature-ui-0.27.2.json](validation/signature-ui-0.27.2.json).
+
 **0.24.0 saved features:** each tool now includes a visible scoped feature list
 above Geometry; Saved remains the optional all-features browser. See
 [selection-history.md](selection-history.md) for Edit/Delete and dependency limits.
