@@ -51,6 +51,7 @@ def resolve(design,refs,settings):
     if not isinstance(refs,dict) or not set(refs)<={'circle','outline'}:raise ValueError('Fan references are damaged.')
     placement=IDENTITY;points=();payload={}
     for role,token in refs.items():
+        if role=='outline' and settings.output=='guard':continue
         if not isinstance(token,str) or not 0<len(token)<=16384:raise ValueError('Fan reference token is invalid.')
         values=design.findEntityByToken(token)
         if len(values)!=1 or not values[0].isValid:raise ValueError('A fan reference was removed or split. Pick it again.')
@@ -59,6 +60,6 @@ def resolve(design,refs,settings):
             if abs(settings.diameter_mm+2*settings.tip_gap_mm-diameter)>.001:
                 raise ValueError('Opening diameter or Tip gap changed. Pick the circular opening again to refit the rotor.')
         else:points=outline(values[0]);payload['outline']=points
-    if settings.outline_mode=='sketch' and not points:raise ValueError('Pick the custom sketch outline first.')
+    if settings.output!='guard' and settings.outline_mode=='sketch' and not points:raise ValueError('Pick the custom sketch outline first.')
     signature=hashlib.sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()
     return placement,points,signature

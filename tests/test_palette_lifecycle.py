@@ -607,7 +607,7 @@ class PaletteLifecycleTests(unittest.TestCase):
         payload=json.dumps({'protocol':1,'requestId':'fan-test','settings':{'style':'slim'},'editing':False})
         reply=json.loads(self.library.handle_message('fan_begin',payload))
         self.assertIn('fan-palette',reply['capabilities']);self.assertIn('fan-edit',reply['capabilities'])
-        self.assertEqual(len(reply['fanDefaults']),50)
+        self.assertEqual(len(reply['fanDefaults']),52)
         self.assertEqual(manager.begin_palette.call_args.args[0]['style'],'slim')
         manager.palette_state.return_value={**state,'sessionId':'active-fan','phase':'preview'}
         with self.assertRaisesRegex(ValueError,'fan'):

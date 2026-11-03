@@ -52,7 +52,7 @@ function fixture(){
  }
  await f.click('fan-help-close');await f.click('fan-new');await f.settle();
  assert.equal(f.$('fan-create').disabled,false);assert.equal(f.$('tool-select').disabled,true);
- const snapshot=f.requests.find(r=>r.action==='fan_preview');assert.equal(Object.keys(snapshot.settings).length,50);
+ const snapshot=f.requests.find(r=>r.action==='fan_preview');assert.equal(Object.keys(snapshot.settings).length,52);
  assert.equal(snapshot.settings.style,'axial');assert.equal(snapshot.settings.diameter_mm,112.8);
  await f.input('style','prop3');await f.settle();assert.equal(f.host().settings.size_preset,'prop5030');assert.equal(f.host().settings.blade_count,3);
  assert.equal(f.$('fan-root_angle_deg').parentElement.hidden,true);assert.equal(f.$('fan-pitch_mm').parentElement.hidden,false);
@@ -65,6 +65,33 @@ function fixture(){
  await f.click('fan-cancel');f.push(valid);assert.equal(f.window.PartelierFans.isActive(),false);assert.equal(f.$('fan-create').disabled,true);
  await f.click('fan-new');await f.input('hub_diameter_mm',30);await f.click('fan-cancel');const count=f.requests.length;await f.settle();assert.equal(f.requests.length,count,'cancel retires queued preview');
  await f.click('fan-new');await f.settle();await f.click('fan-create');assert.equal(f.window.PartelierFans.isActive(),false);assert.equal(f.$('tool-select').disabled,false);
- await f.input('style','blower');await f.click('fan-new');await f.settle();assert.equal(f.host().settings.style,'blower');assert.equal(f.$('fan-blower_height_mm').parentElement.hidden,false);assert.equal(f.$('fan-root_chord_mm').parentElement.hidden,true);assert.equal(f.$('fan-pick-outline').disabled,true);assert.deepEqual(f.$('fan-output').children.map(o=>o.value),['blower_housing','rotor','hub_test']);await f.input('output','blower_housing');await f.settle();assert.equal(f.$('fan-volute_growth_mm').parentElement.hidden,false);assert.equal(f.$('fan-frame_width_mm').parentElement.hidden,true);await f.input('volute_mounts','false');await f.settle();assert.equal(f.host().settings.volute_mounts,false);assert.equal(f.$('fan-mount_hole_mm').parentElement.hidden,true);await f.input('blower_height_mm',14);await f.settle();assert.equal(f.host().settings.blower_height_mm,14);await f.click('fan-cancel');
+ await f.input('style','blower');await f.click('fan-new');await f.settle();assert.equal(f.host().settings.style,'blower');assert.equal(f.$('fan-blower_height_mm').parentElement.hidden,false);assert.equal(f.$('fan-root_chord_mm').parentElement.hidden,true);assert.equal(f.$('fan-pick-outline').disabled,true);assert.deepEqual(f.$('fan-output').children.map(o=>o.value),['guard','blower_housing','rotor','hub_test']);await f.input('output','blower_housing');await f.settle();assert.equal(f.$('fan-volute_growth_mm').parentElement.hidden,false);assert.equal(f.$('fan-frame_width_mm').parentElement.hidden,true);await f.input('volute_mounts','false');await f.settle();assert.equal(f.host().settings.volute_mounts,false);assert.equal(f.$('fan-mount_hole_mm').parentElement.hidden,true);await f.input('blower_height_mm',14);await f.settle();assert.equal(f.host().settings.blower_height_mm,14);await f.click('fan-cancel');
+ const guard=fixture();
+ await guard.input('output','guard');
+ assert.equal(guard.$('fan-style').parentElement.hidden,true);assert.equal(guard.$('fan-blade-group').hidden,true);assert.equal(guard.$('fan-hub-group').hidden,true);assert.equal(guard.$('fan-pick-outline').hidden,true);
+ assert.equal(guard.$('fan-diameter_mm').parentElement.children[0].textContent,'Fan diameter (mm)');
+ assert.equal(guard.$('fan-new').textContent,'New guard');
+ const rendered=[];
+ for(const type of ['spokes','rings','parallel','grid','honeycomb']){
+  await guard.input('guard_type',type);
+  const radial=['spokes','rings'].includes(type);
+  assert.equal(guard.$('fan-guard_spokes').parentElement.hidden,!radial);assert.equal(guard.$('fan-hub_diameter_mm').parentElement.hidden,!radial);
+  assert.equal(guard.$('fan-guard_pitch_mm').parentElement.hidden,type==='spokes');
+  for(const name of ['blade_count','shaft_diameter_mm','hub_height_mm','frame_depth_mm','axial_clearance_mm','blower_height_mm','volute_growth_mm'])assert.equal(guard.$('fan-'+name).parentElement.hidden,true,name+' must hide for guard');
+  for(const name of ['diameter_mm','tip_gap_mm','frame_width_mm','mount_pitch_mm','mount_hole_mm','guard_type','guard_thickness_mm','guard_spoke_mm'])assert.equal(guard.$('fan-'+name).parentElement.hidden,false,name+' must show for guard');
+  const help=guard.$('fan-guard_type').parentElement.children.find(e=>e.dataset.fanHelp);for(const fn of help.listeners.click)fn();
+  assert.match(guard.$('fan-help-image').innerHTML,/<svg/);assert.equal(guard.$('fan-help-description').textContent,guard.window.PartelierFanArt.guards[type].description);rendered.push(guard.$('fan-help-image').innerHTML.replace(/fan-guard-aperture-\d+/g,'clip'));await guard.click('fan-help-close');
+  assert.equal(guard.requests.length,0,'Guard help works before native preview');
+ }
+ assert.equal(new Set(rendered).size,5,'Every design has a distinct illustration');
+ const guardExample=guard.$('fan-example').innerHTML,guardHelp=guard.$('fan-help-image').innerHTML;assert.notEqual(guardExample.match(/clipPath id="([^"]+)/)[1],guardHelp.match(/clipPath id="([^"]+)/)[1],'Hidden example and dialog must use separate clip IDs');
+ await guard.input('size_preset','pc80');assert.equal(guard.$('fan-output').value,'guard');assert.equal(guard.$('fan-guard_type').value,'honeycomb');assert.equal(guard.$('fan-frame_width_mm').value,'80');
+ await guard.click('fan-new');await guard.settle();assert.equal(guard.host().settings.output,'guard');assert.equal(guard.host().settings.guard_type,'honeycomb');assert.equal(Object.keys(guard.host().settings).length,52);assert.equal(guard.$('fan-create').textContent,'Create guard');await guard.click('fan-cancel');
+ await guard.input('output','rotor_guard');await guard.input('guard_type','rings');await guard.input('size_preset','pc120');assert.equal(guard.$('fan-output').value,'rotor_guard');assert.equal(guard.$('fan-guard_type').value,'rings');assert.equal(guard.$('fan-style').parentElement.hidden,false);
+ for(const style of ['axial','wide','slim','ring','prop2','prop3','prop4','blower']){
+  await guard.input('style',style);assert(guard.$('fan-output').children.some(o=>o.value==='guard'),'Guard output missing for '+style);
+  await guard.input('output','guard');assert.match(guard.$('fan-example').innerHTML,/guard explanatory diagram/);
+  await guard.input('output','rotor');
+ }
  console.log('Fans UI: full snapshots, preset/custom, contextual fields/help, stale sessions, queued Cancel and Create passed.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

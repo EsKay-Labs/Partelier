@@ -83,6 +83,7 @@ def outline_chord(points,u):
 
 def plan(settings,outline=()):
     settings.validate()
+    if settings.output=='guard':return Plan((),0,0,settings.guard_thickness_mm,360)
     if settings.output=='hub_test':return Plan((),0,-settings.hub_height_mm/2,settings.hub_height_mm/2,360)
     if settings.style=='blower':
         root=settings.hub_diameter_mm/2-.5

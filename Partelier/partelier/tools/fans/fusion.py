@@ -143,6 +143,9 @@ def _frame(manager,settings,plan,core,native):
 
 
 def _guard(manager,settings,z,core,native):
+    if settings.guard_type!='spokes':
+        from .guards import build
+        return build(manager,settings,z,core,native)
     width=settings.frame_width_mm;thickness=settings.guard_thickness_mm;center=z+settings.axial_clearance_mm+thickness/2
     result=_box(manager,core,width,width,thickness,(0,0,center))
     hole_radius=settings.diameter_mm/2+settings.tip_gap_mm
@@ -183,6 +186,13 @@ def prepare(design,settings,placement=IDENTITY,references=None,outline=(),record
     started=time.perf_counter();manager=native.TemporaryBRepManager.get();before=(root.bRepBodies.count,design.timeline.count)
     base=None;editing=False;stages={};stage=started
     try:
+        if settings.output=='guard':
+            body=_guard(manager,settings,-settings.axial_clearance_mm,core,native)
+            transform=core.Matrix3D.create();origin,x,y,z=placement
+            transform.setWithCoordinateSystem(core.Point3D.create(*(v/10 for v in origin)),core.Vector3D.create(*x),core.Vector3D.create(*y),core.Vector3D.create(*z))
+            if not manager.transform(body,transform):raise ValueError('Could not place the guard.')
+            return Prepared(design,settings,(body,),('Fan guard · '+settings.guard_type,),plan,placement,references or {},
+                {'prepare_ms':(time.perf_counter()-started)*1000,'prototype_blades':0,'blade_count':0,'bodies':1},record)
         hub=_cylinder(manager,core,settings.hub_diameter_mm/2,-settings.hub_height_mm/2,settings.hub_height_mm/2)
         if settings.style=='blower' and settings.output!='hub_test':
             key=('blower',settings.diameter_mm,settings.hub_diameter_mm,settings.hub_height_mm,settings.blade_count,settings.blower_height_mm,settings.blower_backplate_mm,settings.blower_vane_mm)
@@ -193,7 +203,7 @@ def prepare(design,settings,placement=IDENTITY,references=None,outline=(),record
                 if geometry_cache is not None:geometry_cache.clear();geometry_cache.update(key=key,body=a._copy(manager,hub))
             stages['radial_vanes_ms']=(time.perf_counter()-stage)*1000
         elif settings.output!='hub_test':
-            excluded=('size_preset', 'shaft_diameter_mm', 'shaft_clearance_mm', 'shaft_shape', 'shaft_flat_mm', 'set_screw_diameter_mm', 'tip_gap_mm', 'frame_width_mm', 'frame_depth_mm', 'mount_pitch_mm', 'mount_hole_mm', 'axial_clearance_mm', 'guard_thickness_mm', 'guard_spoke_mm', 'guard_spokes', 'output')
+            excluded=('size_preset', 'shaft_diameter_mm', 'shaft_clearance_mm', 'shaft_shape', 'shaft_flat_mm', 'set_screw_diameter_mm', 'tip_gap_mm', 'frame_width_mm', 'frame_depth_mm', 'mount_pitch_mm', 'mount_hole_mm', 'axial_clearance_mm', 'guard_thickness_mm', 'guard_spoke_mm', 'guard_spokes', 'guard_type','guard_pitch_mm','output')
             key=(tuple((k,v) for k,v in settings.to_dict().items() if k not in excluded),tuple(outline))
             hit=geometry_cache is not None and geometry_cache.get('key')==key
             if hit:

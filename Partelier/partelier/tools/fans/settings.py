@@ -61,11 +61,14 @@ class FanSettings:
     volute_motor_mm:float=8.
     volute_lid_gap_mm:float=.2
     volute_mounts:bool=True
+    guard_type:str='spokes'
+    guard_pitch_mm:float=12.
 
     def __post_init__(self):
         enums={'style':STYLES,'size_preset':('custom',*PC_SIZES,*PROPS),'shaft_shape':('round','d'),
             'pitch_mode':('twist','pitch'),'rotation':('ccw','cw'),
-            'output':('rotor','rotor_frame','rotor_guard','hub_test','blower_housing'),'outline_mode':('generated','sketch')}
+            'output':('rotor','rotor_frame','rotor_guard','hub_test','blower_housing','guard'),'outline_mode':('generated','sketch'),
+            'guard_type':('spokes','rings','parallel','grid','honeycomb')}
         for name,choices in enums.items():
             if getattr(self,name) not in choices:raise ValueError('Choose a supported '+name.replace('_',' ')+'.')
         for name,lo,hi in [('blade_count',2,16),('guard_spokes',3,12)]:
@@ -93,6 +96,11 @@ class FanSettings:
             'axial_clearance_mm':(.3,10),'guard_thickness_mm':(1,8),'guard_spoke_mm':(1,10),'outline_scale_percent':(10,300)}
         for name,(lo,hi) in bounds.items():
             if not lo<=getattr(self,name)<=hi:raise ValueError(f'{name.replace("_"," ")} must be {lo:g}–{hi:g}.')
+        if not 4<=self.guard_pitch_mm<=80:raise ValueError('Guard spacing must be 4–80 mm.')
+        if self.output in ('guard','rotor_guard'):
+            from .guards import validate
+            validate(self)
+        if self.output=='guard':return
         bore=self.shaft_diameter_mm+self.shaft_clearance_mm
         if self.hub_diameter_mm<=bore+3:raise ValueError('Hub diameter must leave at least 1.5 mm around the shaft hole.')
         if self.shaft_shape=='d' and self.shaft_flat_mm>=self.shaft_diameter_mm*.7:raise ValueError('D-shaft flat depth is too large for the shaft.')
@@ -136,7 +144,7 @@ def preset(style='axial',size='pc120'):
     if style=='blower' and size in PROPS:raise ValueError('Choose a PC diameter preset or Custom for the blower.')
     if size in PC_SIZES:
         width,mount,depth=PC_SIZES[size];scale=width/120
-        values=dict(style=style,size_preset=size,frame_width_mm=width,mount_pitch_mm=mount,frame_depth_mm=15 if style=='slim' and width==120 else depth,
+        values=dict(style=style,size_preset=size,frame_width_mm=width,mount_pitch_mm=mount,guard_pitch_mm=max(4,12*scale),frame_depth_mm=15 if style=='slim' and width==120 else depth,
             diameter_mm=width-6-1.2,hub_diameter_mm=max(10,36*scale),hub_height_mm=max(6,14*scale),
             root_chord_mm=max(4,18*scale),mid_chord_mm=max(5,22*scale),tip_chord_mm=max(4,18*scale),
             root_thickness_mm=max(.8,1.8*scale),tip_thickness_mm=max(.6,1.2*scale),root_fillet_mm=min(.6,.6*scale),

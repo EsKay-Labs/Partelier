@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "widths": [
+    300,
+    380,
+    520
+  ],
+  "designs": [
+    "spokes",
+    "rings",
+    "parallel",
+    "grid",
+    "honeycomb"
+  ],
+  "native": false,
+  "checks": [
+    "Standalone relevant controls",
+    "Five illustrated help designs before native preview",
+    "No horizontal overflow",
+    "No JavaScript errors"
+  ]
+}

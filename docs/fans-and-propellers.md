@@ -1,5 +1,10 @@
 # Fans & Propellers
 
+Version0.30 adds [standalone guards and five guard designs](fan-guards.md), with
+illustrated help and the existing saved-feature workflow. New fan saves use
+recipe4 with52 fields; earlier version-specific schema descriptions below are
+historical.
+
 Version 0.27.0 adds an independent tool under **Mechanisms → Fans & Propellers**.
 The first release implements the approved A–G families. The additional H family now generates a straight radial blower impeller; an optional scroll housing and removable inlet lid are implemented. These are original geometric rotors, not copies of commercial blades
 or a simulation of cooling, pressure, noise, balance or strength.

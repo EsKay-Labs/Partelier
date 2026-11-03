@@ -1,5 +1,18 @@
 # Partelier repository guidance
 
+## Standalone fan guards: 0.30.0
+
+Fan output `guard` builds one connected flat-backed guard without blade lofts,
+shaft cuts or scratch features. Five `guard_type` values are spokes/rings/parallel/
+grid/honeycomb, shared with rotor_guard. Guard spacing is centre pitch, bar width
+controls solid webs, mounting holes remain inside the solid square rim. Honeycomb
+clips boundary cells to the circular aperture and refuses over180 openings.
+Preserve the early guard-only validation/planning/geometry branch, mesh preview,
+and same-body saved Edit/Delete. Guard changes must not invalidate the rotor cache.
+Exact52-field fan recipe4 reads exact recipes1–3 by adding only absent defaults
+in memory. Old versions cannot claim guard output. Hidden blade outlines are
+irrelevant to standalone guards. See docs/fan-guards.md and its native evidence.
+
 ## Fan visuals: 0.29.1
 
 Fan style help uses eight bundled real CAD PNGs and must work before New fan

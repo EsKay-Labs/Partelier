@@ -157,7 +157,7 @@ class _Session(lifecycle._Session):
             edge=self.design.findEntityByToken(self.references['circle'])
             if len(edge)!=1:raise ValueError('Opening reference changed. Pick it again.')
             _,diameter=references.circle(edge[0]);settings=replace(settings,diameter_mm=diameter-2*settings.tip_gap_mm,size_preset='custom')
-        if settings.outline_mode=='generated':self.references.pop('outline',None)
+        if settings.outline_mode=='generated' or settings.output=='guard':self.references.pop('outline',None)
         if settings!=self.settings:self.preview_revision=None
         self.settings,self.revision=settings,revision
 
@@ -185,6 +185,7 @@ class _Session(lifecycle._Session):
                     raise
                 self.preview=candidate;self.prepared=prepared;self.preview_revision=revision;self.phase='preview'
                 self.message=f'{prepared.plan.blade_count} blades · Ø{settings.diameter_mm:g} mm · {len(prepared.bodies)} output body/bodies. Geometry prototype; validate balance and strength before operation.' if settings.output!='hub_test' else 'Hub-only fitting coupon. Confirm the motor/shaft fit first.'
+                if settings.output=='guard':self.message=f'{settings.guard_type.title()} guard · {settings.frame_width_mm:g} mm · {settings.guard_thickness_mm:g} mm thick · one body.'
                 self.owner.publish(self)
             except Exception as error:failed(error)
         self.owner.runner.request(self,lambda:self.prepare(settings),completed,failed)

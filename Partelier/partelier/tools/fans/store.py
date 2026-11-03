@@ -27,15 +27,15 @@ def parse(raw):
     try:value=json.loads(raw)
     except (ValueError,TypeError) as error:raise ValueError('Fan recipe is damaged.') from error
     keys={'version','tool','feature_id','base_feature','settings','references','results'}
-    if not isinstance(value,dict) or set(value)!=keys or type(value['version']) is not int or value['version'] not in (1,2,3) or value['tool']!='fan':raise ValueError('Unsupported fan recipe.')
+    if not isinstance(value,dict) or set(value)!=keys or type(value['version']) is not int or value['version'] not in (1,2,3,4) or value['tool']!='fan':raise ValueError('Unsupported fan recipe.')
     try:
         if not isinstance(value['feature_id'],str) or str(uuid.UUID(value['feature_id']))!=value['feature_id']:raise ValueError()
     except (ValueError,TypeError,AttributeError):raise ValueError('Fan identity is damaged.')
     raw_settings=value['settings']
     legacy2={'volute_growth_mm','volute_wall_mm','volute_outlet_mm','volute_inlet_mm','volute_motor_mm','volute_lid_gap_mm','volute_mounts'}
-    added=legacy2|({'blower_height_mm','blower_backplate_mm','blower_vane_mm'} if value['version']==1 else set())
-    if value['version']<3:
-        if not isinstance(raw_settings,dict) or set(raw_settings)!=set(FanSettings().to_dict())-added or raw_settings.get('output')=='blower_housing' or value['version']==1 and raw_settings.get('style')=='blower':raise ValueError('Unsupported legacy fan settings.')
+    added={'guard_type','guard_pitch_mm'}|(legacy2 if value['version']<3 else set())|({'blower_height_mm','blower_backplate_mm','blower_vane_mm'} if value['version']==1 else set())
+    if value['version']<4:
+        if not isinstance(raw_settings,dict) or set(raw_settings)!=set(FanSettings().to_dict())-added or raw_settings.get('output')=='guard' or value['version']<3 and raw_settings.get('output')=='blower_housing' or value['version']==1 and raw_settings.get('style')=='blower':raise ValueError('Unsupported legacy fan settings.')
         raw_settings={**raw_settings,**{k:v for k,v in FanSettings().to_dict().items() if k in added}}
     settings=FanSettings.from_dict(raw_settings)
     refs=value['references']
@@ -108,7 +108,7 @@ def apply(prepared):
             if i<len(visible):body.isLightBulbOn=visible[i]
             if body.attributes.add(GROUP,'owner',_json({'id':identity,'base':base.entityToken})) is None:raise ValueError('Could not save fan body ownership.')
             result.append({'body':body.entityToken,'signature':_body_signature(body)})
-        value={'version':3,'tool':'fan','feature_id':identity,'base_feature':base.entityToken,'settings':prepared.settings.to_dict(),
+        value={'version':4,'tool':'fan','feature_id':identity,'base_feature':base.entityToken,'settings':prepared.settings.to_dict(),
             'references':prepared.references,'results':result}
         if base.attributes.add(GROUP,'recipe',_json(value)) is None:raise ValueError('Could not save the fan dimensions.')
         base.name='Partelier · Fans & Propellers'

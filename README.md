@@ -5,7 +5,9 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current release: 0.29.1.** Each fan family has a real model image available from **?** before preview, and fan previews use opaque lit meshes with the existing material colour. See [fan visuals and validation](docs/fan-visuals.md).
+**Current release: 0.30.0.** **Fans & Propellers → Output → Standalone guard** creates a guard without a rotor or housing. Choose radial spokes, concentric rings, parallel bars, crossed grid or honeycomb; all five also work with Rotor + frame + guard. See [guard settings and validation](docs/fan-guards.md).
+
+Each fan family has a real model image available from **?** before preview, and fan previews use opaque lit meshes with the existing material colour. See [fan visuals and validation](docs/fan-visuals.md).
 
 Version 0.29 added attached mechanical pairs, linked louvers, parallel lift and offset four-bar hinges, blower housing, concave/spline lid lips and guarded automatic source updates. Startup also recovers from Fusion's `pArea` display error. Read the [new tools and acceptance guide](docs/remaining-tools-0.29.0.md) for setup and practical limits.
 
