@@ -78,13 +78,25 @@
   $("fan-example").innerHTML=window.PartelierFanArt.render(state.settings);
   $("tool-select").disabled=active()||state.busy||other();window.PartelierRefreshActions?.();
  }
+ function showStyleHelp(style){
+  const art=window.PartelierFanArt,item=art.styles[style];
+  $("fan-help-title").textContent=item.name;$("fan-help-description").textContent=item.description;
+  $("fan-help-image").innerHTML=art.photo(style);$("fan-help-styles").hidden=false;
+  $("fan-help-dialog").scrollTop=0;
+  for(const button of $("fan-help-styles").children)button.setAttribute("aria-pressed",String(button.dataset.style===style));
+ }
+ for(const [style,item] of Object.entries(window.PartelierFanArt.styles)){
+  const button=document.createElement("button");button.type="button";button.className="fan-style-reference";button.dataset.style=style;
+  button.setAttribute("aria-label","About "+item.name);button.innerHTML=`<img src="assets/fans/${style}.png" width="160" height="120" loading="lazy" alt=""><span>${item.name}</span><span class="fan-style-question" aria-hidden="true">?</span>`;
+  button.addEventListener("click",()=>showStyleHelp(style));$("fan-help-styles").append(button);
+ }
  for(const [group,names] of Object.entries(D.groups))for(const name of names){
   const item=document.createElement("div");item.className="parameter-item has-parameter-help";
   const label=document.createElement("label");label.htmlFor="fan-"+name;label.textContent=D.labels[name];
   const input=document.createElement(choices[name]||name==="size_preset"?"select":"input");input.id="fan-"+name;input.name=name;input.required=true;
   if(choices[name])options(input,choices[name]);else if(name!=="size_preset"){input.type="number";input.step=["blade_count","guard_spokes"].includes(name)?"1":"any";[input.min,input.max]=D.bounds[name]||[0,1000];}
   const help=document.createElement("button");help.type="button";help.className="parameter-help";help.textContent="?";help.setAttribute("aria-label","Help: "+D.labels[name]);help.dataset.fanHelp=name;
-  help.addEventListener("click",()=>{helpTrigger=help;$("fan-help-title").textContent=D.labels[name];$("fan-help-description").textContent=D.help[name];$("fan-help-image").innerHTML=window.PartelierFanArt.render(state.settings,name);$("fan-help-dialog").showModal();});
+  help.addEventListener("click",()=>{helpTrigger=help;$("fan-help-styles").hidden=true;if(name==="style")showStyleHelp(state.settings.style);else{$("fan-help-title").textContent=D.labels[name];$("fan-help-description").textContent=D.help[name];$("fan-help-image").innerHTML=window.PartelierFanArt.render(state.settings,name);}$("fan-help-dialog").showModal();});
   item.append(label,input,help);$("fan-"+group+"-fields").append(item);
  }
  $("fan-settings").addEventListener("submit",e=>e.preventDefault());

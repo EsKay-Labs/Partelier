@@ -1,0 +1,176 @@
+{
+  "success": true,
+  "offline": true,
+  "previewStarted": false,
+  "checks": [
+    {
+      "width": 300,
+      "style": "axial",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 300,
+      "style": "wide",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 300,
+      "style": "slim",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 300,
+      "style": "ring",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 300,
+      "style": "prop2",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 300,
+      "style": "prop3",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 300,
+      "style": "prop4",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 300,
+      "style": "blower",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 380,
+      "style": "axial",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 380,
+      "style": "wide",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 380,
+      "style": "slim",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 380,
+      "style": "ring",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 380,
+      "style": "prop2",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 380,
+      "style": "prop3",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 380,
+      "style": "prop4",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 380,
+      "style": "blower",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 520,
+      "style": "axial",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 520,
+      "style": "wide",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 520,
+      "style": "slim",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 520,
+      "style": "ring",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 520,
+      "style": "prop2",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 520,
+      "style": "prop3",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 520,
+      "style": "prop4",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    },
+    {
+      "width": 520,
+      "style": "blower",
+      "overflow": 0,
+      "top": 0,
+      "height": 732
+    }
+  ],
+  "errors": []
+}

@@ -1,6 +1,18 @@
 "use strict";
 // Original explanatory diagrams; never presented as the Fusion CAD preview.
-window.PartelierFanArt = Object.freeze({render(s,field="style"){
+window.PartelierFanArt = Object.freeze({
+ styles:Object.freeze({
+  axial:{name:"PC axial",description:"Curved, twisted blades around a central hub. Start here for a conventional PC fan rotor."},
+  wide:{name:"Wide blade",description:"Broader blades cover more of the opening. Compare the chord and spacing with the axial preset; airflow performance requires testing."},
+  slim:{name:"Slim rotor",description:"A shallower rotor with reduced blade angles for restricted depth. Check the complete blade envelope before adding a frame."},
+  ring:{name:"Tip-ring rotor",description:"An outer ring connects the blade tips. Ring thickness and height can be adjusted separately."},
+  prop2:{name:"2-blade propeller",description:"Two opposing blades with geometric pitch. Choose an inch-size preset or custom diameter and pitch."},
+  prop3:{name:"3-blade propeller",description:"Three evenly spaced pitched blades. Hub, shaft fit and blade sections remain adjustable."},
+  prop4:{name:"4-blade propeller",description:"Four pitched blades around the hub. Check blade spacing when increasing chord or reducing hub diameter."},
+  blower:{name:"Radial blower impeller",description:"Straight radial vanes on a flat backplate. Optionally add the scroll housing, tangential outlet and removable inlet lid."}
+ }),
+ photo(style){const item=this.styles[style]||this.styles.axial;const key=this.styles[style]?style:"axial";return `<figure class="fan-reference"><img src="assets/fans/${key}.png" width="640" height="480" alt="${item.name} preset rendered in Fusion"><figcaption>Actual Fusion model · example preset. Your dimensions and output options may differ.</figcaption></figure>`;},
+ render(s,field="style"){
  if(s.style==="blower"){const vanes=Array.from({length:s.blade_count},(_,i)=>`<path d="M178 114H244" transform="rotate(${360*i/s.blade_count} 150 114)" stroke="#375e88" stroke-width="5"/>`).join("");return `<svg viewBox="0 0 300 250" role="img" aria-label="Straight radial blower impeller schematic">${s.output==="blower_housing"?'<path d="M249 120C260 30 175 4 108 24C25 48 15 141 65 188C115 237 240 222 250 135L250 225H215V134" fill="#dde6f0" stroke="#375e88" stroke-width="3"/>':""}<circle cx="150" cy="114" r="96" fill="#e3eaf3" stroke="#71869f"/>${vanes}<circle cx="150" cy="114" r="29" fill="#c7d5e5" stroke="#375e88"/><circle cx="150" cy="114" r="6" fill="white" stroke="#375e88"/><text x="150" y="245" text-anchor="middle" fill="#375e88" font-size="12">${s.output==="blower_housing"?"Impeller + scroll housing + inlet lid":"Radial impeller · flat backplate"}</text></svg>`;}
  const prop=s.style.startsWith("prop"),n=Math.min(16,s.blade_count),ring=s.style==="ring",frame=s.output.startsWith("rotor_");
  const blades=Array.from({length:n},(_,i)=>`<path transform="rotate(${360*i/n} 150 114)" d="M166 103C188 76 220 61 240 89Q252 109 224 116L170 129Z" fill="#9bb7d7" stroke="#375e88" stroke-width="1.5"/>`).join("");

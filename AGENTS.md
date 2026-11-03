@@ -1,5 +1,15 @@
 # Partelier repository guidance
 
+## Fan visuals: 0.29.1
+
+Fan style help uses eight bundled real CAD PNGs and must work before New fan
+without native computation. Browsing reference images never changes settings.
+Fan mesh previews explicitly use lit BasicMaterialColorEffect and opaque alpha,
+sampling the existing appearance's base colour. Other tools keep their appearance
+effects. Never use custom graphics BRep bodies to fix fan shading.
+The asset-generation fixture is opt-in, one style per call: a repeated bulk
+native rerender crashed Fusion. See docs/fan-visuals.md for exact validation limits.
+
 ## Current delivery: 0.29.0
 
 This section supersedes earlier release-specific deferred-scope statements below.

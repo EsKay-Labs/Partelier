@@ -1,0 +1,14 @@
+{
+  "cases": [
+    {
+      "style": "axial",
+      "image": "axial.png",
+      "lit_opaque_mesh": true,
+      "no_preview_bodies_or_appearances": true,
+      "triangles": 58280
+    }
+  ],
+  "success": true,
+  "caller_unchanged": true,
+  "fusion": "2706.1.14"
+}

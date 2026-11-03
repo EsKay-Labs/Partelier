@@ -5,7 +5,9 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current release: 0.29.0.** Attached mechanical pairs, linked louvers, parallel lift and offset four-bar hinges, blower housing, concave/spline lid lips and guarded automatic source updates complete the current implementation list. Startup also recovers from Fusion's `pArea` display error. Read the [new tools and acceptance guide](docs/remaining-tools-0.29.0.md) for setup and practical limits.
+**Current release: 0.29.1.** Each fan family has a real model image available from **?** before preview, and fan previews use opaque lit meshes with the existing material colour. See [fan visuals and validation](docs/fan-visuals.md).
+
+Version 0.29 added attached mechanical pairs, linked louvers, parallel lift and offset four-bar hinges, blower housing, concave/spline lid lips and guarded automatic source updates. Startup also recovers from Fusion's `pArea` display error. Read the [new tools and acceptance guide](docs/remaining-tools-0.29.0.md) for setup and practical limits.
 
 **0.27.3 branding:** The approved FIT emblem uses a thinner blue upper bar
 in a compact56px title bar. Rounded cards, controls and action panels accompany

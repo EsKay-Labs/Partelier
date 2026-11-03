@@ -93,7 +93,7 @@ def capture(design,body,checkpoint=None,*,coarse=False):
             raise RuntimeError('Display export needs rollback cleanup. '+', '.join(errors))
 
 
-def draw(design,body,appearance,mesh,*,colour=None,group=None):
+def draw(design,body,appearance,mesh,*,colour=None,group=None,effect=None):
     """Upload a cached opaque mesh and the existing bounded outline batch."""
     hinge._require_main_thread()
     core,native=hinge._api()
@@ -103,7 +103,7 @@ def draw(design,body,appearance,mesh,*,colour=None,group=None):
         group.isChildrenSelectable=False;group.isSelectable=False
         graphic=group.addMesh(native.CustomGraphicsCoordinates.create(list(mesh.coordinates)),[],list(mesh.normals),[])
         if graphic is None:raise ValueError('Fusion could not upload the preview triangles.')
-        material=(native.CustomGraphicsAppearanceColorEffect.create(appearance) if colour is None
+        material=effect if effect is not None else (native.CustomGraphicsAppearanceColorEffect.create(appearance) if colour is None
                   else native.CustomGraphicsSolidColorEffect.create(core.Color.create(*colour,255)))
         if material is None:raise ValueError('Fusion could not read the preview appearance.')
         graphic.color=material;graphic.isSelectable=False

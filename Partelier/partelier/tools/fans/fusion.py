@@ -267,13 +267,16 @@ def cache(prepared):
 
 
 def draw(prepared):
+    from . import display
+    core,native=a._api()
     group=None
     try:
         if len(prepared.meshes)!=len(prepared.bodies):raise ValueError('Fan display mesh is missing.')
         material=prepared.design.rootComponent.material
         appearance=material.appearance if material is not None else None
-        for body,mesh in zip(prepared.bodies,prepared.meshes):
-            group=display_export.draw(prepared.design,body,appearance,mesh,group=group,colour=None if appearance else (163,158,141))
+        for index,(body,mesh) in enumerate(zip(prepared.bodies,prepared.meshes)):
+            source=prepared.record.bodies[index].appearance if prepared.record is not None and index<len(prepared.record.bodies) else appearance
+            group=display_export.draw(prepared.design,body,source,mesh,group=group,effect=display.material(source,core,native))
         return group
     except Exception:
         if group is not None and group.isValid:group.deleteMe()

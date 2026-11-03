@@ -38,7 +38,19 @@ function fixture(){
  };
 }
 (async()=>{
- const f=fixture();assert.equal(f.$('fan-create').disabled,true);await f.click('fan-new');await f.settle();
+ const f=fixture();assert.equal(f.$('fan-create').disabled,true);
+ const styleHelp=f.$('fan-style').parentElement.children.find(e=>e.dataset.fanHelp);
+ for(const fn of styleHelp.listeners.click)fn();
+ assert.equal(f.$('fan-help-dialog').open,true);assert.match(f.$('fan-help-image').innerHTML,/assets\/fans\/axial\.png/);
+ assert.equal(f.$('fan-help-styles').children.length,8);
+ for(const button of f.$('fan-help-styles').children){
+  for(const fn of button.listeners.click)fn();
+  assert.match(f.$('fan-help-image').innerHTML,new RegExp('assets/fans/'+button.dataset.style+'\\.png'));
+  assert.equal(f.$('fan-style').value,'axial','Browsing references must not change settings');
+  assert.equal(f.requests.length,0,'Help must work before any native session/preview');
+  assert(fs.existsSync(path.join(ui,'assets','fans',button.dataset.style+'.png')));
+ }
+ await f.click('fan-help-close');await f.click('fan-new');await f.settle();
  assert.equal(f.$('fan-create').disabled,false);assert.equal(f.$('tool-select').disabled,true);
  const snapshot=f.requests.find(r=>r.action==='fan_preview');assert.equal(Object.keys(snapshot.settings).length,50);
  assert.equal(snapshot.settings.style,'axial');assert.equal(snapshot.settings.diameter_mm,112.8);
