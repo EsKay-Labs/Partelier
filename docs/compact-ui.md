@@ -1,5 +1,22 @@
 # Compact workflow — 0.20.0
 
+**0.27.3 approved FIT mark:** the user selected FIT from the logo proposals and
+requested a thinner upper bar and a compact header. The local SVG has two simple
+filled shapes: a filleted U base and a blue T key with an8-unit upper cap in a
+64-unit viewBox. The app displays it at30px (27px on narrow palettes). The title
+bar is56px high, or52px below360px width, replacing the94/88px prototype banner.
+The caption **Made for the details.** stays beneath Partelier in a small lockup.
+Saved, connection status and About stay in the same row. The prototype P and
+background construction artwork are replaced by this clean compact identity.
+
+The [selected concept](branding/fit-concept.png) is retained for reference; the
+runtime [SVG](../Partelier/partelier/ui/brand-fit.svg) is a lightweight vector
+adaptation with the requested thinner cap. Six existing Node suites and
+headless checks of all11 tools at300/320/380/520px pass, including actual SVG
+loading, Saved/About and no horizontal overflow or brand/control overlap.
+Installed0.27.3 reloads in Fusion2706.1.14 with the active document/body/history
+state preserved. See [fit-header-0.27.3.json](validation/fit-header-0.27.3.json).
+
 **0.27.2 visual finish:** the existing slate workspace, pale cards, white fields
 and blue actions now use shared rounded corners:10px controls,15px cards and a
 19px header shell. The compact banner has an original filleted/extruded P mark,

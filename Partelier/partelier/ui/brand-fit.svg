@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Partelier FIT</title>
+  <path d="M9 22H15Q20 22 20 27V40Q20 49 29 49H35Q44 49 44 40V27Q44 22 49 22H55Q60 22 60 27V41Q60 62 39 62H25Q4 62 4 41V27Q4 22 9 22Z" fill="#e3eefb"/>
+  <path d="M11 4H53Q57 4 57 8Q57 12 53 12H42Q39 12 39 15V39Q39 43 35 43H29Q25 43 25 39V15Q25 12 22 12H11Q7 12 7 8Q7 4 11 4Z" fill="#7299bd"/>
+</svg>

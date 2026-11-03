@@ -1,0 +1,85 @@
+{
+  "version": "0.27.3",
+  "date": "2026-11-03",
+  "status": "passed",
+  "approved_concept": "01 / FIT",
+  "mark": {
+    "runtime": "brand-fit.svg",
+    "format": "two-path static SVG",
+    "intrinsic_size": [
+      64,
+      64
+    ],
+    "normal_display_size": 30,
+    "compact_display_size": 27,
+    "cap_height_svg_units": 8,
+    "reference": "docs/branding/fit-concept.png"
+  },
+  "header": {
+    "height_px": 56,
+    "compact_height_px": 52,
+    "previous_height_px": 94,
+    "caption": "Made for the details."
+  },
+  "node_suites": 6,
+  "browser": {
+    "success": true,
+    "svg_loaded": true,
+    "widths": [
+      {
+        "width": 300,
+        "tools": 11,
+        "header_height": 52,
+        "minimum_brand_gap": 57.546875,
+        "maximum_horizontal_overflow": 0,
+        "workspace_height": 303
+      },
+      {
+        "width": 320,
+        "tools": 11,
+        "header_height": 52,
+        "minimum_brand_gap": 77.546875,
+        "maximum_horizontal_overflow": 0,
+        "workspace_height": 303
+      },
+      {
+        "width": 380,
+        "tools": 11,
+        "header_height": 56,
+        "minimum_brand_gap": 113,
+        "maximum_horizontal_overflow": 0,
+        "workspace_height": 299
+      },
+      {
+        "width": 520,
+        "tools": 11,
+        "header_height": 56,
+        "minimum_brand_gap": 253,
+        "maximum_horizontal_overflow": 0,
+        "workspace_height": 299
+      }
+    ],
+    "saved_opens": true,
+    "about_opens": true,
+    "javascript_errors": [],
+    "screenshots_inspected": true
+  },
+  "native": {
+    "success": true,
+    "partelier": "0.27.3",
+    "fusion": "2706.1.14",
+    "visible": true,
+    "valid": true,
+    "registered": true,
+    "startup_ms": 111.51890000110143,
+    "documents": 2,
+    "caller_unchanged": true,
+    "html_version": true,
+    "docking_state": 4
+  },
+  "native_html_connected": true,
+  "limits": [
+    "Native reload and connection verified without pointer automation",
+    "Visual branding only; no geometry or selection changes"
+  ]
+}

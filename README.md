@@ -5,10 +5,9 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current release: 0.27.2.** Rounded cards, controls and action panels surround a
-new Partelier banner with an original part-shaped P emblem and the caption
-**Made for the details.** The existing layout and colours remain. See
-[visual finish](docs/compact-ui.md).
+**Current release: 0.27.3.** The approved FIT emblem uses a thinner blue upper bar
+in a compact56px title bar. Rounded cards, controls and action panels accompany
+the caption **Made for the details.** See [visual finish](docs/compact-ui.md).
 
 **0.27.1 startup fix:** Startup now displays the library before docking it;
 an unavailable docking area leaves the palette open instead of stopping the
