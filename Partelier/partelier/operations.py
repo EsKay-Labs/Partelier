@@ -15,8 +15,11 @@ RECIPES = (
     ('sktech_partelier_snap_fit_389f7bf1', 'recipe', 'snap'),
     ('sktech_partelier_surface_pattern_23bc07a1', 'recipe', 'pattern'),
     ('sktech_partelier_fans_e46bf1a9', 'recipe', 'fan'),
+    ('sktech_partelier_mechanisms_23d8c71a','recipe','mechanism'),
+    ('sktech_partelier_finishing_912b4e71','record','finishing'),
+
 )
-TITLES = {'fan':'Fans & Propellers','lid': 'Lid lip & groove', 'alignment': 'Alignment pins',
+TITLES = {'mechanism':'Mechanical pair','finishing':'Face detail','fan':'Fans & Propellers','lid': 'Lid lip & groove', 'alignment': 'Alignment pins',
           'ribs': 'Ribs & gussets', 'hinge': 'Pin hinge', 'snap': 'Snap-fit',
           'grilles': 'Grille', 'truss': 'Planar truss', 'honeycomb': 'Surface pattern',
           'perforation': 'Surface pattern', 'knurl': 'Surface texture'}
@@ -63,7 +66,7 @@ def records(design):
                 continue
             try:
                 recipe = _data(tag)
-                identity = recipe.get('id' if tool == 'detail' else 'feature_id')
+                identity = recipe.get('id' if tool in ('detail','finishing') else 'feature_id')
                 settings = recipe.get('settings')
                 if not _uuid(identity) or identity in seen or not isinstance(settings, dict):
                     continue
@@ -154,7 +157,7 @@ def _current_features(design, record):
     group = next(g for g, n, tool in RECIPES if tool == record['tool'] and anchor.attributes.itemByName(g, n) is not None)
     if record['tool'] in ('snap', 'pattern'):
         recipe = _data(anchor.attributes.itemByName(group, 'pair' if record['tool'] == 'snap' else 'solid'))
-    tokens = [recipe['base'] if record['tool'] == 'detail' else recipe['base_feature']]
+    tokens = [recipe['base'] if record['tool'] in ('detail','finishing') else recipe['base_feature']]
     combines = recipe.get('combines', {})
     tokens.extend(combines.values() if isinstance(combines, dict) else combines)
     colour = anchor.attributes.itemByName(group, 'flat_colour')

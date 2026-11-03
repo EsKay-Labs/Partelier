@@ -166,8 +166,8 @@ class PaletteLifecycleTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError,'Display failed'):self.library.show()
 
     def test_close_cancels_every_tool_and_reopen_rejects_old_page_requests(self):
-        managers=[SimpleNamespace(cancel_palette=Mock()) for _ in range(5)]
-        self.library._hinge_commands,self.library._snap_commands,self.library._pattern_commands,self.library._detail_commands,self.library._fan_commands=managers
+        managers=[SimpleNamespace(cancel_palette=Mock()) for _ in range(7)]
+        self.library._hinge_commands,self.library._snap_commands,self.library._pattern_commands,self.library._detail_commands,self.library._fan_commands,self.library._mechanism_commands,self.library._finishing_commands=managers
         self.library.show();old=self.library._palette;old_html=self.library._html_handler;closed=self.library._close_handler
         self.assertEqual(len(old.closed.handlers),1)
         closed.notify(None)
@@ -573,7 +573,7 @@ class PaletteLifecycleTests(unittest.TestCase):
         payload=json.dumps({'protocol':1,'requestId':'fan-test','settings':{'style':'slim'},'editing':False})
         reply=json.loads(self.library.handle_message('fan_begin',payload))
         self.assertIn('fan-palette',reply['capabilities']);self.assertIn('fan-edit',reply['capabilities'])
-        self.assertEqual(len(reply['fanDefaults']),40)
+        self.assertEqual(len(reply['fanDefaults']),43)
         self.assertEqual(manager.begin_palette.call_args.args[0]['style'],'slim')
         manager.palette_state.return_value={**state,'sessionId':'active-fan','phase':'preview'}
         with self.assertRaisesRegex(ValueError,'fan'):
@@ -581,6 +581,63 @@ class PaletteLifecycleTests(unittest.TestCase):
         manager.palette_state.return_value=state
         self.library._hinge_commands=SimpleNamespace(set_state_callback=Mock(),begin_palette=Mock(),palette_action=Mock(),palette_state=Mock(return_value={'sessionId':'hinge','phase':'preview'}),busy=False)
         with self.assertRaisesRegex(ValueError,'hinge'):self.library.handle_message('fan_begin',payload)
+
+    def new_tool_manager(self,tool,state=None):
+        state=state or {'sessionId':None,'phase':'idle','revision':0,'settings':None}
+        manager=SimpleNamespace(set_state_callback=Mock(),begin_palette=Mock(return_value=state),palette_action=Mock(return_value=state),palette_state=Mock(return_value=state),busy=False)
+        setattr(self.library,'_'+tool+'_commands',manager)
+        return manager
+
+    def test_new_tool_begin_and_status_are_typed_and_status_is_read_only(self):
+        from Partelier.partelier.tools.mechanisms.settings import MechanismSettings
+        from Partelier.partelier.tools.finishing.settings import FinishingSettings
+        for tool,settings in (('mechanism',MechanismSettings()),('finishing',FinishingSettings())):
+            with self.subTest(tool=tool):
+                manager=self.new_tool_manager(tool)
+                reply=json.loads(self.library.handle_message(tool+'_status',self.request))
+                manager.begin_palette.assert_not_called();manager.palette_action.assert_not_called()
+                self.assertEqual(reply[tool+'Defaults'],settings.to_dict())
+                payload=json.dumps({'protocol':1,'requestId':'new-tool','settings':{},'editing':False})
+                reply=json.loads(self.library.handle_message(tool+'_begin',payload))
+                self.assertIn(tool+'-palette',reply['capabilities']);self.assertIn(tool+'-edit',reply['capabilities'])
+                self.assertEqual(manager.begin_palette.call_args.args[0],settings.to_dict())
+                self.assertEqual(manager.begin_palette.call_args.kwargs,{'editing':False})
+
+    def test_new_tools_cannot_begin_while_another_owner_is_active(self):
+        payload=json.dumps({'protocol':1,'requestId':'blocked','settings':{},'editing':False})
+        for opening in ('mechanism','finishing'):
+            manager=self.new_tool_manager(opening)
+            for owner in ('hinge','snap','pattern','detail','fan','mechanism','finishing'):
+                if owner==opening:continue
+                with self.subTest(opening=opening,owner=owner):
+                    other=self.new_tool_manager(owner,{'sessionId':'active','phase':'preview','revision':2,'settings':None})
+                    with self.assertRaises(ValueError):self.library.handle_message(opening+'_begin',payload)
+                    manager.begin_palette.assert_not_called()
+                    other.palette_state.return_value={'sessionId':None,'phase':'idle'}
+
+    def test_existing_tools_cannot_begin_while_a_new_owner_is_active(self):
+        payload=json.dumps({'protocol':1,'requestId':'blocked','settings':{},'editing':False})
+        for owner in ('mechanism','finishing'):
+            other=self.new_tool_manager(owner,{'sessionId':'active','phase':'preview','revision':1,'settings':None})
+            for opening in ('hinge','snap','pattern','detail','fan'):
+                with self.subTest(owner=owner,opening=opening):
+                    manager=self.new_tool_manager(opening)
+                    with self.assertRaises(ValueError):self.library.handle_message(opening+'_begin',payload)
+                    manager.begin_palette.assert_not_called()
+            other.palette_state.return_value={'sessionId':None,'phase':'idle'}
+
+    def test_new_tool_cancel_remains_available_during_recoverable_conflicting_state(self):
+        import uuid
+        identity=str(uuid.uuid4())
+        for opening,owner in (('mechanism','finishing'),('finishing','mechanism'),('hinge','mechanism'),('fan','finishing')):
+            with self.subTest(opening=opening,owner=owner):
+                active={'sessionId':identity,'phase':'preview','revision':0,'settings':None}
+                manager=self.new_tool_manager(opening,active);other=self.new_tool_manager(owner,active)
+                try:
+                    self.library.handle_message(opening+'_cancel',json.dumps({'protocol':1,'requestId':'cancel-conflict','sessionId':identity}))
+                    manager.palette_action.assert_called_once()
+                finally:
+                    setattr(self.library,'_'+owner+'_commands',None);setattr(self.library,'_'+opening+'_commands',None)
 
     def test_detail_and_existing_tool_owners_are_mutually_exclusive(self):
         manager=self.detail_manager({'sessionId':'active-detail','phase':'preview','revision':0,'settings':None})

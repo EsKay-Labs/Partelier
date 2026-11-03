@@ -137,8 +137,68 @@ def _selected_lip_tools(frame,bounds,gap,depth,settings,A,B,manager):
         'lip_sides':settings.lip_sides,'lip_runs':len(polygons)}
 
 
+def _lip_outline(face):
+    """Return nonrectangular exact circle/convex outline, or None for the old path."""
+    try:_frame(face);return None
+    except ValueError:pass
+    core,_=h._api()
+    if core.Plane.cast(face.geometry) is None:raise ValueError('Lip supports must be planar faces.')
+    loop=next((loop for loop in h._items(face.loops) if loop.isOuter),None)
+    if loop is None:raise ValueError('The face needs one closed outer boundary.')
+    edges=tuple(co.edge for co in h._items(loop.coEdges));normal=_normal(face)
+    circle=core.Circle3D.cast(edges[0].geometry) if len(edges)==1 else None
+    if circle and abs(edges[0].length-2*math.pi*circle.radius)<1e-6:
+        helper=min(((1.,0.,0.),(0.,1.,0.),(0.,0.,1.)),key=lambda axis:abs(a._dot(axis,normal)))
+        axis=_unit(h._cross(helper,normal));frame=h.HingeFrame(_xyz(circle.center),axis,normal,h._cross(axis,normal))
+        return frame,'circle',circle.radius*10
+    if not 3<=len(edges)<=10 or any(core.Line3D.cast(edge.geometry) is None for edge in edges):
+        raise ValueError('Continuous lips support rectangles, full circles or convex polygons with 3–10 straight sides. Splines, arcs and concave outlines are not supported.')
+    pending=[(_xyz(edge.startVertex.geometry),_xyz(edge.endVertex.geometry)) for edge in edges]
+    first,last=pending.pop(0);points=[first,last]
+    while pending:
+        match=next(((i,b if math.dist(a,points[-1])<1e-6 else a) for i,(a,b) in enumerate(pending) if min(math.dist(a,points[-1]),math.dist(b,points[-1]))<1e-6),None)
+        if match is None:raise ValueError('The polygon boundary is disconnected.')
+        i,next_point=match;pending.pop(i);points.append(next_point)
+    if math.dist(points[-1],points[0])>1e-6:raise ValueError('The polygon must close.')
+    points=points[:-1];origin=tuple(sum(p[i] for p in points)/len(points) for i in range(3))
+    axis=_unit(a._sub(points[1],points[0]));frame=h.HingeFrame(origin,axis,normal,h._cross(axis,normal))
+    return frame,'polygon',planner.convex_outline(tuple(_local(frame,p) for p in points))
+
+
+def _annulus(frame,outer,inner,low,high,top_outer=None,top_inner=None):
+    _,native=h._api();manager=native.TemporaryBRepManager.get()
+    body=_cylinder(frame,(0,0),low,high,outer,top_outer)
+    hole=_cylinder(frame,(0,0),low,high,inner,top_inner)
+    a._boolean(manager,body,hole,native.BooleanTypes.DifferenceBooleanType,'Could not make the circular lip ring.')
+    return body
+
+
+def _shaped_lip_tools(faces,settings,manager,outline):
+    core,_=h._api();frame,kind,contour=outline;A,B=(face.body for face in faces)
+    if settings.lip_layout!='closed':raise ValueError('Circular and polygon lips use Continuous perimeter. Selected sides currently supports rectangles only.')
+    if core.Plane.cast(faces[1].geometry) is None or a._dot(frame.y_axis,_normal(faces[1]))>-.99999:
+        raise ValueError('Choose the planar lid underside facing the base across a nonnegative gap.')
+    gap=a._dot(a._sub(_xyz(faces[1].pointOnFace),frame.origin_mm),frame.y_axis)
+    height=settings.lip_height_mm;lead=settings.lead_mm
+    depth=planner.socket_depth(height,gap,settings.axial_clearance_mm);gap=max(0,gap)
+    dims=(contour,settings.lip_inset_mm,settings.lip_width_mm,settings.lip_clearance_mm,lead)
+    outer,inner,cut_outer,cut_inner,top_outer,top_inner=(planner.circle_lip_radii(*dims) if kind=='circle' else planner.lip_contours(*dims))
+    def ring(o,i,lo,hi):
+        return _annulus(frame,o,i,lo,hi) if kind=='circle' else perforated_prism.create(frame,o,(i,),lo,hi)
+    _material(manager,ring(outer,inner,-EMBED,0),A,'The complete lip root needs original material on face A. Increase rim width or adjust inset/width.')
+    _material(manager,ring(cut_outer,cut_inner,gap,gap+depth+settings.socket_floor_mm),B,'The complete receiving groove and protected floor must fit in the lid material. Increase lid thickness or reduce lip height/width.')
+    lip=ring(outer,inner,-EMBED,height-lead if lead else height)
+    if lead:
+        cap=(_annulus(frame,outer,inner,height-lead,height,top_outer,top_inner) if kind=='circle' else
+             profile_loft.create(frame,outer,(inner,),top_outer,(top_inner,),height-lead,height))
+        lip=_union(manager,(lip,cap))
+    return (lip,ring(cut_outer,cut_inner,gap-.02,gap+depth)),{'gap_mm':gap,'socket_depth_mm':depth,'lip_perimeter':True,'outline_kind':kind}
+
+
 def _mating(faces,settings):
-    frame,bounds=_frame(faces[0]);_frame(faces[1])
+    frame,bounds=_frame(faces[0])
+    if settings.kind!='lid':_frame(faces[1])
+    elif h._api()[0].Plane.cast(faces[1].geometry) is None:raise ValueError('Choose a planar lid underside.')
     if a._dot(frame.y_axis,_normal(faces[1]))>-.99999:
         raise ValueError('Select two parallel mating faces facing each other: the base rim and the lid inside face.')
     gap=a._dot(a._sub(_xyz(faces[1].pointOnFace),frame.origin_mm),frame.y_axis)
@@ -147,6 +207,9 @@ def _mating(faces,settings):
 
 
 def _pair_tools(faces,settings,manager):
+    if settings.kind=='lid':
+        outline=_lip_outline(faces[0])
+        if outline is not None:return _shaped_lip_tools(faces,settings,manager,outline)
     frame,bounds,gap,depth=_mating(faces,settings)
     A,B=(face.body for face in faces);floor=settings.socket_floor_mm;lead=settings.lead_mm
     if settings.kind=='lid':

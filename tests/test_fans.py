@@ -21,7 +21,7 @@ class FanPlanningTests(unittest.TestCase):
    for size in PROPS if style.startswith('prop') else PC_SIZES:
     with self.subTest(style=style,size=size):
      s=preset(style,size);p=plan(s)
-     self.assertEqual(len(p.sections),9);self.assertGreater(p.minimum_sector_gap_deg,.5)
+     self.assertEqual(len(p.sections),0 if style=="blower" else 9);self.assertGreater(p.minimum_sector_gap_deg,.5)
      self.assertEqual(s,FanSettings.from_dict(s.to_dict()))
      for section in p.sections:
       self.assertTrue(all(math.isfinite(v) for point in section.points_mm for v in point))
@@ -79,11 +79,28 @@ class FanPlanningTests(unittest.TestCase):
   with self.assertRaises(ValueError):read_request('fan_focus',json.dumps({**focus,'target':'face_a'}))
 
  def test_recipe_is_exact_versioned_and_maps_only_owned_outputs(self):
-  value={'version':1,'tool':'fan','feature_id':str(uuid.uuid4()),'base_feature':'base','settings':FanSettings().to_dict(),'references':{},'results':[{'body':'rotor','signature':'a'*64}]}
+  value={'version':2,'tool':'fan','feature_id':str(uuid.uuid4()),'base_feature':'base','settings':FanSettings().to_dict(),'references':{},'results':[{'body':'rotor','signature':'a'*64}]}
   self.assertEqual(store.parse(json.dumps(value))[1],FanSettings())
-  for changed in ({'version':True},{'version':2},{'tool':'hinge'},{'feature_id':'broken'},{'extra':0},{'references':{'face':'source'}},{'results':[{'body':'rotor','signature':'x'*64}]},{'results':[]}):
+  for changed in ({'version':True},{'version':3},{'tool':'hinge'},{'feature_id':'broken'},{'extra':0},{'references':{'face':'source'}},{'results':[{'body':'rotor','signature':'x'*64}]},{'results':[]}):
    with self.subTest(change=changed),self.assertRaises(ValueError):store.parse(json.dumps({**value,**changed}))
   triple={**value,'settings':replace(FanSettings(),output='rotor_guard').to_dict(),'results':[{'body':name,'signature':'a'*64} for name in ('rotor','frame','guard')]}
   self.assertEqual(len(store.parse(json.dumps(triple))[0]['results']),3)
   triple['results'][2]['body']='rotor'
   with self.assertRaisesRegex(ValueError,'duplicated'):store.parse(json.dumps(triple))
+
+class BlowerTests(unittest.TestCase):
+ def test_bounded_impeller_envelope_and_clearance(self):
+  s=preset('blower','pc80');p=plan(s)
+  self.assertEqual(p.sections,());self.assertEqual(p.blade_count,12)
+  self.assertGreater(p.minimum_sector_gap_deg,1)
+  self.assertEqual(p.z_min_mm,-s.hub_height_mm/2)
+  self.assertEqual(p.z_max_mm,max(s.hub_height_mm/2,p.z_min_mm+s.blower_backplate_mm+s.blower_height_mm))
+  for values in ({'output':'rotor_frame'},{'outline_mode':'sketch'},{'hub_diameter_mm':5,'shaft_diameter_mm':.8,'blade_count':16,'blower_vane_mm':6}):
+   with self.assertRaises(ValueError):replace(s,**values)
+ def test_old_recipe_remains_read_only_and_new_style_requires_new_recipe(self):
+  settings=FanSettings().to_dict();old={k:v for k,v in settings.items() if not k.startswith('blower_')}
+  value={'version':1,'tool':'fan','feature_id':str(uuid.uuid4()),'base_feature':'base','settings':old,'references':{},'results':[{'body':'rotor','signature':'a'*64}]}
+  raw=json.dumps(value);parsed,read=store.parse(raw)
+  self.assertEqual(parsed,value);self.assertEqual(read,FanSettings());self.assertEqual(len(parsed['settings']),40)
+  with self.assertRaises(ValueError):store.parse(json.dumps({**value,'settings':settings}))
+  with self.assertRaises(ValueError):store.parse(json.dumps({**value,'settings':{**old,'style':'blower'}}))

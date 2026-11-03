@@ -104,3 +104,29 @@ class DetailProtocolTests(unittest.TestCase):
         for wrong in ([[],[]],[None,'f'],['same','same']):
             damaged=deepcopy(value);damaged['sources']['faces']=wrong
             with self.subTest(faces=wrong),self.assertRaises(ValueError):store._parse(json.dumps(damaged))
+
+
+class ShapedLipTests(unittest.TestCase):
+    def test_circle_lead_and_clearance_are_exact(self):
+        outer,inner,co,ci,to,ti=planner.circle_lip_radii(20,.8,1.2,.25,.2)
+        self.assertAlmostEqual(outer-inner,1.2)
+        self.assertAlmostEqual(co-outer,.25);self.assertAlmostEqual(inner-ci,.25)
+        self.assertAlmostEqual(outer-to,.2);self.assertAlmostEqual(ti-inner,.2)
+        for values in ((2,.8,1.2,.25,.2),(20,.1,1.2,.25,.2),(20,.8,.4,.25,.2),(math.inf,.8,1.2,.25,.2)):
+            with self.assertRaises(ValueError):planner.circle_lip_radii(*values)
+
+    def test_convex_offsets_preserve_requested_perpendicular_distances(self):
+        for count in (3,5,6,8,10):
+            polygon=tuple((30*math.cos(i*2*math.pi/count),30*math.sin(i*2*math.pi/count)) for i in range(count))
+            loops=planner.lip_contours(polygon,.8,1.2,.25,.2)
+            for result,distance in zip(loops,(.8,2,.55,2.25,1,1.8)):
+                for i,point in enumerate(result):
+                    a,b=polygon[i],polygon[(i+1)%count]
+                    offset=((b[0]-a[0])*(point[1]-a[1])-(b[1]-a[1])*(point[0]-a[0]))/math.dist(a,b)
+                    self.assertAlmostEqual(offset,distance)
+            self.assertEqual(planner.convex_outline(tuple(reversed(polygon))),polygon)
+
+    def test_nonconvex_and_collapsed_polygons_are_refused(self):
+        for polygon in (((0,0),(10,0),(4,4),(10,10),(0,10)),((0,0),(5,0),(10,0),(10,10),(0,10)),((0,0),(10,10),(0,10),(10,0))):
+            with self.assertRaises(ValueError):planner.convex_outline(polygon)
+        with self.assertRaises(ValueError):planner.lip_contours(((0,0),(4,0),(2,3)),.8,1.2,.25,.2)

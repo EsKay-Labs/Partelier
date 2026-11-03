@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "cases": [
+    {
+      "name": "prepare",
+      "ms": 71.48009999946225,
+      "faces": 53
+    },
+    {
+      "name": "edit_shaft_cache",
+      "passed": true
+    },
+    {
+      "name": "edit_vanes_delete",
+      "passed": true
+    }
+  ],
+  "caller_restored": true
+}

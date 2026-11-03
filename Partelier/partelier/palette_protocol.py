@@ -9,6 +9,8 @@ from .tools.snap_fit.settings import SnapFitSettings
 from .tools.patterns.settings import PatternSettings
 from .tools.details.settings import DetailSettings
 from .tools.fans.settings import FanSettings
+from .tools.mechanisms.settings import MechanismSettings
+from .tools.finishing.settings import FinishingSettings
 from .diagnostics import validate_ui_entries
 
 
@@ -23,7 +25,11 @@ DETAIL_SETTINGS_ACTIONS=frozenset({'detail_update','detail_preview','detail_comm
 DETAIL_SESSION_ACTIONS=DETAIL_SETTINGS_ACTIONS|{'detail_cancel','detail_focus','detail_reset','detail_finish_sides','detail_clear_sides'}
 FAN_SETTINGS_ACTIONS=frozenset({'fan_update','fan_preview','fan_commit'})
 FAN_SESSION_ACTIONS=FAN_SETTINGS_ACTIONS|{'fan_cancel','fan_focus','fan_reset'}
-ALLOWED_ACTIONS = frozenset({
+MECHANISM_SETTINGS_ACTIONS=frozenset({"mechanism_update","mechanism_preview","mechanism_commit"})
+MECHANISM_SESSION_ACTIONS=MECHANISM_SETTINGS_ACTIONS|{"mechanism_cancel","mechanism_focus","mechanism_reset"}
+FINISHING_SETTINGS_ACTIONS=frozenset({"finishing_update","finishing_preview","finishing_commit"})
+FINISHING_SESSION_ACTIONS=FINISHING_SETTINGS_ACTIONS|{"finishing_cancel","finishing_focus","finishing_reset"}
+ALLOWED_ACTIONS = frozenset({"finishing_begin","finishing_status"})|FINISHING_SESSION_ACTIONS|frozenset({"mechanism_begin","mechanism_status"})|MECHANISM_SESSION_ACTIONS|frozenset({
     "ready", "open_input_check", "hinge_create", "hinge_edit", "hinge_begin", "hinge_status",
     "snap_begin", "snap_status", "pattern_begin", "pattern_status", "pattern_export", "diagnostic_log",
     'fan_begin','fan_status','detail_begin','detail_status','operations_list','operation_edit','operation_delete',
@@ -81,10 +87,12 @@ def read_request(action, raw_data):
     if detail:tool_name='Small detail'
     if fan:tool_name="fan"
     settings_type = FanSettings if fan else DetailSettings if detail else PatternSettings if pattern else SnapFitSettings if snap else HingeSettings
-    settings_actions = SESSION_SETTINGS_ACTIONS | SNAP_SESSION_SETTINGS_ACTIONS | PATTERN_SETTINGS_ACTIONS | DETAIL_SETTINGS_ACTIONS | FAN_SETTINGS_ACTIONS
-    session_actions = SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS | DETAIL_SESSION_ACTIONS | FAN_SESSION_ACTIONS
-    begin_actions = {"hinge_begin", "snap_begin", "pattern_begin",'detail_begin','fan_begin'}
-    focus_actions = {"hinge_focus", "snap_focus", "pattern_focus",'detail_focus','fan_focus'}
+    if action.startswith("mechanism_"):settings_type=MechanismSettings;tool_name="mechanism"
+    if action.startswith("finishing_"):settings_type=FinishingSettings;tool_name="finishing"
+    settings_actions = FINISHING_SETTINGS_ACTIONS | MECHANISM_SETTINGS_ACTIONS | SESSION_SETTINGS_ACTIONS | SNAP_SESSION_SETTINGS_ACTIONS | PATTERN_SETTINGS_ACTIONS | DETAIL_SETTINGS_ACTIONS | FAN_SETTINGS_ACTIONS
+    session_actions = FINISHING_SESSION_ACTIONS | MECHANISM_SESSION_ACTIONS | SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS | DETAIL_SESSION_ACTIONS | FAN_SESSION_ACTIONS
+    begin_actions = {"finishing_begin"} | {"mechanism_begin"} | {"hinge_begin", "snap_begin", "pattern_begin",'detail_begin','fan_begin'}
+    focus_actions = {"finishing_focus"} | {"mechanism_focus"} | {"hinge_focus", "snap_focus", "pattern_focus",'detail_focus','fan_focus'}
     expected = {"protocol", "requestId"}
     if action in {"hinge_create"} | begin_actions | settings_actions:
         expected.add("settings")
@@ -114,6 +122,8 @@ def read_request(action, raw_data):
     target = request.get("target")
     targets={'face_a','face_b','edit_target','lip_sides'} if detail else {"faces","add_face","body","edit_target"} if pattern else {"face_a", "face_b", "axis_edge", "edit_target"}
     if fan:targets={'circle','outline','edit_target'}
+    if action.startswith("mechanism_"):targets={'edit_target'}
+    if action.startswith("finishing_"):targets={'face','edit_target'}
     if action in focus_actions and (not isinstance(target, str) or target not in targets):
         raise ValueError(f"Select a supported {tool_name} geometry target.")
     settings = None

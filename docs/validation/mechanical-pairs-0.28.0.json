@@ -1,0 +1,168 @@
+{
+  "cases": [
+    {
+      "family": "slider",
+      "motion": {
+        "poses": 9,
+        "stages": [
+          "slide"
+        ],
+        "angle_min_deg": 0.0,
+        "angle_max_deg": 0.0,
+        "travel_y_mm": 15.7,
+        "travel_z_mm": 0.0,
+        "seconds": 0.021198200000071665,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 2,
+      "triangles": 64,
+      "seconds": 0.5697548999996798
+    },
+    {
+      "family": "dovetail",
+      "motion": {
+        "poses": 9,
+        "stages": [
+          "slide"
+        ],
+        "angle_min_deg": 0.0,
+        "angle_max_deg": 0.0,
+        "travel_y_mm": 15.7,
+        "travel_z_mm": 0.0,
+        "seconds": 0.03856000000087079,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 2,
+      "triangles": 64,
+      "seconds": 0.6356433000000834
+    },
+    {
+      "family": "bayonet",
+      "motion": {
+        "poses": 17,
+        "stages": [
+          "unlock",
+          "withdraw"
+        ],
+        "angle_min_deg": -30.0,
+        "angle_max_deg": -0.0,
+        "travel_y_mm": 0.0,
+        "travel_z_mm": 8.3,
+        "seconds": 0.10930809999990743,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 2,
+      "triangles": 1302,
+      "seconds": 0.8679353999978048
+    },
+    {
+      "family": "clevis",
+      "motion": {
+        "poses": 13,
+        "stages": [
+          "pivot"
+        ],
+        "angle_min_deg": -60,
+        "angle_max_deg": 60,
+        "travel_y_mm": 0.0,
+        "travel_z_mm": 0.0,
+        "seconds": 0.06503439999869443,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 3,
+      "triangles": 1008,
+      "seconds": 0.8376716999991913
+    },
+    {
+      "family": "barrel",
+      "motion": {
+        "poses": 13,
+        "stages": [
+          "hinge"
+        ],
+        "angle_min_deg": 0.0,
+        "angle_max_deg": 150.0,
+        "travel_y_mm": 0.0,
+        "travel_z_mm": 0.0,
+        "seconds": 0.07700390000172774,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 3,
+      "triangles": 1562,
+      "seconds": 0.9619338999982574
+    },
+    {
+      "family": "concealed",
+      "motion": {
+        "poses": 13,
+        "stages": [
+          "hinge"
+        ],
+        "angle_min_deg": 0.0,
+        "angle_max_deg": 150.0,
+        "travel_y_mm": 0.0,
+        "travel_z_mm": 0.0,
+        "seconds": 0.08517819999906351,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 3,
+      "triangles": 1190,
+      "seconds": 0.8284154999964812
+    },
+    {
+      "family": "pip_hinge",
+      "motion": {
+        "poses": 13,
+        "stages": [
+          "hinge"
+        ],
+        "angle_min_deg": 0.0,
+        "angle_max_deg": 150.0,
+        "travel_y_mm": 0.0,
+        "travel_z_mm": 0.0,
+        "seconds": 0.05102909999914118,
+        "continuous_sweep": false,
+        "underside_limit_deg": null
+      },
+      "ok": true,
+      "bodies": 2,
+      "triangles": 952,
+      "seconds": 0.6796022000016819
+    },
+    {
+      "family": "pip_louver",
+      "motion": {
+        "poses": 39,
+        "stages": [
+          "vane 1",
+          "vane 2",
+          "vane 3"
+        ],
+        "angle_min_deg": -90,
+        "angle_max_deg": 90,
+        "travel_y_mm": 0.0,
+        "travel_z_mm": 0.0,
+        "seconds": 1.986544600000343,
+        "continuous_sweep": false,
+        "underside_limit_deg": 45
+      },
+      "ok": true,
+      "bodies": 4,
+      "triangles": 1340,
+      "seconds": 3.9152935999991314
+    }
+  ],
+  "ok": true
+}

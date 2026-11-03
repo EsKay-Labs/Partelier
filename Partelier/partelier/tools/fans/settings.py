@@ -3,7 +3,7 @@
 from dataclasses import dataclass,asdict,fields,replace
 import math
 
-STYLES=('axial','wide','slim','ring','prop2','prop3','prop4')
+STYLES=('axial','wide','slim','ring','prop2','prop3','prop4','blower')
 PC_SIZES={'pc40':(40.,32.,10.),'pc60':(60.,50.,25.),'pc80':(80.,71.5,25.),
           'pc92':(92.,82.5,25.),'pc120':(120.,105.,25.),'pc140':(140.,124.5,25.)}
 PROPS={'prop5030':(127.,76.2),'prop6040':(152.4,101.6),'prop8040':(203.2,101.6),'prop1045':(254.,114.3)}
@@ -51,6 +51,9 @@ class FanSettings:
     output:str='rotor'
     outline_mode:str='generated'
     outline_scale_percent:float=100.
+    blower_height_mm:float=10.
+    blower_backplate_mm:float=1.6
+    blower_vane_mm:float=1.2
 
     def __post_init__(self):
         enums={'style':STYLES,'size_preset':('custom',*PC_SIZES,*PROPS),'shaft_shape':('round','d'),
@@ -71,7 +74,7 @@ class FanSettings:
         self.validate()
 
     def validate(self):
-        bounds={'diameter_mm':(15,500),'hub_diameter_mm':(5,180),'hub_height_mm':(2,100),'shaft_diameter_mm':(.8,60),
+        bounds={'blower_height_mm':(2,60),'blower_backplate_mm':(.8,8),'blower_vane_mm':(.6,6),'diameter_mm':(15,500),'hub_diameter_mm':(5,180),'hub_height_mm':(2,100),'shaft_diameter_mm':(.8,60),
             'shaft_clearance_mm':(0,2),'shaft_flat_mm':(.05,20),'set_screw_diameter_mm':(0,12),
             'root_chord_mm':(2,160),'mid_chord_mm':(2,160),'tip_chord_mm':(2,160),
             'root_angle_deg':(0,75),'mid_angle_deg':(0,75),'tip_angle_deg':(0,75),
@@ -89,6 +92,11 @@ class FanSettings:
             raise ValueError('Set screw hole must be at least 1 mm and leave material above and below it.')
         if self.output=='hub_test':return
         if self.hub_diameter_mm>=self.diameter_mm-6:raise ValueError('Rotor diameter must be at least 6 mm larger than the hub.')
+        if self.style=='blower':
+            if self.output not in ('rotor','hub_test'):raise ValueError('The radial blower generates an impeller only. A volute housing is not implemented.')
+            if self.outline_mode!='generated':raise ValueError('Blower vanes use the radial generator, not a sketch blade outline.')
+            if self.blower_vane_mm>=self.hub_diameter_mm*math.sin(math.pi/self.blade_count):raise ValueError('Blower vanes overlap at the hub. Reduce vane thickness/count or enlarge Hub.')
+            return
         if self.root_fillet_mm>min(self.hub_height_mm/3,(self.diameter_mm-self.hub_diameter_mm)/8):raise ValueError('Root fillet is too large for this hub/span.')
         if self.edge_round_mm>=self.tip_thickness_mm/2:raise ValueError('Tip edge radius must be smaller than half Tip thickness.')
         if max(self.root_thickness_mm,self.tip_thickness_mm)>=min(self.root_chord_mm,self.mid_chord_mm,self.tip_chord_mm)*.6:
@@ -111,7 +119,8 @@ class FanSettings:
 def preset(style='axial',size='pc120'):
     """Explicit preset application only; never silently overwrite Custom/Edit."""
     if style not in STYLES or size not in (*PC_SIZES,*PROPS,'custom'):raise ValueError('Choose a supported fan preset.')
-    if size=='custom':return replace(FanSettings(),style=style,size_preset='custom')
+    if size=='custom':return replace(preset('blower','pc120') if style=='blower' else FanSettings(),style=style,size_preset='custom')
+    if style=='blower' and size in PROPS:raise ValueError('Choose a PC diameter preset or Custom for the blower.')
     if size in PC_SIZES:
         width,mount,depth=PC_SIZES[size];scale=width/120
         values=dict(style=style,size_preset=size,frame_width_mm=width,mount_pitch_mm=mount,frame_depth_mm=15 if style=='slim' and width==120 else depth,
@@ -119,6 +128,7 @@ def preset(style='axial',size='pc120'):
             root_chord_mm=max(4,18*scale),mid_chord_mm=max(5,22*scale),tip_chord_mm=max(4,18*scale),
             root_thickness_mm=max(.8,1.8*scale),tip_thickness_mm=max(.6,1.2*scale),root_fillet_mm=min(.6,.6*scale),
             ring_height_mm=max(4,10*scale),shaft_diameter_mm=2 if width<80 else 3)
+        if style=='blower':values.update(blade_count=12,root_fillet_mm=0,edge_round_mm=0,sweep_deg=0,camber_percent=0,blower_height_mm=max(4,10*scale),blower_backplate_mm=max(.8,1.6*scale),blower_vane_mm=max(.6,1.2*scale))
         if style=='wide':values.update(blade_count=9,hub_diameter_mm=max(10,40*scale),mid_chord_mm=max(5,24*scale),tip_chord_mm=max(4,20*scale))
         if style=='slim':values.update(hub_diameter_mm=max(10,44*scale),blade_count=9,hub_height_mm=max(5,10*scale),root_chord_mm=max(4,16*scale),mid_chord_mm=max(5,20*scale),tip_chord_mm=max(4,15*scale),root_angle_deg=25,mid_angle_deg=18,tip_angle_deg=12,root_thickness_mm=max(.8,1.2*scale),tip_thickness_mm=max(.6,.9*scale))
         if style.startswith('prop'):values.update(blade_count=int(style[-1]),pitch_mode='pitch',pitch_mm=width*.6,sweep_deg=4)

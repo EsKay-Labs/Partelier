@@ -5,7 +5,9 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current release: 0.27.3.** The approved FIT emblem uses a thinner blue upper bar
+**Current release: 0.28.0.** Mechanical pairs, face details/labels, radial blower impellers and circular/convex lid lips are now available. Read the [new tools and morning test guide](docs/overnight-0.28.0.md) for exact scope and remaining limits.
+
+**0.27.3 branding:** The approved FIT emblem uses a thinner blue upper bar
 in a compact56px title bar. Rounded cards, controls and action panels accompany
 the caption **Made for the details.** See [visual finish](docs/compact-ui.md).
 
@@ -19,7 +21,7 @@ wide-blade, slim and tip-ring rotors, plus 2/3/4-blade air propellers. Choose a
 shaft fit, and optionally generate a separate mounting frame and guard. A hub
 coupon, circular-opening fit and sketch planform are included. Preview is cached;
 Saved features provides guarded Edit/Delete. These are geometry prototypes,
-without verified cooling, balance, speed or strength ratings. Blowers are deferred.
+without verified cooling, balance, speed or strength ratings. Version0.28 adds a radial blower impeller; volute housings remain deferred.
 See [Fans & Propellers](docs/fans-and-propellers.md).
 
 **New in 0.24.0:** every tool shows **Features in this section** with direct

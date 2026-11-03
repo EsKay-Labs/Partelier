@@ -1,0 +1,291 @@
+{
+  "production_managers": true,
+  "programmatic_selections": true,
+  "stages": [
+    {
+      "stage": "setup",
+      "ok": true
+    },
+    {
+      "stage": "begin",
+      "tool": "mechanism",
+      "queued": true,
+      "state": {
+        "sessionId": "c2752928-89e1-47ed-abb3-3909a3114f9d",
+        "endedSessionId": null,
+        "revision": 0,
+        "phase": "computing",
+        "editing": false,
+        "settings": {
+          "family": "slider",
+          "length_mm": 40.0,
+          "width_mm": 18.0,
+          "height_mm": 8.0,
+          "wall_mm": 2.0,
+          "clearance_mm": 0.3,
+          "diameter_mm": 32.0,
+          "pin_diameter_mm": 3.0,
+          "count": 3,
+          "angle_deg": 30.0,
+          "end_stop": true,
+          "x_mm": 0.0,
+          "y_mm": 0.0,
+          "z_mm": 0.0
+        },
+        "selections": {
+          "surface": {
+            "selected": true,
+            "label": "Separate parts at document origin / XYZ offset"
+          },
+          "edit_target": {
+            "selected": false,
+            "label": "Saved mechanism"
+          }
+        },
+        "pickingTarget": null,
+        "previewCurrent": false,
+        "message": "Computing mechanism\u2026"
+      }
+    },
+    {
+      "stage": "commit",
+      "tool": "mechanism",
+      "queued": true
+    },
+    {
+      "stage": "verify",
+      "tool": "mechanism",
+      "ok": true,
+      "bodies": 3,
+      "history": 2
+    },
+    {
+      "stage": "begin_cancel",
+      "tool": "mechanism",
+      "queued": true,
+      "state": {
+        "sessionId": "617c3e22-86ff-46b8-8aff-c7dfcf4cf331",
+        "endedSessionId": null,
+        "revision": 0,
+        "phase": "computing",
+        "editing": false,
+        "settings": {
+          "family": "slider",
+          "length_mm": 40.0,
+          "width_mm": 18.0,
+          "height_mm": 8.0,
+          "wall_mm": 2.0,
+          "clearance_mm": 0.3,
+          "diameter_mm": 32.0,
+          "pin_diameter_mm": 3.0,
+          "count": 3,
+          "angle_deg": 30.0,
+          "end_stop": true,
+          "x_mm": 0.0,
+          "y_mm": 0.0,
+          "z_mm": 0.0
+        },
+        "selections": {
+          "surface": {
+            "selected": true,
+            "label": "Separate parts at document origin / XYZ offset"
+          },
+          "edit_target": {
+            "selected": false,
+            "label": "Saved mechanism"
+          }
+        },
+        "pickingTarget": null,
+        "previewCurrent": false,
+        "message": "Computing mechanism\u2026"
+      }
+    },
+    {
+      "stage": "cancel",
+      "tool": "mechanism",
+      "ok": true,
+      "state": {
+        "sessionId": null,
+        "endedSessionId": "617c3e22-86ff-46b8-8aff-c7dfcf4cf331",
+        "revision": 0,
+        "phase": "cancelled",
+        "editing": false,
+        "settings": {
+          "family": "slider",
+          "length_mm": 40.0,
+          "width_mm": 18.0,
+          "height_mm": 8.0,
+          "wall_mm": 2.0,
+          "clearance_mm": 0.3,
+          "diameter_mm": 32.0,
+          "pin_diameter_mm": 3.0,
+          "count": 3,
+          "angle_deg": 30.0,
+          "end_stop": true,
+          "x_mm": 0.0,
+          "y_mm": 0.0,
+          "z_mm": 0.0
+        },
+        "selections": {
+          "surface": {
+            "selected": true,
+            "label": "Separate parts at document origin / XYZ offset"
+          },
+          "edit_target": {
+            "selected": false,
+            "label": "Saved mechanism"
+          }
+        },
+        "pickingTarget": null,
+        "previewCurrent": false,
+        "message": "Mechanism cancelled."
+      }
+    },
+    {
+      "stage": "begin",
+      "tool": "finishing",
+      "queued": true,
+      "state": {
+        "sessionId": "4354068d-d864-4ce6-9a06-d7797638f5fb",
+        "endedSessionId": null,
+        "revision": 0,
+        "phase": "computing",
+        "editing": false,
+        "settings": {
+          "kind": "notch",
+          "edge_side": "top",
+          "width_mm": 12.0,
+          "length_mm": 20.0,
+          "depth_mm": 2.0,
+          "shaft_mm": 4.3,
+          "height_mm": 5.0,
+          "stroke_mm": 0.8,
+          "offset_x_mm": 0.0,
+          "offset_y_mm": 0.0,
+          "rotation_deg": 0.0,
+          "count": 11,
+          "major_every": 5,
+          "mode": "engrave",
+          "text": "PARTELIER",
+          "font": "Arial"
+        },
+        "selections": {
+          "surface": {
+            "selected": true,
+            "label": "Face selected"
+          },
+          "face": {
+            "selected": true,
+            "label": "Face selected"
+          }
+        },
+        "pickingTarget": null,
+        "previewCurrent": false,
+        "message": "Computing finishing\u2026"
+      }
+    },
+    {
+      "stage": "commit",
+      "tool": "finishing",
+      "queued": true
+    },
+    {
+      "stage": "verify",
+      "tool": "finishing",
+      "ok": true,
+      "bodies": 3,
+      "history": 4
+    },
+    {
+      "stage": "begin_cancel",
+      "tool": "finishing",
+      "queued": true,
+      "state": {
+        "sessionId": "25751e0b-371b-42d7-9a92-3c0050dec434",
+        "endedSessionId": null,
+        "revision": 0,
+        "phase": "computing",
+        "editing": false,
+        "settings": {
+          "kind": "arrow",
+          "edge_side": "top",
+          "width_mm": 12.0,
+          "length_mm": 20.0,
+          "depth_mm": 2.0,
+          "shaft_mm": 4.3,
+          "height_mm": 5.0,
+          "stroke_mm": 0.8,
+          "offset_x_mm": 0.0,
+          "offset_y_mm": 0.0,
+          "rotation_deg": 0.0,
+          "count": 11,
+          "major_every": 5,
+          "mode": "engrave",
+          "text": "PARTELIER",
+          "font": "Arial"
+        },
+        "selections": {
+          "surface": {
+            "selected": true,
+            "label": "Face selected"
+          },
+          "face": {
+            "selected": true,
+            "label": "Face selected"
+          }
+        },
+        "pickingTarget": null,
+        "previewCurrent": false,
+        "message": "Computing finishing\u2026"
+      }
+    },
+    {
+      "stage": "cancel",
+      "tool": "finishing",
+      "ok": true,
+      "state": {
+        "sessionId": null,
+        "endedSessionId": "25751e0b-371b-42d7-9a92-3c0050dec434",
+        "revision": 0,
+        "phase": "cancelled",
+        "editing": false,
+        "settings": {
+          "kind": "arrow",
+          "edge_side": "top",
+          "width_mm": 12.0,
+          "length_mm": 20.0,
+          "depth_mm": 2.0,
+          "shaft_mm": 4.3,
+          "height_mm": 5.0,
+          "stroke_mm": 0.8,
+          "offset_x_mm": 0.0,
+          "offset_y_mm": 0.0,
+          "rotation_deg": 0.0,
+          "count": 11,
+          "major_every": 5,
+          "mode": "engrave",
+          "text": "PARTELIER",
+          "font": "Arial"
+        },
+        "selections": {
+          "surface": {
+            "selected": true,
+            "label": "Face selected"
+          },
+          "face": {
+            "selected": true,
+            "label": "Face selected"
+          }
+        },
+        "pickingTarget": null,
+        "previewCurrent": false,
+        "message": "Face detail cancelled."
+      }
+    },
+    {
+      "stage": "finish",
+      "ok": true,
+      "caller_unchanged": true
+    }
+  ]
+}

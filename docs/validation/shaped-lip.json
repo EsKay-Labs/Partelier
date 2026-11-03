@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "cases": [
+    {
+      "outline": "circle",
+      "create_edit_delete": true,
+      "floor_guard": true,
+      "ms": 333.1663999997545
+    },
+    {
+      "outline": "polygon",
+      "create_edit_delete": true,
+      "floor_guard": true,
+      "ms": 508.1508000002941
+    }
+  ],
+  "caller_restored": true
+}

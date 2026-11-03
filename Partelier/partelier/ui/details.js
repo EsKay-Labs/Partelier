@@ -6,7 +6,7 @@
  const defaults={kind:"lid",lip_layout:"closed",lip_sides:15,lip_height_mm:2.5,lip_width_mm:1.2,lip_inset_mm:.8,lip_clearance_mm:.25,axial_clearance_mm:.3,lead_mm:.2,pin_diameter_mm:2.5,pin_height_mm:4,pin_clearance_mm:.3,pin_inset_mm:0,pin_count:2,socket_floor_mm:.5,rib_width_mm:2,rib_height_a_mm:12,rib_height_b_mm:12,rib_count:3,rib_margin_mm:5,rib_style:"triangle"};
  const titles={lid:"Lid lip & groove",alignment:"Alignment pins",ribs:"Ribs & gussets"};
  const fields={
-  lip_layout:["Lip layout","Continuous perimeter: χείλος και αυλάκι γύρω από όλη την περίμετρο. Selected sides: επίλεξε τις πλευρές πάνω στο μοντέλο και πάτησε Done. Το χείλος και το ταιριαστό αυλάκι δημιουργούνται μόνο εκεί."],
+  lip_layout:["Lip layout","Continuous perimeter: χείλος και αυλάκι σε ορθογώνιο, πλήρη κύκλο ή κυρτό πολύγωνο 3–10 ευθύγραμμων πλευρών. Selected sides (μόνο ορθογώνιο): επίλεξε τις πλευρές πάνω στο μοντέλο και πάτησε Done. Το χείλος και το ταιριαστό αυλάκι δημιουργούνται μόνο εκεί."],
   lip_height_mm:["Lip height (mm)","Ύψος του χείλους από το face A προς το καπάκι. Πρέπει να ξεπερνά το κενό ανάμεσα στα δύο faces τουλάχιστον κατά 0.2 mm."],
   lip_width_mm:["Lip width (mm)","Πλάτος του συνεχόμενου ορθογώνιου χείλους. Η βάση του πρέπει να πατάει ολόκληρη στο υλικό του A."],
   lip_inset_mm:["Edge inset (mm)","Απόσταση από την εξωτερική περίμετρο του A μέχρι την εξωτερική πλευρά του χείλους. Πρέπει να χωρά και το περιθώριο του αυλακιού."],
@@ -30,7 +30,7 @@
  const state={selected:false,alias:null,settings:{...defaults},session:null,revision:0,connected:false,caps:new Set(),busy:false,expecting:false,error:false};
  let sequence=0,hostRevision=-1,timer,poll,previewFlight=false,queued=false,queue=Promise.resolve(),helpTrigger,exampleKind;
  const active=()=>!!state.session?.sessionId&&!terminal.has(state.session.phase),identity=()=>active()?state.session.sessionId:null;
- const other=()=>!!window.PartelierFans?.isActive()||!!window.PartelierFans?.isBusy()||!!window.PartelierHingeActive||!!window.PartelierSnap?.isActive()||!!window.PartelierSnap?.isBusy()||!!window.PartelierPatterns?.isActive()||!!window.PartelierPatterns?.isBusy();
+ const other=()=>!!window.PartelierMechanisms?.isActive()||!!window.PartelierMechanisms?.isBusy()||!!window.PartelierFinishing?.isActive()||!!window.PartelierFinishing?.isBusy()||!!window.PartelierFans?.isActive()||!!window.PartelierFans?.isBusy()||!!window.PartelierHingeActive||!!window.PartelierSnap?.isActive()||!!window.PartelierSnap?.isBusy()||!!window.PartelierPatterns?.isActive()||!!window.PartelierPatterns?.isBusy();
  const ready=()=>!state.session?.pickingSides&&!state.session?.pickingTarget&&!!identity()&&!!state.session?.selections?.surface?.selected;
  const valid=()=>$("detail-settings").checkValidity();
  const current=()=>active()&&state.session.phase==="preview"&&state.session.revision===state.revision&&state.session.previewCurrent&&!state.error;

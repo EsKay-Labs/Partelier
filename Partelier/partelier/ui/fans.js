@@ -1,19 +1,20 @@
 "use strict";
 (() => {
  const $=id=>document.getElementById(id),D=window.PartelierFanData,defaults=D.defaults,clone=v=>JSON.parse(JSON.stringify(v));
- const styles=[["axial","PC axial"],["wide","Wide blade"],["slim","Slim rotor"],["ring","Tip-ring rotor"],["prop2","2-blade propeller"],["prop3","3-blade propeller"],["prop4","4-blade propeller"]];
+ const styles=[["axial","PC axial"],["wide","Wide blade"],["slim","Slim rotor"],["ring","Tip-ring rotor"],["prop2","2-blade propeller"],["prop3","3-blade propeller"],["prop4","4-blade propeller"],["blower","Radial blower impeller"]];
  const choices={style:styles,output:[["rotor","Rotor only"],["rotor_frame","Rotor + frame"],["rotor_guard","Rotor + frame + guard"],["hub_test","Hub fit coupon"]],shaft_shape:[["round","Round"],["d","D-shaft"]],pitch_mode:[["twist","Root / middle / tip angles"],["pitch","Constant geometric pitch"]],rotation:[["ccw","CCW · viewed from above"],["cw","CW · viewed from above"]],outline_mode:[["generated","Generated planform"],["sketch","Selected sketch profile"]]};
  const terminal=new Set(["idle","cancelled","created"]),retired=new Set();
  const state={selected:false,settings:clone(defaults),session:null,revision:0,connected:false,caps:new Set(),busy:false,expecting:false,error:false};
  let sequence=0,hostRevision=-1,pushVersion=0,timer,poll,previewFlight=false,queued=false,queue=Promise.resolve(),helpTrigger;
  const active=()=>!!state.session?.sessionId&&!terminal.has(state.session.phase),identity=()=>active()?state.session.sessionId:null;
- const other=()=>!!window.PartelierHingeActive||[window.PartelierSnap,window.PartelierPatterns,window.PartelierDetails].some(m=>m?.isActive()||m?.isBusy());
+ const other=()=>!!window.PartelierMechanisms?.isActive()||!!window.PartelierMechanisms?.isBusy()||!!window.PartelierFinishing?.isActive()||!!window.PartelierFinishing?.isBusy()||!!window.PartelierHingeActive||[window.PartelierSnap,window.PartelierPatterns,window.PartelierDetails].some(m=>m?.isActive()||m?.isBusy());
  const ready=()=>!!identity()&&!state.session?.pickingTarget&&!!state.session?.selections?.surface?.selected;
  const valid=()=>$("fan-settings").checkValidity();
  const current=()=>active()&&state.session.phase==="preview"&&state.session.revision===state.revision&&state.session.previewCurrent&&!state.error;
  const message=(text,error=false)=>{$("fan-message").textContent=text;$("fan-message").classList.toggle("error",error);};
  function options(input,items){input.replaceChildren(...items.map(([value,text])=>{const o=document.createElement("option");o.value=value;o.textContent=text;return o;}));}
  function sync(){
+  options($("fan-output"),choices.output.filter(([key])=>state.settings.style!=="blower"||["rotor","hub_test"].includes(key)));
   options($("fan-size_preset"),[["custom","Custom"],...Object.keys(state.settings.style.startsWith("prop")?D.propSizes:D.pcSizes).map(k=>[k,k.startsWith("pc")?k.slice(2)+" mm PC frame":({prop5030:'5 × 3 in',prop6040:'6 × 4 in',prop8040:'8 × 4 in',prop1045:'10 × 4.5 in'})[k]])]);
   for(const input of $("fan-settings").querySelectorAll("[name]"))input.value=state.settings[input.name];
  }
@@ -47,6 +48,8 @@
  }
  function visible(name){
   const s=state.settings,coupon=s.output==="hub_test";
+  if(name.startsWith("blower_"))return s.style==="blower"&&!coupon;
+  if(s.style==="blower"&&D.groups.blade.includes(name))return false;
   if(coupon&&D.groups.blade.includes(name))return false;
   if(coupon&&["diameter_mm","blade_count"].includes(name))return false;
   if(name.startsWith("ring_"))return s.style==="ring"&&!coupon;
@@ -65,7 +68,7 @@
   for(const group of ["blade","hub","frame"])$("fan-"+group+"-group").hidden=!D.groups[group].some(visible);
   $("fan-availability").hidden=supported;$("fan-availability").textContent=state.connected?"Restart Partelier to enable Fans & Propellers.":"Open Partelier in Fusion to build the rotor.";
   $("fan-new").hidden=active();$("fan-edit").hidden=active();$("fan-new").disabled=!supported||state.busy||other()||!valid();$("fan-edit").disabled=!supported||!state.caps.has("fan-edit")||active()||state.busy||other();
-  for(const role of ["circle","outline"]){const b=$("fan-pick-"+role),picked=state.session?.selections?.[role]?.selected;b.classList.toggle("is-selected",!!picked);b.textContent=(role==="circle"?"Fit circular opening":"Use sketch outline")+(picked?" · ✓":"");b.disabled=!supported||state.busy||opening||computing||other();}
+  for(const role of ["circle","outline"]){const b=$("fan-pick-"+role),picked=state.session?.selections?.[role]?.selected;b.classList.toggle("is-selected",!!picked);b.textContent=(role==="circle"?"Fit circular opening":"Use sketch outline")+(picked?" · ✓":"");b.disabled=!supported||state.busy||opening||computing||other()||(role==="outline"&&state.settings.style==="blower");}
   $("fan-reset").disabled=!identity()||state.busy||opening;$("fan-cancel").disabled=!identity()||state.busy||opening;
   $("fan-create").disabled=!supported||!ready()||!current()||!valid()||state.busy;$("fan-create").textContent=state.session?.editing?"Rebuild fan":"Create fan";
   $("fan-retry").hidden=!ready()||current();$("fan-retry").disabled=state.busy||opening||computing||!valid();

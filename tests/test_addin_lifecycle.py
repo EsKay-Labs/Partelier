@@ -189,6 +189,20 @@ class AddinLifecycleTests(unittest.TestCase):
             def start(manager):manager.start_count+=1
             def stop(manager):manager.stop_count+=1
         fan.FanCommands=FanManager
+        extras={}
+        for stem,classname in (('mechanisms','MechanismCommands'),('finishing','FinishingCommands')):
+            managers=[];setattr(self,stem+'_managers',managers)
+            class ExtraManager:
+                fail_start=False
+                def __init__(manager,report_error=None,_instances=managers):
+                    manager.start_count=0;manager.stop_count=0;_instances.append(manager)
+                def start(manager):
+                    manager.start_count+=1
+                    if manager.fail_start:raise RuntimeError('Simulated extra registration failure')
+                def stop(manager):manager.stop_count+=1
+            setattr(self,stem+'_manager_type',ExtraManager)
+            name='Partelier.partelier.tools.'+stem+'.command';module=ModuleType(name)
+            setattr(module,classname,ExtraManager);extras[name]=module
         path = Path(__file__).parents[1] / "Partelier/partelier/addin.py"
         spec = importlib.util.spec_from_file_location(
             "Partelier.partelier._addin_lifecycle_test", path,
@@ -196,7 +210,7 @@ class AddinLifecycleTests(unittest.TestCase):
         self.module = importlib.util.module_from_spec(spec)
         with patch.dict("sys.modules", {
             "adsk": adsk, "adsk.core": core, "adsk.fusion": fusion,
-            palette_name: palette, hinge_name: hinge, snap_name: snap, pattern_name: pattern, detail_name: detail, fan_name: fan,
+            **extras, palette_name: palette, hinge_name: hinge, snap_name: snap, pattern_name: pattern, detail_name: detail, fan_name: fan,
         }):
             spec.loader.exec_module(self.module)
         self.module.diagnostics=SimpleNamespace(start=Mock(),emit=Mock())
@@ -215,6 +229,8 @@ class AddinLifecycleTests(unittest.TestCase):
         self.assertIsNone(self.module._hinge_commands)
         self.assertIsNone(self.module._snap_commands)
         self.assertIsNone(self.module._pattern_commands)
+        self.assertIsNone(self.module._mechanism_commands)
+        self.assertIsNone(self.module._finishing_commands)
         self.assertEqual(self.module._sessions, [])
         self.assertIsNone(self.ui.commandDefinitions.itemById(self.module.COMMAND_ID))
         self.assertIsNone(self.controls.itemById(self.module.COMMAND_ID))
@@ -245,6 +261,34 @@ class AddinLifecycleTests(unittest.TestCase):
         self.module.stop()
         self.assertEqual(self.fan_managers[0].stop_count,1)
         self.assertIsNone(self.module._fan_commands)
+
+    def test_new_tool_managers_register_once_and_release_on_stop(self):
+        self.module.start();self.module.start()
+        for stem,field in (('mechanisms','mechanism_commands'),('finishing','finishing_commands')):
+            managers=getattr(self,stem+'_managers');self.assertEqual(len(managers),1)
+            self.assertEqual(managers[0].start_count,1)
+            self.assertIs(self.library.start_calls[0][1][field],managers[0])
+        self.module.stop()
+        for stem in ('mechanisms','finishing'):self.assertEqual(getattr(self,stem+'_managers')[0].stop_count,1)
+        self.assert_stopped()
+
+    def test_new_manager_registration_failures_roll_back_all_owned_registrations(self):
+        for stem in ('mechanisms','finishing'):
+            with self.subTest(manager=stem):
+                manager_type=getattr(self,stem+'_manager_type');manager_type.fail_start=True
+                with self.assertRaisesRegex(RuntimeError,'extra registration'):self.module.start()
+                self.assert_stopped()
+                self.assertEqual(getattr(self,stem+'_managers')[-1].stop_count,1)
+                self.assertEqual(self.fan_managers[-1].stop_count,1)
+                manager_type.fail_start=False
+                self.module.start();self.module.stop();self.assert_stopped()
+
+    def test_new_tool_stop_failure_does_not_skip_other_cleanup(self):
+        self.module.start()
+        self.mechanisms_managers[0].stop=Mock(side_effect=RuntimeError('mechanism stop'))
+        self.module.stop();self.assert_stopped()
+        self.assertEqual(self.finishing_managers[0].stop_count,1)
+        self.assertTrue(self.logs)
 
     def test_detail_stop_failure_still_releases_the_library_and_other_managers(self):
         self.module.start();self.detail_managers[0].stop=Mock(side_effect=RuntimeError('detail stop'))

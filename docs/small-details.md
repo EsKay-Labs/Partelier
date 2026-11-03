@@ -11,8 +11,7 @@ Every parameter has contextual text and a local section/dimension illustration.
 
 For **Lid lip & groove** and **Alignment pins**, select **Base face A** and **Lid
 inside face B** on two separate native root bodies. They must be parallel and
-face each other across a nonnegative gap. Both need straight rectangular outer
-boundaries. A rectangular enclosure rim is supported; inner voids or other
+face each other across a nonnegative gap. Alignment pins need straight rectangular outer boundaries. Continuous lip & groove additionally accepts a full circular outer edge or a strictly convex polygon of 3–10 straight sides; Selected sides remains rectangular. A rectangular enclosure rim is supported; inner voids or other
 features are checked against the complete generated support/receiver volumes.
 The lid can have a different outer size if the whole receiver fits in its material.
 No shared seam edge needs to be selected.
@@ -212,3 +211,32 @@ printing acceptance. The caller model remains unchanged. Native preparation was
 approximately25–59ms on this fixture; timing depends on source geometry/hardware.
 
 Evidence: [selected-lip-0.21.0.json](validation/selected-lip-0.21.0.json).
+
+
+## Circular and convex polygon lip & groove
+
+Continuous perimeter now follows an exact circular rim or a strictly convex
+3–10-sided straight polygon. Select the planar base rim A and an opposing planar
+lid underside B. The lid need not have the same outline: full-volume material
+checks must contain the entire groove, its clearance, and the protected floor.
+Inner voids are permitted only where these checks still pass.
+
+Circles use analytical cylinders and cones, with a 45-degree lead-in on both
+sides of the lip. Convex polygons use exact parallel offsets and a single closed
+ring, with a matching offset cap. Neither path approximates circles with polygon
+segments or silently shrinks clearances. Concave contours, splines, mixed line/arc
+boundaries, split-circle edges, and collapsed offsets are refused with an
+explanation. Selected sides and alignment pins retain their rectangular scope.
+
+The existing 21 settings and recipe2 persist unchanged: the historical source
+face determines the contour during explicit Rebuild. Preview uses the existing
+mesh path and no native feature per edge. Native validation fixture:
+`tools/fusion/ShapedLipValidation.py`. Physical fitting remains a separate print
+test; this is a locating lip, not a watertight seal.
+
+
+The isolated Fusion validation passed circular and hexagonal fixtures through
+Create, same-body Edit/Rebuild and owned Delete, with restored original volumes
+and a refusal when the requested groove would violate the lid floor. Recorded
+case times were 333/508 ms respectively, not general performance guarantees.
+The caller document was restored. See [native evidence](validation/shaped-lip.json).

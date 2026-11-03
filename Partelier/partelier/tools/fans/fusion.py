@@ -157,6 +157,24 @@ def _guard(manager,settings,z,core,native):
     return result
 
 
+def _blower(manager,settings,core,native):
+    """One connected flat-backed radial impeller, made only from temporary solids."""
+    radius=settings.diameter_mm/2;root=settings.hub_diameter_mm/2-.5
+    low=-settings.hub_height_mm/2;floor=low+settings.blower_backplate_mm
+    top=floor+settings.blower_height_mm
+    body=_cylinder(manager,core,radius,low,floor)
+    hub=_cylinder(manager,core,settings.hub_diameter_mm/2,low,settings.hub_height_mm/2)
+    _boolean(manager,body,hub,native.BooleanTypes.UnionBooleanType,'Could not join the blower hub to its backplate.')
+    for i in range(settings.blade_count):
+        angle=i*2*math.pi/settings.blade_count;x=(math.cos(angle),math.sin(angle),0);y=(-x[1],x[0],0)
+        mid=(root+radius)/2
+        vane=_box(manager,core,radius-root,settings.blower_vane_mm,top-floor+.1,(mid*x[0],mid*x[1],(top+floor-.1)/2),x,y)
+        _boolean(manager,body,vane,native.BooleanTypes.UnionBooleanType,'Could not attach a radial vane.')
+    # Clip the tips once, after the union, to retain the exact specified diameter.
+    _boolean(manager,body,_cylinder(manager,core,radius,low-.1,max(top,settings.hub_height_mm/2)+.1),native.BooleanTypes.IntersectionBooleanType,'Could not trim the blower tips.')
+    return body
+
+
 def prepare(design,settings,placement=IDENTITY,references=None,outline=(),record=None,geometry_cache=None):
     h._require_main_thread();settings.validate();plan=planner.plan(settings,outline);core,native=a._api()
     root=design.rootComponent
@@ -166,7 +184,15 @@ def prepare(design,settings,placement=IDENTITY,references=None,outline=(),record
     base=None;editing=False;stages={};stage=started
     try:
         hub=_cylinder(manager,core,settings.hub_diameter_mm/2,-settings.hub_height_mm/2,settings.hub_height_mm/2)
-        if settings.output!='hub_test':
+        if settings.style=='blower' and settings.output!='hub_test':
+            key=('blower',settings.diameter_mm,settings.hub_diameter_mm,settings.hub_height_mm,settings.blade_count,settings.blower_height_mm,settings.blower_backplate_mm,settings.blower_vane_mm)
+            if geometry_cache is not None and geometry_cache.get('key')==key:
+                hub=a._copy(manager,geometry_cache['body']);stages['rotor_cache_hit']=True
+            else:
+                hub=_blower(manager,settings,core,native)
+                if geometry_cache is not None:geometry_cache.clear();geometry_cache.update(key=key,body=a._copy(manager,hub))
+            stages['radial_vanes_ms']=(time.perf_counter()-stage)*1000
+        elif settings.output!='hub_test':
             excluded=('size_preset', 'shaft_diameter_mm', 'shaft_clearance_mm', 'shaft_shape', 'shaft_flat_mm', 'set_screw_diameter_mm', 'tip_gap_mm', 'frame_width_mm', 'frame_depth_mm', 'mount_pitch_mm', 'mount_hole_mm', 'axial_clearance_mm', 'guard_thickness_mm', 'guard_spoke_mm', 'guard_spokes', 'output')
             key=(tuple((k,v) for k,v in settings.to_dict().items() if k not in excluded),tuple(outline))
             hit=geometry_cache is not None and geometry_cache.get('key')==key
@@ -209,7 +235,7 @@ def prepare(design,settings,placement=IDENTITY,references=None,outline=(),record
         plan=replace(plan,z_min_mm=hub.boundingBox.minPoint.z*10,z_max_mm=hub.boundingBox.maxPoint.z*10)
         if settings.output in ('rotor_frame','rotor_guard') and plan.z_max_mm-plan.z_min_mm+2*settings.axial_clearance_mm>settings.frame_depth_mm+1e-5:
             raise ValueError('The actual smooth blade envelope exceeds Frame depth. Increase Frame depth or reduce blade twist/chord.')
-        bodies=[hub];names=['Hub fit test' if settings.output=='hub_test' else 'Fan rotor']
+        bodies=[hub];names=['Hub fit test' if settings.output=='hub_test' else 'Radial blower impeller' if settings.style=='blower' else 'Fan rotor']
         if settings.output in ('rotor_frame','rotor_guard'):
             frame,front=_frame(manager,settings,plan,core,native);bodies.append(frame);names.append('Fan frame')
             if settings.output=='rotor_guard':bodies.append(_guard(manager,settings,front,core,native));names.append('Fan guard')

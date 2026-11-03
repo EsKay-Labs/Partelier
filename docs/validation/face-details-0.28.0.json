@@ -1,0 +1,80 @@
+{
+  "version": "0.28.0",
+  "local_tests": 8,
+  "native_create_edit": [
+    {
+      "kind": "notch",
+      "ok": true,
+      "volume": 31.93214159868246
+    },
+    {
+      "kind": "keyhole",
+      "ok": true,
+      "volume": 31.824708046001412
+    },
+    {
+      "kind": "stop",
+      "ok": true,
+      "volume": 33.2
+    },
+    {
+      "kind": "text",
+      "ok": true,
+      "volume": 32.032801980016735
+    },
+    {
+      "kind": "arrow",
+      "ok": true,
+      "volume": 32.0816
+    },
+    {
+      "kind": "scale",
+      "ok": true,
+      "volume": 32.08524800000001
+    }
+  ],
+  "native_lifecycle": [
+    {
+      "kind": "text",
+      "ok": true,
+      "triangles": 106,
+      "delete_restored_source": true
+    },
+    {
+      "kind": "keyhole",
+      "ok": true,
+      "triangles": 140,
+      "delete_restored_source": true
+    },
+    {
+      "kind": "scale",
+      "ok": true,
+      "triangles": 188,
+      "delete_restored_source": true
+    }
+  ],
+  "browser": {
+    "engine": "Headless Edge",
+    "widths": [
+      320,
+      380
+    ],
+    "kinds": [
+      "notch",
+      "keyhole",
+      "stop",
+      "text",
+      "arrow",
+      "scale"
+    ],
+    "javascript_errors": 0,
+    "horizontal_overflow": false,
+    "help_dialog": true
+  },
+  "limits": [
+    "Native picks are programmatic, not manual pointer acceptance.",
+    "Physical printing, text legibility and fastener fit need user tests.",
+    "No force/motion simulation.",
+    "Notches need rectangular outer boundaries; all tools need planar faces."
+  ]
+}

@@ -131,7 +131,7 @@ def pins(bounds,settings):
 
 def rib_positions(length,width,count,margin):
     if (not all(math.isfinite(v) for v in (length,width,margin)) or length<=0 or width<=0 or margin<0
-            or type(count) is not int or not 1<=count<=32):raise ValueError('Use finite rib dimensions and 1–32 ribs.')
+            or type(count) is not int or not 1<=count<=32):raise ValueError('Use finite rib dimensions and 1â€“32 ribs.')
     available=length-2*margin-width
     if available<0:raise ValueError('End margins and rib width exceed the common support edge.')
     if count==1:return (length/2,)
@@ -144,3 +144,32 @@ def socket_depth(height,gap,axial):
     if gap< -1e-4:raise ValueError('The selected mating faces overlap. Choose faces facing each other across a nonnegative gap.')
     if height-gap<.2:raise ValueError(f'Height must exceed the {gap:.2f} mm face gap by at least 0.2 mm.')
     return height-max(0,gap)+axial
+
+
+def convex_outline(points):
+    """Exact 3–10 corner strictly convex contour; reject concavity and flat corners."""
+    polygon=tuple(tuple(p) for p in points)
+    if any(len(p)!=2 for p in polygon):raise ValueError('Use a planar polygon outline.')
+    if polygon_area(polygon)<0:polygon=tuple(reversed(polygon))
+    _validate_polygon(polygon)
+    for i,b in enumerate(polygon):
+        a,c=polygon[i-1],polygon[(i+1)%len(polygon)]
+        if _cross2((b[0]-a[0],b[1]-a[1]),(c[0]-b[0],c[1]-b[1]))<=1e-7:
+            raise ValueError('Continuous polygon lips require 3–10 strictly convex straight sides; concave/flat corners are not supported.')
+    return polygon
+
+
+def lip_contours(polygon,inset,width,clearance,lead):
+    """Shared exact parallel outlines for a convex lip, lead-in and receiving ring."""
+    polygon=convex_outline(polygon)
+    if not all(math.isfinite(v) for v in (inset,width,clearance,lead)) or inset<clearance+.1 or width<=2*lead or min(clearance,lead)<0:
+        raise ValueError('Lip dimensions leave no complete contour or receiving margin.')
+    return tuple(offset_polygon(polygon,d) for d in (inset,inset+width,inset-clearance,inset+width+clearance,inset+lead,inset+width-lead))
+
+
+def circle_lip_radii(radius,inset,width,clearance,lead):
+    if not all(math.isfinite(v) for v in (radius,inset,width,clearance,lead)) or inset<clearance+.1 or width<=2*lead or min(clearance,lead)<0:
+        raise ValueError('Circular lip dimensions leave no complete ring or receiving margin.')
+    values=tuple(radius-d for d in (inset,inset+width,inset-clearance,inset+width+clearance,inset+lead,inset+width-lead))
+    if min(values)<=.1:raise ValueError('Lip width/inset/clearance collapses the circular opening. Reduce them or select a larger face.')
+    return values

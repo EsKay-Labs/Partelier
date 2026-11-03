@@ -1,0 +1,14 @@
+<!-- Insert this tool block beside fan-tool in the palette workspace. -->
+<div id="mechanism-tool" hidden>
+ <div class="selection-actions"><button id="mechanism-new" type="button" class="create-button">New mechanism</button><button id="mechanism-edit" type="button" class="secondary-button">Edit from model</button></div>
+ <p class="helper-copy">Separate mating parts · document origin + XYZ offset. Existing bodies stay unchanged.</p>
+ <p id="mechanism-availability" class="helper-copy"></p><p id="mechanism-message" class="helper-copy" role="status"></p>
+ <form id="mechanism-settings"><div id="mechanism-basic-fields" class="parameter-list basic-grid"></div>
+  <details class="guide-disclosure" id="mechanism-placement-group"><summary>Placement</summary><div id="mechanism-placement-fields" class="parameter-list basic-grid"></div></details>
+ </form>
+ <button id="mechanism-reset" type="button" class="secondary-button">Reset selection</button>
+ <details class="guide-disclosure"><summary>Examples &amp; assembly</summary><div id="mechanism-example" class="parameter-help-illustration"></div><p class="helper-copy">Guides slide along Y. Bayonet sleeves twist onto the male tube; shown engaged. Clevis and hinge axes follow Z. These generated parts need deliberate placement/attachment to your design. Recessed hinge is single-axis, not a hidden multi-link hinge. Captive hinge is a print trial: inspect supports, release and motion before use.</p></details>
+</div>
+<!-- Insert this action dock and dialog beside the existing fan-action-dock. -->
+<section class="action-dock" id="mechanism-action-dock" aria-label="Mechanism actions" hidden><div class="dock-status"><p id="mechanism-status" class="live-preview-status" role="status"></p><button id="mechanism-retry" class="secondary-button" type="button">Refresh</button></div><div class="action-buttons"><button id="mechanism-cancel" type="button" class="secondary-button">Cancel</button><button id="mechanism-create" type="button" class="create-button">Create mechanism</button></div></section>
+<dialog id="mechanism-help-dialog" class="pattern-help-dialog" aria-labelledby="mechanism-help-title"><button id="mechanism-help-close" type="button" class="dialog-close icon-button" aria-label="Close help">×</button><h2 id="mechanism-help-title"></h2><p id="mechanism-help-description"></p><div id="mechanism-help-image" class="parameter-help-illustration"></div></dialog>

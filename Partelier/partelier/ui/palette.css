@@ -373,3 +373,5 @@ dialog, .pattern-help-dialog { border-radius: 20px; }
     .tool-picker { margin-left: 8px; margin-right: 8px; }
     .action-dock { margin-left: 8px; margin-right: 8px; }
 }
+
+#mechanism-tool .selection-actions, #finishing-tool .selection-actions {display:grid;grid-template-columns:1fr;gap:8px;}

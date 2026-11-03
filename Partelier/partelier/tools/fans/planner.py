@@ -84,6 +84,12 @@ def outline_chord(points,u):
 def plan(settings,outline=()):
     settings.validate()
     if settings.output=='hub_test':return Plan((),0,-settings.hub_height_mm/2,settings.hub_height_mm/2,360)
+    if settings.style=='blower':
+        root=settings.hub_diameter_mm/2-.5
+        gap=360/settings.blade_count-2*math.degrees(math.atan2(settings.blower_vane_mm/2,root))
+        low=-settings.hub_height_mm/2
+        high=max(settings.hub_height_mm/2,low+settings.blower_backplate_mm+settings.blower_height_mm)
+        return Plan((),settings.blade_count,low,high,gap)
     if settings.outline_mode=='sketch' and not outline:raise ValueError('Pick one closed blade outline sketch profile, or choose Generated outline.')
     root=settings.hub_diameter_mm/2-.8;tip=settings.diameter_mm/2
     if root<=1:raise ValueError('Increase Hub diameter to attach the blades.')
