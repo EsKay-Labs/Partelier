@@ -1,0 +1,44 @@
+{
+  "version": "0.27.1",
+  "date": "2026-11-03",
+  "status": "passed",
+  "reported_failure": {
+    "version": "0.27.0",
+    "call": "Palette.dockingState",
+    "error": "RuntimeError: 2 : InternalValidationError : pArea"
+  },
+  "change": "Show the palette before optional right docking; retain visible palette and handlers when native docking raises RuntimeError.",
+  "local": {
+    "python_tests": 1132,
+    "node_suites": 6,
+    "compilation": true,
+    "regressions": [
+      "visible before docking",
+      "unavailable docking retains bridge, Close and recreation without layout retries",
+      "actual display error still propagates"
+    ]
+  },
+  "native": {
+    "success": true,
+    "partelier": "0.27.1",
+    "fusion": "2706.1.14",
+    "visible": true,
+    "valid": true,
+    "registered": true,
+    "startup_ms": 123.48740000015823,
+    "documents": 2,
+    "caller_unchanged": true,
+    "html_version": true,
+    "docking_state": 4
+  },
+  "html_events": [
+    "palette.show",
+    "addin.ready",
+    "ui.boot",
+    "ui.connected"
+  ],
+  "limits": [
+    "Unavailable native docking is simulated in local tests; native validation observed successful right docking",
+    "No geometry or printing validation belongs to this UI-only patch"
+  ]
+}

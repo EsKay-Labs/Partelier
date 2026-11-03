@@ -6,6 +6,21 @@ discards its own unsaved test document, then restores the original document,
 component and camera. It is outside the
 installable Partelier bundle and starts only when explicitly run in Fusion.
 
+## 0.27.1 palette startup
+
+The reported `Palette.dockingState` failure (`InternalValidationError: pArea`)
+no longer aborts library startup. The palette is made visible before right
+docking is requested, and an unavailable docking area is a logged, nonfatal
+layout failure. A genuine creation/display failure still propagates.
+
+Installed0.27.1 opens and docks on Fusion2706.1.14; actual HTML Ready and Connected
+events arrive with build0.27.1. The user's document/history/body state remains
+unchanged. Three new local regressions cover ordering, nonfatal docking with
+Close/reopen and genuine display failures. Full checks:1132 Python tests and six
+Node suites. The fallback itself is simulated locally; the native run docks
+successfully. See [details](palette-startup.md) and
+[report](validation/palette-startup-0.27.1.json).
+
 ## 0.27.0 Fans & Propellers
 
 The seven approved A–G families pass isolated native solid construction on

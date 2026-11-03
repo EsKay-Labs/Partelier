@@ -5,7 +5,11 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current release: 0.27.0.** **Mechanisms → Fans & Propellers** adds PC axial,
+**Current release: 0.27.1.** Startup now displays the library before docking it;
+an unavailable docking area leaves the palette open instead of stopping the
+add-in. See [startup correction](docs/palette-startup.md).
+
+**New in 0.27.0:** **Mechanisms → Fans & Propellers** adds PC axial,
 wide-blade, slim and tip-ring rotors, plus 2/3/4-blade air propellers. Choose a
 40–140 mm PC dimensional preset or Custom, configure blade widths/twist and the
 shaft fit, and optionally generate a separate mounting frame and guard. A hub

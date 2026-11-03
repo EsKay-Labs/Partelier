@@ -179,6 +179,7 @@ class ToolLibrary:
     def show(self):
         ui = adsk.core.Application.get().userInterface
         palette = self._palette
+        created = False
         if palette is None or not palette.isValid:
             self._release_palette()
             palette = ui.palettes.itemById(PALETTE_ID)
@@ -201,8 +202,16 @@ class ToolLibrary:
             palette.incomingFromHTML.add(self._html_handler)
             if palette.closed.add(self._close_handler) is False:
                 raise RuntimeError('Fusion could not register Close cancellation.')
-            palette.dockingState = adsk.core.PaletteDockingStates.PaletteDockStateRight
+            created = True
         palette.isVisible = True
+        if created:
+            # A new native docking area may not exist until the palette is
+            # visible. Docking is a layout preference, not a startup gate.
+            try:
+                palette.dockingState = adsk.core.PaletteDockingStates.PaletteDockStateRight
+            except RuntimeError as error:
+                emit('palette.docking.unavailable',error=str(error),fallback='floating')
+        emit('palette.show',created=created,visible=palette.isVisible)
 
     def handle_message(self, action, raw_data):
         if self._created_handler is None:

@@ -130,6 +130,41 @@ class PaletteLifecycleTests(unittest.TestCase):
         self.assertTrue(current.isVisible)
         self.assertEqual(len(current.incomingFromHTML.handlers), 1)
 
+    def test_palette_is_visible_before_requesting_a_native_docking_area(self):
+        attempts=[]
+        def dock(palette,value):
+            attempts.append((palette.isVisible,value))
+            if not palette.isVisible:raise RuntimeError('2 : InternalValidationError : pArea')
+        with patch.object(Item,'dockingState',property(fset=dock),create=True):
+            self.library.show()
+        self.assertEqual(attempts,[(True,'right')])
+        self.assertTrue(self.library._palette.isVisible)
+
+    def test_docking_failure_keeps_a_live_palette_and_does_not_retry_user_layout(self):
+        attempts=[]
+        def dock(palette,value):
+            attempts.append(palette)
+            raise RuntimeError('2 : InternalValidationError : pArea')
+        with patch.object(Item,'dockingState',property(fset=dock),create=True),patch.object(self.module,'emit') as emit:
+            self.library.show();palette=self.library._palette
+            self.assertTrue(palette.isVisible);self.assertTrue(palette.isValid)
+            self.assertTrue(json.loads(self.library.handle_message('ready',self.request))['ok'])
+            self.assertEqual(len(palette.closed.handlers),1)
+            self.assertEqual(len(palette.incomingFromHTML.handlers),1)
+            emit.assert_any_call('palette.docking.unavailable',error='2 : InternalValidationError : pArea',fallback='floating')
+            palette.isVisible=False;self.library.show()
+            self.assertTrue(palette.isVisible);self.assertEqual(attempts,[palette])
+            self.library.close();self.assertFalse(palette.isValid)
+            self.library.show();self.assertIsNot(self.library._palette,palette)
+            self.assertEqual(len(attempts),2)
+
+    def test_display_failure_is_not_hidden_as_a_docking_fallback(self):
+        def visible(palette,value):
+            if value:raise RuntimeError('Display failed')
+            palette._visible=value
+        with patch.object(Item,'isVisible',property(lambda palette:palette._visible,visible),create=True):
+            with self.assertRaisesRegex(RuntimeError,'Display failed'):self.library.show()
+
     def test_close_cancels_every_tool_and_reopen_rejects_old_page_requests(self):
         managers=[SimpleNamespace(cancel_palette=Mock()) for _ in range(5)]
         self.library._hinge_commands,self.library._snap_commands,self.library._pattern_commands,self.library._detail_commands,self.library._fan_commands=managers
