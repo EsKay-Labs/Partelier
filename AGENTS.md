@@ -1,5 +1,16 @@
 # Partelier repository guidance
 
+## Distribution and quiet startup: 0.32.0
+
+The manifest registers at startup, but addin.start must never call library.show,
+including repeated Run. Only the launcher opens the UI. The launcher resource
+folder contains FIT PNG icons on a contrasting background. Runtime-only Windows
+installer builds through tools/build_installer.py and Inno Setup; per-user install,
+stable identity, Fusion-running refusal and owned-destination guard are required.
+Never overwrite developer checkouts or alter Fusion startup preferences silently.
+Do not publish the private source repository or its history without user approval.
+See docs/windows-installer.md.
+
 ## Printed threads: 0.31.0
 
 `tools/threads` owns strict13-field settings, native temporary helix/ruled-surface

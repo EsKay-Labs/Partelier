@@ -5,7 +5,20 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current release: 0.31.0.** **3D printed threads** adds external/internal threads on cylindrical faces, matched pairs and a small clearance coupon. Printable V, rounded crest and nominal Metric profiles share radial fit allowance, entry chamfers, right/left direction and1–3 starts. See [thread defaults, examples and validation](docs/printed-threads.md).
+**Current release: 0.32.0 — Windows installer and quiet startup.**
+
+## Install on Windows
+
+1. Save your work and close Autodesk Fusion.
+2. Download `Partelier-0.32.0-Windows-Setup.exe` from [Releases](https://github.com/EsKay-Labs/Partelier/releases/latest) and run it. Administrator rights are not required.
+3. Open Fusion. In the Design workspace, open **Utilities → Add-Ins → Partelier**.
+
+Partelier registers its icon at startup but opens its UI only when you click it.
+If the command is missing, open **Scripts and Add-Ins → Add-Ins**, run Partelier
+and enable **Run on Startup**. This enables the launcher, not an automatic popup.
+The installer is currently unsigned. See [installation, updates and removal](docs/windows-installer.md).
+
+**3D printed threads** adds external/internal threads on cylindrical faces, matched pairs and a small clearance coupon. Printable V, rounded crest and nominal Metric profiles share radial fit allowance, entry chamfers, right/left direction and1–3 starts. See [thread defaults, examples and validation](docs/printed-threads.md).
 
 **Fans & Propellers → Output → Standalone guard** creates a guard without a rotor or housing. Choose radial spokes, concentric rings, parallel bars, crossed grid or honeycomb; all five also work with Rotor + frame + guard. See [guard settings and validation](docs/fan-guards.md).
 

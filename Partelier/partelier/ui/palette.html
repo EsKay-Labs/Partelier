@@ -5,34 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
     <title>Partelier · The Part Atelier</title>
-    <link rel="stylesheet" href="palette.css?v=0.31.0">
-    <script src="catalog.js?v=0.31.0" defer></script>
-    <script src="illustrations.js?v=0.31.0" defer></script>
-    <script src="pattern-help.js?v=0.31.0" defer></script>
-    <script src="selection-ui.js?v=0.31.0" defer></script>
-    <script src="workspace-flow.js?v=0.31.0" defer></script>
-    <script src="snap.js?v=0.31.0" defer></script>
-    <script src="patterns.js?v=0.31.0" defer></script>
-    <script src="detail-examples.js?v=0.31.0" defer></script>
-    <script src="details.js?v=0.31.0" defer></script>
-    <script src="fan-data.js?v=0.31.0" defer></script>
-    <script src="fan-art.js?v=0.31.0" defer></script>
-    <script src="mechanism-data.js?v=0.31.0" defer></script>
-    <script src="mechanisms.js?v=0.31.0" defer></script>
-    <script src="finishing-data.js?v=0.31.0" defer></script>
-    <script src="finishing-art.js?v=0.31.0" defer></script>
-    <script src="finishing-ui.js?v=0.31.0" defer></script>
-    <script src="fans.js?v=0.31.0" defer></script>
-    <script src="thread-data.js?v=0.31.0" defer></script>
-    <script src="thread-art.js?v=0.31.0" defer></script>
-    <script src="threads.js?v=0.31.0" defer></script>
-    <script src="operations.js?v=0.31.0" defer></script>
-    <script src="palette.js?v=0.31.0" defer></script>
+    <link rel="stylesheet" href="palette.css?v=0.32.0">
+    <script src="catalog.js?v=0.32.0" defer></script>
+    <script src="illustrations.js?v=0.32.0" defer></script>
+    <script src="pattern-help.js?v=0.32.0" defer></script>
+    <script src="selection-ui.js?v=0.32.0" defer></script>
+    <script src="workspace-flow.js?v=0.32.0" defer></script>
+    <script src="snap.js?v=0.32.0" defer></script>
+    <script src="patterns.js?v=0.32.0" defer></script>
+    <script src="detail-examples.js?v=0.32.0" defer></script>
+    <script src="details.js?v=0.32.0" defer></script>
+    <script src="fan-data.js?v=0.32.0" defer></script>
+    <script src="fan-art.js?v=0.32.0" defer></script>
+    <script src="mechanism-data.js?v=0.32.0" defer></script>
+    <script src="mechanisms.js?v=0.32.0" defer></script>
+    <script src="finishing-data.js?v=0.32.0" defer></script>
+    <script src="finishing-art.js?v=0.32.0" defer></script>
+    <script src="finishing-ui.js?v=0.32.0" defer></script>
+    <script src="fans.js?v=0.32.0" defer></script>
+    <script src="thread-data.js?v=0.32.0" defer></script>
+    <script src="thread-art.js?v=0.32.0" defer></script>
+    <script src="threads.js?v=0.32.0" defer></script>
+    <script src="operations.js?v=0.32.0" defer></script>
+    <script src="palette.js?v=0.32.0" defer></script>
 </head>
 <body>
     <header class="app-header">
         <a class="brand" href="#tool-select" aria-label="Partelier tool selector">
-            <img class="brand-mark" src="brand-fit.svg?v=0.31.0" width="30" height="30" alt="" aria-hidden="true">
+            <img class="brand-mark" src="brand-fit.svg?v=0.32.0" width="30" height="30" alt="" aria-hidden="true">
             <span class="brand-lockup"><span class="brand-name">Partelier</span><span class="brand-tagline">Made for the details.</span></span>
         </a>
         <div class="header-meta"><button id="saved-operations-button" class="header-button" type="button" aria-controls="operations-browser" aria-expanded="false">Saved</button><span id="connection-status"><i></i>Browser preview</span><button class="icon-button" id="about-button" aria-label="About Partelier">?</button></div>
@@ -264,7 +264,7 @@
     <section class="action-dock" id="fan-action-dock" aria-label="Fan actions" hidden><div class="dock-status"><p id="fan-status" class="live-preview-status" role="status"></p><button id="fan-retry" class="secondary-button" type="button">Refresh</button></div><div class="action-buttons"><button id="fan-cancel" type="button" class="secondary-button">Cancel</button><button id="fan-create" type="button" class="create-button">Create fan</button></div></section>
     <dialog id="fan-help-dialog" class="pattern-help-dialog" aria-labelledby="fan-help-title"><button id="fan-help-close" type="button" class="dialog-close icon-button" aria-label="Close help">×</button><h2 id="fan-help-title"></h2><p id="fan-help-description"></p><div id="fan-help-image" class="parameter-help-illustration"></div><div id="fan-help-styles" class="fan-style-gallery" aria-label="Browse fan styles" hidden></div></dialog>
     <dialog id="detail-help-dialog" class="pattern-help-dialog" aria-labelledby="detail-help-title"><button id="detail-help-close" type="button" class="dialog-close icon-button" aria-label="Close help">×</button><h2 id="detail-help-title"></h2><p id="detail-help-description"></p><div id="detail-help-image" class="parameter-help-illustration"></div></dialog>
-    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.31.0</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure hinges, snap-fits, surface patterns and fan rotors here, then select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached details become part of your selected bodies. Optional hinge pins and Flat colour material regions add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
+    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.32.0</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure hinges, snap-fits, surface patterns and fan rotors here, then select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached details become part of your selected bodies. Optional hinge pins and Flat colour material regions add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
     <dialog id="pattern-parameter-help" class="pattern-help-dialog" aria-labelledby="pattern-help-title" aria-describedby="pattern-help-description">
         <button id="pattern-help-close" type="button" class="dialog-close icon-button" aria-label="Κλείσιμο βοήθειας" autofocus>×</button>
         <p class="eyebrow">PATTERNS · ΟΔΗΓΟΣ ΡΥΘΜΙΣΗΣ</p>

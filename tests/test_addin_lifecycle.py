@@ -332,9 +332,9 @@ class AddinLifecycleTests(unittest.TestCase):
 
     def test_start_is_idempotent_and_passes_started_manager_to_the_library(self):
         self.module.start()
-        self.assertEqual(self.library.show_count, 1, "Run opens the HTML library immediately")
+        self.assertEqual(self.library.show_count, 0, "Run registers without opening the library")
         self.module.start()
-        self.assertEqual(self.library.show_count, 2, "Run reveals the existing library again")
+        self.assertEqual(self.library.show_count, 0, "Repeated Run must remain quiet")
         self.assertEqual(len(self.managers), 1)
         manager = self.managers[0]
         self.assertEqual(manager.start_count, 1)
@@ -352,59 +352,14 @@ class AddinLifecycleTests(unittest.TestCase):
         self.assertEqual(len(self.controls.items), 1)
         self.assertEqual(len(self.ui.commandDefinitions.itemById(self.module.COMMAND_ID).commandCreated.handlers), 1)
 
-    def test_auto_show_runs_after_both_managers_and_library_are_ready(self):
-        show = self.library.show
-
-        def assert_ready():
-            self.assertEqual(self.managers[0].start_count, 1)
-            self.assertEqual(self.snap_managers[0].start_count, 1)
-            self.assertEqual(self.pattern_managers[0].start_count, 1)
-            self.assertEqual(len(self.library.start_calls), 1)
-            self.assertIsNotNone(self.module._created_handler)
-            show()
-
-        self.library.show = Mock(side_effect=assert_ready)
-        self.module.start()
-        self.library.show.assert_called_once_with()
-        self.assertEqual(self.library.show_count, 1)
-
-    def test_initial_auto_show_failure_cleans_up_and_allows_fresh_retry(self):
+    def test_start_does_not_depend_on_palette_display(self):
         self.library.fail_show = True
-        with self.assertRaisesRegex(RuntimeError, "palette display"):
-            self.module.start()
-        self.assert_stopped()
-        self.assertEqual(self.managers[0].stop_count, 1)
-        self.assertEqual(self.snap_managers[0].stop_count, 1)
-        self.assertEqual(self.pattern_managers[0].stop_count, 1)
-        self.assertEqual(self.library.stop_count, 1)
-        self.assertEqual(self.library.show_count, 1)
-        self.library.fail_show = False
         self.module.start()
-        self.assertEqual(self.library.show_count, 2)
-        self.assertEqual(len(self.managers), 2)
-        self.assertEqual(len(self.snap_managers), 2)
-        self.assertEqual(len(self.library.start_calls), 2)
-        self.assertEqual(len(self.ui.commandDefinitions.items), 1)
-        self.assertEqual(len(self.controls.items), 1)
-
-    def test_repeated_run_show_failure_keeps_registration_available_for_retry(self):
         self.module.start()
-        definition = self.ui.commandDefinitions.itemById(self.module.COMMAND_ID)
-        self.library.fail_show = True
-        with self.assertRaisesRegex(RuntimeError, "palette display"):
-            self.module.start()
-        self.assertTrue(definition.isValid)
-        self.assertEqual(self.managers[0].stop_count, 0)
-        self.assertEqual(self.snap_managers[0].stop_count, 0)
-        self.assertEqual(self.pattern_managers[0].stop_count, 0)
-        self.library.fail_show = False
-        self.module.start()
-        self.assertEqual(self.library.show_count, 3)
-        self.assertEqual(len(self.managers), 1)
-        self.assertEqual(len(self.snap_managers), 1)
-        self.assertEqual(len(self.pattern_managers), 1)
+        self.assertEqual(self.library.show_count, 0)
         self.assertEqual(len(self.library.start_calls), 1)
-        self.assertIs(self.ui.commandDefinitions.itemById(self.module.COMMAND_ID), definition)
+        self.assertEqual(self.managers[0].stop_count, 0)
+        self.assertIsNotNone(self.module._created_handler)
 
     def test_normal_stop_preserves_unrelated_ui_and_restart_gets_a_fresh_manager(self):
         unrelated = self.ui.commandDefinitions.addButtonDefinition("other")
@@ -492,7 +447,7 @@ class AddinLifecycleTests(unittest.TestCase):
         self.pattern_manager_type.fail_start = False
         self.module.start()
         self.assertEqual(self.pattern_managers[-1].start_count, 1)
-        self.assertEqual(self.library.show_count, 1)
+        self.assertEqual(self.library.show_count, 0)
 
     def test_pattern_stop_failure_does_not_skip_owned_ui_cleanup(self):
         self.module.start()

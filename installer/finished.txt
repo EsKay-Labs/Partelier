@@ -1,0 +1,11 @@
+Partelier is installed for your Windows account.
+
+Open Autodesk Fusion, then Design > Utilities > Add-Ins > Partelier.
+Partelier registers its command when Fusion starts. Its window opens only when you click the Partelier command.
+
+If Fusion does not discover it automatically: open Scripts and Add-Ins > Add-Ins, select Partelier, click Run, and enable Run on Startup.
+
+Updates: close Fusion and run the newer Partelier installer.
+Uninstall: close Fusion, then use Windows Settings > Apps > Partelier for Autodesk Fusion.
+
+If you previously registered a separate developer/manual copy, remove that registration in Fusion before running the installed copy. Setup does not alter external source folders or Fusion projects.

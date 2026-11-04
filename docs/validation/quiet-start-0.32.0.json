@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "version": "0.32.0",
+  "quiet_first_and_repeated_start": true,
+  "icon_registered": true,
+  "caller_unchanged": true,
+  "explicit_launcher_opens_ui": true,
+  "left_hidden": true
+}

@@ -69,12 +69,11 @@ def report_error(summary):
 
 
 def start():
-    """Register owned commands once and show the HTML tool library on Run."""
+    """Register owned commands quietly; the user opens the library from Add-Ins."""
     global _created_handler, _hinge_commands, _snap_commands, _pattern_commands, _detail_commands, _fan_commands, _finishing_commands, _mechanism_commands, _thread_commands
     version=json.loads((Path(__file__).resolve().parent.parent/'Partelier.manifest').read_text(encoding='utf-8'))['version']
     diagnostics.start(version)
     if _created_handler is not None:
-        _tool_library.show()
         return
     ui = adsk.core.Application.get().userInterface
     workspace = ui.workspaces.itemById(WORKSPACE_ID)
@@ -114,7 +113,6 @@ def start():
             hinge_commands=_hinge_commands, snap_commands=_snap_commands, pattern_commands=_pattern_commands, detail_commands=_detail_commands, fan_commands=_fan_commands, finishing_commands=_finishing_commands, mechanism_commands=_mechanism_commands, thread_commands=_thread_commands,
         )
         _automatic_updates.start()
-        _tool_library.show()
         diagnostics.emit('addin.ready',version=version,loaded_addin=__file__)
     except Exception:
         stop()

@@ -4,7 +4,7 @@ from .partelier import addin
 
 
 def run(context):
-    """Start Partelier and open its HTML tool library."""
+    """Register Partelier; open its library only from the user command."""
     try:
         addin.start()
     except Exception:

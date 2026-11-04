@@ -65,6 +65,7 @@ class Collection:
         self.creations += 1
         self.last_arguments = arguments
         item = Item(self, identity)
+        item.creation_arguments = arguments
         self.items[identity] = item
         return item
 
@@ -104,6 +105,15 @@ class PaletteLifecycleTests(unittest.TestCase):
         self.diagnostic = self.ui.commandDefinitions.add("diagnostic")
         self.library.start("workspace", "panel", "diagnostic", self.fail)
         self.request = json.dumps({"protocol": 1, "requestId": "ui-7"})
+
+    def test_launcher_registers_icon_without_constructing_palette(self):
+        self.library.start("workspace", "panel", "diagnostic", self.fail)
+        self.assertEqual(self.ui.palettes.creations, 0)
+        args=self.ui.commandDefinitions.itemById(self.module.COMMAND_ID).creation_arguments
+        self.assertEqual(args[0], "Partelier")
+        folder=Path(args[2])
+        for size in (16,32,64):
+            self.assertTrue((folder / f"{size}x{size}.png").is_file())
 
     def test_repeated_start_show_and_reopen_do_not_duplicate_owned_ui(self):
         self.library.start("workspace", "panel", "diagnostic", self.fail)

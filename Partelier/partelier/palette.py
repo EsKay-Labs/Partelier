@@ -78,8 +78,9 @@ class ToolLibrary:
         if definition is None:
             definition = ui.commandDefinitions.addButtonDefinition(
                 COMMAND_ID,
-                "Partelier: Tool library",
-                "Configure pin hinges and snap-fits, or explore the planned CAD helpers.",
+                "Partelier",
+                "Open Partelier: printable details, patterns, mechanisms and threads.",
+                str(Path(__file__).resolve().parent / "resources" / "launcher"),
             )
         self._operation_delete=operations.DeleteCommand(self._operations_changed)
         self._operation_delete.start(adsk.core)
