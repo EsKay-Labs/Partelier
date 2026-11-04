@@ -1,5 +1,25 @@
 # Partelier repository guidance
 
+## Printed threads: 0.31.0
+
+`tools/threads` owns strict13-field settings, native temporary helix/ruled-surface
+BRep construction, cylindrical-source cuts and a four-body fit coupon. Defaults
+Printable V, pitch3, length12, radial clearance0.25, lead-in1, one right-hand start.
+External mode shrinks the male by clearance; Internal enlarges the female. Pair
+and Coupon keep the male nominal and apply allowance only to the female. This is
+radial allowance, not a normal flank distance or certified ISO tolerance class.
+Metric keeps its nominal60-degree profile and Auto depth; rounded profile is a
+bounded approximation. Upright printable flanks retain45-degree section slopes.
+
+Join extended helical ridges/core BEFORE clipping the completed envelope; trimming
+each ridge first caused fractional-length ASM edge-coincidence failures. Never
+make a feature per turn or draw custom graphics BRep preview bodies. Attached
+outputs preserve original bodies through owned Cut history; coupons own exactly
+four bodies and identify nuts with1/2/3 exterior marks. Recipes are exact version1.
+`resolved_faces()` avoids the inherited session `faces` tuple. Sequential face
+picking, Esc reset, full Cancel/Close and Saved Edit/Delete use the common lifecycle.
+See docs/printed-threads.md and scoped native/session evidence.
+
 ## Standalone fan guards: 0.30.0
 
 Fan output `guard` builds one connected flat-backed guard without blade lofts,

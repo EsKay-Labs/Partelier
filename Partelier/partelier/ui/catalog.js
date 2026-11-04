@@ -2,6 +2,7 @@
 
 // Product catalogue, not a list of implemented geometry capabilities.
 window.PartelierCatalog = Object.freeze([
+    {id:"thread",name:"3D printed threads",category:"mechanisms",short:"Printable threads with controlled fit.",description:"Apply external and internal threads to cylindrical faces, create a matched pair, or print a clearance coupon.",outcome:"Owned same-body threads with saved Edit/Delete and a separate fit-test option.",inputs:[],steps:[],note:"Printable V and Rounded are custom profiles. Check fit with the coupon before committing to a large print.",keywords:"thread screw nut printed metric clearance helix cap",stage:"Experimental"},
     {id:"finishing",name:"Face details & labels",category:"details",short:"Editable helpers for your design.",description:"Add notches, keyhole slots, stops, text, arrows and scales to a planar face.",outcome:"Preview, Create and saved Edit/Delete.",inputs:[],steps:[],note:"See Examples for supported geometry and assembly.",keywords:"finishing",stage:"Experimental"},
 
     {id:"mechanism",name:"Mechanical pairs",category:"mechanisms",short:"Editable helpers for your design.",description:"Generate separate mating parts with controlled clearance.",outcome:"Preview, Create and saved Edit/Delete.",inputs:[],steps:[],note:"See Examples for supported geometry and assembly.",keywords:"mechanism",stage:"Experimental"},

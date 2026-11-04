@@ -1,0 +1,266 @@
+{
+  "version": "0.31.0",
+  "fusion": "2706.1.14",
+  "cases": [
+    {
+      "success": true,
+      "profile": "printable_v",
+      "mode": "external",
+      "starts": 1,
+      "handedness": "right",
+      "length_mm": 6,
+      "settings": {
+        "profile": "printable_v",
+        "mode": "external",
+        "diameter_mm": 24.0,
+        "pitch_mm": 3.0,
+        "length_mm": 6,
+        "depth_mm": 0.0,
+        "clearance_mm": 0.25,
+        "starts": 1,
+        "handedness": "right",
+        "lead_in_mm": 1.0,
+        "offset_mm": 0.0,
+        "wall_mm": 3.0,
+        "coupon_clearance_step_mm": 0.1
+      },
+      "prepare_ms": 375.22769999486627,
+      "checks": {
+        "solid_results_no_preview_history": true,
+        "shaded_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true,
+        "female_contains_matching_male": true
+      },
+      "triangles": 4162,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "profile": "printable_v",
+      "mode": "internal",
+      "starts": 1,
+      "handedness": "right",
+      "settings": {
+        "profile": "printable_v",
+        "mode": "internal",
+        "diameter_mm": 24.0,
+        "pitch_mm": 3.0,
+        "length_mm": 6,
+        "depth_mm": 0.0,
+        "clearance_mm": 0.25,
+        "starts": 1,
+        "handedness": "right",
+        "lead_in_mm": 1.0,
+        "offset_mm": 0.0,
+        "wall_mm": 3.0,
+        "coupon_clearance_step_mm": 0.1
+      },
+      "prepare_ms": 361.42620000464376,
+      "checks": {
+        "solid_results_no_preview_history": true,
+        "shaded_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true,
+        "female_contains_matching_male": true
+      },
+      "triangles": 3354,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "profile": "printable_v",
+      "mode": "pair",
+      "starts": 1,
+      "handedness": "right",
+      "settings": {
+        "profile": "printable_v",
+        "mode": "pair",
+        "diameter_mm": 24.0,
+        "pitch_mm": 3.0,
+        "length_mm": 6,
+        "depth_mm": 0.0,
+        "clearance_mm": 0.25,
+        "starts": 1,
+        "handedness": "right",
+        "lead_in_mm": 1.0,
+        "offset_mm": 0.0,
+        "wall_mm": 3.0,
+        "coupon_clearance_step_mm": 0.1
+      },
+      "prepare_ms": 1021.8641000028583,
+      "checks": {
+        "solid_results_no_preview_history": true,
+        "shaded_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true,
+        "female_contains_matching_male": true
+      },
+      "triangles": 7534,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "profile": "printable_v",
+      "mode": "coupon",
+      "starts": 1,
+      "handedness": "right",
+      "settings": {
+        "profile": "printable_v",
+        "mode": "coupon",
+        "diameter_mm": 24.0,
+        "pitch_mm": 3.0,
+        "length_mm": 6,
+        "depth_mm": 0.0,
+        "clearance_mm": 0.25,
+        "starts": 1,
+        "handedness": "right",
+        "lead_in_mm": 1.0,
+        "offset_mm": 0.0,
+        "wall_mm": 3.0,
+        "coupon_clearance_step_mm": 0.1
+      },
+      "prepare_ms": 1494.702399999369,
+      "checks": {
+        "solid_results_no_preview_history": true,
+        "shaded_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true,
+        "female_contains_matching_male": true
+      },
+      "triangles": 14022,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "profile": "rounded",
+      "mode": "pair",
+      "starts": 1,
+      "handedness": "right",
+      "settings": {
+        "profile": "rounded",
+        "mode": "pair",
+        "diameter_mm": 24.0,
+        "pitch_mm": 3.0,
+        "length_mm": 6,
+        "depth_mm": 0.0,
+        "clearance_mm": 0.25,
+        "starts": 1,
+        "handedness": "right",
+        "lead_in_mm": 1.0,
+        "offset_mm": 0.0,
+        "wall_mm": 3.0,
+        "coupon_clearance_step_mm": 0.1
+      },
+      "prepare_ms": 1498.4926999968593,
+      "checks": {
+        "solid_results_no_preview_history": true,
+        "shaded_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true,
+        "female_contains_matching_male": true
+      },
+      "triangles": 15296,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "profile": "metric",
+      "mode": "pair",
+      "starts": 1,
+      "handedness": "right",
+      "length_mm": 6,
+      "settings": {
+        "profile": "metric",
+        "mode": "pair",
+        "diameter_mm": 24.0,
+        "pitch_mm": 3.0,
+        "length_mm": 6,
+        "depth_mm": 0.0,
+        "clearance_mm": 0.25,
+        "starts": 1,
+        "handedness": "right",
+        "lead_in_mm": 1.0,
+        "offset_mm": 0.0,
+        "wall_mm": 3.0,
+        "coupon_clearance_step_mm": 0.1
+      },
+      "prepare_ms": 3834.914999999455,
+      "checks": {
+        "solid_results_no_preview_history": true,
+        "shaded_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true,
+        "female_contains_matching_male": true
+      },
+      "triangles": 21996,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "profile": "printable_v",
+      "mode": "pair",
+      "starts": 2,
+      "handedness": "left",
+      "length_mm": 6,
+      "settings": {
+        "profile": "printable_v",
+        "mode": "pair",
+        "diameter_mm": 24.0,
+        "pitch_mm": 3.0,
+        "length_mm": 6,
+        "depth_mm": 0.0,
+        "clearance_mm": 0.25,
+        "starts": 2,
+        "handedness": "left",
+        "lead_in_mm": 1.0,
+        "offset_mm": 0.0,
+        "wall_mm": 3.0,
+        "coupon_clearance_step_mm": 0.1
+      },
+      "prepare_ms": 1167.3326000018278,
+      "checks": {
+        "solid_results_no_preview_history": true,
+        "shaded_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true,
+        "female_contains_matching_male": true
+      },
+      "triangles": 5984,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "profile": "printable_v",
+      "mode": "pair",
+      "starts": 1,
+      "handedness": "right",
+      "length_mm": 12,
+      "settings": {
+        "profile": "printable_v",
+        "mode": "pair",
+        "diameter_mm": 24.0,
+        "pitch_mm": 3.0,
+        "length_mm": 12,
+        "depth_mm": 0.0,
+        "clearance_mm": 0.25,
+        "starts": 1,
+        "handedness": "right",
+        "lead_in_mm": 1.0,
+        "offset_mm": 0.0,
+        "wall_mm": 3.0,
+        "coupon_clearance_step_mm": 0.1
+      },
+      "prepare_ms": 2222.326200004318,
+      "checks": {
+        "solid_results_no_preview_history": true,
+        "shaded_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true,
+        "female_contains_matching_male": true
+      },
+      "triangles": 11028,
+      "caller_restored": true
+    }
+  ]
+}

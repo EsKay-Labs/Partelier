@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "widths": [
+    300,
+    380,
+    520
+  ],
+  "profiles": [
+    "printable_v",
+    "metric",
+    "rounded"
+  ],
+  "modes": [
+    "external",
+    "internal",
+    "pair",
+    "coupon"
+  ],
+  "native": false,
+  "checks": [
+    "Four modes and three profiles",
+    "Illustrated help before any native session",
+    "Metric preset visibility",
+    "Coupon separation and calculated clearance labels",
+    "No horizontal overflow",
+    "No JavaScript errors"
+  ]
+}

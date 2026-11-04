@@ -5,31 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
     <title>Partelier · The Part Atelier</title>
-    <link rel="stylesheet" href="palette.css?v=0.30.0">
-    <script src="catalog.js?v=0.30.0" defer></script>
-    <script src="illustrations.js?v=0.30.0" defer></script>
-    <script src="pattern-help.js?v=0.30.0" defer></script>
-    <script src="selection-ui.js?v=0.30.0" defer></script>
-    <script src="workspace-flow.js?v=0.30.0" defer></script>
-    <script src="snap.js?v=0.30.0" defer></script>
-    <script src="patterns.js?v=0.30.0" defer></script>
-    <script src="detail-examples.js?v=0.30.0" defer></script>
-    <script src="details.js?v=0.30.0" defer></script>
-    <script src="fan-data.js?v=0.30.0" defer></script>
-    <script src="fan-art.js?v=0.30.0" defer></script>
-    <script src="mechanism-data.js?v=0.30.0" defer></script>
-    <script src="mechanisms.js?v=0.30.0" defer></script>
-    <script src="finishing-data.js?v=0.30.0" defer></script>
-    <script src="finishing-art.js?v=0.30.0" defer></script>
-    <script src="finishing-ui.js?v=0.30.0" defer></script>
-    <script src="fans.js?v=0.30.0" defer></script>
-    <script src="operations.js?v=0.30.0" defer></script>
-    <script src="palette.js?v=0.30.0" defer></script>
+    <link rel="stylesheet" href="palette.css?v=0.31.0">
+    <script src="catalog.js?v=0.31.0" defer></script>
+    <script src="illustrations.js?v=0.31.0" defer></script>
+    <script src="pattern-help.js?v=0.31.0" defer></script>
+    <script src="selection-ui.js?v=0.31.0" defer></script>
+    <script src="workspace-flow.js?v=0.31.0" defer></script>
+    <script src="snap.js?v=0.31.0" defer></script>
+    <script src="patterns.js?v=0.31.0" defer></script>
+    <script src="detail-examples.js?v=0.31.0" defer></script>
+    <script src="details.js?v=0.31.0" defer></script>
+    <script src="fan-data.js?v=0.31.0" defer></script>
+    <script src="fan-art.js?v=0.31.0" defer></script>
+    <script src="mechanism-data.js?v=0.31.0" defer></script>
+    <script src="mechanisms.js?v=0.31.0" defer></script>
+    <script src="finishing-data.js?v=0.31.0" defer></script>
+    <script src="finishing-art.js?v=0.31.0" defer></script>
+    <script src="finishing-ui.js?v=0.31.0" defer></script>
+    <script src="fans.js?v=0.31.0" defer></script>
+    <script src="thread-data.js?v=0.31.0" defer></script>
+    <script src="thread-art.js?v=0.31.0" defer></script>
+    <script src="threads.js?v=0.31.0" defer></script>
+    <script src="operations.js?v=0.31.0" defer></script>
+    <script src="palette.js?v=0.31.0" defer></script>
 </head>
 <body>
     <header class="app-header">
         <a class="brand" href="#tool-select" aria-label="Partelier tool selector">
-            <img class="brand-mark" src="brand-fit.svg?v=0.30.0" width="30" height="30" alt="" aria-hidden="true">
+            <img class="brand-mark" src="brand-fit.svg?v=0.31.0" width="30" height="30" alt="" aria-hidden="true">
             <span class="brand-lockup"><span class="brand-name">Partelier</span><span class="brand-tagline">Made for the details.</span></span>
         </a>
         <div class="header-meta"><button id="saved-operations-button" class="header-button" type="button" aria-controls="operations-browser" aria-expanded="false">Saved</button><span id="connection-status"><i></i>Browser preview</span><button class="icon-button" id="about-button" aria-label="About Partelier">?</button></div>
@@ -187,6 +190,20 @@
 <div class="selection-actions"><button id="finishing-pick-face" type="button" class="selection-button">Change face</button><button id="finishing-reset" type="button" class="secondary-button">Reset selection</button></div>
 <details class="guide-disclosure"><summary>Examples &amp; help</summary><div id="finishing-example" class="parameter-help-illustration"></div><p class="helper-copy">Start with one existing solid and a planar face. The notch uses a rectangular outer boundary. Other details start at the face bounding-box centre; Position moves them. Keyhole depth must match the intended wall. A stop is a fixed block, not a simulated travel limit. Text uses an installed font. Scale marks are evenly spaced, with a longer major tick.</p></details></div>
 
+<div id="thread-tool" hidden>
+ <div class="selection-actions"><button id="thread-new" type="button" class="create-button">Select cylinder</button><button id="thread-edit" type="button" class="secondary-button">Edit from model</button></div>
+ <p id="thread-availability" class="helper-copy"></p><p id="thread-message" class="helper-copy" role="status"></p>
+ <section id="thread-selection" class="selection-summary"><p id="thread-selection-note" class="helper-copy"></p><div class="selection-actions"><button id="thread-pick-face_a" class="selection-button" type="button">Select cylinder</button><button id="thread-pick-face_b" class="selection-button" type="button" hidden>Select bore</button></div><button id="thread-reset" class="text-button selection-reset" type="button">Reset selection · Esc</button></section>
+ <form id="thread-settings"><div id="thread-basic-fields" class="parameter-list basic-grid"></div>
+  <div id="thread-metric-row" class="parameter-item" hidden><label for="thread-metric-preset">Metric coarse preset</label><select id="thread-metric-preset"></select></div>
+  <p id="thread-fit-note" class="helper-copy"></p>
+  <details id="thread-advanced-group" class="guide-disclosure"><summary>Entry &amp; advanced</summary><div id="thread-advanced-fields" class="parameter-list basic-grid"></div></details>
+  <details id="thread-coupon-group" class="guide-disclosure" hidden><summary>Fit test options</summary><div id="thread-coupon-fields" class="parameter-list basic-grid"></div></details>
+ </form>
+
+ <details class="guide-disclosure"><summary>Examples &amp; print setup</summary><div id="thread-example" class="parameter-help-illustration"></div><p class="helper-copy">External: start with a solid cylindrical shaft. Internal: start with a cylindrical bore and enough surrounding wall. Matched pair: use two separate bodies, selecting the shaft first. The selected cylindrical length must fit the requested thread and offset.</p><p class="helper-copy">Fit coupon needs no existing model: print the male and three nuts separately, with their axes upright, then compare the clearances. Printable V and Rounded are custom mating profiles. Their dimensions do not establish compatibility with metal Metric hardware. A 45° axial profile is not a guarantee for every print orientation.</p></details>
+</div>
+
         <div id="fan-tool" hidden>
             <div class="selection-actions"><button id="fan-new" type="button" class="create-button">New fan</button><button id="fan-edit" type="button" class="secondary-button">Edit from model</button></div>
             <p id="fan-availability" class="helper-copy"></p><p id="fan-message" class="helper-copy" role="status"></p>
@@ -241,10 +258,13 @@
 <section class="action-dock" id="finishing-action-dock" aria-label="Face detail actions" hidden><div class="dock-status"><p id="finishing-status" class="live-preview-status" role="status"></p><button id="finishing-retry" class="secondary-button" type="button">Refresh</button></div><div class="action-buttons"><button id="finishing-cancel" type="button" class="secondary-button">Cancel</button><button id="finishing-create" type="button" class="create-button">Create detail</button></div></section>
 <dialog id="finishing-help-dialog" class="pattern-help-dialog" aria-labelledby="finishing-help-title"><button id="finishing-help-close" type="button" class="dialog-close icon-button" aria-label="Close help">×</button><h2 id="finishing-help-title"></h2><p id="finishing-help-description"></p><div id="finishing-help-image" class="parameter-help-illustration"></div></dialog>
 
+<section class="action-dock" id="thread-action-dock" aria-label="Thread actions" hidden><div class="dock-status"><p id="thread-status" class="live-preview-status" role="status"></p><button id="thread-retry" class="secondary-button" type="button">Refresh</button></div><div class="action-buttons"><button id="thread-cancel" type="button" class="secondary-button">Cancel</button><button id="thread-create" type="button" class="create-button">Create thread</button></div></section>
+<dialog id="thread-help-dialog" class="pattern-help-dialog" aria-labelledby="thread-help-title"><button id="thread-help-close" type="button" class="dialog-close icon-button" aria-label="Close help">×</button><h2 id="thread-help-title"></h2><p id="thread-help-description"></p><div id="thread-help-image" class="parameter-help-illustration"></div></dialog>
+
     <section class="action-dock" id="fan-action-dock" aria-label="Fan actions" hidden><div class="dock-status"><p id="fan-status" class="live-preview-status" role="status"></p><button id="fan-retry" class="secondary-button" type="button">Refresh</button></div><div class="action-buttons"><button id="fan-cancel" type="button" class="secondary-button">Cancel</button><button id="fan-create" type="button" class="create-button">Create fan</button></div></section>
     <dialog id="fan-help-dialog" class="pattern-help-dialog" aria-labelledby="fan-help-title"><button id="fan-help-close" type="button" class="dialog-close icon-button" aria-label="Close help">×</button><h2 id="fan-help-title"></h2><p id="fan-help-description"></p><div id="fan-help-image" class="parameter-help-illustration"></div><div id="fan-help-styles" class="fan-style-gallery" aria-label="Browse fan styles" hidden></div></dialog>
     <dialog id="detail-help-dialog" class="pattern-help-dialog" aria-labelledby="detail-help-title"><button id="detail-help-close" type="button" class="dialog-close icon-button" aria-label="Close help">×</button><h2 id="detail-help-title"></h2><p id="detail-help-description"></p><div id="detail-help-image" class="parameter-help-illustration"></div></dialog>
-    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.30.0</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure hinges, snap-fits, surface patterns and fan rotors here, then select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached details become part of your selected bodies. Optional hinge pins and Flat colour material regions add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
+    <dialog id="about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close icon-button" aria-label="Close about dialog">×</button></form><p class="eyebrow">PARTELIER 0.31.0</p><h2 id="about-title">A toolkit for the details.</h2><p>Configure hinges, snap-fits, surface patterns and fan rotors here, then select geometry in Fusion. Preview updates automatically. Create confirms the result; Cancel removes the preview.</p><p>Attached details become part of your selected bodies. Optional hinge pins and Flat colour material regions add separate bodies. Cancel restores the previous view. Geometry checks do not guarantee print fit or full movement.</p><details class="guide-disclosure"><summary>Diagnostics</summary><p>The original solid/honeycomb input checker creates no geometry.</p><button id="input-check-button" class="secondary-button" disabled>Open input checker</button><p id="bridge-message" role="status">Fusion required.</p><span id="model-status" hidden></span></details><p class="dialog-small">Local assets. No accounts or telemetry.</p></dialog>
     <dialog id="pattern-parameter-help" class="pattern-help-dialog" aria-labelledby="pattern-help-title" aria-describedby="pattern-help-description">
         <button id="pattern-help-close" type="button" class="dialog-close icon-button" aria-label="Κλείσιμο βοήθειας" autofocus>×</button>
         <p class="eyebrow">PATTERNS · ΟΔΗΓΟΣ ΡΥΘΜΙΣΗΣ</p>

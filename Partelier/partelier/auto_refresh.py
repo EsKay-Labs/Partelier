@@ -93,6 +93,10 @@ def _rebuild(design, record):
         module=importlib.import_module('.tools.'+('details' if tool=='detail' else tool)+'.store',__package__)
         target=module.read(design,anchor,record['recipe']['settings']['kind'])
         module.apply(module.prepare_edit(design,target,target.settings))
+    elif tool=='thread':
+        from .tools.threads import store
+        target=store.read(design,anchor)
+        store.apply(store.prepare_edit(design,target,target.settings))
     elif tool=='pattern':
         from .tools.patterns import recipe as module
         target=module.read_edit_target(design,anchor)
@@ -217,7 +221,7 @@ class AutomaticUpdates:
     def idle(self):
         import adsk.core as core
         if self.busy or self.library._palette_closed or core.Application.get().userInterface.activeCommand not in ('','SelectCommand'):return False
-        for name in ('hinge','snap','pattern','detail','fan','mechanism','finishing'):
+        for name in ('hinge','snap','pattern','detail','fan','mechanism','finishing','thread'):
             manager=getattr(self.library,'_'+name+'_commands',None)
             if manager:
                 state=manager.palette_state()

@@ -17,9 +17,10 @@ RECIPES = (
     ('sktech_partelier_fans_e46bf1a9', 'recipe', 'fan'),
     ('sktech_partelier_mechanisms_23d8c71a','recipe','mechanism'),
     ('sktech_partelier_finishing_912b4e71','record','finishing'),
+    ('sktech_partelier_threads_61dba590','record','thread'),
 
 )
-TITLES = {'mechanism':'Mechanical pair','finishing':'Face detail','fan':'Fans & Propellers','lid': 'Lid lip & groove', 'alignment': 'Alignment pins',
+TITLES = {'thread':'Printed thread','mechanism':'Mechanical pair','finishing':'Face detail','fan':'Fans & Propellers','lid': 'Lid lip & groove', 'alignment': 'Alignment pins',
           'ribs': 'Ribs & gussets', 'hinge': 'Pin hinge', 'snap': 'Snap-fit',
           'grilles': 'Grille', 'truss': 'Planar truss', 'honeycomb': 'Surface pattern',
           'perforation': 'Surface pattern', 'knurl': 'Surface texture'}
@@ -66,7 +67,7 @@ def records(design):
                 continue
             try:
                 recipe = _data(tag)
-                identity = recipe.get('id' if tool in ('detail','finishing') else 'feature_id')
+                identity = recipe.get('id' if tool in ('detail','finishing','thread') else 'feature_id')
                 settings = recipe.get('settings')
                 if not _uuid(identity) or identity in seen or not isinstance(settings, dict):
                     continue
@@ -157,7 +158,7 @@ def _current_features(design, record):
     group = next(g for g, n, tool in RECIPES if tool == record['tool'] and anchor.attributes.itemByName(g, n) is not None)
     if record['tool'] in ('snap', 'pattern'):
         recipe = _data(anchor.attributes.itemByName(group, 'pair' if record['tool'] == 'snap' else 'solid'))
-    tokens = [recipe['base'] if record['tool'] in ('detail','finishing') else recipe['base_feature']]
+    tokens = [recipe['base'] if record['tool'] in ('detail','finishing','thread') else recipe['base_feature']]
     combines = recipe.get('combines', {})
     if record['tool']=='mechanism' and recipe.get('attachment'):combines=recipe['attachment']['combines']
     tokens.extend(combines.values() if isinstance(combines, dict) else combines)

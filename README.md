@@ -5,7 +5,9 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current release: 0.30.0.** **Fans & Propellers → Output → Standalone guard** creates a guard without a rotor or housing. Choose radial spokes, concentric rings, parallel bars, crossed grid or honeycomb; all five also work with Rotor + frame + guard. See [guard settings and validation](docs/fan-guards.md).
+**Current release: 0.31.0.** **3D printed threads** adds external/internal threads on cylindrical faces, matched pairs and a small clearance coupon. Printable V, rounded crest and nominal Metric profiles share radial fit allowance, entry chamfers, right/left direction and1–3 starts. See [thread defaults, examples and validation](docs/printed-threads.md).
+
+**Fans & Propellers → Output → Standalone guard** creates a guard without a rotor or housing. Choose radial spokes, concentric rings, parallel bars, crossed grid or honeycomb; all five also work with Rotor + frame + guard. See [guard settings and validation](docs/fan-guards.md).
 
 Each fan family has a real model image available from **?** before preview, and fan previews use opaque lit meshes with the existing material colour. See [fan visuals and validation](docs/fan-visuals.md).
 

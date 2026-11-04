@@ -11,6 +11,7 @@ from .tools.details.settings import DetailSettings
 from .tools.fans.settings import FanSettings
 from .tools.mechanisms.settings import MechanismSettings
 from .tools.finishing.settings import FinishingSettings
+from .tools.threads.settings import ThreadSettings
 from .diagnostics import validate_ui_entries
 
 
@@ -29,7 +30,9 @@ MECHANISM_SETTINGS_ACTIONS=frozenset({"mechanism_update","mechanism_preview","me
 MECHANISM_SESSION_ACTIONS=MECHANISM_SETTINGS_ACTIONS|{"mechanism_cancel","mechanism_focus","mechanism_reset"}
 FINISHING_SETTINGS_ACTIONS=frozenset({"finishing_update","finishing_preview","finishing_commit"})
 FINISHING_SESSION_ACTIONS=FINISHING_SETTINGS_ACTIONS|{"finishing_cancel","finishing_focus","finishing_reset"}
-ALLOWED_ACTIONS = frozenset({"auto_update_status","auto_update_toggle"})|frozenset({"finishing_begin","finishing_status"})|FINISHING_SESSION_ACTIONS|frozenset({"mechanism_begin","mechanism_status"})|MECHANISM_SESSION_ACTIONS|frozenset({
+THREAD_SETTINGS_ACTIONS=frozenset({"thread_update","thread_preview","thread_commit"})
+THREAD_SESSION_ACTIONS=THREAD_SETTINGS_ACTIONS|{"thread_cancel","thread_focus","thread_reset"}
+ALLOWED_ACTIONS = frozenset({"thread_begin","thread_status"})|THREAD_SESSION_ACTIONS|frozenset({"auto_update_status","auto_update_toggle"})|frozenset({"finishing_begin","finishing_status"})|FINISHING_SESSION_ACTIONS|frozenset({"mechanism_begin","mechanism_status"})|MECHANISM_SESSION_ACTIONS|frozenset({
     "ready", "open_input_check", "hinge_create", "hinge_edit", "hinge_begin", "hinge_status",
     "snap_begin", "snap_status", "pattern_begin", "pattern_status", "pattern_export", "diagnostic_log",
     'fan_begin','fan_status','detail_begin','detail_status','operations_list','operation_edit','operation_delete',
@@ -94,10 +97,11 @@ def read_request(action, raw_data):
     settings_type = FanSettings if fan else DetailSettings if detail else PatternSettings if pattern else SnapFitSettings if snap else HingeSettings
     if action.startswith("mechanism_"):settings_type=MechanismSettings;tool_name="mechanism"
     if action.startswith("finishing_"):settings_type=FinishingSettings;tool_name="finishing"
-    settings_actions = FINISHING_SETTINGS_ACTIONS | MECHANISM_SETTINGS_ACTIONS | SESSION_SETTINGS_ACTIONS | SNAP_SESSION_SETTINGS_ACTIONS | PATTERN_SETTINGS_ACTIONS | DETAIL_SETTINGS_ACTIONS | FAN_SETTINGS_ACTIONS
-    session_actions = FINISHING_SESSION_ACTIONS | MECHANISM_SESSION_ACTIONS | SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS | DETAIL_SESSION_ACTIONS | FAN_SESSION_ACTIONS
-    begin_actions = {"finishing_begin"} | {"mechanism_begin"} | {"hinge_begin", "snap_begin", "pattern_begin",'detail_begin','fan_begin'}
-    focus_actions = {"finishing_focus"} | {"mechanism_focus"} | {"hinge_focus", "snap_focus", "pattern_focus",'detail_focus','fan_focus'}
+    if action.startswith("thread_"):settings_type=ThreadSettings;tool_name="thread"
+    settings_actions = THREAD_SETTINGS_ACTIONS | FINISHING_SETTINGS_ACTIONS | MECHANISM_SETTINGS_ACTIONS | SESSION_SETTINGS_ACTIONS | SNAP_SESSION_SETTINGS_ACTIONS | PATTERN_SETTINGS_ACTIONS | DETAIL_SETTINGS_ACTIONS | FAN_SETTINGS_ACTIONS
+    session_actions = THREAD_SESSION_ACTIONS | FINISHING_SESSION_ACTIONS | MECHANISM_SESSION_ACTIONS | SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS | DETAIL_SESSION_ACTIONS | FAN_SESSION_ACTIONS
+    begin_actions = {"thread_begin"} | {"finishing_begin"} | {"mechanism_begin"} | {"hinge_begin", "snap_begin", "pattern_begin",'detail_begin','fan_begin'}
+    focus_actions = {"thread_focus"} | {"finishing_focus"} | {"mechanism_focus"} | {"hinge_focus", "snap_focus", "pattern_focus",'detail_focus','fan_focus'}
     expected = {"protocol", "requestId"}
     if action in {"hinge_create"} | begin_actions | settings_actions:
         expected.add("settings")
@@ -129,6 +133,7 @@ def read_request(action, raw_data):
     if fan:targets={'circle','outline','edit_target'}
     if action.startswith("mechanism_"):targets={'edit_target','face_a','face_b','axis_edge'}
     if action.startswith("finishing_"):targets={'face','edit_target'}
+    if action.startswith("thread_"):targets={"face_a","face_b","edit_target"}
     if action in focus_actions and (not isinstance(target, str) or target not in targets):
         raise ValueError(f"Select a supported {tool_name} geometry target.")
     settings = None

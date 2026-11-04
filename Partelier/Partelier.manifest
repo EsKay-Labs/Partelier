@@ -6,7 +6,7 @@
   "description": {
     "": "Partelier toolkit with editable hinges, snap-fits and surface patterns: perforate, engrave or emboss flat and curved faces with live previews."
   },
-  "version": "0.30.0",
+  "version": "0.31.0",
   "runOnStartup": false,
   "supportedOS": "windows",
   "editEnabled": true

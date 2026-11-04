@@ -190,7 +190,7 @@ class AddinLifecycleTests(unittest.TestCase):
             def stop(manager):manager.stop_count+=1
         fan.FanCommands=FanManager
         extras={}
-        for stem,classname in (('mechanisms','MechanismCommands'),('finishing','FinishingCommands')):
+        for stem,classname in (('mechanisms','MechanismCommands'),('finishing','FinishingCommands'),('threads','ThreadCommands')):
             managers=[];setattr(self,stem+'_managers',managers)
             class ExtraManager:
                 fail_start=False
@@ -232,6 +232,7 @@ class AddinLifecycleTests(unittest.TestCase):
         self.assertIsNone(self.module._pattern_commands)
         self.assertIsNone(self.module._mechanism_commands)
         self.assertIsNone(self.module._finishing_commands)
+        self.assertIsNone(self.module._thread_commands)
         self.assertEqual(self.module._sessions, [])
         self.assertIsNone(self.ui.commandDefinitions.itemById(self.module.COMMAND_ID))
         self.assertIsNone(self.controls.itemById(self.module.COMMAND_ID))
@@ -265,16 +266,16 @@ class AddinLifecycleTests(unittest.TestCase):
 
     def test_new_tool_managers_register_once_and_release_on_stop(self):
         self.module.start();self.module.start()
-        for stem,field in (('mechanisms','mechanism_commands'),('finishing','finishing_commands')):
+        for stem,field in (('mechanisms','mechanism_commands'),('finishing','finishing_commands'),('threads','thread_commands')):
             managers=getattr(self,stem+'_managers');self.assertEqual(len(managers),1)
             self.assertEqual(managers[0].start_count,1)
             self.assertIs(self.library.start_calls[0][1][field],managers[0])
         self.module.stop()
-        for stem in ('mechanisms','finishing'):self.assertEqual(getattr(self,stem+'_managers')[0].stop_count,1)
+        for stem in ('mechanisms','finishing','threads'):self.assertEqual(getattr(self,stem+'_managers')[0].stop_count,1)
         self.assert_stopped()
 
     def test_new_manager_registration_failures_roll_back_all_owned_registrations(self):
-        for stem in ('mechanisms','finishing'):
+        for stem in ('mechanisms','finishing','threads'):
             with self.subTest(manager=stem):
                 manager_type=getattr(self,stem+'_manager_type');manager_type.fail_start=True
                 with self.assertRaisesRegex(RuntimeError,'extra registration'):self.module.start()

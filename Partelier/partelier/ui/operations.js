@@ -5,7 +5,7 @@
  const section=alias=>["honeycomb","perforation","knurl"].includes(alias)?"surface":alias;
  let sequence=0,busy=false,deleting=false,connected=false,items=[],confirmation=null;
  let selected=$("tool-select").value,editingId=null,timer,rendered,listVersion=0,refreshQueued=false;
- const locked=()=>!!window.PartelierFinishing?.isActive()||!!window.PartelierFinishing?.isBusy()||!!window.PartelierMechanisms?.isActive()||!!window.PartelierMechanisms?.isBusy()||!!window.PartelierFans?.isActive()||!!window.PartelierFans?.isBusy()||!!window.PartelierHingeActive||!!window.PartelierSnap?.isActive()||!!window.PartelierSnap?.isBusy()||!!window.PartelierPatterns?.isActive()||!!window.PartelierPatterns?.isBusy()||!!window.PartelierDetails?.isActive()||!!window.PartelierDetails?.isBusy();
+ const locked=()=>!!window.PartelierThreads?.isActive()||!!window.PartelierThreads?.isBusy()||!!window.PartelierFinishing?.isActive()||!!window.PartelierFinishing?.isBusy()||!!window.PartelierMechanisms?.isActive()||!!window.PartelierMechanisms?.isBusy()||!!window.PartelierFans?.isActive()||!!window.PartelierFans?.isBusy()||!!window.PartelierHingeActive||!!window.PartelierSnap?.isActive()||!!window.PartelierSnap?.isBusy()||!!window.PartelierPatterns?.isActive()||!!window.PartelierPatterns?.isBusy()||!!window.PartelierDetails?.isActive()||!!window.PartelierDetails?.isBusy();
  const unavailable=()=>busy||deleting||locked();
  function message(text,error=false){
   for(const id of ["operations-message","section-features-message"]){const node=$(id);node.textContent=text;node.classList.toggle("is-error",error);node.hidden=!text;}
@@ -107,7 +107,7 @@
     if(!items.some(item=>item.id===editingId))editingId=null;
     message(value.message||"");render();if(refreshQueued&&!busy){refreshQueued=false;scheduleRefresh();}return true;
    }
-   if(["hinge_state","snap_state","pattern_state","detail_state","fan_state","mechanism_state","finishing_state"].includes(action)){
+   if(["hinge_state","snap_state","pattern_state","detail_state","fan_state","mechanism_state","finishing_state","thread_state"].includes(action)){
     const value=JSON.parse(raw);
     if(["created","cancelled"].includes(value.phase)){confirmation=null;scheduleRefresh();}
     // The tool applies its pushed state after this handler returns.

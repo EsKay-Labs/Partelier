@@ -12,7 +12,7 @@
  }
  $("mechanism-tool").insertBefore(supports,$("mechanism-settings"));
  const active=()=>!!state.session?.sessionId&&!terminal.has(state.session.phase),identity=()=>active()?state.session.sessionId:null;
- const other=()=>!!window.PartelierHingeActive||[window.PartelierFans,window.PartelierSnap,window.PartelierPatterns,window.PartelierDetails,window.PartelierFinishing].some(m=>m?.isActive()||m?.isBusy());
+ const other=()=>!!window.PartelierThreads?.isActive()||!!window.PartelierThreads?.isBusy()||!!window.PartelierHingeActive||[window.PartelierFans,window.PartelierSnap,window.PartelierPatterns,window.PartelierDetails,window.PartelierFinishing].some(m=>m?.isActive()||m?.isBusy());
  const ready=()=>!!identity()&&!state.session?.pickingTarget&&!!state.session?.selections?.surface?.selected;
  const valid=()=>$("mechanism-settings").checkValidity();
  const current=()=>active()&&state.session.phase==="preview"&&state.session.revision===state.revision&&state.session.previewCurrent&&!state.error;
