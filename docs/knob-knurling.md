@@ -5,6 +5,10 @@ root, history-enabled Fusion design. Ten styles are available: Diamond, Straight
 V grooves, Helical, Chevron, Waves, Rounded flutes, Scallops, Dimples, Pyramids
 and Rings. This dedicated tool is separate from Surface patterns → Grip texture.
 
+Version 0.34.1 fixes startup defaults being overwritten by the last completed
+session. Reopening the palette starts with Full cylinder; active sessions and
+Saved Edit retain their own settings.
+
 ## Workflow and defaults
 
 1. Design the cylinder and shaft bore first. Open Knob knurling and use the

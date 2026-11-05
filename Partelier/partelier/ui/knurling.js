@@ -21,7 +21,9 @@
   if(id&&retired.has(id)||ended&&active()&&ended!==old||active()&&id&&id!==old&&!state.expecting||id===old&&snapshot.revision<hostRevision)return false;
   if(old&&(id!==old||terminal.has(snapshot.phase)))retired.add(old);
   state.session=snapshot;hostRevision=snapshot.revision;
-  if(snapshot.settings&&(snapshot.revision>=state.revision||state.expecting||id&&id!==old)){state.settings=clone(snapshot.settings);state.revision=snapshot.revision;sync();}
+  // Closed sessions report status only. Their old borders must not overwrite
+  // fresh defaults on palette startup; active sessions (including Edit) own settings.
+  if(snapshot.settings&&!terminal.has(snapshot.phase)&&(snapshot.revision>=state.revision||state.expecting||id&&id!==old)){state.settings=clone(snapshot.settings);state.revision=snapshot.revision;sync();}
   state.error=snapshot.phase==="error";message(snapshot.message||"",state.error);render();
   if(["computing","opening"].includes(snapshot.phase))recover();
   return true;

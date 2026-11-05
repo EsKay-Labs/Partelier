@@ -40,6 +40,24 @@ function fixture(){
  };
 }
 (async()=>{
+ // Reopening the palette receives defaults plus the last completed session.
+ // Completed settings must not replace defaults; a live Saved Edit must.
+ for(const phase of ['created','cancelled','idle']){
+  const reopened=fixture(),defaults={...reopened.window.PartelierKnurlingData.defaults};
+  const previous={sessionId:null,endedSessionId:'old-session',revision:14,phase,settings:{...defaults,border_mm:2},selections:{},previewCurrent:false};
+  reopened.window.PartelierKnurling.connect({capabilities:['knurling-palette','knurling-edit'],knurlingDefaults:defaults,knurlingState:previous});
+  assert.equal(reopened.$('knurling-coverage').value,'full','Closed session must not override startup coverage: '+phase);
+  assert.equal(reopened.$('knurling-border_mm').value,'0');
+  reopened.push(previous);assert.equal(reopened.$('knurling-coverage').value,'full','Repeated terminal pushes cannot restore old borders');
+  await reopened.coverage('border');await reopened.input('border_mm',3);
+  await reopened.click('knurling-new');assert.equal(reopened.requests.at(-1).settings.border_mm,3,'Explicit new-session border choice is preserved');
+ }
+ const editing=fixture(),editDefaults={...editing.window.PartelierKnurlingData.defaults};
+ const live={sessionId:'saved-edit',revision:2,phase:'selecting',editing:true,settings:{...editDefaults,border_mm:2.5},selections:{},previewCurrent:false};
+ editing.window.PartelierKnurling.connect({capabilities:['knurling-palette','knurling-edit'],knurlingDefaults:editDefaults,knurlingState:live});
+ assert.equal(editing.$('knurling-coverage').value,'border');assert.equal(editing.$('knurling-border_mm').value,'2.5','Saved Edit restores its own borders');
+ editing.window.PartelierKnurling.connect({capabilities:['knurling-palette','knurling-edit'],knurlingDefaults:editDefaults,knurlingState:live});
+ assert.equal(editing.$('knurling-border_mm').value,'2.5','Reconnect preserves active editing');
  const f=fixture();assert.equal(f.$('knurling-create').disabled,true);
  assert.equal(f.$('knurling-style').value,'diamond');assert.equal(f.$('knurling-pitch_mm').value,'6');
  assert.equal(f.$('knurling-border_mm').value,'0');assert.equal(f.$('knurling-coverage').value,'full');assert.equal(f.$('knurling-border_mm').parentElement.hidden,true);
