@@ -7,12 +7,12 @@ from unittest.mock import patch
 
 from Partelier.partelier import operations, auto_refresh
 from Partelier.partelier.palette_protocol import read_request
-from Partelier.partelier.tools.knurl.settings import KnurlSettings
+from Partelier.partelier.tools.knurl.settings import KnurlSettings, LEGACY_FIELDS
 from Partelier.partelier.tools.knurl import store
 
 
 def recipe():
-    return {'version':1,'id':str(uuid.uuid4()),'settings':KnurlSettings().to_dict(),
+    return {'version':2,'id':str(uuid.uuid4()),'settings':KnurlSettings().to_dict(),'operations':['cut'],
             'sources':{'faces':['face'],'bodies':['body']},'base':'base',
             'combines':['combine'],'tools':['tool'],
             'tool_signatures':['a'*64],'results':['b'*64]}
@@ -54,8 +54,54 @@ class KnurlWorkflowTests(unittest.TestCase):
             bad=recipe();bad['sources'][key].append('second')
             with self.assertRaises(ValueError):store._parse(json.dumps(bad))
 
+    def test_default_full_coverage_and_independent_finish_controls(self):
+        defaults=KnurlSettings()
+        self.assertEqual(len(defaults.to_dict()),11)
+        self.assertEqual(defaults.border_mm,0)
+        self.assertEqual(defaults.mode,'engrave')
+        self.assertEqual((defaults.bottom_finish,defaults.top_finish),('none','none'))
+        settings=KnurlSettings(mode='emboss',bottom_finish='chamfer',bottom_size_mm=.8,
+                               top_finish='fillet',top_size_mm=1.2)
+        self.assertEqual(KnurlSettings.from_dict(settings.to_dict()),settings)
+        for field,value in (('mode','cut'),('bottom_finish','round'),('top_finish',True),
+                            ('bottom_size_mm',0),('top_size_mm',float('nan')),('bottom_size_mm',True)):
+            bad=defaults.to_dict();bad[field]=value
+            with self.subTest(field=field),self.assertRaises(ValueError):KnurlSettings.from_dict(bad)
+
+    def test_legacy_recipe_reads_exact_original_fields_without_rewriting(self):
+        value=recipe();value['version']=1;value.pop('operations')
+        value['settings']={key:val for key,val in value['settings'].items() if key in LEGACY_FIELDS}
+        value['settings']['border_mm']=1.25
+        raw=json.dumps(value)
+        parsed,settings=store._parse(raw)
+        self.assertEqual(parsed,value)
+        self.assertEqual(settings.border_mm,1.25)
+        self.assertEqual(settings.mode,'engrave')
+        self.assertEqual((settings.bottom_finish,settings.top_finish),('none','none'))
+        self.assertEqual(json.dumps(value),raw)
+        invalid=json.loads(raw);invalid['settings']['mode']='engrave'
+        with self.assertRaises(ValueError):store._parse(json.dumps(invalid))
+        with self.assertRaises(ValueError):KnurlSettings.from_dict(value['settings'])
+        self.assertEqual(store._operations(parsed),('cut',))
+
+    def test_two_operations_share_exactly_one_source_and_result(self):
+        for ops in (['cut','join'],['join','cut']):
+            value=recipe();value['settings']['mode']='emboss';value['operations']=ops
+            value['combines']=['combine-a','combine-b'];value['tools']=['tool-a','tool-b']
+            value['tool_signatures']=['a'*64,'c'*64]
+            self.assertEqual(store._parse(json.dumps(value))[0],value)
+            self.assertEqual(store._operations(value),tuple(ops))
+            for key in ('combines','tools','tool_signatures'):
+                bad=json.loads(json.dumps(value));bad[key].pop()
+                with self.subTest(key=key),self.assertRaises(ValueError):store._parse(json.dumps(bad))
+            bad=json.loads(json.dumps(value));bad['results'].append('c'*64)
+            with self.assertRaises(ValueError):store._parse(json.dumps(bad))
+        for invalid in ([],['cut','cut'],['join','join'],['intersect'],['cut','join','cut'],None,'cut'):
+            value=recipe();value['operations']=invalid
+            with self.subTest(operations=invalid),self.assertRaises(ValueError):store._parse(json.dumps(value))
+
     def test_rejects_damaged_ownership_and_unsupported_schema(self):
-        for patch in ({'version':True},{'version':2},{'extra':True},{'base':''},
+        for patch in ({'version':True},{'version':3},{'extra':True},{'base':''},
                       {'id':'invalid'},{'results':['x'*64]},{'tools':[None]}):
             value=recipe();value.update(patch)
             with self.subTest(patch=patch),self.assertRaises(ValueError):

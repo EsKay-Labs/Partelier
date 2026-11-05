@@ -33,7 +33,7 @@ def run(context):
         base=root.features.baseFeatures.add();assert base.startEdit();root.bRepBodies.add(body,base);assert base.finishEdit()
         state.source=tuple(base.bodies)[0];state.source.name='Knurl session source'
         state.face=next(face for face in state.source.faces if c.Cylinder.cast(face.geometry))
-        state.settings=S.KnurlSettings()
+        state.settings=S.KnurlSettings(mode='emboss',top_finish='fillet',bottom_finish='fillet')
         state.report={'success':False,'native_registered_commands':True,'programmatic_selection':True,'stages':[]}
         sys.modules[key]=state;result={'stage':stage,'ok':True}
     else:
@@ -84,7 +84,7 @@ def run(context):
             assert not owner._session and not owner.busy
             state.baseline=snapshot(state.design)
             owner.begin_palette(state.settings.to_dict(),editing=True,selected_entity=state.anchor)
-            session=owner._session;settings=replace(session.settings,depth_mm=.5)
+            session=owner._session;settings=replace(session.settings,depth_mm=.5,mode='engrave')
             owner.palette_action('knurling_preview',session.session_id,session.revision+1,settings.to_dict())
             result={'stage':stage,'queued':True}
         elif stage=='finish':

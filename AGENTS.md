@@ -1,5 +1,30 @@
 # Partelier repository guidance
 
+## CAD knurling: 0.34.0
+
+Supersedes the 0.33.0 knurling geometry/recipe contract below. Strict11-field
+settings and recipe2 add engrave/emboss, zero-border full-height default and
+independent top/bottom finish sizes/types. Recipe1 reads without mutation; only
+explicit Rebuild upgrades its geometry. Ten native CAD reliefs use analytic
+cutters, ruled helix surfaces and C1 cubic wave sweeps, bounded to64 repeats and
+128 cutters. No faceted outer envelope. Preview remains cached opaque lit mesh.
+
+Bottom fillet is a circular partial round starting at45 degrees; top fillet is
+a full quarter round. Print bottom-down, cylinder axis upright. Analytic motif
+bounds plus sampled native normals validate geometry, not physical printability.
+Optional borders introduce45-degree transitions. Full-height outward fillets
+cut grooves from a finished simple seed; other outward shapes join before end
+cuts. Create torus at origin, then transform: native nonzero-centre torus creation
+mispositioned it. Preserve bore via an additive skin, never a nominal full core.
+
+Require deepest actual finish/cut plus0.8mm wall, and clear outer carrier.
+Measure axial extents with an axis-oriented bounding box, not world AABB.
+Refuse unsupported abrupt returns at continuing cylinder ends. Same-body history
+may be Cut, Join, Cut+Join or Join+Cut; graph changes require exact owned suffix
+and rebuild only owned combines/base tool bodies. Never duplicate the knob.
+See docs/knob-knurling.md and validation/knurling-0.34.0.json.
+
+
 ## Knob knurling: 0.33.0
 
 `tools/knurl` owns strict six-field settings and recipe1, alias `knurling`,

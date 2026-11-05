@@ -13,7 +13,7 @@ def _case(prefix, options):
     app=c.Application.get();d=f.Design.cast(app.activeProduct)
     d.designType=f.DesignTypes.ParametricDesignType;root=d.rootComponent
     manager=f.TemporaryBRepManager.get()
-    s=S.KnurlSettings(style=options['style'],pitch_mm=options.get('pitch_mm',6))
+    s=S.KnurlSettings(**{'style':options['style'],'pitch_mm':options.get('pitch_mm',6),**options.get('settings',{})})
     radius=options.get('radius_mm',8);height=options.get('height_mm',8)
     body=manager.createCylinderOrCone(c.Point3D.create(0,0,0),radius/10,c.Point3D.create(0,0,height/10),radius/10)
     if options.get('nearby_material'):
@@ -24,6 +24,15 @@ def _case(prefix, options):
     if options.get('bore_radius_mm'):
         bore=manager.createCylinderOrCone(c.Point3D.create(0,0,-.1),options['bore_radius_mm']/10,c.Point3D.create(0,0,height/10+.1),options['bore_radius_mm']/10)
         assert manager.booleanOperation(body,bore,f.BooleanTypes.DifferenceBooleanType)
+    if options.get('extension'):
+        low,high = ((height/10-.01,height/10+.2) if options['extension']=='top' else (-.2,.01))
+        extension=manager.createCylinderOrCone(c.Point3D.create(0,0,low),radius/20,c.Point3D.create(0,0,high),radius/20)
+        assert manager.booleanOperation(body,extension,f.BooleanTypes.UnionBooleanType)
+    if options.get('tilted'):
+        import math
+        transform=c.Matrix3D.create()
+        transform.setToRotation(math.radians(37),c.Vector3D.create(1,1,0),c.Point3D.create(0,0,0))
+        assert manager.transform(body,transform)
     base=root.features.baseFeatures.add();assert base.startEdit()
     assert root.bRepBodies.add(body,base);assert base.finishEdit()
     source=base.bodies.item(0);source.name='Knurl test source'
@@ -32,15 +41,42 @@ def _case(prefix, options):
     if options.get('expect_refusal'):
         try:F.prepare(d,(face,),s)
         except ValueError as error:
-            assert ('outside this cylinder' if options.get('nearby_material') else 'continuous wall') in str(error),str(error)
+            expected=options.get('refusal_text') or ('outside this cylinder' if options.get('nearby_material') else 'continuous wall')
+            assert expected in str(error),str(error)
             assert (root.bRepBodies.count,d.timeline.count)==baseline and H._body_signature(source)==signature
-            return {'checks':{('nearby_material_refused_without_mutation' if options.get('nearby_material') else 'thin_wall_refused_without_mutation'):True},'message':str(error)}
+            return {'checks':{'expected_refusal_without_mutation':True},'message':str(error)}
         raise AssertionError('Thin wall was accepted.')
     started=time.perf_counter();p=F.prepare(d,(face,),s)
     report={'settings':s.to_dict(),'prepare_ms':(time.perf_counter()-started)*1000,'checks':{},'timings':p.timings}
     assert (root.bRepBodies.count,d.timeline.count)==baseline
-    assert p.results[0].isSolid and p.results[0].lumps.count==1 and 0<p.results[0].volume<source.volume
+    assert p.results[0].isSolid and p.results[0].lumps.count==1 and p.results[0].volume>0
     report['checks']['solid_result_no_preview_history']=True
+    if options.get('bore_radius_mm'):
+        check=manager.copy(p.results[0]);before=check.volume
+        hole=manager.createCylinderOrCone(c.Point3D.create(0,0,-.1),options['bore_radius_mm']/10,c.Point3D.create(0,0,height/10+.1),options['bore_radius_mm']/10)
+        assert manager.booleanOperation(check,hole,f.BooleanTypes.DifferenceBooleanType)
+        assert abs(check.volume-before)<1e-8
+        report['checks']['bore_preserved']=True
+    report['native_faces']=p.results[0].faces.count
+    report['surface_types']=sorted(set(face.geometry.objectType for face in p.results[0].faces))
+    if options.get('sample_overhang'):
+        import math
+        maximum=0.;samples=0;worst=[]
+        for face in p.results[0].faces:
+            ev=face.evaluator;box=ev.parametricRange()
+            for i in range(9):
+                for j in range(9):
+                    uv=c.Point2D.create(box.minPoint.x+(box.maxPoint.x-box.minPoint.x)*(i+.5)/9,box.minPoint.y+(box.maxPoint.y-box.minPoint.y)*(j+.5)/9)
+                    if not ev.isParameterOnFace(uv):continue
+                    ok,point=ev.getPointAtParameter(uv)
+                    if not ok or not .0001<point.z<height/10-.0001:continue
+                    ok,normal=ev.getNormalAtParameter(uv)
+                    if not ok:continue
+                    angle=math.degrees(math.atan2(max(0.,-normal.z),math.hypot(normal.x,normal.y)))
+                    maximum=max(maximum,angle);samples+=1
+                    if angle>45.01 and len(worst)<10:worst.append({'type':face.geometry.objectType,'z_mm':point.z*10,'point':(point.x*10,point.y*10),'normal':(normal.x,normal.y,normal.z),'area':face.area})
+        assert samples and maximum<=45.01,(samples,maximum,worst)
+        report['sampled_overhang_degrees']=maximum;report['normal_samples']=samples
     cached=F.cache(p);group=None
     try:
         group=F.draw(cached);assert group and group.isValid
@@ -60,11 +96,14 @@ def _case(prefix, options):
         assert app.activeViewport.saveAsImageFile(options['image'],900,700)
     record=T.read(d,anchor);history=d.timeline.count;bodies=tuple(root.bRepBodies)
     assert root.bRepBodies.count==baseline[0]
-    revised=replace(s,depth_mm=.5)
-    prepared=T.prepare_edit(d,record,revised);T.apply(prepared)
-    O.capture(d,anchor,'knurling',revised.to_dict(),baseline[1],editing=True)
-    record=T.read(d,anchor)
-    assert record.settings==revised and tuple(root.bRepBodies)==bodies and d.timeline.count==history
+    report['operations']=list(p.operations);report['rebuild_operations']=[]
+    for changes in options.get('rebuilds') or [{'depth_mm':.5}]:
+        revised=replace(record.settings,**changes)
+        prepared=T.prepare_edit(d,record,revised);T.apply(prepared)
+        O.capture(d,anchor,'knurling',revised.to_dict(),baseline[1],editing=True)
+        record=T.read(d,anchor)
+        assert record.settings==revised and tuple(root.bRepBodies)==bodies and d.timeline.count==baseline[1]+1+len(prepared.operations)
+        report['rebuild_operations'].append(list(prepared.operations))
     report['checks']['create_same_body_rebuild_same_history']=True
     O.delete(d,record.recipe['id'])
     assert (root.bRepBodies.count,d.timeline.count)==baseline and H._body_signature(source)==signature
@@ -76,9 +115,9 @@ def run(context):
     import gc,importlib.util,json,sys,traceback,uuid
     from pathlib import Path
     options=context if isinstance(context,dict) else {}
-    options={'style':options.get('style','diamond'),'pitch_mm':options.get('pitch_mm',6),'radius_mm':options.get('radius_mm',8),'height_mm':options.get('height_mm',8),'image':options.get('image'),'bore_radius_mm':options.get('bore_radius_mm'),'expect_refusal':options.get('expect_refusal',False),'nearby_material':options.get('nearby_material',False)}
+    options={**options,'style':options.get('style','diamond'),'pitch_mm':options.get('pitch_mm',6),'radius_mm':options.get('radius_mm',8),'height_mm':options.get('height_mm',8),'image':options.get('image'),'bore_radius_mm':options.get('bore_radius_mm'),'expect_refusal':options.get('expect_refusal',False),'nearby_material':options.get('nearby_material',False),'settings':options.get('settings',{}),'rebuilds':options.get('rebuilds'),'case':options.get('case'),'sample_overhang':options.get('sample_overhang',False)}
     root=Path('C:/Users/SKTech/Desktop/Programming_Projects/Apps/Fusion360/Partelier')
-    path=root/'output/knurl'/(options['style']+'-'+str(options['radius_mm'])+'-'+str(options['height_mm'])+('-bore'+str(options['bore_radius_mm']) if options['bore_radius_mm'] else '')+('-nearby' if options['nearby_material'] else '')+'.json')
+    path=root/'output/knurl'/((options.get('case') or options['style'])+'-'+str(options['radius_mm'])+'-'+str(options['height_mm'])+('-bore'+str(options['bore_radius_mm']) if options['bore_radius_mm'] else '')+('-nearby' if options['nearby_material'] else '')+'.json')
     path.parent.mkdir(parents=True,exist_ok=True)
     app=c.Application.get();caller=app.activeDocument;camera=app.activeViewport.camera;doc=None
     prefix='_partelier_knurl_validation_'+uuid.uuid4().hex

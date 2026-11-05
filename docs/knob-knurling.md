@@ -1,80 +1,84 @@
 # Knurling for knobs
 
-Dedicated knob grips live separately from the older Surface patterns → Grip
-texture preset. Select one complete **external cylindrical face** on an existing
-solid knob in a root, history-enabled Fusion design. The tool removes material
-inside the original diameter; it does not add a second knob or change the bore.
+Select one complete external cylindrical face of an existing solid knob in a
+root, history-enabled Fusion design. Ten styles are available: Diamond, Straight
+V grooves, Helical, Chevron, Waves, Rounded flutes, Scallops, Dimples, Pyramids
+and Rings. This dedicated tool is separate from Surface patterns → Grip texture.
 
-Available styles: Diamond, Straight V grooves, Helical, Chevron, Waves, Rounded
-flutes, Scallops, Dimples, Pyramids and Rings. The angle control appears only for
-angled styles; rotating Rings is irrelevant and is hidden.
+## Workflow and defaults
 
-## Workflow
+1. Design the cylinder and shaft bore first. Open Knob knurling and use the
+   illustrated `?` help to inspect a style before selecting geometry.
+2. Choose **Cut inward** (default) or **Raised outward**. Depth is radial:
+   0.6 mm outward relief can increase the diameter by up to 1.2 mm.
+3. Select the outside cylindrical face. **Full cylinder** is the default:
+   border 0 takes the texture to both ends, with no mandatory smooth bands.
+4. Optionally choose **End borders** and their width. These smooth bands include
+   45-degree transitions into the texture.
+5. Configure **Top edge** and **Bottom edge** independently: None, Chamfer or
+   Fillet, each with its own size. Finishes may trim the texture near the ends.
+6. Review the opaque preview and Create. Saved features provides Edit/Delete.
 
-1. Create the knob cylinder and any shaft bore first.
-2. Open Knob knurling, choose a style and inspect its illustrated `?` help.
-3. Select the outside cylinder. The entire height of this cylindrical face is
-   used, with untextured borders at both ends.
-4. Adjust spacing and depth, review the opaque preview, then Create.
-5. Use the section's Saved features to Edit or Delete the owned operation.
+Other defaults are target spacing 6 mm, depth 0.6 mm, pattern angle 30 degrees
+and rotation 0. Whole repeats fit the circumference; actual spacing may differ
+slightly. Finish size defaults to 0.6 mm when enabled. With raised relief and
+end borders, each finish must fit within its border; Full cylinder permits
+larger finishes. Incompatible settings are refused, never silently reduced.
 
-Preview and Cancel leave the design unchanged. Edit rebuilds the owned cutting
-tool and retains the original source body. As with the other attached tools,
-editing earlier features is subject to ownership and timeline guards.
+Preview and Cancel leave the source unchanged. Create and Rebuild modify the
+original body, preserving a sufficiently thick shaft bore. They do not create a
+duplicate knob. Existing 0.33 features keep their old geometry until explicitly
+rebuilt through **Saved → Edit → Rebuild**; opening them does not migrate the model.
 
-## Printing orientation and geometry
+## Edge shape and printing orientation
 
-Print with the **cylinder axis perpendicular to the bed**, standing on either
-flat end. The relief and its end transitions are checked against a maximum
-45-degree slope from that axis. Turning the part onto its side invalidates this
-assumption. This check applies to the new grip surface, not to other geometry
-already present on the knob.
+Print **bottom-down with the cylinder axis upright**. Top and bottom refer to
+the tool's cylinder frame; inspect the preview before choosing the print end.
+The cylinder can be oriented differently in the CAD document. Turning the print
+onto its side or swapping the ends with a top fillet invalidates this assumption.
 
-Defaults are 6 mm target pitch, 0.6 mm maximum cutting depth and 1 mm solid end
-borders. The integer repetition count fits the full circumference without an
-open seam. The actual pitch is shown by the planner; target spacing is not an
-exact count request. Incompatible depth, spacing or available height is refused
-instead of silently reducing the requested depth.
+Chamfers have equal rise and run (45 degrees). The top fillet is a full circular
+quarter-round. The bottom fillet is a true circular **partial round starting at
+45 degrees**, then turning into the vertical side. This avoids the shallow
+unsupported underside of a full lower quarter-round. For radius r, its axial
+height is about 0.707r and its radial trim about 0.293r. It is intentionally
+different from the top fillet.
 
-The native relief uses a bounded faceted solid. The nominal circular ring's
-circumscription excess is limited to 0.04 mm; this is not a tolerance on the whole
-groove waveform. Circumscribed border rings protect the original smooth cylinder.
-Exact curved surface styling is not claimed. Geometry has a bounded
-face budget: excessively dense requests ask for a larger pitch rather than
-creating thousands of native features or unbounded computation.
+Slope checks apply to the generated grip and transitions, not every pre-existing
+feature of the knob. Physical print quality and fit still require a print test.
 
-A complete annular material check requires the relief depth plus 0.8 mm of
-continuous material beneath the selected cylindrical surface. A bore is allowed
-when enough wall remains; intersecting openings and thin walls are refused.
-Other material immediately outside the selected cylinder is also checked: the
-0.1 mm outer carrier used to connect cutters may not remove adjacent features.
+## CAD geometry and limits
 
-The 45-degree criterion is a conservative design constraint, not a guarantee
-of grip, strength or successful printing on every machine. Actual overhang
-quality depends on the printer, material, cooling and layer settings; see
-[Prusa's design guidance](https://help.prusa3d.com/article/modeling-with-3d-printing-in-mind_164135).
+Version 0.34 replaces the faceted envelope with native CAD: planar V cuts,
+helical ruled surfaces, cylindrical flutes, spherical dimples, conical rings
+and toroidal fillets. Waves use C1 cubic curves with bounded slopes. Sharp
+edges defining a diamond or pyramid remain real design edges; they are not
+mesh triangulation. The display preview still uses a cached lit mesh for speed,
+while the saved result is a solid BRep.
 
-## Runtime contract
+Planning is cached and bounded to 64 circumference repeats and 128 cutters.
+No geometry is recomputed during orbit. Dense settings request a wider spacing
+rather than creating unlimited geometry. Native timings depend on shape and
+size; a tested diameter 30 × height 20 mm diamond prepared in about 1.08 s and
+created in about 0.87 s on the test machine.
 
-The strict six-field KnurlSettings record belongs to `tools/knurl`; saved recipes
-start at version 1. Alias `knurling` has its own Saved section and does not change
-older `knurl` pattern records. Pure geometry planning is independent of Fusion;
-native temporary geometry, source validation and persistence remain on the main
-thread. Preview draws a cached opaque lit mesh. It never draws custom-graphics
-BRep bodies or scans geometry during orbit.
+The source must retain 0.8 mm of continuous wall below its deepest texture or
+finish cut. A clear outer carrier prevents accidental changes to nearby material.
+Full-height texture may require a free end: an abrupt return to the original
+diameter above an inward cut, or raised ridges starting above the base, can
+create unsupported ledges. Use smooth end borders for those cases. This check
+is deliberately conservative for knobs with connected geometry beyond the face.
 
-`tools/fusion/KnurlValidation.py` runs one bounded fixture per invocation in a
-disposable document and restores the caller. Local planner tests and native
-validation are reported separately; physical print acceptance remains pending.
+## Runtime and validation
 
-## Validation in Fusion
+Strict eleven-field settings and recipe2 belong to `tools/knurl`, alias
+`knurling`. Recipe1 reads with inward mode and no finishes while retaining its
+saved borders. The owned operation graph can be Cut, Join, Cut+Join or Join+Cut.
+Graph changes rebuild only the exact owned suffix and keep the source identity.
 
-All ten styles passed temporary preview, same-body Create/Rebuild and Delete
-restoring the source. Additional cases cover a hollow knob, refusal of thin
-walls and nearby outside material, and a Ø30 × 20 mm diamond knob. Its measured
-preparation was about0.49s and Create about1.57s on the test machine. Registered
-command tests cover preview cancellation, invalid-dimension recovery without
-repicking, Create, Saved Edit cancellation and deletion. The caller document
-and camera were restored. The final source passes1,243 Python tests and8 Node
-UI suites; the Windows installer passed isolated install/upgrade/uninstall.
-See [native evidence](validation/knurling-0.33.0.json).
+Native checks run individually in disposable documents, restoring the caller
+and camera. They cover all ten styles, inward/outward mode conversions,
+top/bottom finishes, optional bands, hollow and tilted knobs, guarded refusals,
+preview cleanup and same-body Create/Rebuild/Delete. Analytic slope bounds are
+supplemented by sampled native surface normals; these are not physical print
+certification. See [0.34 evidence](validation/knurling-0.34.0.json).

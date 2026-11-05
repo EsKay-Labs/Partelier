@@ -1,15 +1,20 @@
 "use strict";
 window.PartelierKnurlingData={
- defaults:{style:"diamond",pitch_mm:6,depth_mm:.6,border_mm:1,angle_deg:30,phase_deg:0},
+ defaults:{style:"diamond",pitch_mm:6,depth_mm:.6,border_mm:0,angle_deg:30,phase_deg:0,mode:"engrave",top_finish:"none",bottom_finish:"none",top_size_mm:.6,bottom_size_mm:.6},
  styles:[["diamond","Diamond"],["straight","Straight V grooves"],["helical","Helical"],["chevron","Chevron"],["waves","Waves"],["flutes","Rounded flutes"],["scallops","Scallops"],["dimples","Dimples"],["pyramids","Pyramids"],["rings","Rings"]],
- labels:{style:"Grip style",pitch_mm:"Target spacing (mm)",depth_mm:"Cut depth (mm)",border_mm:"End borders (mm)",angle_deg:"Pattern angle (°)",phase_deg:"Rotate around knob (°)"},
- bounds:{pitch_mm:[2,30],depth_mm:[.1,3],border_mm:[0,20],angle_deg:[0,45],phase_deg:[-360,360]},
- groups:{basic:["style","pitch_mm","depth_mm"],advanced:["border_mm","angle_deg","phase_deg"]},
+ labels:{mode:"Relief direction",top_finish:"Top edge",bottom_finish:"Bottom edge",top_size_mm:"Top size (mm)",bottom_size_mm:"Bottom size (mm)",style:"Grip style",pitch_mm:"Target spacing (mm)",depth_mm:"Cut depth (mm)",border_mm:"End borders (mm)",angle_deg:"Pattern angle (°)",phase_deg:"Rotate around knob (°)"},
+ bounds:{top_size_mm:[.1,10],bottom_size_mm:[.1,10],pitch_mm:[2,30],depth_mm:[.1,3],border_mm:[0,20],angle_deg:[0,45],phase_deg:[-360,360]},
+ groups:{basic:["style","mode","pitch_mm","depth_mm"],advanced:["border_mm","angle_deg","phase_deg"],edges:["top_finish","top_size_mm","bottom_finish","bottom_size_mm"]},
  help:{
-  style:"Choose a grip cut into the outside of an existing cylindrical knob. The original outer diameter is retained at the crests. These are continuous surface reliefs, separate from the raised Grip texture tool.",
+  mode:"Cut inward removes material inside the original cylinder. Raised outward adds material beyond it and increases the outside diameter by up to twice the relief height. Both modes keep the same source body. Check clearance to surrounding parts.",
+  top_finish:"Finish the top outer edge independently: None keeps the generated edge, Chamfer makes a straight bevel, and Fillet rounds it. Size controls the chamfer distance or fillet radius. The preview must fit the available material.",
+  bottom_finish:"Finish the bottom outer edge independently. Chamfer uses an equal rise and run. Fillet uses a true circular arc that starts at 45° and turns into the vertical side, rather than a full quarter-round with an unsupported shallow underside. Size is the arc radius, so its visible height is smaller than that radius. Print with the cylinder axis upright.",
+  top_size_mm:"Top chamfer distance or fillet radius in millimetres. This is independent of the texture depth and bottom finish. A finish that consumes too much of the knob is refused rather than reduced silently.",
+  bottom_size_mm:"Bottom chamfer distance or circular fillet radius in millimetres, independent of the top finish. The bottom fillet is a partial round with a 45° start; its height is about 0.707 × radius and radial trim about 0.293 × radius. It intentionally differs from the full top quarter-round.",
+  style:"Choose a grip on an existing cylindrical knob. Cut inward keeps the crests within the original diameter; Raised outward places the relief outside it. The new grip remains part of your existing body.",
   pitch_mm:"Target distance between repeats. Partelier fits a whole number around the circumference so the seam closes. Larger values give fewer, broader details. The actual spacing can differ slightly; depth is not automatically reduced to fit.",
-  depth_mm:"Maximum radial material removed. A smaller depth gives a gentler grip and leaves more wall. Combinations that exceed the upright overhang limit or the geometry budget are refused. The result uses small planar facets; smooth styles are approximations. Check the wall around shaft holes in your knob.",
-  border_mm:"Untouched cylindrical bands at both ends of the selected face. The texture fades in and out beside these bands instead of ending in a sudden shelf. A short face must leave enough height for both borders and transitions.",
+  depth_mm:"Radial size of the relief: material removed in Cut inward, or added beyond the original cylinder in Raised outward. A smaller value gives a gentler grip. Changing direction keeps this value. Check the resulting diameter and the wall around shaft holes.",
+  border_mm:"Optional smooth bands at both ends of the selected cylinder. Full cylinder sets this to zero and takes the pattern to the ends. End borders enables a positive width. Edge finishes are separate options and can trim the pattern near either end. With Raised outward and End borders, keep each finish size within the border width; choose Full cylinder for larger finishes.",
   angle_deg:"Direction of the sloping pattern lines. This is a pattern angle, not the print overhang angle. Partelier separately checks the axial slopes for printing with the knob axis upright.",
   phase_deg:"Rotate the texture around the cylinder without changing its spacing or depth. Useful for aligning the pattern with a pointer or another detail."
  },

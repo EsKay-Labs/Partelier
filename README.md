@@ -5,16 +5,17 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current release: 0.33.0 — Knurling for knobs.**
+**Current release: 0.34.0 — CAD knurling, full coverage and edge finishes.**
 
-Ten cylindrical grip styles with illustrated help, automatic circumferential fit,
-checked upright-print slopes up to 45°, cached opaque previews and same-body
-Saved Edit/Delete. See [Knurling for knobs](docs/knob-knurling.md).
+Ten cylindrical grip styles now use curved CAD surfaces instead of a faceted
+envelope. Full-cylinder coverage is the default, with optional end borders,
+inward cuts or outward relief, and independent top/bottom chamfer or fillet.
+Cached opaque previews and same-body Saved Edit/Delete remain available. See [Knurling for knobs](docs/knob-knurling.md).
 
 ## Install on Windows
 
 1. Save your work and close Autodesk Fusion.
-2. Download `Partelier-0.33.0-Windows-Setup.exe` from [Releases](https://github.com/EsKay-Labs/Partelier/releases/latest) and run it. Administrator rights are not required.
+2. Download `Partelier-0.34.0-Windows-Setup.exe` from [Releases](https://github.com/EsKay-Labs/Partelier/releases/latest) and run it. Administrator rights are not required.
 3. Open Fusion. In the Design workspace, open **Utilities → Add-Ins → Partelier**.
 
 Partelier registers its icon at startup but opens its UI only when you click it.

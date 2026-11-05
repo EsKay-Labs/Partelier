@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "version": "0.34.0",
+  "payload_files": 189,
+  "isolated_target": "C:\\Users\\SKTech\\AppData\\Local\\Temp\\PartelierInstallerTest\\b3925ffba4fa4f63a10f96f4e97c892f\\Partelier",
+  "current_fusion_addins_untouched": true,
+  "checks": [
+    "Install with exact payload hashes",
+    "Upgrade preserves user-added files",
+    "Uninstall removes installed runtime",
+    "Uninstall preserves user-added files",
+    "Unowned directory refused"
+  ],
+  "installer_sha256": "404f95151d62b2e0709ceb87f6e1027ebb696183cfd0ac78f72cfc08c12a7ec3",
+  "running_fusion_refusal_tested": true
+}

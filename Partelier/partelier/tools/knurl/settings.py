@@ -6,7 +6,9 @@ STYLES = ('diamond', 'straight', 'helical', 'chevron', 'waves', 'flutes',
           'scallops', 'dimples', 'pyramids', 'rings')
 ANGLED_STYLES = ('diamond', 'helical', 'chevron', 'waves')
 BOUNDS = {'pitch_mm': (2., 30.), 'depth_mm': (.1, 3.), 'border_mm': (0., 20.),
-          'angle_deg': (0., 45.), 'phase_deg': (-360., 360.)}
+          'angle_deg': (0., 45.), 'phase_deg': (-360., 360.),
+          'bottom_size_mm': (.1, 10.), 'top_size_mm': (.1, 10.)}
+LEGACY_FIELDS = frozenset(('style', 'pitch_mm', 'depth_mm', 'border_mm', 'angle_deg', 'phase_deg'))
 
 
 @dataclass(frozen=True)
@@ -14,13 +16,22 @@ class KnurlSettings:
     style: str = 'diamond'
     pitch_mm: float = 6.
     depth_mm: float = .6
-    border_mm: float = 1.
+    border_mm: float = 0.
     angle_deg: float = 30.
     phase_deg: float = 0.
+    mode: str = 'engrave'
+    bottom_finish: str = 'none'
+    top_finish: str = 'none'
+    bottom_size_mm: float = .6
+    top_size_mm: float = .6
 
     def __post_init__(self):
         if self.style not in STYLES:
             raise ValueError('Choose a supported grip texture.')
+        if self.mode not in ('engrave', 'emboss'):
+            raise ValueError('Choose inward engraving or outward relief.')
+        if self.bottom_finish not in ('none', 'chamfer', 'fillet') or self.top_finish not in ('none', 'chamfer', 'fillet'):
+            raise ValueError('Choose no edge finish, chamfer or fillet for each end.')
         for name, (low, high) in BOUNDS.items():
             value = getattr(self, name)
             try:
