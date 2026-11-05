@@ -12,6 +12,7 @@ from .tools.fans.settings import FanSettings
 from .tools.mechanisms.settings import MechanismSettings
 from .tools.finishing.settings import FinishingSettings
 from .tools.threads.settings import ThreadSettings
+from .tools.knurl.settings import KnurlSettings
 from .diagnostics import validate_ui_entries
 
 
@@ -32,7 +33,9 @@ FINISHING_SETTINGS_ACTIONS=frozenset({"finishing_update","finishing_preview","fi
 FINISHING_SESSION_ACTIONS=FINISHING_SETTINGS_ACTIONS|{"finishing_cancel","finishing_focus","finishing_reset"}
 THREAD_SETTINGS_ACTIONS=frozenset({"thread_update","thread_preview","thread_commit"})
 THREAD_SESSION_ACTIONS=THREAD_SETTINGS_ACTIONS|{"thread_cancel","thread_focus","thread_reset"}
-ALLOWED_ACTIONS = frozenset({"thread_begin","thread_status"})|THREAD_SESSION_ACTIONS|frozenset({"auto_update_status","auto_update_toggle"})|frozenset({"finishing_begin","finishing_status"})|FINISHING_SESSION_ACTIONS|frozenset({"mechanism_begin","mechanism_status"})|MECHANISM_SESSION_ACTIONS|frozenset({
+KNURLING_SETTINGS_ACTIONS=frozenset({"knurling_update","knurling_preview","knurling_commit"})
+KNURLING_SESSION_ACTIONS=KNURLING_SETTINGS_ACTIONS|{"knurling_cancel","knurling_focus","knurling_reset"}
+ALLOWED_ACTIONS = frozenset({"knurling_begin","knurling_status"})|KNURLING_SESSION_ACTIONS|frozenset({"thread_begin","thread_status"})|THREAD_SESSION_ACTIONS|frozenset({"auto_update_status","auto_update_toggle"})|frozenset({"finishing_begin","finishing_status"})|FINISHING_SESSION_ACTIONS|frozenset({"mechanism_begin","mechanism_status"})|MECHANISM_SESSION_ACTIONS|frozenset({
     "ready", "open_input_check", "hinge_create", "hinge_edit", "hinge_begin", "hinge_status",
     "snap_begin", "snap_status", "pattern_begin", "pattern_status", "pattern_export", "diagnostic_log",
     'fan_begin','fan_status','detail_begin','detail_status','operations_list','operation_edit','operation_delete',
@@ -98,10 +101,11 @@ def read_request(action, raw_data):
     if action.startswith("mechanism_"):settings_type=MechanismSettings;tool_name="mechanism"
     if action.startswith("finishing_"):settings_type=FinishingSettings;tool_name="finishing"
     if action.startswith("thread_"):settings_type=ThreadSettings;tool_name="thread"
-    settings_actions = THREAD_SETTINGS_ACTIONS | FINISHING_SETTINGS_ACTIONS | MECHANISM_SETTINGS_ACTIONS | SESSION_SETTINGS_ACTIONS | SNAP_SESSION_SETTINGS_ACTIONS | PATTERN_SETTINGS_ACTIONS | DETAIL_SETTINGS_ACTIONS | FAN_SETTINGS_ACTIONS
-    session_actions = THREAD_SESSION_ACTIONS | FINISHING_SESSION_ACTIONS | MECHANISM_SESSION_ACTIONS | SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS | DETAIL_SESSION_ACTIONS | FAN_SESSION_ACTIONS
-    begin_actions = {"thread_begin"} | {"finishing_begin"} | {"mechanism_begin"} | {"hinge_begin", "snap_begin", "pattern_begin",'detail_begin','fan_begin'}
-    focus_actions = {"thread_focus"} | {"finishing_focus"} | {"mechanism_focus"} | {"hinge_focus", "snap_focus", "pattern_focus",'detail_focus','fan_focus'}
+    if action.startswith("knurling_"):settings_type=KnurlSettings;tool_name="knurling"
+    settings_actions = KNURLING_SETTINGS_ACTIONS | THREAD_SETTINGS_ACTIONS | FINISHING_SETTINGS_ACTIONS | MECHANISM_SETTINGS_ACTIONS | SESSION_SETTINGS_ACTIONS | SNAP_SESSION_SETTINGS_ACTIONS | PATTERN_SETTINGS_ACTIONS | DETAIL_SETTINGS_ACTIONS | FAN_SETTINGS_ACTIONS
+    session_actions = KNURLING_SESSION_ACTIONS | THREAD_SESSION_ACTIONS | FINISHING_SESSION_ACTIONS | MECHANISM_SESSION_ACTIONS | SESSION_ACTIONS | SNAP_SESSION_ACTIONS | PATTERN_SESSION_ACTIONS | DETAIL_SESSION_ACTIONS | FAN_SESSION_ACTIONS
+    begin_actions = {"knurling_begin","thread_begin"} | {"finishing_begin"} | {"mechanism_begin"} | {"hinge_begin", "snap_begin", "pattern_begin",'detail_begin','fan_begin'}
+    focus_actions = {"knurling_focus","thread_focus"} | {"finishing_focus"} | {"mechanism_focus"} | {"hinge_focus", "snap_focus", "pattern_focus",'detail_focus','fan_focus'}
     expected = {"protocol", "requestId"}
     if action in {"hinge_create"} | begin_actions | settings_actions:
         expected.add("settings")
@@ -134,6 +138,7 @@ def read_request(action, raw_data):
     if action.startswith("mechanism_"):targets={'edit_target','face_a','face_b','axis_edge'}
     if action.startswith("finishing_"):targets={'face','edit_target'}
     if action.startswith("thread_"):targets={"face_a","face_b","edit_target"}
+    if action.startswith("knurling_"):targets={"face_a","edit_target"}
     if action in focus_actions and (not isinstance(target, str) or target not in targets):
         raise ValueError(f"Select a supported {tool_name} geometry target.")
     settings = None

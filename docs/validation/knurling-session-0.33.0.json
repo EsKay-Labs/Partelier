@@ -1,0 +1,48 @@
+{
+  "success": true,
+  "native_registered_commands": true,
+  "programmatic_selection": true,
+  "stages": [
+    {
+      "stage": "setup",
+      "ok": true
+    },
+    {
+      "stage": "bad-preview",
+      "queued": true
+    },
+    {
+      "stage": "recover",
+      "same_reference_recovered": true
+    },
+    {
+      "stage": "cancel",
+      "source_and_visibility_restored": true
+    },
+    {
+      "stage": "begin",
+      "queued": true
+    },
+    {
+      "stage": "commit",
+      "queued": true
+    },
+    {
+      "stage": "verify",
+      "saved_feature": true,
+      "same_source_body": true
+    },
+    {
+      "stage": "edit",
+      "queued": true
+    },
+    {
+      "stage": "cancel",
+      "source_and_visibility_restored": true
+    },
+    {
+      "stage": "finish",
+      "caller_unchanged": true
+    }
+  ]
+}

@@ -17,6 +17,7 @@ from .tools.fans.settings import FanSettings
 from .tools.mechanisms.settings import MechanismSettings
 from .tools.finishing.settings import FinishingSettings
 from .tools.threads.settings import ThreadSettings
+from .tools.knurl.settings import KnurlSettings
 from .diagnostics import emit
 from . import operations
 
@@ -46,10 +47,11 @@ class ToolLibrary:
         self._fan_commands = None
         self._finishing_commands = None
         self._thread_commands = None
+        self._knurling_commands = None
         self._mechanism_commands = None
         self._operation_delete = None
 
-    def start(self, workspace_id, panel_id, input_check_id, report_error, hinge_commands=None, snap_commands=None, pattern_commands=None, detail_commands=None, fan_commands=None, mechanism_commands=None, finishing_commands=None, thread_commands=None):
+    def start(self, workspace_id, panel_id, input_check_id, report_error, hinge_commands=None, snap_commands=None, pattern_commands=None, detail_commands=None, fan_commands=None, mechanism_commands=None, finishing_commands=None, thread_commands=None, knurling_commands=None):
         if self._created_handler is not None:
             return
         self._palette_closed = False
@@ -63,6 +65,8 @@ class ToolLibrary:
         self._detail_commands = detail_commands
         self._fan_commands = fan_commands
         self._finishing_commands = finishing_commands
+        self._knurling_commands = knurling_commands
+        if self._has_palette_manager(knurling_commands):knurling_commands.set_state_callback(lambda state:self._publish_state("knurling_state",state))
         self._thread_commands = thread_commands
         if self._has_palette_manager(thread_commands):thread_commands.set_state_callback(lambda state:self._publish_state("thread_state",state))
         if self._has_palette_manager(finishing_commands):finishing_commands.set_state_callback(lambda state:self._publish_state("finishing_state",state))
@@ -180,7 +184,7 @@ class ToolLibrary:
         errors = []
         automatic=getattr(self,'_automatic_updates',None)
         if automatic:automatic.cancel_palette()
-        for manager in (self._hinge_commands, self._snap_commands, self._pattern_commands, self._detail_commands, self._fan_commands, self._mechanism_commands, self._finishing_commands, self._thread_commands, self._operation_delete):
+        for manager in (self._hinge_commands, self._snap_commands, self._pattern_commands, self._detail_commands, self._fan_commands, self._mechanism_commands, self._finishing_commands, self._thread_commands, self._knurling_commands, self._operation_delete):
             cancel = getattr(manager, 'cancel_palette', None)
             if callable(cancel):
                 try:
@@ -285,14 +289,14 @@ class ToolLibrary:
             design=native_api.Design.cast(adsk.core.Application.get().activeProduct)
             if design is None:raise ValueError('Open a Fusion Design to view its operations.')
             if action!='operations_list':
-                for manager,label in ((self._hinge_commands,'hinge'),(self._snap_commands,'snap-fit'),(self._pattern_commands,'pattern'),(self._detail_commands,'Small detail'),(self._fan_commands,'fan'),(self._mechanism_commands,'mechanism'),(self._finishing_commands,'finishing'),(self._thread_commands,'thread')):
+                for manager,label in ((self._hinge_commands,'hinge'),(self._snap_commands,'snap-fit'),(self._pattern_commands,'pattern'),(self._detail_commands,'Small detail'),(self._fan_commands,'fan'),(self._mechanism_commands,'mechanism'),(self._finishing_commands,'finishing'),(self._thread_commands,'thread'),(self._knurling_commands,'knurling')):
                     self._require_idle_other_tool(manager,label)
                 operations.expand(design)
                 record=operations.resolve(design,request.operation_id)
                 if action=='operation_delete':self._operation_delete.launch(design,request.operation_id)
                 else:
                     from .tools.details.settings import DetailSettings
-                    managers={'thread':(self._thread_commands,ThreadSettings()),'finishing':(self._finishing_commands,FinishingSettings()),'mechanism':(self._mechanism_commands,MechanismSettings()),'fan':(self._fan_commands,FanSettings()),'hinge':(self._hinge_commands,HingeSettings()),'snap':(self._snap_commands,SnapFitSettings()),
+                    managers={'knurling':(self._knurling_commands,KnurlSettings()),'thread':(self._thread_commands,ThreadSettings()),'finishing':(self._finishing_commands,FinishingSettings()),'mechanism':(self._mechanism_commands,MechanismSettings()),'fan':(self._fan_commands,FanSettings()),'hinge':(self._hinge_commands,HingeSettings()),'snap':(self._snap_commands,SnapFitSettings()),
                               'pattern':(self._pattern_commands,PatternSettings()),'detail':(self._detail_commands,DetailSettings(kind=record['alias']) if record['tool']=='detail' else DetailSettings())}
                     manager,defaults=managers[record['tool']]
                     if not self._has_palette_manager(manager):raise ValueError('Run Partelier to edit this operation.')
@@ -307,6 +311,18 @@ class ToolLibrary:
             return json.dumps({'protocol':PROTOCOL_VERSION,'requestId':request.request_id,'ok':True})
         if action.startswith(('hinge_','snap_','pattern_','detail_')) and not action.endswith('_status'):
             self._require_idle_other_tool(self._fan_commands,'fan')
+        knurling_snapshot=None
+        if (action.endswith('_begin') or action in ('hinge_create','hinge_edit')) and not action.startswith('knurling_'):
+            self._require_idle_other_tool(self._knurling_commands,'knurling')
+        if action.startswith('knurling_'):
+            manager=self._knurling_commands
+            if not self._has_palette_manager(manager):raise RuntimeError('Run Partelier to enable Knurling.')
+            if action=='knurling_begin':
+                for other in (self._hinge_commands,self._snap_commands,self._pattern_commands,self._detail_commands,self._fan_commands,self._mechanism_commands,self._finishing_commands,self._thread_commands):
+                    self._require_idle_other_tool(other,'tool')
+                knurling_snapshot=manager.begin_palette(request.settings.to_dict(),editing=request.editing)
+            elif action=='knurling_status':knurling_snapshot=manager.palette_state()
+            else:knurling_snapshot=manager.palette_action(action,request.session_id,revision=request.revision,settings_dict=request.settings.to_dict() if request.settings else None,target=request.target)
         thread_snapshot=None
         if (action.endswith('_begin') or action in ('hinge_create','hinge_edit')) and not action.startswith('thread_'):
             self._require_idle_other_tool(self._thread_commands,'thread')
@@ -436,6 +452,9 @@ class ToolLibrary:
             else:
                 self._hinge_commands.launch_edit()
         capabilities = ["input-check"]
+        if self._has_palette_manager(self._knurling_commands):
+            capabilities.extend(["knurling-palette","knurling-edit"])
+            if knurling_snapshot is None:knurling_snapshot=self._knurling_commands.palette_state()
         if self._has_palette_manager(self._thread_commands):
             capabilities.extend(["thread-palette","thread-edit"])
             if thread_snapshot is None:thread_snapshot=self._thread_commands.palette_state()
@@ -476,6 +495,7 @@ class ToolLibrary:
             "operationPending":bool(self._operation_delete and self._operation_delete.busy),
             'mechanismDefaults':MechanismSettings().to_dict(),'mechanismState':mechanism_snapshot,
             'threadDefaults':ThreadSettings().to_dict(),'threadState':thread_snapshot,
+            'knurlingDefaults':KnurlSettings().to_dict(),'knurlingState':knurling_snapshot,
             'finishingDefaults':FinishingSettings().to_dict(),'finishingState':finishing_snapshot,
             "hingeDefaults": HingeSettings().to_dict(),
             "hingeState": snapshot,
@@ -512,6 +532,7 @@ class ToolLibrary:
         if self._has_palette_manager(self._mechanism_commands):attempt(lambda:self._mechanism_commands.set_state_callback(None))
         if self._has_palette_manager(self._finishing_commands):attempt(lambda:self._finishing_commands.set_state_callback(None))
         if self._has_palette_manager(self._thread_commands):attempt(lambda:self._thread_commands.set_state_callback(None))
+        if self._has_palette_manager(self._knurling_commands):attempt(lambda:self._knurling_commands.set_state_callback(None))
         if self._operation_delete is not None:attempt(self._operation_delete.stop)
         self._operation_delete=None
         attempt(self._release_palette)
@@ -532,6 +553,7 @@ class ToolLibrary:
         self._fan_commands = None
         self._finishing_commands = None
         self._thread_commands = None
+        self._knurling_commands = None
         self._mechanism_commands = None
         for error in errors:
             adsk.core.Application.get().log(f"Partelier UI cleanup failed:\n{error}")

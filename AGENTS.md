@@ -1,5 +1,24 @@
 # Partelier repository guidance
 
+## Knob knurling: 0.33.0
+
+`tools/knurl` owns strict six-field settings and recipe1, alias `knurling`,
+separate from legacy pattern alias `knurl`. Ten cut-only external-cylinder
+reliefs use a bounded periodic faceted envelope, <=2500 native faces, cached
+opaque lit mesh preview and the original source body with owned BaseFeature/Cut.
+Print-axis assumption is the cylinder axis: both axial directions of every
+side facet must stay <=45 degrees. This does not validate the rest of the model.
+Aligned diamond crease samples and adaptive diagonals preserve sharp motifs;
+merge only truly coplanar quads. The0.04mm bound is nominal circumscription excess,
+not total waveform approximation. Do not market analytic/smooth helical flanks.
+
+Selection must retain valid cylinders even with invalid dimensions; defer density
+refusals to preview so UI edits can recover without repicking. Require depth+0.8mm
+continuous source wall; refuse other material in the0.1mm outer carrier annulus.
+Never allow this carrier to cut geometry outside the selected cylinder. Native
+fixtures are single disposable cases; see docs/knob-knurling.md and validation.
+
+
 ## Distribution and quiet startup: 0.32.0
 
 The manifest registers at startup, but addin.start must never call library.show,

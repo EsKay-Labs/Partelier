@@ -1,0 +1,444 @@
+{
+  "version": "0.33.0",
+  "native_cases": [
+    {
+      "success": true,
+      "style": "diamond",
+      "pitch_mm": 6,
+      "radius_mm": 15,
+      "height_mm": 20,
+      "image": "C:/Users/SKTech/Desktop/Programming_Projects/Apps/Fusion360/Partelier/output/knurl/diamond-native.png",
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "settings": {
+        "style": "diamond",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 1.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0
+      },
+      "prepare_ms": 491.9313999998849,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 466.49380002054386,
+        "repeats": 16,
+        "effective_pitch_mm": 5.890486225480862,
+        "max_overhang_deg": 38.65980825409032,
+        "planned_faces": 1346
+      },
+      "triangles": 2520,
+      "create_ms": 1569.8694000020623,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "style": "straight",
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "settings": {
+        "style": "straight",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 1.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0
+      },
+      "prepare_ms": 107.90790000464767,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 103.1455000047572,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 38.65980825409006,
+        "planned_faces": 226
+      },
+      "triangles": 1024,
+      "create_ms": 218.3921000105329,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "style": "helical",
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "settings": {
+        "style": "helical",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 1.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0
+      },
+      "prepare_ms": 168.76969998702407,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 160.02110001863912,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 38.65980825409014,
+        "planned_faces": 386
+      },
+      "triangles": 1360,
+      "create_ms": 320.1074999815319,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "style": "chevron",
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "settings": {
+        "style": "chevron",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 1.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0
+      },
+      "prepare_ms": 183.5817999963183,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 174.7107999981381,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 38.65980825409008,
+        "planned_faces": 450
+      },
+      "triangles": 1408,
+      "create_ms": 386.37849999940954,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "style": "waves",
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "settings": {
+        "style": "waves",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 1.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0
+      },
+      "prepare_ms": 150.44199998374097,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 143.88220000546426,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 34.69487358690285,
+        "planned_faces": 450
+      },
+      "triangles": 1216,
+      "create_ms": 333.29730000696145,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "style": "flutes",
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "settings": {
+        "style": "flutes",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 1.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0
+      },
+      "prepare_ms": 216.68400001362897,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 207.48020001337864,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 38.659808254090095,
+        "planned_faces": 450
+      },
+      "triangles": 1408,
+      "create_ms": 425.1310999970883,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "style": "scallops",
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "settings": {
+        "style": "scallops",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 1.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0
+      },
+      "prepare_ms": 209.34050000505522,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 199.75780000095256,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 38.659808254090095,
+        "planned_faces": 450
+      },
+      "triangles": 1280,
+      "create_ms": 425.46430000220425,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "style": "dimples",
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "settings": {
+        "style": "dimples",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 1.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0
+      },
+      "prepare_ms": 175.38810000405647,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 167.63759998138994,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 18.926277616597417,
+        "planned_faces": 434
+      },
+      "triangles": 1984,
+      "create_ms": 470.5501999997068,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "style": "pyramids",
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "settings": {
+        "style": "pyramids",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 1.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0
+      },
+      "prepare_ms": 146.5046999801416,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 140.397999988636,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 38.65980825409006,
+        "planned_faces": 386
+      },
+      "triangles": 1216,
+      "create_ms": 323.84019999881275,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "style": "rings",
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "settings": {
+        "style": "rings",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 1.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0
+      },
+      "prepare_ms": 161.85840000980534,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 156.06030001072213,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 14.740378950747479,
+        "planned_faces": 258
+      },
+      "triangles": 1344,
+      "create_ms": 251.46880000829697,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "style": "diamond",
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": 6,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "settings": {
+        "style": "diamond",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 1.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0
+      },
+      "prepare_ms": 159.87929998664185,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 153.55750001617707,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 38.65980825409014,
+        "planned_faces": 386
+      },
+      "triangles": 1460,
+      "create_ms": 339.38919997308403,
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "style": "diamond",
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": 7.5,
+      "expect_refusal": true,
+      "nearby_material": false,
+      "checks": {
+        "thin_wall_refused_without_mutation": true
+      },
+      "message": "This texture needs its depth plus 0.8 mm of continuous wall. Reduce Depth or thicken the knob.",
+      "caller_restored": true
+    },
+    {
+      "success": true,
+      "style": "diamond",
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": true,
+      "nearby_material": true,
+      "checks": {
+        "nearby_material_refused_without_mutation": true
+      },
+      "message": "Other knob geometry lies immediately outside this cylinder. Choose an isolated cylindrical grip face.",
+      "caller_restored": true
+    }
+  ],
+  "limits": [
+    "Faceted relief; not analytic curved flanks",
+    "Only complete root external cylinders with history",
+    "Upright cylinder print assumption; no physical print validation",
+    "No real pointer/CEF selection acceptance claimed"
+  ],
+  "local_checks": {
+    "python_tests_passed": 1243,
+    "node_ui_suites_passed": 8,
+    "compileall": true,
+    "diff_check": true
+  }
+}

@@ -210,8 +210,8 @@ class PaletteLifecycleTests(unittest.TestCase):
         self.assertIsNone(self.library._palette)
 
     def test_close_cancels_every_tool_and_reopen_rejects_old_page_requests(self):
-        managers=[SimpleNamespace(cancel_palette=Mock()) for _ in range(8)]
-        self.library._hinge_commands,self.library._snap_commands,self.library._pattern_commands,self.library._detail_commands,self.library._fan_commands,self.library._mechanism_commands,self.library._finishing_commands,self.library._thread_commands=managers
+        managers=[SimpleNamespace(cancel_palette=Mock()) for _ in range(9)]
+        self.library._hinge_commands,self.library._snap_commands,self.library._pattern_commands,self.library._detail_commands,self.library._fan_commands,self.library._mechanism_commands,self.library._finishing_commands,self.library._thread_commands,self.library._knurling_commands=managers
         self.library.show();old=self.library._palette;old_html=self.library._html_handler;closed=self.library._close_handler
         self.assertEqual(len(old.closed.handlers),1)
         closed.notify(None)
@@ -636,7 +636,8 @@ class PaletteLifecycleTests(unittest.TestCase):
         from Partelier.partelier.tools.mechanisms.settings import MechanismSettings
         from Partelier.partelier.tools.finishing.settings import FinishingSettings
         from Partelier.partelier.tools.threads.settings import ThreadSettings
-        for tool,settings in (('mechanism',MechanismSettings()),('finishing',FinishingSettings()),('thread',ThreadSettings())):
+        from Partelier.partelier.tools.knurl.settings import KnurlSettings
+        for tool,settings in (('mechanism',MechanismSettings()),('finishing',FinishingSettings()),('thread',ThreadSettings()),('knurling',KnurlSettings())):
             with self.subTest(tool=tool):
                 manager=self.new_tool_manager(tool)
                 reply=json.loads(self.library.handle_message(tool+'_status',self.request))
@@ -650,9 +651,9 @@ class PaletteLifecycleTests(unittest.TestCase):
 
     def test_new_tools_cannot_begin_while_another_owner_is_active(self):
         payload=json.dumps({'protocol':1,'requestId':'blocked','settings':{},'editing':False})
-        for opening in ('mechanism','finishing','thread'):
+        for opening in ('mechanism','finishing','thread','knurling'):
             manager=self.new_tool_manager(opening)
-            for owner in ('hinge','snap','pattern','detail','fan','mechanism','finishing','thread'):
+            for owner in ('hinge','snap','pattern','detail','fan','mechanism','finishing','thread','knurling'):
                 if owner==opening:continue
                 with self.subTest(opening=opening,owner=owner):
                     other=self.new_tool_manager(owner,{'sessionId':'active','phase':'preview','revision':2,'settings':None})
@@ -662,7 +663,7 @@ class PaletteLifecycleTests(unittest.TestCase):
 
     def test_existing_tools_cannot_begin_while_a_new_owner_is_active(self):
         payload=json.dumps({'protocol':1,'requestId':'blocked','settings':{},'editing':False})
-        for owner in ('mechanism','finishing','thread'):
+        for owner in ('mechanism','finishing','thread','knurling'):
             other=self.new_tool_manager(owner,{'sessionId':'active','phase':'preview','revision':1,'settings':None})
             for opening in ('hinge','snap','pattern','detail','fan'):
                 with self.subTest(owner=owner,opening=opening):
@@ -674,7 +675,7 @@ class PaletteLifecycleTests(unittest.TestCase):
     def test_new_tool_cancel_remains_available_during_recoverable_conflicting_state(self):
         import uuid
         identity=str(uuid.uuid4())
-        for opening,owner in (('mechanism','finishing'),('finishing','mechanism'),('hinge','mechanism'),('fan','finishing'),('thread','fan'),('fan','thread')):
+        for opening,owner in (('mechanism','finishing'),('finishing','mechanism'),('hinge','mechanism'),('fan','finishing'),('thread','fan'),('fan','thread'),('knurling','fan'),('fan','knurling')):
             with self.subTest(opening=opening,owner=owner):
                 active={'sessionId':identity,'phase':'preview','revision':0,'settings':None}
                 manager=self.new_tool_manager(opening,active);other=self.new_tool_manager(owner,active)
@@ -712,7 +713,7 @@ class PaletteLifecycleTests(unittest.TestCase):
         design=object();fake_native=SimpleNamespace(Design=SimpleNamespace(cast=lambda value:design))
         fake_adsk=ModuleType('adsk');fake_adsk.core=self.module.adsk.core;fake_adsk.fusion=fake_native
         self.module.adsk.core.Application.get().activeProduct=design
-        for tool,alias in (('detail','lid'),('finishing','finishing'),('mechanism','mechanism'),('fan','fan'),('thread','thread')):
+        for tool,alias in (('detail','lid'),('finishing','finishing'),('mechanism','mechanism'),('fan','fan'),('thread','thread'),('knurling','knurling')):
             setattr(self.library,'_'+tool+'_commands',manager)
             record={'id':identity,'tool':tool,'alias':alias,'anchor':anchor}
             with patch.dict('sys.modules',{'adsk':fake_adsk,'adsk.fusion':fake_native}),patch.object(self.module.operations,'resolve',return_value=record),patch.object(self.module.operations,'snapshot',return_value=[]),patch.object(self.module.operations,'expand'):

@@ -18,6 +18,7 @@ from .tools.fans.command import FanCommands
 from .tools.mechanisms.command import MechanismCommands
 from .tools.finishing.command import FinishingCommands
 from .tools.threads.command import ThreadCommands
+from .tools.knurl.command import KnurlCommands
 from . import diagnostics
 from .auto_refresh import AutomaticUpdates
 
@@ -39,6 +40,7 @@ _detail_commands = None
 _fan_commands = None
 _finishing_commands = None
 _thread_commands = None
+_knurling_commands = None
 _mechanism_commands = None
 
 
@@ -70,7 +72,7 @@ def report_error(summary):
 
 def start():
     """Register owned commands quietly; the user opens the library from Add-Ins."""
-    global _created_handler, _hinge_commands, _snap_commands, _pattern_commands, _detail_commands, _fan_commands, _finishing_commands, _mechanism_commands, _thread_commands
+    global _created_handler, _hinge_commands, _snap_commands, _pattern_commands, _detail_commands, _fan_commands, _finishing_commands, _mechanism_commands, _thread_commands, _knurling_commands
     version=json.loads((Path(__file__).resolve().parent.parent/'Partelier.manifest').read_text(encoding='utf-8'))['version']
     diagnostics.start(version)
     if _created_handler is not None:
@@ -108,9 +110,11 @@ def start():
         _finishing_commands.start()
         _thread_commands=ThreadCommands(report_error=report_error)
         _thread_commands.start()
+        _knurling_commands=KnurlCommands(report_error=report_error)
+        _knurling_commands.start()
         _tool_library.start(
             WORKSPACE_ID, PANEL_ID, COMMAND_ID, report_error,
-            hinge_commands=_hinge_commands, snap_commands=_snap_commands, pattern_commands=_pattern_commands, detail_commands=_detail_commands, fan_commands=_fan_commands, finishing_commands=_finishing_commands, mechanism_commands=_mechanism_commands, thread_commands=_thread_commands,
+            hinge_commands=_hinge_commands, snap_commands=_snap_commands, pattern_commands=_pattern_commands, detail_commands=_detail_commands, fan_commands=_fan_commands, finishing_commands=_finishing_commands, mechanism_commands=_mechanism_commands, thread_commands=_thread_commands, knurling_commands=_knurling_commands,
         )
         _automatic_updates.start()
         diagnostics.emit('addin.ready',version=version,loaded_addin=__file__)
@@ -121,7 +125,7 @@ def start():
 
 def stop():
     """Remove only this add-in's command, controls, and retained handlers."""
-    global _created_handler, _hinge_commands, _snap_commands, _pattern_commands, _detail_commands, _fan_commands, _finishing_commands, _mechanism_commands, _thread_commands
+    global _created_handler, _hinge_commands, _snap_commands, _pattern_commands, _detail_commands, _fan_commands, _finishing_commands, _mechanism_commands, _thread_commands, _knurling_commands
     diagnostics.emit('addin.stop.begin')
     app = adsk.core.Application.get()
     ui = app.userInterface
@@ -150,6 +154,7 @@ def stop():
         if _mechanism_commands is not None:attempt(_mechanism_commands.stop)
         if _finishing_commands is not None:attempt(_finishing_commands.stop)
         if _thread_commands is not None:attempt(_thread_commands.stop)
+        if _knurling_commands is not None:attempt(_knurling_commands.stop)
         workspace = attempt(lambda: ui.workspaces.itemById(WORKSPACE_ID))
         panel = attempt(lambda: workspace.toolbarPanels.itemById(PANEL_ID)) if workspace else None
         control = attempt(lambda: panel.controls.itemById(COMMAND_ID)) if panel else None
@@ -170,6 +175,7 @@ def stop():
         _mechanism_commands = None
         _finishing_commands = None
         _thread_commands = None
+        _knurling_commands = None
         _sessions.clear()
     for error in errors:
         app.log(f"Partelier shutdown cleanup failed:\n{error}")
