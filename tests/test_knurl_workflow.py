@@ -12,7 +12,7 @@ from Partelier.partelier.tools.knurl import store
 
 
 def recipe():
-    return {'version':2,'id':str(uuid.uuid4()),'settings':KnurlSettings().to_dict(),'operations':['cut'],
+    return {'version':3,'id':str(uuid.uuid4()),'settings':KnurlSettings().to_dict(),'operations':['cut'],
             'sources':{'faces':['face'],'bodies':['body']},'base':'base',
             'combines':['combine'],'tools':['tool'],
             'tool_signatures':['a'*64],'results':['b'*64]}
@@ -56,7 +56,7 @@ class KnurlWorkflowTests(unittest.TestCase):
 
     def test_default_full_coverage_and_independent_finish_controls(self):
         defaults=KnurlSettings()
-        self.assertEqual(len(defaults.to_dict()),11)
+        self.assertEqual(len(defaults.to_dict()),12)
         self.assertEqual(defaults.border_mm,0)
         self.assertEqual(defaults.mode,'engrave')
         self.assertEqual((defaults.bottom_finish,defaults.top_finish),('none','none'))
@@ -84,6 +84,13 @@ class KnurlWorkflowTests(unittest.TestCase):
         with self.assertRaises(ValueError):KnurlSettings.from_dict(value['settings'])
         self.assertEqual(store._operations(parsed),('cut',))
 
+    def test_recipe2_reads_zero_grip_fillet_without_mutation(self):
+        value=recipe();value['version']=2;value['settings'].pop('grip_fillet_mm')
+        parsed,settings=store._parse(json.dumps(value))
+        self.assertEqual(parsed,value);self.assertEqual(settings.grip_fillet_mm,0)
+        value['settings']['grip_fillet_mm']=.15
+        with self.assertRaises(ValueError):store._parse(json.dumps(value))
+
     def test_two_operations_share_exactly_one_source_and_result(self):
         for ops in (['cut','join'],['join','cut']):
             value=recipe();value['settings']['mode']='emboss';value['operations']=ops
@@ -101,7 +108,7 @@ class KnurlWorkflowTests(unittest.TestCase):
             with self.subTest(operations=invalid),self.assertRaises(ValueError):store._parse(json.dumps(value))
 
     def test_rejects_damaged_ownership_and_unsupported_schema(self):
-        for patch in ({'version':True},{'version':3},{'extra':True},{'base':''},
+        for patch in ({'version':True},{'version':4},{'extra':True},{'base':''},
                       {'id':'invalid'},{'results':['x'*64]},{'tools':[None]}):
             value=recipe();value.update(patch)
             with self.subTest(patch=patch),self.assertRaises(ValueError):

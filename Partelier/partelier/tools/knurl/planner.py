@@ -36,6 +36,8 @@ def _plan(s, radius, height):
     root = outer - s.depth_mm
     if root < 1.2:raise ValueError('Reduce Depth: retain at least a 1.2 mm core radius.')
     repeats = max(3, round(2*math.pi*outer/s.pitch_mm))
+    if s.style=='diamond' and s.grip_fillet_mm:
+        repeats=max(4,2*round(repeats/2))
     if repeats > MAX_REPEATS:
         raise ValueError('This grip is too dense. Increase Spacing (maximum 64 repeats).')
     pitch = 2*math.pi*outer/repeats

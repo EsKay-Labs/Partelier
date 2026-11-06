@@ -8,14 +8,21 @@ from Partelier.partelier.tools.knurl import planner
 
 
 class KnurlPlanTests(unittest.TestCase):
+    def test_rounded_diamond_uses_paired_repeats_and_preserves_requested_radius(self):
+        settings=KnurlSettings(mode='emboss',grip_fillet_mm=.15)
+        plan=planner.plan(settings,8,8)
+        self.assertEqual(plan.repeats%2,0)
+        self.assertAlmostEqual(plan.repeats*plan.effective_pitch_mm,2*math.pi*8.6)
+        self.assertEqual(settings.grip_fillet_mm,.15)
+
     def test_exact_typed_settings_and_full_height_defaults(self):
         settings=KnurlSettings()
         self.assertEqual((settings.style,settings.pitch_mm,settings.depth_mm,settings.border_mm),('diamond',6.,.6,0.))
         self.assertEqual((settings.mode,settings.top_finish,settings.bottom_finish),('engrave','none','none'))
-        self.assertEqual(len(settings.to_dict()),11)
+        self.assertEqual(len(settings.to_dict()),12)
         self.assertEqual(KnurlSettings.from_dict(settings.to_dict()),settings)
         for values in ({'depth_mm':True},{'angle_deg':float('nan')},{'pitch_mm':float('inf')},
-                       {'border_mm':10**1000},{'style':'unknown'},{'mode':'add'},
+                       {'border_mm':10**1000},{'grip_fillet_mm':-1},{'grip_fillet_mm':True},{'grip_fillet_mm':2.1},{'style':'unknown'},{'mode':'add'},
                        {'bottom_finish':'chamferish'},{'top_size_mm':0}):
             with self.subTest(values=values),self.assertRaises(ValueError):replace(settings,**values)
         for key in settings.to_dict():

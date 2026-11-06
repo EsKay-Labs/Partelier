@@ -1,7 +1,7 @@
 """Temporary cylinder grip cuts, preserving the selected source body."""
 from dataclasses import dataclass, replace
 import time
-from . import geometry, planner, finishes
+from . import geometry, planner, finishes, grip_finish
 from ..threads.fusion import cylinder, _transform
 from ..hinge import fusion as h
 from ..patterns import fusion as a, display_export
@@ -96,7 +96,19 @@ def prepare(design, faces, settings):
                 raise ValueError('Full-height raised grip must start at the knob base for upright printing. Use End borders or a bottom chamfer at least as large as the outward depth.')
     prefinished = settings.mode=='emboss' and not settings.border_mm and (settings.top_finish=='fillet' or settings.bottom_finish=='fillet')
     seed = finishes.apply(f._cylinder(manager,core,outer,0,height),settings,radius,height) if prefinished else None
-    retained = geometry.build(settings, radius, height, seed=seed)
+    if settings.grip_fillet_mm and settings.style=='diamond':
+        # Round beyond the final end planes, then crop. Crossed helix edges
+        # meeting an end cap create unstable zero-length fillet corners in ASM.
+        margin=outer
+        retained=geometry.build(settings,radius,height+2*margin)
+        retained=grip_finish.apply(design,retained,settings.grip_fillet_mm,height+2*margin,outer)
+        translation=core.Matrix3D.create();translation.translation=core.Vector3D.create(0,0,-margin/10)
+        if not manager.transform(retained,translation):raise ValueError('Could not position the rounded grip.')
+        a._boolean(manager,retained,f._cylinder(manager,core,outer+.01,0,height),native.BooleanTypes.IntersectionBooleanType,'Could not trim the rounded grip.')
+        if seed is not None:a._boolean(manager,retained,seed,native.BooleanTypes.IntersectionBooleanType,'Could not finish the rounded grip ends.')
+    else:
+        retained = geometry.build(settings, radius, height, seed=seed)
+        retained = grip_finish.apply(design, retained, settings.grip_fillet_mm, height, outer)
     if not prefinished:
         retained = finishes.apply(retained, replace(settings,top_finish='none',bottom_finish='none') if settings.mode=='emboss' else settings, radius, height)
     # A connected carrier lies outside the selected cylinder. Refuse any nearby

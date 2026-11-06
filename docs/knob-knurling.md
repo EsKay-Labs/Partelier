@@ -34,6 +34,25 @@ original body, preserving a sufficiently thick shaft bore. They do not create a
 duplicate knob. Existing 0.33 features keep their old geometry until explicitly
 rebuilt through **Saved → Edit → Rebuild**; opening them does not migrate the model.
 
+## Grip crest fillets
+
+Version 0.35 adds **Grip crest fillet (mm)** beside the texture dimensions for all
+ten styles. This rounds the exposed sharp ridges, including the crests between
+helical grooves. It is separate from Top/Bottom edge and works with inward or
+outward relief. Start at0.1–0.2mm; zero (default) retains the original sharp grip.
+Concave groove roots and the cylinder end rims are excluded. The illustrated
+parameter help explains the scope. Native fillet failures request a different
+radius/spacing instead of silently leaving some selected edges sharp.
+
+Diamond uses paired repeats and rounds beyond the final end planes before
+cropping the solid. Actual spacing can therefore differ from the unrounded motif.
+Filleting has additional native compute cost, bounded to256 selected edges;
+preview remains cached during orbit. Native sampled slope tests cover ten inward
+styles at0.15mm and a raised Helical with independent top/bottom fillets.
+
+Recipe3 stores twelve fields. Recipes1/2 read with grip fillet0 and keep their
+existing geometry until explicit Rebuild. Physical print acceptance is pending.
+
 ## Edge shape and printing orientation
 
 Print **bottom-down with the cylinder axis upright**. Top and bottom refer to
@@ -75,7 +94,7 @@ is deliberately conservative for knobs with connected geometry beyond the face.
 
 ## Runtime and validation
 
-Strict eleven-field settings and recipe2 belong to `tools/knurl`, alias
+Strict twelve-field settings and recipe3 belong to `tools/knurl`, alias
 `knurling`. Recipe1 reads with inward mode and no finishes while retaining its
 saved borders. The owned operation graph can be Cut, Join, Cut+Join or Join+Cut.
 Graph changes rebuild only the exact owned suffix and keep the source identity.

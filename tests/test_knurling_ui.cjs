@@ -123,9 +123,9 @@ function fixture(config={}){
  assert.equal(artworks.size,10);assert.equal(f.requests.length,0,'Help before selection never computes native geometry');
  await f.input('style','rings');assert.equal(f.$('knurling-phase_deg').parentElement.hidden,true);
  await f.input('style','straight');assert.equal(f.$('knurling-phase_deg').parentElement.hidden,false);assert.equal(f.$('knurling-angle_deg').parentElement.hidden,true);
- await f.input('style','helical');assert.equal(f.$('knurling-angle_deg').parentElement.hidden,false);
+ await f.input('grip_fillet_mm',.15);await f.input('style','helical');assert.equal(f.$('knurling-angle_deg').parentElement.hidden,false);
  await f.click('knurling-new');await f.settle();assert.equal(f.$('knurling-create').disabled,false);assert.equal(f.$('tool-select').disabled,true);
- const preview=f.requests.find(r=>r.action==='knurling_preview');assert.equal(Object.keys(preview.settings).length,11);assert.equal(preview.settings.depth_mm,.6);assert.equal(preview.settings.border_mm,0);assert.equal(preview.settings.top_finish,'chamfer');assert.equal(preview.settings.top_size_mm,1.2);assert.equal(preview.settings.bottom_finish,'fillet');assert.equal(preview.settings.bottom_size_mm,.8);assert(!Object.hasOwn(preview.settings,'coverage'));
+ const preview=f.requests.find(r=>r.action==='knurling_preview');assert.equal(Object.keys(preview.settings).length,12);assert.equal(preview.settings.depth_mm,.6);assert.equal(preview.settings.border_mm,0);assert.equal(preview.settings.grip_fillet_mm,.15);assert.equal(preview.settings.top_finish,'chamfer');assert.equal(preview.settings.top_size_mm,1.2);assert.equal(preview.settings.bottom_finish,'fillet');assert.equal(preview.settings.bottom_size_mm,.8);assert(!Object.hasOwn(preview.settings,'coverage'));
  await f.input('mode','emboss');await f.settle();assert.equal(f.host().settings.mode,'emboss');assert.equal(f.host().settings.top_finish,'chamfer');
  await f.input('depth_mm',.8);await f.settle();const latest=f.host();assert.equal(latest.settings.depth_mm,.8);
  f.push({...latest,revision:latest.revision-1,settings:{...latest.settings,depth_mm:.3}});assert.equal(f.$('knurling-depth_mm').value,'0.8');
@@ -136,5 +136,5 @@ function fixture(config={}){
  const g=fixture();await g.click('knurling-new');const partial={...g.host(),revision:1,phase:'selecting',pickingTarget:'face_a',selections:{surface:{selected:false},face_a:{selected:false}},previewCurrent:false};g.push(partial);await g.settle();assert.equal(g.requests.filter(r=>r.action==='knurling_preview').length,0);
  g.push({...partial,revision:2,phase:'ready',pickingTarget:null,selections:{surface:{selected:true},face_a:{selected:true}}});await g.settle();assert.equal(g.requests.filter(r=>r.action==='knurling_preview').length,1);
  await g.reset();assert.equal(g.requests.at(-1).action,'knurling_reset');
- console.log('Knurling UI: ten illustrated styles, eleven typed settings, inward/outward relief, full coverage/borders, independent edge finishes, no help computation, gated live preview, stale-state protection, Cancel/Create and Esc reset passed.');
+ console.log('Knurling UI: ten illustrated styles, twelve typed settings, inward/outward relief, full coverage/borders, independent edge finishes, no help computation, gated live preview, stale-state protection, Cancel/Create and Esc reset passed.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,5 +1,16 @@
 # Partelier repository guidance
 
+## Grip crest fillets: 0.35.0
+
+KnurlSettings has12 fields, adding grip_fillet_mm (0 off, up to2mm). Recipe3
+writes it; exact recipe1/2 remain read-only with zero grip fillet. Fillet only
+sharp exposed crest edges at the outer radius, excluding end rims and concave
+groove roots. One bounded native fillet in a disposable BaseFeature returns a
+temporary BRep; always delete scratch history on success/failure. Diamond uses
+an extended axial envelope before cropping and paired circumference repeats to
+avoid collapsed native fillet corners. Never silently reduce the requested radius.
+See docs/knob-knurling.md and validation/grip-fillets-0.35.0.json.
+
 ## Cancellation: 0.34.2
 
 All nine tool controllers share ui/cancellation.js. Cancel bypasses the ordinary

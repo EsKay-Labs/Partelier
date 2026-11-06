@@ -1,11 +1,12 @@
 "use strict";
 window.PartelierKnurlingData={
- defaults:{style:"diamond",pitch_mm:6,depth_mm:.6,border_mm:0,angle_deg:30,phase_deg:0,mode:"engrave",top_finish:"none",bottom_finish:"none",top_size_mm:.6,bottom_size_mm:.6},
+ defaults:{grip_fillet_mm:0,style:"diamond",pitch_mm:6,depth_mm:.6,border_mm:0,angle_deg:30,phase_deg:0,mode:"engrave",top_finish:"none",bottom_finish:"none",top_size_mm:.6,bottom_size_mm:.6},
  styles:[["diamond","Diamond"],["straight","Straight V grooves"],["helical","Helical"],["chevron","Chevron"],["waves","Waves"],["flutes","Rounded flutes"],["scallops","Scallops"],["dimples","Dimples"],["pyramids","Pyramids"],["rings","Rings"]],
- labels:{mode:"Relief direction",top_finish:"Top edge",bottom_finish:"Bottom edge",top_size_mm:"Top size (mm)",bottom_size_mm:"Bottom size (mm)",style:"Grip style",pitch_mm:"Target spacing (mm)",depth_mm:"Cut depth (mm)",border_mm:"End borders (mm)",angle_deg:"Pattern angle (°)",phase_deg:"Rotate around knob (°)"},
- bounds:{top_size_mm:[.1,10],bottom_size_mm:[.1,10],pitch_mm:[2,30],depth_mm:[.1,3],border_mm:[0,20],angle_deg:[0,45],phase_deg:[-360,360]},
- groups:{basic:["style","mode","pitch_mm","depth_mm"],advanced:["border_mm","angle_deg","phase_deg"],edges:["top_finish","top_size_mm","bottom_finish","bottom_size_mm"]},
+ labels:{grip_fillet_mm:"Grip crest fillet (mm)",mode:"Relief direction",top_finish:"Top edge",bottom_finish:"Bottom edge",top_size_mm:"Top size (mm)",bottom_size_mm:"Bottom size (mm)",style:"Grip style",pitch_mm:"Target spacing (mm)",depth_mm:"Cut depth (mm)",border_mm:"End borders (mm)",angle_deg:"Pattern angle (°)",phase_deg:"Rotate around knob (°)"},
+ bounds:{grip_fillet_mm:[0,2],top_size_mm:[.1,10],bottom_size_mm:[.1,10],pitch_mm:[2,30],depth_mm:[.1,3],border_mm:[0,20],angle_deg:[0,45],phase_deg:[-360,360]},
+ groups:{basic:["style","mode","pitch_mm","depth_mm","grip_fillet_mm"],advanced:["border_mm","angle_deg","phase_deg"],edges:["top_finish","top_size_mm","bottom_finish","bottom_size_mm"]},
  help:{
+  grip_fillet_mm:"Rounds the sharp exposed crests of the grip itself, including the edges between helical grooves. Independent of the top and bottom finishes. Zero keeps sharp edges. Start with 0.1–0.2 mm; a radius that cannot fit the pattern is refused. Groove roots and the original cylinder end rims are excluded.",
   mode:"Cut inward removes material inside the original cylinder. Raised outward adds material beyond it and increases the outside diameter by up to twice the relief height. Both modes keep the same source body. Check clearance to surrounding parts.",
   top_finish:"Finish the top outer edge independently: None keeps the generated edge, Chamfer makes a straight bevel, and Fillet rounds it. Size controls the chamfer distance or fillet radius. The preview must fit the available material.",
   bottom_finish:"Finish the bottom outer edge independently. Chamfer uses an equal rise and run. Fillet uses a true circular arc that starts at 45° and turns into the vertical side, rather than a full quarter-round with an unsupported shallow underside. Size is the arc radius, so its visible height is smaller than that radius. Print with the cylinder axis upright.",

@@ -5,7 +5,11 @@ on existing 3D-print designs: hinges, snap-fits, sliding guides, connections and
 surface patterns and later reinforcement tools. **Partelier is the approved product name**,
 combining part and atelier: a workshop for the details that complete a design.
 
-**Current release: 0.34.2 — Responsive Cancel across all tools.**
+**Current release: 0.35.0 — Grip crest fillets for knob knurling.**
+
+Knurling adds a separate Grip crest fillet radius for all ten styles, independent
+of Top/Bottom edge finishes. Zero preserves the sharp motif; start at0.1–0.2mm
+for softer exposed ridges.
 
 Cancel can interrupt selection without closing the palette. Queued work and late
 responses no longer keep the UI locked; native cancellation confirmation also
@@ -19,7 +23,7 @@ Cached opaque previews and same-body Saved Edit/Delete remain available. See [Kn
 ## Install on Windows
 
 1. Save your work and close Autodesk Fusion.
-2. Download `Partelier-0.34.2-Windows-Setup.exe` from [Releases](https://github.com/EsKay-Labs/Partelier/releases/latest) and run it. Administrator rights are not required.
+2. Download `Partelier-0.35.0-Windows-Setup.exe` from [Releases](https://github.com/EsKay-Labs/Partelier/releases/latest) and run it. Administrator rights are not required.
 3. Open Fusion. In the Design workspace, open **Utilities → Add-Ins → Partelier**.
 
 Partelier registers its icon at startup but opens its UI only when you click it.
