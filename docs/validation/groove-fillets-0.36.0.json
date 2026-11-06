@@ -1,0 +1,804 @@
+{
+  "version": "0.36.0",
+  "native_cases": {
+    "groove-helical": {
+      "success": true,
+      "case": "groove-helical",
+      "style": "helical",
+      "sample_overhang": true,
+      "settings": {
+        "style": "helical",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 0.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0,
+        "mode": "engrave",
+        "bottom_finish": "none",
+        "top_finish": "none",
+        "bottom_size_mm": 0.6,
+        "top_size_mm": 0.6,
+        "grip_fillet_mm": 0.0,
+        "groove_fillet_mm": 0.15
+      },
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "rebuilds": null,
+      "prepare_ms": 334.1009000141639,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 331.77530000102706,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 12.436465303643347,
+        "motif_overhang_bound_deg": 12.436465303643347,
+        "planned_cutters": 8
+      },
+      "native_faces": 34,
+      "surface_types": [
+        "adsk::core::Cylinder",
+        "adsk::core::NurbsSurface",
+        "adsk::core::Plane"
+      ],
+      "sampled_overhang_degrees": 11.640448950469834,
+      "normal_samples": 1904,
+      "triangles": 2076,
+      "create_ms": 240.73930000304244,
+      "operations": [
+        "cut"
+      ],
+      "rebuild_operations": [
+        [
+          "cut"
+        ]
+      ],
+      "caller_restored": true
+    },
+    "groove-diamond": {
+      "success": true,
+      "case": "groove-diamond",
+      "style": "diamond",
+      "sample_overhang": true,
+      "settings": {
+        "style": "diamond",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 0.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0,
+        "mode": "engrave",
+        "bottom_finish": "none",
+        "top_finish": "none",
+        "bottom_size_mm": 0.6,
+        "top_size_mm": 0.6,
+        "grip_fillet_mm": 0.0,
+        "groove_fillet_mm": 0.15
+      },
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "rebuilds": null,
+      "prepare_ms": 1860.5241999903228,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 1854.9182999995537,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 12.436465303643347,
+        "motif_overhang_bound_deg": 12.436465303643347,
+        "planned_cutters": 16
+      },
+      "native_faces": 114,
+      "surface_types": [
+        "adsk::core::Cylinder",
+        "adsk::core::NurbsSurface",
+        "adsk::core::Plane"
+      ],
+      "sampled_overhang_degrees": 11.658086322831364,
+      "normal_samples": 6320,
+      "triangles": 3724,
+      "create_ms": 538.461800024379,
+      "operations": [
+        "cut"
+      ],
+      "rebuild_operations": [
+        [
+          "cut"
+        ]
+      ],
+      "caller_restored": true
+    },
+    "groove-chevron": {
+      "success": true,
+      "case": "groove-chevron",
+      "style": "chevron",
+      "sample_overhang": true,
+      "settings": {
+        "style": "chevron",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 0.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0,
+        "mode": "engrave",
+        "bottom_finish": "none",
+        "top_finish": "none",
+        "bottom_size_mm": 0.6,
+        "top_size_mm": 0.6,
+        "grip_fillet_mm": 0.0,
+        "groove_fillet_mm": 0.15
+      },
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "rebuilds": null,
+      "prepare_ms": 1296.3644999836106,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 1292.3294999927748,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 12.436465303643347,
+        "motif_overhang_bound_deg": 12.436465303643347,
+        "planned_cutters": 16
+      },
+      "native_faces": 82,
+      "surface_types": [
+        "adsk::core::Cylinder",
+        "adsk::core::NurbsSurface",
+        "adsk::core::Plane"
+      ],
+      "sampled_overhang_degrees": 13.07155675809583,
+      "normal_samples": 5088,
+      "triangles": 4204,
+      "create_ms": 959.1505999851506,
+      "operations": [
+        "cut"
+      ],
+      "rebuild_operations": [
+        [
+          "cut"
+        ]
+      ],
+      "caller_restored": true
+    },
+    "groove-pyramids": {
+      "success": true,
+      "case": "groove-pyramids",
+      "style": "pyramids",
+      "sample_overhang": true,
+      "settings": {
+        "style": "pyramids",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 0.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0,
+        "mode": "engrave",
+        "bottom_finish": "none",
+        "top_finish": "none",
+        "bottom_size_mm": 0.6,
+        "top_size_mm": 0.6,
+        "grip_fillet_mm": 0.0,
+        "groove_fillet_mm": 0.15
+      },
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "rebuilds": null,
+      "prepare_ms": 3051.2302999850363,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 3046.0287999885622,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 20.905450060323783,
+        "motif_overhang_bound_deg": 20.905450060323783,
+        "planned_cutters": 11
+      },
+      "native_faces": 162,
+      "surface_types": [
+        "adsk::core::Cone",
+        "adsk::core::Cylinder",
+        "adsk::core::NurbsSurface",
+        "adsk::core::Plane",
+        "adsk::core::Torus"
+      ],
+      "sampled_overhang_degrees": 20.905450060323787,
+      "normal_samples": 11536,
+      "triangles": 11068,
+      "create_ms": 3393.8996999931987,
+      "operations": [
+        "cut"
+      ],
+      "rebuild_operations": [
+        [
+          "cut"
+        ]
+      ],
+      "caller_restored": true
+    },
+    "groove-rings": {
+      "success": true,
+      "case": "groove-rings",
+      "style": "rings",
+      "sample_overhang": true,
+      "settings": {
+        "style": "rings",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 0.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0,
+        "mode": "engrave",
+        "bottom_finish": "none",
+        "top_finish": "none",
+        "bottom_size_mm": 0.6,
+        "top_size_mm": 0.6,
+        "grip_fillet_mm": 0.0,
+        "groove_fillet_mm": 0.15
+      },
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "rebuilds": null,
+      "prepare_ms": 72.6942999754101,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 70.97120000980794,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 20.905450060323783,
+        "motif_overhang_bound_deg": 20.905450060323783,
+        "planned_cutters": 3
+      },
+      "native_faces": 8,
+      "surface_types": [
+        "adsk::core::Cone",
+        "adsk::core::Cylinder",
+        "adsk::core::Plane",
+        "adsk::core::Torus"
+      ],
+      "sampled_overhang_degrees": 20.905450060323783,
+      "normal_samples": 486,
+      "triangles": 1014,
+      "create_ms": 95.17449999111705,
+      "operations": [
+        "cut"
+      ],
+      "rebuild_operations": [
+        [
+          "cut"
+        ]
+      ],
+      "caller_restored": true
+    },
+    "groove-waves": {
+      "success": true,
+      "case": "groove-waves",
+      "style": "waves",
+      "sample_overhang": true,
+      "settings": {
+        "style": "waves",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 0.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0,
+        "mode": "engrave",
+        "bottom_finish": "none",
+        "top_finish": "none",
+        "bottom_size_mm": 0.6,
+        "top_size_mm": 0.6,
+        "grip_fillet_mm": 0.0,
+        "groove_fillet_mm": 0.15
+      },
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "rebuilds": null,
+      "prepare_ms": 953.0959999829065,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 948.8869000051636,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 18.67551910517492,
+        "motif_overhang_bound_deg": 18.67551910517492,
+        "planned_cutters": 8
+      },
+      "native_faces": 34,
+      "surface_types": [
+        "adsk::core::Cylinder",
+        "adsk::core::NurbsSurface",
+        "adsk::core::Plane"
+      ],
+      "sampled_overhang_degrees": 15.889156007115318,
+      "normal_samples": 2432,
+      "triangles": 7864,
+      "create_ms": 431.78730001091026,
+      "operations": [
+        "cut"
+      ],
+      "rebuild_operations": [
+        [
+          "cut"
+        ]
+      ],
+      "caller_restored": true
+    },
+    "groove-straight": {
+      "success": true,
+      "case": "groove-straight",
+      "style": "straight",
+      "sample_overhang": true,
+      "settings": {
+        "style": "straight",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 0.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0,
+        "mode": "engrave",
+        "bottom_finish": "none",
+        "top_finish": "none",
+        "bottom_size_mm": 0.6,
+        "top_size_mm": 0.6,
+        "grip_fillet_mm": 0.0,
+        "groove_fillet_mm": 0.15
+      },
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "rebuilds": null,
+      "prepare_ms": 122.09289998281747,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 119.83959999633953,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 0.0,
+        "motif_overhang_bound_deg": 0.0,
+        "planned_cutters": 8
+      },
+      "native_faces": 34,
+      "surface_types": [
+        "adsk::core::Cylinder",
+        "adsk::core::Plane"
+      ],
+      "sampled_overhang_degrees": 0.0,
+      "normal_samples": 2592,
+      "triangles": 412,
+      "create_ms": 158.696600003168,
+      "operations": [
+        "cut"
+      ],
+      "rebuild_operations": [
+        [
+          "cut"
+        ]
+      ],
+      "caller_restored": true
+    },
+    "groove-flutes": {
+      "success": true,
+      "case": "groove-flutes",
+      "style": "flutes",
+      "sample_overhang": true,
+      "settings": {
+        "style": "flutes",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 0.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0,
+        "mode": "engrave",
+        "bottom_finish": "none",
+        "top_finish": "none",
+        "bottom_size_mm": 0.6,
+        "top_size_mm": 0.6,
+        "grip_fillet_mm": 0.0,
+        "groove_fillet_mm": 0.15
+      },
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "rebuilds": null,
+      "prepare_ms": 95.8348999847658,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 92.91439998196438,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 0.0,
+        "motif_overhang_bound_deg": 0.0,
+        "planned_cutters": 8
+      },
+      "native_faces": 18,
+      "surface_types": [
+        "adsk::core::Cylinder",
+        "adsk::core::Plane"
+      ],
+      "sampled_overhang_degrees": 0.0,
+      "normal_samples": 1296,
+      "triangles": 412,
+      "create_ms": 139.75339999888092,
+      "operations": [
+        "cut"
+      ],
+      "rebuild_operations": [
+        [
+          "cut"
+        ]
+      ],
+      "caller_restored": true
+    },
+    "groove-scallops": {
+      "success": true,
+      "case": "groove-scallops",
+      "style": "scallops",
+      "sample_overhang": true,
+      "settings": {
+        "style": "scallops",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 0.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0,
+        "mode": "engrave",
+        "bottom_finish": "none",
+        "top_finish": "none",
+        "bottom_size_mm": 0.6,
+        "top_size_mm": 0.6,
+        "grip_fillet_mm": 0.0,
+        "groove_fillet_mm": 0.15
+      },
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "rebuilds": null,
+      "prepare_ms": 91.51529998052865,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 88.69959998992272,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 0.0,
+        "motif_overhang_bound_deg": 0.0,
+        "planned_cutters": 8
+      },
+      "native_faces": 18,
+      "surface_types": [
+        "adsk::core::Cylinder",
+        "adsk::core::Plane"
+      ],
+      "sampled_overhang_degrees": 0.0,
+      "normal_samples": 1296,
+      "triangles": 348,
+      "create_ms": 142.09389997995459,
+      "operations": [
+        "cut"
+      ],
+      "rebuild_operations": [
+        [
+          "cut"
+        ]
+      ],
+      "caller_restored": true
+    },
+    "groove-dimples": {
+      "success": true,
+      "case": "groove-dimples",
+      "style": "dimples",
+      "sample_overhang": true,
+      "settings": {
+        "style": "dimples",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 0.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0,
+        "mode": "engrave",
+        "bottom_finish": "none",
+        "top_finish": "none",
+        "bottom_size_mm": 0.6,
+        "top_size_mm": 0.6,
+        "grip_fillet_mm": 0.0,
+        "groove_fillet_mm": 0.15
+      },
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "rebuilds": null,
+      "prepare_ms": 130.23410001187585,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 127.63420000555925,
+        "repeats": 8,
+        "effective_pitch_mm": 6.283185307179586,
+        "max_overhang_deg": 30.52194523556547,
+        "motif_overhang_bound_deg": 30.52194523556547,
+        "planned_cutters": 24
+      },
+      "native_faces": 19,
+      "surface_types": [
+        "adsk::core::Cylinder",
+        "adsk::core::Plane",
+        "adsk::core::Sphere"
+      ],
+      "sampled_overhang_degrees": 28.82628161136742,
+      "normal_samples": 1139,
+      "triangles": 1980,
+      "create_ms": 153.30490001360886,
+      "operations": [
+        "cut"
+      ],
+      "rebuild_operations": [
+        [
+          "cut"
+        ]
+      ],
+      "caller_restored": true
+    },
+    "groove-both-helical": {
+      "success": true,
+      "case": "groove-both-helical",
+      "style": "helical",
+      "sample_overhang": true,
+      "settings": {
+        "style": "helical",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 0.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0,
+        "mode": "emboss",
+        "bottom_finish": "none",
+        "top_finish": "none",
+        "bottom_size_mm": 0.6,
+        "top_size_mm": 0.6,
+        "grip_fillet_mm": 0.15,
+        "groove_fillet_mm": 0.15
+      },
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "rebuilds": null,
+      "prepare_ms": 887.0366000046488,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 881.259100016905,
+        "repeats": 9,
+        "effective_pitch_mm": 6.003932626860493,
+        "max_overhang_deg": 12.995683502947337,
+        "motif_overhang_bound_deg": 12.995683502947337,
+        "planned_cutters": 9
+      },
+      "native_faces": 56,
+      "surface_types": [
+        "adsk::core::Cylinder",
+        "adsk::core::NurbsSurface",
+        "adsk::core::Plane"
+      ],
+      "sampled_overhang_degrees": 12.091543251684552,
+      "normal_samples": 3564,
+      "triangles": 6314,
+      "create_ms": 321.1829000210855,
+      "operations": [
+        "join"
+      ],
+      "rebuild_operations": [
+        [
+          "join"
+        ]
+      ],
+      "caller_restored": true
+    },
+    "groove-both-diamond": {
+      "success": true,
+      "case": "groove-both-diamond",
+      "style": "diamond",
+      "sample_overhang": true,
+      "settings": {
+        "style": "diamond",
+        "pitch_mm": 6,
+        "depth_mm": 0.6,
+        "border_mm": 0.0,
+        "angle_deg": 30.0,
+        "phase_deg": 0.0,
+        "mode": "emboss",
+        "bottom_finish": "none",
+        "top_finish": "none",
+        "bottom_size_mm": 0.6,
+        "top_size_mm": 0.6,
+        "grip_fillet_mm": 0.15,
+        "groove_fillet_mm": 0.15
+      },
+      "pitch_mm": 6,
+      "radius_mm": 8,
+      "height_mm": 8,
+      "image": null,
+      "bore_radius_mm": null,
+      "expect_refusal": false,
+      "nearby_material": false,
+      "rebuilds": null,
+      "prepare_ms": 5130.181400018046,
+      "checks": {
+        "solid_result_no_preview_history": true,
+        "opaque_preview_cleanup_source_unchanged": true,
+        "create_same_body_rebuild_same_history": true,
+        "delete_restores_source": true
+      },
+      "timings": {
+        "prepare_ms": 5122.4204000027385,
+        "repeats": 8,
+        "effective_pitch_mm": 6.754424205218055,
+        "max_overhang_deg": 11.593133768538594,
+        "motif_overhang_bound_deg": 11.593133768538594,
+        "planned_cutters": 16
+      },
+      "native_faces": 178,
+      "surface_types": [
+        "adsk::core::Cylinder",
+        "adsk::core::NurbsSurface",
+        "adsk::core::Plane"
+      ],
+      "sampled_overhang_degrees": 10.95573300500994,
+      "normal_samples": 11040,
+      "triangles": 7580,
+      "create_ms": 705.2317000052426,
+      "operations": [
+        "join"
+      ],
+      "rebuild_operations": [
+        [
+          "join"
+        ]
+      ],
+      "caller_restored": true
+    }
+  },
+  "scope": "Sharp interior roots are rounded. Already curved flutes/scallops/dimples have no sharp root edge and retain their bowl curvature. Diamond uses rounded cutter sections, not a claim of smooth crossing-wall blending. Physical print acceptance pending.",
+  "ui_suites": 9,
+  "headless_ui": {
+    "errors": [],
+    "layout": {
+      "scrollWidth": 380,
+      "width": 380,
+      "fields": 13,
+      "mode": "emboss",
+      "coverage": "full",
+      "top": "chamfer",
+      "bottom": "fillet"
+    },
+    "help_topics": 7
+  },
+  "reload": {
+    "success": true,
+    "version": "0.36.0",
+    "quiet_first_and_repeated_start": true,
+    "icon_registered": true,
+    "caller_unchanged": true
+  },
+  "python_tests": {
+    "passed": 1248,
+    "seconds": 23.827
+  },
+  "installer": {
+    "success": true,
+    "version": "0.36.0",
+    "payload_files": 191,
+    "isolated_target": "C:\\Users\\SKTech\\AppData\\Local\\Temp\\PartelierInstallerTest\\585991d902224beeb459241e02c28782\\Partelier",
+    "current_fusion_addins_untouched": true,
+    "checks": [
+      "Install with exact payload hashes",
+      "Upgrade preserves user-added files",
+      "Uninstall removes installed runtime",
+      "Uninstall preserves user-added files",
+      "Unowned directory refused"
+    ],
+    "installer_sha256": "d0add4c8cfd322c173a35f5a385feeaf8b68d421c348d1562a4e019e617938be",
+    "running_fusion_refusal_tested": true
+  },
+  "final_knurl_tests": 25
+}

@@ -19,6 +19,9 @@ window.PartelierKnurlingArt=(()=>{
   return lines;
  }
  const panel=(caption,content)=>`<svg viewBox="0 0 350 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escape(caption)}"><rect width="350" height="220" rx="12" fill="#edf3f8"/><g font-family="sans-serif" font-size="12" fill="#223d57">${content}<text x="14" y="207" font-size="11">${escape(caption)}</text></g></svg>`;
+ function grooveSection(){
+  return panel("Groove root fillet · cross-section",`<text x="22" y="35">Sharp root</text><path d="M22 65L92 160L162 65" fill="none" stroke="#64748b" stroke-width="5"/><text x="198" y="35">Rounded root</text><path d="M190 65L244 139Q260 163 276 139L330 65" fill="none" stroke="#267de1" stroke-width="5"/><circle cx="260" cy="145" r="24" fill="none" stroke="#267de1" stroke-dasharray="4 4"/>`);
+ }
  function direction(s){
   const raised=s.mode==="emboss",points=[];
   for(let i=0;i<=160;i++){const a=2*Math.PI*i/160,r=(raised?58:46)+6*Math.cos(a*10);points.push(`${100+r*Math.cos(a)},${105+r*Math.sin(a)}`);}
@@ -40,6 +43,7 @@ window.PartelierKnurlingArt=(()=>{
  function render(s={},topic="style"){
   if(["mode","depth_mm"].includes(topic))return direction(s);
   if(topic.startsWith("top_")||topic.startsWith("bottom_"))return finish(s,topic);
+  if(topic==="groove_fillet_mm")return grooveSection();
   if(topic==="border_mm")return coverage(s);
   const id=++serial,D=window.PartelierKnurlingData,style=D.styles.some(x=>x[0]===s.style)?s.style:"diamond",label=D.styles.find(x=>x[0]===style)[1];
   const caption=topic==="pitch_mm"?"Whole repeats close the circumference":topic==="phase_deg"?"Rotate around the cylinder axis":topic==="angle_deg"?"Pattern direction ≠ print overhang":label+" · "+(s.mode==="emboss"?"raised outward":"cut inward")+" · illustration";

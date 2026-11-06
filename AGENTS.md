@@ -1,5 +1,20 @@
 # Partelier repository guidance
 
+## Groove root fillets: 0.36.0
+
+Thirteen-field KnurlSettings and recipe4 add groove_fillet_mm independently of
+crest/end radii. Exact recipes1–3 read without mutation, defaulting only absent
+fields. Most styles fillet sharp non-crest interior edges in one scratch feature;
+already smooth flutes/scallops/dimples have no sharp root edges to treat. Never
+fillet existing toroidal end finishes as groove roots.
+
+Diamond rounds the two helical cutters before repeating/cutting. A1-micron
+radial separation of the opposite cutter avoids coincident rounded-root ASM
+coedges; filleted tips stay inside nominal depth. Keep extended-end cropping,
+paired repeats, scratch cleanup and explicit radius-fit refusals. This softens
+the groove sections; it does not claim G2 blending of every crossing wall.
+See docs/knob-knurling.md and validation/groove-fillets-0.36.0.json.
+
 ## Grip crest fillets: 0.35.0
 
 KnurlSettings has12 fields, adding grip_fillet_mm (0 off, up to2mm). Recipe3

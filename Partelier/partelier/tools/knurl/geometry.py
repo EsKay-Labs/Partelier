@@ -1,5 +1,6 @@
 """True temporary CAD grooves: analytic primitives and helical ruled surfaces."""
 import math
+from dataclasses import replace
 from . import planner
 from ..threads.geometry import _helix, _cylinder, _api, _need
 from ..fans.volute import prism_plan
@@ -61,7 +62,7 @@ def _ring(manager, p, depth, centre):
     return _boolean(manager,shell,lower,native.BooleanTypes.DifferenceBooleanType)
 
 
-def build(settings, radius_mm, height_mm, seed=None):
+def build(settings, radius_mm, height_mm, seed=None, round_tool=None):
     """Full-height retained grip, local Z0..height; caller applies end finishes.
 
     Borders are handled by the adapter so the same true-CAD motif can cover a
@@ -74,6 +75,7 @@ def build(settings, radius_mm, height_mm, seed=None):
     _check(result)
     phase=math.radians(settings.phase_deg)
     def repeat(tool):
+        if round_tool:tool=round_tool(tool)
         for i in range(p.repeats):
             copy=_rotate(manager,manager.copy(tool),phase+2*math.pi*i/p.repeats)
             _boolean(manager,result,copy,cut)
@@ -83,7 +85,11 @@ def build(settings, radius_mm, height_mm, seed=None):
     elif style in ('diamond','helical'):
         repeat(_helical(p,settings.depth_mm,height_mm,settings.angle_deg,1))
         if style=='diamond' and settings.angle_deg:
-            repeat(_helical(p,settings.depth_mm,height_mm,settings.angle_deg,-1))
+            # Rounded cutter roots otherwise meet tangentially at the crossings.
+            # A 1-micron radial separation avoids ambiguous ASM coedges. The
+            # rounded tool tip still stays inside the nominal depth envelope.
+            opposite=replace(p,root_radius_mm=p.root_radius_mm-.001) if round_tool else p
+            repeat(_helical(opposite,settings.depth_mm+.001 if round_tool else settings.depth_mm,height_mm,settings.angle_deg,-1))
     elif style=='chevron':
         if not settings.angle_deg:repeat(_straight(p,settings.depth_mm,height_mm))
         else:

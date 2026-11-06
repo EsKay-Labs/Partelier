@@ -7,7 +7,7 @@ STYLES = ('diamond', 'straight', 'helical', 'chevron', 'waves', 'flutes',
 ANGLED_STYLES = ('diamond', 'helical', 'chevron', 'waves')
 BOUNDS = {'pitch_mm': (2., 30.), 'depth_mm': (.1, 3.), 'border_mm': (0., 20.),
           'angle_deg': (0., 45.), 'phase_deg': (-360., 360.),
-          'bottom_size_mm': (.1, 10.), 'top_size_mm': (.1, 10.), 'grip_fillet_mm': (0., 2.)}
+          'bottom_size_mm': (.1, 10.), 'top_size_mm': (.1, 10.), 'grip_fillet_mm': (0., 2.), 'groove_fillet_mm': (0., 2.)}
 LEGACY_FIELDS = frozenset(('style', 'pitch_mm', 'depth_mm', 'border_mm', 'angle_deg', 'phase_deg'))
 
 
@@ -25,6 +25,7 @@ class KnurlSettings:
     bottom_size_mm: float = .6
     top_size_mm: float = .6
     grip_fillet_mm: float = 0.
+    groove_fillet_mm: float = 0.
 
     def __post_init__(self):
         if self.style not in STYLES:

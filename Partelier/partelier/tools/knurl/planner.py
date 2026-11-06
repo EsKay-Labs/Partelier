@@ -36,7 +36,7 @@ def _plan(s, radius, height):
     root = outer - s.depth_mm
     if root < 1.2:raise ValueError('Reduce Depth: retain at least a 1.2 mm core radius.')
     repeats = max(3, round(2*math.pi*outer/s.pitch_mm))
-    if s.style=='diamond' and s.grip_fillet_mm:
+    if s.style=='diamond' and (s.grip_fillet_mm or s.groove_fillet_mm):
         repeats=max(4,2*round(repeats/2))
     if repeats > MAX_REPEATS:
         raise ValueError('This grip is too dense. Increase Spacing (maximum 64 repeats).')
@@ -45,6 +45,8 @@ def _plan(s, radius, height):
     rows = tuple(i*pitch for i in range(math.ceil(height/pitch)+1))
     angled = s.style in ('diamond','helical','chevron','waves')
     slope = s.depth_mm/half * math.tan(math.radians(s.angle_deg)) if angled else 0.
+    if s.style=='diamond' and s.groove_fillet_mm:
+        slope=(s.depth_mm+.001)/half*math.tan(math.radians(s.angle_deg))
     if s.style == 'waves':
         from .wave_profile import maximum_slope
         slope=maximum_slope(outer,root,half,s.depth_mm,height,pitch,s.angle_deg)

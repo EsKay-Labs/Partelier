@@ -4,7 +4,7 @@ from ..hinge import fusion as h
 from ..fans.fusion import _fillet
 
 
-def _sharp(edge, height, outer):
+def _sharp(edge, height, outer, groove=False):
     if edge.faces.count != 2:return False
     ok,low,high=edge.evaluator.getParameterExtents()
     if not ok:raise ValueError("Could not read a grip edge.")
@@ -16,18 +16,19 @@ def _sharp(edge, height, outer):
     z = [point.z*10 for point in points]
     # End rims are controlled independently by Top/Bottom edge.
     if max(z)<.001 or min(z)>height-.001:return False
-    # Only the exposed crests: crossing groove roots are concave junctions,
-    # not the sharp grip surface, and need different corner construction.
-    if min(math.hypot(point.x,point.y)*10 for point in points)<outer-.005:return False
+    # Separate exposed crests from the lower groove junctions.
+    at_crest=min(math.hypot(point.x,point.y)*10 for point in points)>=outer-.005
+    if at_crest==groove:return False
     midpoint=points[len(points)//2];normals=[]
     for face in edge.faces:
+        if groove and face.geometry.objectType=='adsk::core::Torus':return False
         ok,normal=face.evaluator.getNormalAtPoint(midpoint)
         if not ok:raise ValueError('Could not classify a grip edge for filleting.')
         normals.append(normal)
     return normals[0].angleTo(normals[1])>math.radians(2.)
 
 
-def apply(design, body, radius, height, outer):
+def apply(design, body, radius, height, outer, groove=False):
     if not radius:return body
     core,native=h._api();manager=native.TemporaryBRepManager.get()
     root=design.rootComponent;base=None;editing=False
@@ -36,10 +37,11 @@ def apply(design, body, radius, height, outer):
         if not base.startEdit():raise ValueError('Could not prepare the grip fillet.')
         editing=True
         source=root.bRepBodies.add(body,base)
-        edges=[edge for edge in source.edges if _sharp(edge,height,outer)]
+        edges=[edge for edge in source.edges if _sharp(edge,height,outer,groove)]
+        if not edges and groove:return manager.copy(body)
         if not edges:raise ValueError('This pattern has no sharp interior grip edges to fillet. Use radius 0.')
         if len(edges)>256:raise ValueError('Too many grip edges to fillet efficiently. Increase spacing.')
-        _fillet(root,base,source,edges,radius,core,native,'grip fillet')
+        _fillet(root,base,source,edges,radius,core,native,'groove root fillet' if groove else 'grip crest fillet')
         result=manager.copy(source)
         if result is None or not result.isSolid or result.lumps.count!=1:
             raise ValueError('The grip fillet would disconnect the knob. Reduce its radius.')

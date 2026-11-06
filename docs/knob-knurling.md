@@ -34,6 +34,28 @@ original body, preserving a sufficiently thick shaft bore. They do not create a
 duplicate knob. Existing 0.33 features keep their old geometry until explicitly
 rebuilt through **Saved → Edit → Rebuild**; opening them does not migrate the model.
 
+## Groove root fillets
+
+Version0.36 adds **Groove root fillet (mm)** beside Grip crest fillet. This rounds
+sharp concave roots inside the grooves independently of the exposed crests and
+Top/Bottom edge. Zero is off; start at0.1–0.2mm. Select an existing feature with
+Saved → Edit, adjust either radius and Rebuild.
+
+Helical, straight, chevron, wave, ring and pyramid roots use native internal edge
+fillets. Diamond is formed with rounded helical cutters before their intersection,
+then cropped to the face height. Opposite cutter roots have a1-micron radial
+separation to avoid ambiguous tangencies in Fusion. This creates rounded groove
+sections without claiming smooth blending across every intersecting wall seam.
+
+Rounded flutes, scallops and dimples already have curved bottoms. With no sharp
+root edge present, the new radius does not reshape their existing bowl curvature.
+The tool refuses radii that do not fit and never silently reduces them. Physical
+print quality still needs a print test.
+
+Recipe4 stores thirteen fields; exact recipes1–3 retain their settings and load
+with zero for the newly introduced root radius. Existing geometry changes only
+on explicit Rebuild. See [groove validation](validation/groove-fillets-0.36.0.json).
+
 ## Grip crest fillets
 
 Version 0.35 adds **Grip crest fillet (mm)** beside the texture dimensions for all
@@ -94,7 +116,7 @@ is deliberately conservative for knobs with connected geometry beyond the face.
 
 ## Runtime and validation
 
-Strict twelve-field settings and recipe3 belong to `tools/knurl`, alias
+Strict thirteen-field settings and recipe4 belong to `tools/knurl`, alias
 `knurling`. Recipe1 reads with inward mode and no finishes while retaining its
 saved borders. The owned operation graph can be Cut, Join, Cut+Join or Join+Cut.
 Graph changes rebuild only the exact owned suffix and keep the source identity.

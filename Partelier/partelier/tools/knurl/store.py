@@ -37,7 +37,7 @@ def _parse(raw):
     try:value=json.loads(raw)
     except (ValueError,TypeError) as error:raise ValueError('The knurling record is damaged.') from error
     keys={'version','id','settings','sources','base','combines','tools','tool_signatures','results'}
-    if not isinstance(value,dict) or type(value.get('version')) is not int or value['version'] not in (1,2,3):
+    if not isinstance(value,dict) or type(value.get('version')) is not int or value['version'] not in (1,2,3,4):
         raise ValueError('The knurling record has an unsupported structure.')
     if set(value)!=(keys if value['version']==1 else keys|{'operations'}):
         raise ValueError('The knurling record has an unsupported structure.')
@@ -51,9 +51,10 @@ def _parse(raw):
         settings=KnurlSettings(**supplied)
         tool_count=1
     else:
-        if value['version']==2:
-            expected=set(KnurlSettings().to_dict())-{'grip_fillet_mm'}
-            if not isinstance(supplied,dict) or set(supplied)!=expected:raise ValueError('Legacy knurling settings must contain exactly their eleven original fields.')
+        if value['version'] in (2,3):
+            expected=set(KnurlSettings().to_dict())-{'groove_fillet_mm'}
+            if value['version']==2:expected-={'grip_fillet_mm'}
+            if not isinstance(supplied,dict) or set(supplied)!=expected:raise ValueError('Legacy knurling settings must contain exactly their original fields.')
             settings=KnurlSettings(**supplied)
         else:settings=KnurlSettings.from_dict(supplied)
         ops=value['operations']
@@ -168,7 +169,7 @@ def validate(prepared):
 
 
 def _save(design,base,prepared,features,identity,tool_tokens):
-    value={'version':3,'id':identity,'settings':prepared.settings.to_dict(),'sources':prepared.tokens,'operations':list(prepared.operations),
+    value={'version':4,'id':identity,'settings':prepared.settings.to_dict(),'sources':prepared.tokens,'operations':list(prepared.operations),
         'base':_token(base),'combines':[_token(f) for f in features],'tools':list(tool_tokens),
         'tool_signatures':[a.h._body_signature(t) for t in prepared.tools],
         'results':[a.h._body_signature(b) for b in prepared.targets]}

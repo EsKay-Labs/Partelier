@@ -65,6 +65,7 @@ def prepare(design, faces, settings):
                finishes.finish_drop(settings.bottom_finish, settings.bottom_size_mm, True))
     end_radius = radius if settings.mode == 'emboss' and settings.border_mm else outer
     removal = max(settings.depth_mm if settings.mode == 'engrave' else 0., radius-end_radius+drop)
+    if settings.style=='diamond' and settings.groove_fillet_mm:removal+=.001
     inner = radius - removal - .8
     if inner <= 0:
         raise ValueError('Reduce texture depth or end finish size; retain at least 0.8 mm of solid core.')
@@ -96,11 +97,12 @@ def prepare(design, faces, settings):
                 raise ValueError('Full-height raised grip must start at the knob base for upright printing. Use End borders or a bottom chamfer at least as large as the outward depth.')
     prefinished = settings.mode=='emboss' and not settings.border_mm and (settings.top_finish=='fillet' or settings.bottom_finish=='fillet')
     seed = finishes.apply(f._cylinder(manager,core,outer,0,height),settings,radius,height) if prefinished else None
-    if settings.grip_fillet_mm and settings.style=='diamond':
+    if (settings.grip_fillet_mm or settings.groove_fillet_mm) and settings.style=='diamond':
         # Round beyond the final end planes, then crop. Crossed helix edges
         # meeting an end cap create unstable zero-length fillet corners in ASM.
         margin=outer
-        retained=geometry.build(settings,radius,height+2*margin)
+        round_tool=(lambda tool:grip_finish.apply(design,tool,settings.groove_fillet_mm,height+2*margin,outer,groove=True)) if settings.groove_fillet_mm else None
+        retained=geometry.build(settings,radius,height+2*margin,round_tool=round_tool)
         retained=grip_finish.apply(design,retained,settings.grip_fillet_mm,height+2*margin,outer)
         translation=core.Matrix3D.create();translation.translation=core.Vector3D.create(0,0,-margin/10)
         if not manager.transform(retained,translation):raise ValueError('Could not position the rounded grip.')
@@ -108,6 +110,7 @@ def prepare(design, faces, settings):
         if seed is not None:a._boolean(manager,retained,seed,native.BooleanTypes.IntersectionBooleanType,'Could not finish the rounded grip ends.')
     else:
         retained = geometry.build(settings, radius, height, seed=seed)
+        retained = grip_finish.apply(design, retained, settings.groove_fillet_mm, height, outer, groove=True)
         retained = grip_finish.apply(design, retained, settings.grip_fillet_mm, height, outer)
     if not prefinished:
         retained = finishes.apply(retained, replace(settings,top_finish='none',bottom_finish='none') if settings.mode=='emboss' else settings, radius, height)
