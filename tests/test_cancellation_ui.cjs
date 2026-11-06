@@ -1,0 +1,24 @@
+"use strict";
+const assert=require("node:assert/strict"),fs=require("node:fs"),vm=require("node:vm"),path=require("node:path");
+const window={};vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../Partelier/partelier/ui/cancellation.js"),"utf8"),{window});
+const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
+const flush=async()=>{for(let i=0;i<5;i++)await new Promise(resolve=>setImmediate(resolve));};
+(async()=>{
+ let busy=false,count=0,commits=0,cancels=0;const errors=[];
+ const channel=window.PartelierCancellation.create({busy:(value,n)=>{busy=value;count=n;},error:e=>errors.push(e)});
+ const pick=deferred(),cancel=deferred();
+ const first=channel.run(()=>channel.wait(pick.promise));await flush();
+ const queued=channel.run(()=>{commits++;});
+ const cancelling=channel.cancel(async()=>{cancels++;await channel.wait(cancel.promise);});
+ channel.cancel(()=>{cancels++;});await flush();
+ assert.equal(cancels,1);assert.equal(commits,0);assert.equal(busy,true);
+ cancel.resolve();await cancelling;await first;await queued;
+ assert.equal(busy,false);assert.equal(count,0);assert.equal(errors.length,0);
+ const next=deferred(),newWork=channel.run(()=>channel.wait(next.promise));await flush();
+ pick.reject(Error("late native error"));await flush();
+ assert.equal(busy,true,"Old promise settlement must not unlock newer work");assert.equal(errors.length,0);
+ next.resolve();await newWork;assert.equal(busy,false);
+ await channel.cancel(()=>Promise.reject(Error("cleanup failed")));
+ assert.equal(errors.length,1);assert.equal(busy,false);assert.equal(channel.cancelling,false);
+ console.log("Cancellation: interrupts blocked requests, drops queued commits, ignores late errors, preserves new work, and permits retry.");
+})().catch(error=>{console.error(error);process.exitCode=1;});

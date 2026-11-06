@@ -303,7 +303,7 @@ class _Session:
         label=('Pattern selected' if self.editing else str(len(self.faces))+' face(s) on '+self.faces[0].body.name) if valid else 'Not selected'
         sizes=([layout.cell_size_mm for layout in self.prepared.layouts if layout.cell_count and layout.cell_size_mm is not None]
                if self.settings.layout_mode=='auto' and self.preview_current else [])
-        return {'sessionId':self.session_id,'revision':self.revision,'phase':self.phase,'editing':self.editing,
+        return {'sessionId':None if self.closed else self.session_id,'endedSessionId':self.session_id if self.closed else None,'revision':self.revision,'phase':self.phase,'editing':self.editing,
                 'settings':self.settings.to_dict(),'selections':{'surface':{'selected':bool(valid),'label':label}},
                 'previewCurrent':self.preview_current,'message':self.message,
                 'pickingFaces':self.face_picker is not None,'pickingTarget':'faces' if self.face_picker is not None else self.picking_target,

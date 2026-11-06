@@ -20,7 +20,7 @@
         ["snap-annular-fields", [["annular_bead_width_mm", "Bead width"], ["annular_bead_height_mm", "Bead height"], ["annular_offset_mm", "Offset from rim"]]]
     ];
     const state = { selected: false, connected: false, capabilities: new Set(), hingeActive: false, session: null, settings: { ...defaults }, revision: 0, busy: false, dirty: false, expecting: false, liveError: false };
-    let serial = 0, pushedVersion = 0, timer, queued = false, pending = 0, actions = Promise.resolve();
+    let serial = 0, pushedVersion = 0, timer, queued = false, pending = 0;
     const active = () => !!state.session && !terminal.has(state.session.phase) && !!(state.session.sessionId || state.session.phase === "opening");
     const identity = () => active() ? state.session.sessionId : null;
     const supported = () => state.connected && state.capabilities.has("snap-palette");
@@ -152,7 +152,7 @@
         $("edit-snap-button").disabled = !!window.PartelierKnurling?.isActive()||!!window.PartelierKnurling?.isBusy()||!!window.PartelierThreads?.isActive()||!!window.PartelierThreads?.isBusy()||!!window.PartelierMechanisms?.isActive()||!!window.PartelierMechanisms?.isBusy()||!!window.PartelierFinishing?.isActive()||!!window.PartelierFinishing?.isBusy()||!state.selected || !supported() || !state.capabilities.has("snap-edit") || busy || hasSession || state.hingeActive || !!window.PartelierDetails?.isActive() || !!window.PartelierDetails?.isBusy() || !!window.PartelierFans?.isActive() || !!window.PartelierFans?.isBusy();
         $("preview-snap-button").hidden = !ready || (!state.liveError && current());
         $("preview-snap-button").disabled = !ready || !valid() || busy;
-        $("cancel-snap-button").disabled = !identity() || busy;
+        $("cancel-snap-button").disabled = !identity() || cancellation.cancelling;
         $("create-snap-button").disabled = !!window.PartelierKnurling?.isActive()||!!window.PartelierKnurling?.isBusy()||!!window.PartelierThreads?.isActive()||!!window.PartelierThreads?.isBusy()||!!window.PartelierMechanisms?.isActive()||!!window.PartelierMechanisms?.isBusy()||!!window.PartelierFinishing?.isActive()||!!window.PartelierFinishing?.isBusy()||!state.selected || !supported() || !valid() || busy || !ready || !current();
         $("create-snap-button").textContent = active() && state.session?.editing ? "Rebuild snap-fit" : "Create snap-fit";
         $("snap-availability").hidden = supported();
@@ -166,6 +166,7 @@
     function apply(snapshot) {
         if (!snapshot || !Number.isInteger(snapshot.revision) || typeof snapshot.phase !== "string") return false;
         const previous = state.session;
+        if(snapshot.endedSessionId && active() && snapshot.endedSessionId!==previous?.sessionId)return false;
         if (snapshot.sessionId && retired.has(snapshot.sessionId)) return false;
         if (snapshot.sessionId && previous?.sessionId && snapshot.sessionId !== previous.sessionId && active() && !state.expecting) return false;
         if (snapshot.sessionId && snapshot.sessionId === previous?.sessionId && snapshot.revision < previous.revision) return false;
@@ -174,7 +175,7 @@
             if (previous?.sessionId) retired.add(previous.sessionId);
             if (snapshot.sessionId) retired.add(snapshot.sessionId);
         }
-        state.session = snapshot;
+        cancellation.confirm(snapshot);state.session = snapshot;
         if (snapshot.sessionId) state.expecting = false;
         if (!newerEdits && ["preview", "error"].includes(snapshot.phase)) state.liveError = snapshot.phase === "error";
         if (!newerEdits && snapshot.settings) { state.settings = { ...defaults, ...snapshot.settings }; state.revision = snapshot.revision; syncFields(); }
@@ -184,7 +185,7 @@
     }
     async function send(action, payload = {}) {
         const requestId = `snap-ui-${++serial}`, version = pushedVersion;
-        const response = Promise.resolve().then(() => window.adsk.fusionSendData(action, JSON.stringify({ protocol: 1, requestId, ...payload })));
+        const response = cancellation.wait(Promise.resolve().then(() => window.adsk.fusionSendData(action, JSON.stringify({ protocol: 1, requestId, ...payload }))));
         let timeout, raw;
         try {
             raw = ["snap_begin", "snap_focus", "snap_preview", "snap_commit"].includes(action) ? await response : await Promise.race([response, new Promise((_, reject) => { timeout = window.setTimeout(() => reject(new Error("Fusion did not respond. Stop and Run Partelier, then try again.")), 30000); })]);
@@ -197,11 +198,15 @@
         }
         return result;
     }
-    function run(task) {
-        pending++; state.busy = true; render();
-        const running = actions.then(task);
-        actions = running.catch(error => { state.liveError = true; message(error.message, true); });
-        return actions.finally(() => { pending--; state.busy = pending > 0; render(); });
+    const cancellation=window.PartelierCancellation.create({
+        busy(value,count){pending=count;state.busy=value;render();},
+        error(error){state.liveError=true;message(error.message,true);}
+    });
+    function run(task) { return cancellation.run(task); }
+    function cancelNow() {
+        if(!identity())return;
+        cancelTimer();queued=false;
+        return cancellation.cancel(()=>sessionAction("snap_cancel"),identity());
     }
     function sessionAction(action, extra = {}) {
         const sessionId = identity();
@@ -216,6 +221,7 @@
         }
     }
     function schedule() {
+        if(cancellation.cancelling)return;
         cancelTimer();
         if (!supported() || !identity() || state.session?.pickingTarget || !valid() || state.session?.phase === "opening") return;
         timer = window.setTimeout(() => {
@@ -296,7 +302,7 @@
     $("edit-snap-button").addEventListener("click", () => run(() => begin(true)));
     $("preview-snap-button").addEventListener("click", () => { if ($("snap-settings").reportValidity()) { cancelTimer(); run(refresh); } });
     $("create-snap-button").addEventListener("click", () => { if ($("snap-settings").reportValidity()) { cancelTimer(); run(() => sessionAction("snap_commit")); } });
-    $("cancel-snap-button").addEventListener("click", () => { cancelTimer(); run(() => sessionAction("snap_cancel")); });
+    $("cancel-snap-button").addEventListener("click", cancelNow);
     window.PartelierSelectionUI?.register('snap',{active,busy:()=>state.busy,reset:()=>{cancelTimer();run(()=>sessionAction('snap_reset'));}});
     window.PartelierSnap = Object.freeze({
         isActive() { return active(); },

@@ -1,7 +1,7 @@
 "use strict";
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const ui=path.join(__dirname,'..','Partelier','partelier','ui');
-function fixture(){
+function fixture(config={}){
  const ids=new Map(),timers=new Map(),requests=[];let timerId=0,host=null,serial=0,reset;
  class Element{
   constructor(tag='div'){this.tagName=tag;this.children=[];this.listeners={};this.dataset={};this.disabled=false;this.hidden=false;this.custom='';const classes=new Set();this.classList={add:x=>classes.add(x),toggle:(x,on)=>on?classes.add(x):classes.delete(x)};}
@@ -20,14 +20,21 @@ function fixture(){
  const clone=v=>JSON.parse(JSON.stringify(v));
  const window={PartelierSelectionUI:{register(name,handlers){assert.equal(name,'knurling');reset=handlers.reset;}},adsk:{async fusionSendData(action,raw){
   const r=JSON.parse(raw);requests.push({action,...r});
+  if(action==='knurling_cancel'&&config.failCancel)return JSON.stringify({ok:false,requestId:r.requestId,message:'Cancellation cleanup failed; try again.'});
   if(action==='knurling_begin')host={sessionId:'knurling-'+(++serial),revision:0,phase:'ready',settings:r.settings,editing:r.editing,selections:{surface:{selected:true},face_a:{selected:true},face_b:{selected:false}},previewCurrent:false};
   if(action==='knurling_preview')host={...host,settings:r.settings,revision:r.revision,phase:'preview',previewCurrent:true};
   if(action==='knurling_reset')host={...host,phase:'ready',revision:host.revision+1,previewCurrent:false};
-  if(action==='knurling_cancel'||action==='knurling_commit')host={...host,endedSessionId:host.sessionId,sessionId:null,phase:action==='knurling_cancel'?'cancelled':'created',previewCurrent:false};
-  return JSON.stringify({ok:true,requestId:r.requestId,knurlingState:clone(host)});
+  if(action==='knurling_cancel'||action==='knurling_commit'&&config.hold!==action)host={...host,endedSessionId:host.sessionId,sessionId:null,phase:action==='knurling_cancel'?'cancelled':'created',previewCurrent:false};
+  const response=JSON.stringify({ok:true,requestId:r.requestId,knurlingState:clone(host)});
+  if(config.hold===action){
+   const phase=action==='knurling_cancel'?'cancelled':action==='knurling_begin'?'selecting':action==='knurling_commit'?'opening':'computing';
+   window.PartelierKnurling.handle('knurling_state',JSON.stringify({...host,phase,previewCurrent:false}));
+   await new Promise(resolve=>{config.release=resolve;});
+  }
+  return response;
  }}};
  const context=vm.createContext({window,document:{getElementById:$,createElement:tag=>new Element(tag)},console,setTimeout(fn,ms){if(ms===400){timers.set(++timerId,fn);return timerId;}return 0;},clearTimeout(id){timers.delete(id);}});
- for(const file of ['knurling-data.js','knurling-art.js','knurling.js'])vm.runInContext(fs.readFileSync(path.join(ui,file),'utf8'),context,{filename:file});
+ for(const file of ["cancellation.js",'knurling-data.js','knurling-art.js','knurling.js'])vm.runInContext(fs.readFileSync(path.join(ui,file),'utf8'),context,{filename:file});
  window.PartelierKnurling.connect({capabilities:['knurling-palette','knurling-edit']});window.PartelierKnurling.select('knurling');
  const flush=async()=>{for(let i=0;i<6;i++)await new Promise(r=>setImmediate(r));};
  const settle=async()=>{const list=[...timers.values()];timers.clear();list.forEach(fn=>fn());await flush();};
@@ -40,6 +47,39 @@ function fixture(){
  };
 }
 (async()=>{
+ for(const held of ['knurling_begin','knurling_preview','knurling_commit']){
+  const config={},stuck=fixture(config);
+  if(held==='knurling_begin'){config.hold=held;await stuck.click('knurling-new');}
+  else {await stuck.click('knurling-new');await stuck.settle();config.hold=held;
+   if(held==='knurling_preview'){await stuck.input('depth_mm',.7);await stuck.settle();}
+   else await stuck.click('knurling-create');
+  }
+  // The old bridge request is deliberately never resolved before Cancel.
+  assert.equal(stuck.$('knurling-cancel').disabled,false,held+' must be cancellable');
+  const prior=stuck.host();await stuck.click('knurling-cancel');
+  assert.equal(stuck.requests.at(-1).action,'knurling_cancel');
+  assert.equal(stuck.window.PartelierKnurling.isBusy(),false);assert.equal(stuck.$('tool-select').disabled,false);
+  const release=config.release;config.hold=null;
+  await stuck.click('knurling-new');await stuck.settle();const fresh=stuck.host();
+  release();await stuck.settle();stuck.push({...prior,phase:'preview'});
+  stuck.push({...prior,sessionId:null,endedSessionId:prior.sessionId,phase:'cancelled'});
+  assert.equal(stuck.host().sessionId,fresh.sessionId);
+  assert.equal(stuck.$('knurling-create').disabled,false,'Late reply/push cannot resurrect old work or disable the new session');
+  await stuck.click('knurling-cancel');
+ }
+ const failedConfig={hold:'knurling_begin',failCancel:true},retry=fixture(failedConfig);
+ await retry.click('knurling-new');await retry.click('knurling-cancel');
+ assert.equal(retry.window.PartelierKnurling.isActive(),true,'A failed native cancel must not pretend the session ended');
+ assert.equal(retry.$('knurling-cancel').disabled,false,'Cancellation errors allow retry');
+ failedConfig.failCancel=false;await retry.click('knurling-cancel');assert.equal(retry.window.PartelierKnurling.isActive(),false);
+ failedConfig.release();await retry.settle();
+ const noAckConfig={},noAck=fixture(noAckConfig);
+ await noAck.click('knurling-new');await noAck.settle();noAckConfig.hold='knurling_cancel';
+ await noAck.click('knurling-cancel');
+ assert.equal(noAck.window.PartelierKnurling.isBusy(),false,'Terminal native push unlocks even without the Cancel reply');
+ assert.equal(noAck.$('tool-select').disabled,false);const releaseCancel=noAckConfig.release;noAckConfig.hold=null;
+ await noAck.click('knurling-new');await noAck.settle();releaseCancel();await noAck.settle();
+ assert.equal(noAck.$('knurling-create').disabled,false,'Late cancellation reply cannot retire the new preview');
  // Reopening the palette receives defaults plus the last completed session.
  // Completed settings must not replace defaults; a live Saved Edit must.
  for(const phase of ['created','cancelled','idle']){

@@ -4,7 +4,7 @@
  const choices={profile:[["printable_v","Printable V · recommended"],["rounded","Rounded · custom"],["metric","Metric · nominal 60°"]],mode:[["external","External · shaft"],["internal","Internal · bore"],["pair","Matched pair · two bodies"],["coupon","Fit coupon · one male + three nuts"]],handedness:[["right","Right-hand"],["left","Left-hand"]]};
  const terminal=new Set(["idle","cancelled","created"]),retired=new Set();
  const state={selected:false,settings:clone(defaults),session:null,revision:0,connected:false,caps:new Set(),busy:false,expecting:false,error:false};
- let sequence=0,hostRevision=-1,pushVersion=0,timer,poll,previewFlight=false,queued=false,queue=Promise.resolve(),helpTrigger;
+ let sequence=0,hostRevision=-1,pushVersion=0,timer,poll,previewFlight=false,queued=false,helpTrigger;
  const active=()=>!!state.session?.sessionId&&!terminal.has(state.session.phase),identity=()=>active()?state.session.sessionId:null;
  const other=()=>!!window.PartelierHingeActive||[window.PartelierKnurling,window.PartelierSnap,window.PartelierPatterns,window.PartelierDetails,window.PartelierFans,window.PartelierMechanisms,window.PartelierFinishing].some(m=>m?.isActive()||m?.isBusy());
  const ready=()=>!!identity()&&!state.session?.pickingTarget&&!!state.session?.selections?.surface?.selected;
@@ -19,28 +19,38 @@
   const old=state.session?.sessionId,id=snapshot.sessionId,ended=snapshot.endedSessionId;
   if(id&&retired.has(id)||ended&&active()&&ended!==old||active()&&id&&id!==old&&!state.expecting||id===old&&snapshot.revision<hostRevision)return false;
   if(old&&(id!==old||terminal.has(snapshot.phase)))retired.add(old);
-  state.session=snapshot;hostRevision=snapshot.revision;
+  cancellation.confirm(snapshot);state.session=snapshot;hostRevision=snapshot.revision;
   if(snapshot.settings&&(snapshot.revision>=state.revision||state.expecting||id&&id!==old)){state.settings=clone(snapshot.settings);state.revision=snapshot.revision;sync();}
   state.error=snapshot.phase==="error";message(snapshot.message||"",state.error);render();
   if(["computing","opening"].includes(snapshot.phase))recover();
   return true;
  }
- function recover(){clearTimeout(poll);poll=setTimeout(async()=>{if(!active())return;if(state.busy){recover();return;}try{await send("thread_status");}catch(error){message(error.message,true);recover();}},2000);}
+ function recover(){clearTimeout(poll);poll=setTimeout(async()=>{if(!active())return;if(state.busy){recover();return;}try{await send("thread_status");}catch(error){if(cancellation.isCancelled(error))return;message(error.message,true);recover();}},2000);}
  async function send(action,payload={}){
   const requestId=`thread-ui-${++sequence}`,version=pushVersion;
-  const raw=await window.adsk.fusionSendData(action,JSON.stringify({protocol:1,requestId,...payload}));
+  const raw=await cancellation.wait(window.adsk.fusionSendData(action,JSON.stringify({protocol:1,requestId,...payload})));
   let r;try{r=typeof raw==="string"?JSON.parse(raw):raw;}catch(_){throw Error("Invalid Fusion response.");}
   if(!r?.ok||r.requestId!==requestId)throw Error(r?.message||r?.error||"Fusion could not complete the thread request.");
   if(r.threadState&&(!payload.sessionId||payload.sessionId===identity()||state.expecting)&&!(version!==pushVersion&&!state.expecting&&r.threadState.revision<=hostRevision))apply(r.threadState);
   return r;
  }
  function action(name,extra={}){if(!identity())throw Error("Start a thread session first.");const p={sessionId:identity(),...extra};if(["thread_update","thread_preview","thread_commit"].includes(name))Object.assign(p,{revision:state.revision,settings:clone(state.settings)});return send(name,p);}
- function run(work){queue=queue.then(async()=>{state.busy=true;render();try{await work();}catch(error){state.error=true;message(error.message,true);}finally{state.busy=false;render();if(queued){queued=false;schedule();}}});return queue;}
+ const cancellation=window.PartelierCancellation.create({
+  busy(value){state.busy=value;render();},
+  error(error){state.error=true;message(error.message,true);},
+  finished(){if(queued){queued=false;schedule();}}
+ });
+ function run(work){return cancellation.run(work);}
+ function cancelNow(){
+  if(!identity())return;
+  clearTimeout(timer);clearTimeout(poll);queued=false;
+  return cancellation.cancel(()=>action("thread_cancel"),identity());
+ }
  const computingCurrent=()=>state.session?.phase==="computing"&&state.session.revision===state.revision;
- function schedule(){clearTimeout(timer);if(!ready()||!valid()||current()||computingCurrent()||state.session.phase==="opening")return;if(state.busy||previewFlight){queued=true;return;}timer=setTimeout(refresh,400);}
+ function schedule(){if(cancellation.cancelling)return;clearTimeout(timer);if(!ready()||!valid()||current()||computingCurrent()||state.session.phase==="opening")return;if(state.busy||previewFlight){queued=true;return;}timer=setTimeout(refresh,400);}
  async function refresh(){
   if(!ready()||!valid()||current()||computingCurrent())return;if(previewFlight){queued=true;return;}previewFlight=true;const rev=state.revision;
-  try{await action("thread_preview");}catch(error){state.error=true;message(error.message,true);render();}finally{previewFlight=false;if(queued||rev!==state.revision){queued=false;schedule();}}
+  try{await action("thread_preview");}catch(error){if(cancellation.isCancelled(error))return;state.error=true;message(error.message,true);render();}finally{previewFlight=false;if(queued||rev!==state.revision){queued=false;schedule();}}
  }
  function visible(name){const coupon=state.settings.mode==="coupon";if(["wall_mm","coupon_clearance_step_mm"].includes(name))return coupon;if(name==="offset_mm")return !coupon;if(name==="depth_mm")return state.settings.profile!=="metric";return true;}
  function render(){
@@ -60,7 +70,7 @@
    b.disabled=!supported||state.busy||opening||computing||other()||!!state.session?.editing;
    window.PartelierSelectionUI?.decorate?.(b,targets.indexOf(role),role,state.session,targets);
   }
-  $("thread-reset").hidden=coupon;$("thread-reset").disabled=!identity()||state.busy||opening;$("thread-cancel").disabled=!identity()||state.busy||opening;
+  $("thread-reset").hidden=coupon;$("thread-reset").disabled=!identity()||state.busy||opening;$("thread-cancel").disabled=!identity()||cancellation.cancelling;
   $("thread-create").disabled=!supported||!ready()||!current()||!valid()||state.busy;$("thread-create").textContent=state.session?.editing?"Rebuild thread":coupon?"Create fit coupon":"Create thread";
   $("thread-retry").hidden=!ready()||current();$("thread-retry").disabled=state.busy||opening||computing||!valid();
   $("thread-status").textContent="Live preview · "+(!supported?"Fusion required":opening?"creating…":computing?"computing…":state.error?"needs attention":current()?"up to date":ready()?"waiting for update":coupon?"choose settings, then New fit coupon":"select cylindrical faces");
@@ -95,7 +105,7 @@
  for(const target of ["face_a","face_b"])$("thread-pick-"+target).addEventListener("click",()=>run(async()=>{if(!identity()){await begin(false);return;}clearTimeout(timer);queued=false;await action("thread_focus",{target});schedule();}));
  $("thread-retry").addEventListener("click",refresh);$("thread-create").addEventListener("click",()=>run(()=>action("thread_commit")));
  const reset=()=>run(async()=>{clearTimeout(timer);queued=false;await action("thread_reset");});
- $("thread-reset").addEventListener("click",reset);$("thread-cancel").addEventListener("click",()=>run(async()=>{clearTimeout(timer);clearTimeout(poll);queued=false;await action("thread_cancel");}));
+ $("thread-reset").addEventListener("click",reset);$("thread-cancel").addEventListener("click",cancelNow);
  $("thread-help-close").addEventListener("click",()=>$("thread-help-dialog").close());$("thread-help-dialog").addEventListener("close",()=>helpTrigger?.focus());
  window.PartelierSelectionUI?.register("thread",{active,busy:()=>state.busy,reset});
  window.PartelierThreads=Object.freeze({matches:id=>id==="thread",isActive:active,isBusy:()=>state.busy,

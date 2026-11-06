@@ -28,7 +28,7 @@
  };
  const groups={lid:["lip_layout","lip_height_mm","lip_width_mm","lip_inset_mm","lip_clearance_mm","lead_mm","axial_clearance_mm","socket_floor_mm"],alignment:["pin_count","pin_diameter_mm","pin_height_mm","pin_clearance_mm","pin_inset_mm","lead_mm","axial_clearance_mm","socket_floor_mm"],ribs:["rib_style","rib_width_mm","rib_height_a_mm","rib_height_b_mm","rib_count","rib_margin_mm"]};
  const state={selected:false,alias:null,settings:{...defaults},session:null,revision:0,connected:false,caps:new Set(),busy:false,expecting:false,error:false};
- let sequence=0,hostRevision=-1,timer,poll,previewFlight=false,queued=false,queue=Promise.resolve(),helpTrigger,exampleKind;
+ let sequence=0,hostRevision=-1,timer,poll,previewFlight=false,queued=false,helpTrigger,exampleKind;
  const active=()=>!!state.session?.sessionId&&!terminal.has(state.session.phase),identity=()=>active()?state.session.sessionId:null;
  const other=()=>!!window.PartelierKnurling?.isActive()||!!window.PartelierKnurling?.isBusy()||!!window.PartelierThreads?.isActive()||!!window.PartelierThreads?.isBusy()||!!window.PartelierMechanisms?.isActive()||!!window.PartelierMechanisms?.isBusy()||!!window.PartelierFinishing?.isActive()||!!window.PartelierFinishing?.isBusy()||!!window.PartelierFans?.isActive()||!!window.PartelierFans?.isBusy()||!!window.PartelierHingeActive||!!window.PartelierSnap?.isActive()||!!window.PartelierSnap?.isBusy()||!!window.PartelierPatterns?.isActive()||!!window.PartelierPatterns?.isBusy();
  const ready=()=>!state.session?.pickingSides&&!state.session?.pickingTarget&&!!identity()&&!!state.session?.selections?.surface?.selected;
@@ -44,7 +44,7 @@
   if(active()&&id&&id!==old&&!state.expecting)return false;
   if(id===old&&snapshot.revision<hostRevision)return false;
   if(old&&(id!==old||terminal.has(snapshot.phase)))retired.add(old);
-  state.session=snapshot;hostRevision=snapshot.revision;
+  cancellation.confirm(snapshot);state.session=snapshot;hostRevision=snapshot.revision;
   if(snapshot.settings&&(snapshot.revision>=state.revision||state.expecting||(id&&id!==old))){
    state.settings={...defaults,...snapshot.settings};state.revision=snapshot.revision;sync();
   }
@@ -56,12 +56,12 @@
  function recover(){
   clearTimeout(poll);poll=setTimeout(async()=>{
    if(!active()||state.busy)return;
-   try{await send("detail_status");}catch(error){message(error.message,true);recover();}
+   try{await send("detail_status");}catch(error){if(cancellation.isCancelled(error))return;message(error.message,true);recover();}
   },2000);
  }
  async function send(action,payload={}){
   const requestId=`detail-ui-${++sequence}`,sentId=payload.sessionId;
-  const raw=await window.adsk.fusionSendData(action,JSON.stringify({protocol:1,requestId,...payload}));
+  const raw=await cancellation.wait(window.adsk.fusionSendData(action,JSON.stringify({protocol:1,requestId,...payload})));
   let response;try{response=typeof raw==="string"?JSON.parse(raw):raw;}catch(_){throw Error("The Fusion response is invalid.");}
   if(!response?.ok)throw Error(response?.message||response?.error||"Fusion could not complete the detail request.");
   if(response.requestId!==requestId)throw Error("The detail acknowledgment belongs to another request.");
@@ -74,8 +74,18 @@
   if(["detail_update","detail_preview","detail_commit"].includes(actionName))Object.assign(payload,{revision:state.revision,settings:clone(state.settings)});
   return send(actionName,payload);
  }
- function run(work){queue=queue.then(async()=>{state.busy=true;render();try{await work();}catch(error){state.error=true;message(error.message,true);}finally{state.busy=false;render();if(queued){queued=false;schedule();}}});return queue;}
- function schedule(){
+ const cancellation=window.PartelierCancellation.create({
+  busy(value){state.busy=value;render();},
+  error(error){state.error=true;message(error.message,true);},
+  finished(){if(queued){queued=false;schedule();}}
+ });
+ function run(work){return cancellation.run(work);}
+ function cancelNow(){
+  if(!identity())return;
+  clearTimeout(timer);clearTimeout(poll);queued=false;
+  return cancellation.cancel(()=>action("detail_cancel"),identity());
+ }
+ function schedule(){if(cancellation.cancelling)return;
   clearTimeout(timer);
   if(!ready()||!valid()||current()||state.session.phase==="opening")return;
   if(state.busy||previewFlight){queued=true;return;}
@@ -85,7 +95,7 @@
   if(!ready()||!valid()||current())return;
   if(previewFlight){queued=true;return;}
   previewFlight=true;const revision=state.revision;
-  try{await action("detail_preview");}catch(error){state.error=true;message(error.message,true);render();}
+  try{await action("detail_preview");}catch(error){if(cancellation.isCancelled(error))return;state.error=true;message(error.message,true);render();}
   finally{previewFlight=false;if(queued||revision!==state.revision){queued=false;schedule();}}
  }
  function render(){
@@ -122,7 +132,7 @@
   $("detail-availability").hidden=supported;$("detail-availability").textContent=state.connected?"Stop and Run Partelier to enable Small details.":"Open Partelier in Fusion to select geometry.";
   $("begin-detail-button").hidden=active();$("begin-detail-button").disabled=!supported||!valid()||state.busy||active()||other();
   $("edit-detail-button").disabled=!supported||!state.caps.has("detail-edit")||state.busy||active()||other();
-  $("cancel-detail-button").disabled=!identity()||state.busy||opening;
+  $("cancel-detail-button").disabled=!identity()||cancellation.cancelling;
   $("create-detail-button").disabled=!supported||!ready()||!current()||!valid()||state.busy||opening;
   $("create-detail-button").textContent=state.session?.editing?"Rebuild detail":"Create detail";
   $("retry-detail-button").hidden=!ready()||current();$("retry-detail-button").disabled=!valid()||state.busy||opening;
@@ -174,7 +184,7 @@
  $("begin-detail-button").addEventListener("click",()=>run(()=>begin(false)));
  $("edit-detail-button").addEventListener("click",()=>run(()=>begin(true)));
  $("retry-detail-button").addEventListener("click",()=>refresh());
- $("cancel-detail-button").addEventListener("click",()=>run(async()=>{clearTimeout(timer);queued=false;await action("detail_cancel");}));
+ $("cancel-detail-button").addEventListener("click",cancelNow);
  $("create-detail-button").addEventListener("click",()=>run(()=>action("detail_commit")));
  $("detail-help-close").addEventListener("click",()=>$("detail-help-dialog").close());
  $("detail-help-dialog").addEventListener("close",()=>helpTrigger?.focus());

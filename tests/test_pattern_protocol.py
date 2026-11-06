@@ -117,7 +117,8 @@ class PatternPaletteTests(unittest.TestCase):
                      "settings": settings.to_dict(), "selections": {}, "message": "Select geometry."}
             manager = NS(set_state_callback=Mock(), begin_palette=Mock(return_value=state),
                          palette_action=Mock(return_value=state), palette_state=Mock(return_value=state),
-                         launch_create=Mock(), launch_edit=Mock(), busy=False)
+                         launch_create=Mock(), launch_edit=Mock(), busy=False,
+                         cancel_palette=Mock(side_effect=lambda state=state:state.update(endedSessionId=state["sessionId"],sessionId=None,phase="cancelled")))
             managers.append(manager)
             states.append(state)
         self.library.stop()
@@ -150,8 +151,9 @@ class PatternPaletteTests(unittest.TestCase):
             self.assertEqual(pattern.palette_action.call_args.kwargs, {"revision": 3, "settings_dict": settings, "target": None})
         self.library.handle_message("pattern_focus", request(sessionId=IDENTITY, target="body"))
         self.assertEqual(pattern.palette_action.call_args.kwargs["target"], "body")
+        states[2].update(sessionId=IDENTITY,phase="selecting")
         self.library.handle_message("pattern_cancel", request(sessionId=IDENTITY))
-        self.assertEqual(pattern.palette_action.call_args.args, ("pattern_cancel", IDENTITY))
+        pattern.cancel_palette.assert_called_once_with()
         for manager in managers[:2]:
             manager.begin_palette.assert_not_called()
             manager.palette_action.assert_not_called()
@@ -211,8 +213,9 @@ class PatternPaletteTests(unittest.TestCase):
         self.assertEqual(managers[2].begin_palette.call_count, 3)
         for state in states[:2]:
             state.update(sessionId=IDENTITY, phase="preview")
+        states[2].update(sessionId=IDENTITY,phase="selecting")
         self.library.handle_message("pattern_cancel", request(sessionId=IDENTITY))
-        managers[2].palette_action.assert_called_once()
+        managers[2].cancel_palette.assert_called_once_with()
 
     def test_pattern_pushes_and_all_callbacks_are_cleaned_even_after_palette_failure(self):
         managers, states = self.managers()

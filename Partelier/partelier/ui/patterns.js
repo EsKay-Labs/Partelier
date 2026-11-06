@@ -33,7 +33,7 @@
     const terminal = new Set(["idle", "created", "cancelled"]), retired = new Set();
     const signed = new Set(["rotation_deg", "offset_u_mm", "offset_v_mm"]);
     const state = { alias: null, selected: false, connected: false, capabilities: new Set(), others: { hinge: false, snap: false }, settings: { ...defaults }, revision: 0, session: null, busy: false, dirty: false, expecting: false, liveError: false, connectionError: false };
-    let serial = 0, pushedVersion = 0, timer, queued = false, pending = 0, actions = Promise.resolve();
+    let serial = 0, pushedVersion = 0, timer, queued = false, pending = 0;
     let previewRequest, recoveryTimer, recoveryFlight;
     const active = () => !!state.session && !terminal.has(state.session.phase) && !!(state.session.sessionId || state.session.phase === "opening");
     const identity = () => active() ? state.session.sessionId : null;
@@ -290,7 +290,7 @@
         $("edit-pattern-button").disabled = !state.selected || !supported() || !state.capabilities.has("pattern-edit") || busy || hasSession || otherActive();
         $("preview-pattern-button").hidden = picking || !ready || (!state.liveError && current());
         $("preview-pattern-button").disabled = picking || !ready || !valid() || busy;
-        $("cancel-pattern-button").disabled = !identity() || busy;
+        $("cancel-pattern-button").disabled = !identity() || cancellation.cancelling;
         $("create-pattern-button").disabled = picking || !state.selected || !supported() || !valid() || busy || !ready || !current();
         $("create-pattern-button").textContent = editing() ? truss()?"Rebuild truss":grille() ? "Rebuild grille" : "Rebuild pattern" : truss()?"Create truss":grille() ? "Create grille" : "Create pattern";
         $("export-pattern-button").hidden=grille() || truss() || state.settings.mode!=="inlay";
@@ -308,6 +308,7 @@
         const reject = reason => { trace("state_rejected", { reason,...traceSnapshot(snapshot) },true); return false; };
         if (!snapshot || !Number.isInteger(snapshot.revision) || typeof snapshot.phase !== "string") return reject("malformed");
         const previous = state.session;
+        if(snapshot.endedSessionId && active() && snapshot.endedSessionId!==previous?.sessionId)return false;
         if (snapshot.sessionId && retired.has(snapshot.sessionId)) return reject("retired_session");
         if (snapshot.sessionId && previous?.sessionId && snapshot.sessionId !== previous.sessionId && active() && !state.expecting) return reject("other_session");
         if (snapshot.sessionId && snapshot.sessionId === previous?.sessionId && snapshot.revision < previous.revision) return reject("older_revision");
@@ -317,7 +318,7 @@
         }
         const newerEdits = !(snapshot.sessionId && snapshot.sessionId !== previous?.sessionId) && snapshot.revision < state.revision;
         if (!snapshot.sessionId || terminal.has(snapshot.phase)) { if (previous?.sessionId) retired.add(previous.sessionId); if (snapshot.sessionId) retired.add(snapshot.sessionId); }
-        state.session = snapshot; state.connectionError = false;
+        cancellation.confirm(snapshot);state.session = snapshot; state.connectionError = false;
         trace("state_applied", traceSnapshot(snapshot),true);
         if (snapshot.sessionId) state.expecting = false;
         if (!newerEdits && ["preview", "error"].includes(snapshot.phase)) state.liveError = snapshot.phase === "error";
@@ -330,7 +331,7 @@
     async function send(action, payload = {}, recoveryId = null) {
         const requestId = `pattern-ui-${++serial}`, version = pushedVersion;
         trace("send_start", { action,requestId,sentRevision:payload.revision ?? null },action==="pattern_status");
-        const response = Promise.resolve().then(() => window.adsk.fusionSendData(action, JSON.stringify({ protocol: 1, requestId, ...payload })))
+        const response = cancellation.wait(Promise.resolve().then(() => window.adsk.fusionSendData(action, JSON.stringify({ protocol: 1, requestId, ...payload }))))
             .then(raw => { trace("send_ack", { action,requestId },action==="pattern_status"); return raw; },error => { trace("bridge_error", { action,requestId,name:error?.name || "Error" },action==="pattern_status"); throw error; });
         let timeout, raw, waiting, completion;
         if (action === "pattern_preview") {
@@ -362,12 +363,24 @@
         }
         return result;
     }
+    const cancellation=window.PartelierCancellation.create({
+        busy(value,count){pending=count;state.busy=value;render();},
+        error(error){state.liveError=true;message(error.message,true);}
+    });
     function run(task, action = "pattern_action") {
-        pending++; state.busy = true; render();
-        trace("action_queued", { action }); let failed = false;
-        const running = actions.then(() => { trace("action_start", { action }); return task(); });
-        actions = running.catch(error => { failed = true; trace("action_error", { action,name:error.name || "Error" }); state.liveError = true; message(error.message, true); });
-        return actions.finally(() => { pending--; state.busy = pending > 0; trace("action_end", { action,ok:!failed }); render(); });
+        trace("action_queued", {action});
+        return cancellation.run(async()=>{
+            trace("action_start", {action});let failed=false;
+            try{return await task();}
+            catch(error){failed=true;if(!cancellation.isCancelled(error))trace("action_error",{action,name:error.name||"Error"});throw error;}
+            finally{trace("action_end",{action,ok:!failed});}
+        });
+    }
+    function cancelNow() {
+        if(!identity())return;
+        trace("click",{control:"cancel"});
+        cancelTimer();queued=false;
+        return cancellation.cancel(()=>sessionAction("pattern_cancel"),identity());
     }
     function sessionAction(action, extra = {}) {
         const sessionId = identity(); if (!sessionId) throw new Error("Start a pattern geometry session first.");
@@ -383,6 +396,7 @@
         }
     }
     function schedule() {
+        if(cancellation.cancelling)return;
         cancelTimer(); if (!supported() || !identity() || !valid() || state.session?.pickingFaces || state.session?.phase === "opening") return;
         timer = window.setTimeout(() => {
             timer = undefined; if (queued) return; queued = true;
@@ -513,7 +527,7 @@
     $("edit-pattern-button").addEventListener("click", () => { trace("click", { control:"edit" }); run(() => begin(true),"pattern_edit"); });
     $("preview-pattern-button").addEventListener("click", () => { trace("click", { control:"refresh" }); if ($("pattern-settings").reportValidity()) { cancelTimer(); run(refresh,"pattern_preview"); } });
     $("create-pattern-button").addEventListener("click", () => { trace("click", { control:"commit" }); if ($("pattern-settings").reportValidity()) { cancelTimer(); run(() => sessionAction("pattern_commit"),"pattern_commit"); } });
-    $("cancel-pattern-button").addEventListener("click", () => { trace("click", { control:"cancel" }); cancelTimer(); run(() => sessionAction("pattern_cancel"),"pattern_cancel"); });
+    $("cancel-pattern-button").addEventListener("click", cancelNow);
     window.PartelierSelectionUI?.register('pattern',{active,busy:()=>state.busy,reset:()=>{cancelTimer();run(()=>sessionAction('pattern_reset'),'pattern_reset');}});
     window.PartelierPatterns = Object.freeze({
         isActive() { return active(); },
@@ -537,5 +551,5 @@
         },
         handle(action, raw) { if (action !== "pattern_state") return false; try { const snapshot = JSON.parse(raw); trace("push_received",traceSnapshot(snapshot),true); if (apply(snapshot)) pushedVersion++; } catch (error) { trace("push_error", { name:error.name || "Error" }); throw error; } return true; }
     });
-    trace("boot", { build:"0.34.1" }); renderArt(); render();
+    trace("boot", { build:"0.34.2" }); renderArt(); render();
 })();

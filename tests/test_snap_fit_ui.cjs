@@ -61,7 +61,7 @@ function fixture(options = {}) {
         return Promise.resolve(result);
     } } };
     const context = vm.createContext({ window, document, console, setTimeout, clearTimeout });
-    for (const file of ["catalog.js", "illustrations.js", "snap.js", "palette.js"]) vm.runInContext(fs.readFileSync(path.join(ui, file), "utf8"), context, { filename: file });
+    for (const file of ["cancellation.js","catalog.js", "illustrations.js", "snap.js", "palette.js"]) vm.runInContext(fs.readFileSync(path.join(ui, file), "utf8"), context, { filename: file });
     const flush = async () => { for (let i = 0; i < 8; i++) await new Promise(resolve => setImmediate(resolve)); };
     const settle = async () => { const queued = [...timers.values()]; timers.clear(); queued.forEach(fn => fn()); await flush(); };
     return { $, config, requests, flush, settle, push, snapshot: () => clone(snap), timeouts: () => timeouts,

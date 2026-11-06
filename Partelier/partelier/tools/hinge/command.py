@@ -623,7 +623,7 @@ class _Session:
                     label = getattr(entity, "name", "") or getattr(getattr(entity, "body", None), "name", "") or "Selected"
                 selections[identity] = {"selected": bool(selected), "label": str(label)[:120]}
             self._palette_selections = selections
-        return {"sessionId": None if self.closed else self.session_id,
+        return {"sessionId": None if self.closed else self.session_id, "endedSessionId": self.session_id if self.closed else None,
                 "revision": self.revision, "phase": self.phase, "editing": self.editing,"pickingTarget":self.picking_target,
                 "settings": self.palette_settings.to_dict(), "selections": self._palette_selections.copy(),
                 "previewCurrent": bool(not self.closed and self.preview is not None and self.preview.isValid

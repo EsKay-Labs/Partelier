@@ -4,7 +4,7 @@
  const choices={edge_side:[["top","Top"],["bottom","Bottom"],["left","Left"],["right","Right"]],kind:[["notch","Finger notch"],["keyhole","Keyhole slot"],["stop","Motion stop"],["text","Text label"],["arrow","Direction arrow"],["scale","Scale marks"]],mode:[["engrave","Engraved"],["emboss","Raised"]]};
  const terminal=new Set(["idle","cancelled","created"]),retired=new Set();
  const state={selected:false,settings:clone(defaults),session:null,revision:0,connected:false,caps:new Set(),busy:false,expecting:false,error:false};
- let sequence=0,hostRevision=-1,pushVersion=0,timer,poll,previewFlight=false,queued=false,queue=Promise.resolve(),helpTrigger;
+ let sequence=0,hostRevision=-1,pushVersion=0,timer,poll,previewFlight=false,queued=false,helpTrigger;
  const active=()=>!!state.session?.sessionId&&!terminal.has(state.session.phase),identity=()=>active()?state.session.sessionId:null;
  const other=()=>!!window.PartelierKnurling?.isActive()||!!window.PartelierKnurling?.isBusy()||!!window.PartelierThreads?.isActive()||!!window.PartelierThreads?.isBusy()||!!window.PartelierHingeActive||[window.PartelierSnap,window.PartelierPatterns,window.PartelierDetails,window.PartelierFans,window.PartelierMechanisms].some(m=>m?.isActive()||m?.isBusy());
  const ready=()=>!!identity()&&!state.session?.pickingTarget&&!!state.session?.selections?.surface?.selected;
@@ -18,28 +18,38 @@
   const old=state.session?.sessionId,id=snapshot.sessionId,ended=snapshot.endedSessionId;
   if(id&&retired.has(id)||ended&&active()&&ended!==old||active()&&id&&id!==old&&!state.expecting||id===old&&snapshot.revision<hostRevision)return false;
   if(old&&(id!==old||terminal.has(snapshot.phase)))retired.add(old);
-  state.session=snapshot;hostRevision=snapshot.revision;
+  cancellation.confirm(snapshot);state.session=snapshot;hostRevision=snapshot.revision;
   if(snapshot.settings&&(snapshot.revision>=state.revision||state.expecting||id&&id!==old)){state.settings=clone(snapshot.settings);state.revision=snapshot.revision;sync();}
   state.error=snapshot.phase==="error";message(snapshot.message||"",state.error);render();
   if(["computing","opening"].includes(snapshot.phase))recover();
   return true;
  }
- function recover(){clearTimeout(poll);poll=setTimeout(async()=>{if(!active())return;if(state.busy){recover();return;}try{await send("finishing_status");}catch(error){message(error.message,true);recover();}},2000);}
+ function recover(){clearTimeout(poll);poll=setTimeout(async()=>{if(!active())return;if(state.busy){recover();return;}try{await send("finishing_status");}catch(error){if(cancellation.isCancelled(error))return;message(error.message,true);recover();}},2000);}
  async function send(action,payload={}){
   const requestId=`finishing-ui-${++sequence}`,version=pushVersion;
-  const raw=await window.adsk.fusionSendData(action,JSON.stringify({protocol:1,requestId,...payload}));
+  const raw=await cancellation.wait(window.adsk.fusionSendData(action,JSON.stringify({protocol:1,requestId,...payload})));
   let r;try{r=typeof raw==="string"?JSON.parse(raw):raw;}catch(_){throw Error("Invalid Fusion response.");}
   if(!r?.ok||r.requestId!==requestId)throw Error(r?.message||r?.error||"Fusion could not complete the finishing request.");
   if(r.finishingState&&(!payload.sessionId||payload.sessionId===identity()||state.expecting)&&!(version!==pushVersion&&!state.expecting&&r.finishingState.revision<=hostRevision))apply(r.finishingState);
   return r;
  }
  function action(name,extra={}){if(!identity())throw Error("Start a finishing session first.");const p={sessionId:identity(),...extra};if(["finishing_update","finishing_preview","finishing_commit"].includes(name))Object.assign(p,{revision:state.revision,settings:clone(state.settings)});return send(name,p);}
- function run(work){queue=queue.then(async()=>{state.busy=true;render();try{await work();}catch(error){state.error=true;message(error.message,true);}finally{state.busy=false;render();if(queued){queued=false;schedule();}}});return queue;}
+ const cancellation=window.PartelierCancellation.create({
+  busy(value){state.busy=value;render();},
+  error(error){state.error=true;message(error.message,true);},
+  finished(){if(queued){queued=false;schedule();}}
+ });
+ function run(work){return cancellation.run(work);}
+ function cancelNow(){
+  if(!identity())return;
+  clearTimeout(timer);clearTimeout(poll);queued=false;
+  return cancellation.cancel(()=>action("finishing_cancel"),identity());
+ }
  const computingCurrent=()=>state.session?.phase==="computing"&&state.session.revision===state.revision;
- function schedule(){clearTimeout(timer);if(!ready()||!valid()||current()||computingCurrent()||state.session.phase==="opening")return;if(state.busy||previewFlight){queued=true;return;}timer=setTimeout(refresh,400);}
+ function schedule(){if(cancellation.cancelling)return;clearTimeout(timer);if(!ready()||!valid()||current()||computingCurrent()||state.session.phase==="opening")return;if(state.busy||previewFlight){queued=true;return;}timer=setTimeout(refresh,400);}
  async function refresh(){
   if(!ready()||!valid()||current()||computingCurrent())return;if(previewFlight){queued=true;return;}previewFlight=true;const rev=state.revision;
-  try{await action("finishing_preview");}catch(error){state.error=true;message(error.message,true);render();}finally{previewFlight=false;if(queued||rev!==state.revision){queued=false;schedule();}}
+  try{await action("finishing_preview");}catch(error){if(cancellation.isCancelled(error))return;state.error=true;message(error.message,true);render();}finally{previewFlight=false;if(queued||rev!==state.revision){queued=false;schedule();}}
  }
  function visible(name){const k=state.settings.kind; if(name==="edge_side")return k==="notch";if(name==="depth_mm")return k!=="stop";if(["kind","offset_x_mm","offset_y_mm"].includes(name))return true;if(name==="width_mm")return k!=="text";if(name==="length_mm")return !["notch","text"].includes(k);if(name==="height_mm")return ["text","stop"].includes(k);if(name==="shaft_mm")return k==="keyhole";if(["text","font"].includes(name))return k==="text";if(name==="mode")return ["text","arrow","scale"].includes(k);if(name==="stroke_mm")return ["arrow","scale"].includes(k);if(["count","major_every"].includes(name))return k==="scale";if(name==="rotation_deg")return k!=="notch";return true;}
  function render(){
@@ -54,7 +64,7 @@
   $("finishing-availability").hidden=supported;$("finishing-availability").textContent=state.connected?"Restart Partelier to enable Face details.":"Open Partelier in Fusion to apply details.";
   $("finishing-new").hidden=active();$("finishing-edit").hidden=active();$("finishing-new").disabled=!supported||state.busy||other()||!valid();$("finishing-edit").disabled=!supported||!state.caps.has("finishing-edit")||active()||state.busy||other();
   for(const role of ["face"]){const b=$("finishing-pick-"+role),picked=state.session?.selections?.[role]?.selected;b.classList.toggle("is-selected",!!picked);b.textContent="Select face"+(picked?" · ✓":"");b.disabled=!supported||state.busy||opening||computing||other()||!!state.session?.editing;}
-  $("finishing-reset").disabled=!identity()||state.busy||opening;$("finishing-cancel").disabled=!identity()||state.busy||opening;
+  $("finishing-reset").disabled=!identity()||state.busy||opening;$("finishing-cancel").disabled=!identity()||cancellation.cancelling;
   $("finishing-create").disabled=!supported||!ready()||!current()||!valid()||state.busy;$("finishing-create").textContent=state.session?.editing?"Rebuild detail":"Create detail";
   $("finishing-retry").hidden=!ready()||current();$("finishing-retry").disabled=state.busy||opening||computing||!valid();
   $("finishing-status").textContent="Live preview · "+(!supported?"Fusion required":opening?"creating…":computing?"computing…":state.error?"needs attention":current()?"up to date":ready()?"waiting for update":"select a detail, then its face");
@@ -81,7 +91,7 @@
  for(const target of ["face"])$("finishing-pick-"+target).addEventListener("click",()=>run(async()=>{if(!identity()){await begin(false);return;}clearTimeout(timer);queued=false;await action("finishing_focus",{target});schedule();}));
  $("finishing-retry").addEventListener("click",refresh);$("finishing-create").addEventListener("click",()=>run(()=>action("finishing_commit")));
  const reset=()=>run(async()=>{clearTimeout(timer);queued=false;await action("finishing_reset");});
- $("finishing-reset").addEventListener("click",reset);$("finishing-cancel").addEventListener("click",()=>run(async()=>{clearTimeout(timer);clearTimeout(poll);queued=false;await action("finishing_cancel");}));
+ $("finishing-reset").addEventListener("click",reset);$("finishing-cancel").addEventListener("click",cancelNow);
  $("finishing-help-close").addEventListener("click",()=>$("finishing-help-dialog").close());$("finishing-help-dialog").addEventListener("close",()=>helpTrigger?.focus());
  window.PartelierSelectionUI?.register("finishing",{active,busy:()=>state.busy,reset});
  window.PartelierFinishing=Object.freeze({matches:id=>id==="finishing",isActive:active,isBusy:()=>state.busy,

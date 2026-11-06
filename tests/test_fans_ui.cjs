@@ -27,7 +27,7 @@ function fixture(){
   return JSON.stringify({ok:true,requestId:r.requestId,fanState:clone(host)});
  }}};
  const context=vm.createContext({window,document:{getElementById:$,createElement:tag=>new Element(tag)},console,setTimeout(fn,ms){if(ms===400){timers.set(++timerId,fn);return timerId;}return 0;},clearTimeout(id){timers.delete(id);}});
- for(const file of ['fan-data.js','fan-art.js','fans.js'])vm.runInContext(fs.readFileSync(path.join(ui,file),'utf8'),context,{filename:file});
+ for(const file of ["cancellation.js",'fan-data.js','fan-art.js','fans.js'])vm.runInContext(fs.readFileSync(path.join(ui,file),'utf8'),context,{filename:file});
  window.PartelierFans.connect({capabilities:['fan-palette','fan-edit']});window.PartelierFans.select('fan');
  const flush=async()=>{for(let i=0;i<6;i++)await new Promise(r=>setImmediate(r));};
  const settle=async()=>{const list=[...timers.values()];timers.clear();list.forEach(fn=>fn());await flush();};

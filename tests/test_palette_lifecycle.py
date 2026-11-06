@@ -76,6 +76,42 @@ class Collection:
 
 
 class PaletteLifecycleTests(unittest.TestCase):
+    def test_cancel_bypasses_busy_guards_for_each_exact_tool_session(self):
+        identity='76071174-ed92-4b57-b881-230bcac14526'
+        fields={'hinge':'hinge','snap':'snap','pattern':'pattern','detail':'detail',
+                'fan':'fan','mechanism':'mechanism','finishing':'finishing','thread':'thread','knurling':'knurling'}
+        self.library.show()
+        for tool,field in fields.items():
+            with self.subTest(tool=tool):
+                snapshot={'sessionId':identity,'revision':3,'phase':'selecting'}
+                def cancel():snapshot.update(sessionId=None,endedSessionId=identity,phase='cancelled')
+                manager=SimpleNamespace(busy=True,palette_state=lambda:dict(snapshot),cancel_palette=Mock(side_effect=cancel))
+                setattr(self.library,'_'+field+'_commands',manager)
+                data=json.dumps({'protocol':1,'requestId':'cancel-1','sessionId':identity})
+                answer=json.loads(self.library.handle_message(tool+'_cancel',data))
+                self.assertTrue(answer['ok']);self.assertEqual(answer[tool+'State']['phase'],'cancelled')
+                manager.cancel_palette.assert_called_once_with()
+                # Repeated Cancel is harmless and never touches another session.
+                self.library.handle_message(tool+'_cancel',data)
+                manager.cancel_palette.assert_called_once_with()
+                snapshot.update(sessionId='e23808ab-d817-42e8-afdc-edfe49bdb737',phase='selecting')
+                with self.assertRaisesRegex(ValueError,'current work was not cancelled'):
+                    self.library.handle_message(tool+'_cancel',data)
+                manager.cancel_palette.assert_called_once_with()
+                setattr(self.library,'_'+field+'_commands',None)
+        self.assertTrue(self.library._palette.isValid)
+
+    def test_cancel_cleanup_failure_is_reported_and_retryable(self):
+        self.library.show();identity='76071174-ed92-4b57-b881-230bcac14526'
+        snapshot={'sessionId':identity,'phase':'preview'}
+        manager=SimpleNamespace(busy=False,palette_state=lambda:dict(snapshot),cancel_palette=Mock(side_effect=RuntimeError('restore failed')))
+        self.library._knurling_commands=manager
+        data=json.dumps({'protocol':1,'requestId':'cancel-1','sessionId':identity})
+        with self.assertRaisesRegex(RuntimeError,'restore failed'):self.library.handle_message('knurling_cancel',data)
+        self.assertEqual(manager.palette_state()['sessionId'],identity)
+        manager.cancel_palette.side_effect=lambda:snapshot.update(sessionId=None,endedSessionId=identity,phase='cancelled')
+        self.assertTrue(json.loads(self.library.handle_message('knurling_cancel',data))['ok'])
+
     def setUp(self):
         self.controls = Collection()
         self.ui = SimpleNamespace(
@@ -325,6 +361,7 @@ class PaletteLifecycleTests(unittest.TestCase):
             set_state_callback=Mock(), begin_palette=Mock(return_value=snapshot),
             palette_action=Mock(return_value=snapshot), palette_state=Mock(return_value=snapshot),
             launch_create=Mock(), launch_edit=Mock(),
+            cancel_palette=Mock(side_effect=lambda:snapshot.update(endedSessionId=snapshot["sessionId"],sessionId=None,phase="cancelled")),
         )
         self.library.stop()
         self.library.start("workspace", "panel", "diagnostic", self.fail, manager)
@@ -365,7 +402,7 @@ class PaletteLifecycleTests(unittest.TestCase):
         self.library.handle_message("hinge_cancel", json.dumps({
             "protocol": 1, "requestId": "cancel", "sessionId": snapshot["sessionId"],
         }))
-        self.assertEqual(manager.palette_action.call_args.args[0], "hinge_cancel")
+        manager.cancel_palette.assert_called_once_with()
         manager.launch_create.assert_not_called()
         manager.launch_edit.assert_not_called()
 
@@ -436,6 +473,7 @@ class PaletteLifecycleTests(unittest.TestCase):
                 set_state_callback=Mock(), begin_palette=Mock(return_value=snapshot),
                 palette_action=Mock(return_value=snapshot), palette_state=Mock(return_value=snapshot),
                 launch_create=Mock(), launch_edit=Mock(),
+            cancel_palette=Mock(side_effect=lambda:snapshot.update(endedSessionId=snapshot["sessionId"],sessionId=None,phase="cancelled")),
             ), snapshot
         hinge, hinge_state = manager(HingeSettings())
         snap, snap_state = manager(SnapFitSettings())
@@ -487,10 +525,11 @@ class PaletteLifecycleTests(unittest.TestCase):
             "protocol": 1, "requestId": "snap-focus", "sessionId": identity, "target": "face_b",
         }))
         self.assertEqual(snap.palette_action.call_args.kwargs["target"], "face_b")
+        snap_state.update(sessionId=identity,phase="selecting")
         self.library.handle_message("snap_cancel", json.dumps({
             "protocol": 1, "requestId": "snap-cancel", "sessionId": identity,
         }))
-        self.assertEqual(snap.palette_action.call_args.args, ("snap_cancel", identity))
+        snap.cancel_palette.assert_called_once_with()
         hinge.palette_action.assert_not_called()
 
     def test_invalid_snap_and_expired_sessions_do_not_launch_or_fall_back(self):
@@ -560,9 +599,9 @@ class PaletteLifecycleTests(unittest.TestCase):
         hinge_state.update(sessionId=identity, phase="preview")
         snap_state.update(sessionId=identity, phase="preview")
         self.library.handle_message("snap_cancel", json.dumps({"protocol": 1, "requestId": "cancel", "sessionId": identity}))
-        snap.palette_action.assert_called_once()
+        snap.cancel_palette.assert_called_once_with()
         self.library.handle_message("hinge_cancel", json.dumps({"protocol": 1, "requestId": "cancel", "sessionId": identity}))
-        hinge.palette_action.assert_called_once()
+        hinge.cancel_palette.assert_called_once_with()
 
     def test_snap_requires_the_full_manager_contract_and_running_library(self):
         self.library._snap_commands = SimpleNamespace(begin_palette=Mock())
@@ -629,6 +668,7 @@ class PaletteLifecycleTests(unittest.TestCase):
     def new_tool_manager(self,tool,state=None):
         state=state or {'sessionId':None,'phase':'idle','revision':0,'settings':None}
         manager=SimpleNamespace(set_state_callback=Mock(),begin_palette=Mock(return_value=state),palette_action=Mock(return_value=state),palette_state=Mock(return_value=state),busy=False)
+        manager.cancel_palette=Mock(side_effect=lambda:state.update(endedSessionId=state['sessionId'],sessionId=None,phase='cancelled'))
         setattr(self.library,'_'+tool+'_commands',manager)
         return manager
 
@@ -681,7 +721,8 @@ class PaletteLifecycleTests(unittest.TestCase):
                 manager=self.new_tool_manager(opening,active);other=self.new_tool_manager(owner,active)
                 try:
                     self.library.handle_message(opening+'_cancel',json.dumps({'protocol':1,'requestId':'cancel-conflict','sessionId':identity}))
-                    manager.palette_action.assert_called_once()
+                    manager.cancel_palette.assert_called_once_with()
+                    other.cancel_palette.assert_not_called()
                 finally:
                     setattr(self.library,'_'+owner+'_commands',None);setattr(self.library,'_'+opening+'_commands',None)
 

@@ -267,6 +267,34 @@ class ToolLibrary:
         if self._palette_closed:
             raise ValueError('This Partelier window is closed. Open the tool library again.')
         request = read_request(action, raw_data)
+        # Cancel bypasses ordinary busy guards, like Close, but only for the
+        # exact requested session. A stale page must never cancel new work.
+        cancel_managers = {
+            'hinge': self._hinge_commands, 'snap': self._snap_commands,
+            'pattern': self._pattern_commands, 'detail': self._detail_commands,
+            'fan': self._fan_commands, 'mechanism': self._mechanism_commands,
+            'finishing': self._finishing_commands, 'thread': self._thread_commands,
+            'knurling': self._knurling_commands,
+        }
+        if action.endswith('_cancel') and action[:-7] in cancel_managers:
+            tool = action[:-7]
+            manager = cancel_managers[tool]
+            if manager is None:raise ValueError('Run Partelier to enable this tool.')
+            snapshot = manager.palette_state()
+            if snapshot.get('sessionId') != request.session_id:
+                if snapshot.get('sessionId') or snapshot.get('endedSessionId') != request.session_id:
+                    raise ValueError('This session has ended. The current work was not cancelled.')
+            else:
+                emit('palette.cancel.request', tool=tool, session_id=request.session_id,
+                     phase=snapshot.get('phase'), busy=getattr(manager,'busy',False))
+                manager.cancel_palette()
+                snapshot = manager.palette_state()
+                if snapshot.get('sessionId') == request.session_id:
+                    raise RuntimeError('Cancellation is incomplete. Try Cancel again.')
+                emit('palette.cancel.complete', tool=tool, session_id=request.session_id,
+                     phase=snapshot.get('phase'))
+            return json.dumps({'protocol':PROTOCOL_VERSION,'requestId':request.request_id,
+                               'ok':True,tool+'State':snapshot})
         automatic=getattr(self,'_automatic_updates',None)
         if automatic is not None and automatic.busy and action not in ('operations_list','diagnostic_log') and not action.endswith('_status'):
             raise ValueError('Wait for automatic feature updates to finish.')

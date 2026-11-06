@@ -43,7 +43,7 @@ function fixture(){
  }}};
  function startSides(){Object.assign(host,{phase:"picking_sides",pickingSides:true,pickingTarget:"lip_sides",canFinishSides:false,previewCurrent:false});host.selections.surface.selected=false;host.selections.lip_sides={selected:false,label:"0 sides"};}
  const context=vm.createContext({window,document,console,setTimeout(fn,ms){if(ms===160){const id=++timerId;timers.set(id,fn);return id;}return 0;},clearTimeout(id){timers.delete(id);}});
- for(const file of ["workspace-flow.js","details.js"])vm.runInContext(fs.readFileSync(path.join(ui,file),"utf8"),context,{filename:file});
+ for(const file of ["cancellation.js","workspace-flow.js","details.js"])vm.runInContext(fs.readFileSync(path.join(ui,file),"utf8"),context,{filename:file});
  window.PartelierDetails.connect({capabilities:["detail-palette","detail-edit"]});window.PartelierDetails.select("lid");
  const flush=async()=>{for(let i=0;i<6;i++)await new Promise(resolve=>setImmediate(resolve));};
  const settle=async()=>{const pending=[...timers.values()];timers.clear();pending.forEach(fn=>fn());await flush();};

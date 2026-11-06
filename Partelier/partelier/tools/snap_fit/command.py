@@ -315,7 +315,7 @@ class _Session:
             valid = entity is not None and entity.isValid
             label = (getattr(entity, "name", "") or getattr(getattr(entity, "body", None), "name", "") or "Selected") if valid else "Not selected"
             selections[key] = {"selected": bool(valid), "label": str(label)[:120]}
-        return {"sessionId": self.session_id, "revision": self.revision, "phase": self.phase,
+        return {"sessionId": None if self.closed else self.session_id, "endedSessionId": self.session_id if self.closed else None, "revision": self.revision, "phase": self.phase,
                 "editing": self.editing, "settings": self.settings.to_dict(),
                 "selections": selections, "message": self.message,"pickingTarget":self.picking_target,
                 "previewCurrent": self.preview_current}

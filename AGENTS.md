@@ -1,5 +1,22 @@
 # Partelier repository guidance
 
+## Cancellation: 0.34.2
+
+All nine tool controllers share ui/cancellation.js. Cancel bypasses the ordinary
+request queue, remains enabled during selection/computation/opening, retires
+queued work, and suppresses late acknowledgments. Exact terminal native pushes
+also confirm cancellation when Qt drops the Cancel reply. Never unlock a session
+by inventing native completion or by deleting another tool's work.
+
+ToolLibrary routes exact *_cancel requests through manager.cancel_palette before
+busy/other-tool guards. Keep strict session identity, idempotent ended-session
+handling, and endedSessionId on closed snapshots. A delayed terminal push cannot
+retire a new session. Small details must not publish error or offer side picking
+after their session closed. Close still retires the whole page independently.
+Fusion kernel work remains synchronous; cancellation cannot interrupt a single
+blocking geometry call until the host dispatches events. Native picker fixtures
+are bounded disposable documents; see docs/cancellation.md and validation.
+
 ## CAD knurling: 0.34.0
 
 Supersedes the 0.33.0 knurling geometry/recipe contract below. Strict11-field

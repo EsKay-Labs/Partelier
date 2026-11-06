@@ -5,7 +5,7 @@
  const choices={style:styles,guard_type:[["spokes","Radial spokes"],["rings","Concentric rings"],["parallel","Parallel bars"],["grid","Crossed grid"],["honeycomb","Honeycomb"]],volute_mounts:[[true,"On · 4 bosses"],[false,"Off"]],output:[["guard","Standalone guard"],["blower_housing","Rotor + volute + lid"],["rotor","Rotor only"],["rotor_frame","Rotor + frame"],["rotor_guard","Rotor + frame + guard"],["hub_test","Hub fit coupon"]],shaft_shape:[["round","Round"],["d","D-shaft"]],pitch_mode:[["twist","Root / middle / tip angles"],["pitch","Constant geometric pitch"]],rotation:[["ccw","CCW · viewed from above"],["cw","CW · viewed from above"]],outline_mode:[["generated","Generated planform"],["sketch","Selected sketch profile"]]};
  const terminal=new Set(["idle","cancelled","created"]),retired=new Set();
  const state={selected:false,settings:clone(defaults),session:null,revision:0,connected:false,caps:new Set(),busy:false,expecting:false,error:false};
- let sequence=0,hostRevision=-1,pushVersion=0,timer,poll,previewFlight=false,queued=false,queue=Promise.resolve(),helpTrigger;
+ let sequence=0,hostRevision=-1,pushVersion=0,timer,poll,previewFlight=false,queued=false,helpTrigger;
  const active=()=>!!state.session?.sessionId&&!terminal.has(state.session.phase),identity=()=>active()?state.session.sessionId:null;
  const other=()=>!!window.PartelierKnurling?.isActive()||!!window.PartelierKnurling?.isBusy()||!!window.PartelierThreads?.isActive()||!!window.PartelierThreads?.isBusy()||!!window.PartelierMechanisms?.isActive()||!!window.PartelierMechanisms?.isBusy()||!!window.PartelierFinishing?.isActive()||!!window.PartelierFinishing?.isBusy()||!!window.PartelierHingeActive||[window.PartelierSnap,window.PartelierPatterns,window.PartelierDetails].some(m=>m?.isActive()||m?.isBusy());
  const ready=()=>!!identity()&&!state.session?.pickingTarget&&!!state.session?.selections?.surface?.selected;
@@ -23,28 +23,38 @@
   const old=state.session?.sessionId,id=snapshot.sessionId,ended=snapshot.endedSessionId;
   if(id&&retired.has(id)||ended&&active()&&ended!==old||active()&&id&&id!==old&&!state.expecting||id===old&&snapshot.revision<hostRevision)return false;
   if(old&&(id!==old||terminal.has(snapshot.phase)))retired.add(old);
-  state.session=snapshot;hostRevision=snapshot.revision;
+  cancellation.confirm(snapshot);state.session=snapshot;hostRevision=snapshot.revision;
   if(snapshot.settings&&(snapshot.revision>=state.revision||state.expecting||id&&id!==old)){state.settings=clone(snapshot.settings);state.revision=snapshot.revision;sync();}
   state.error=snapshot.phase==="error";message(snapshot.message||"",state.error);render();
   if(["computing","opening"].includes(snapshot.phase))recover();
   return true;
  }
- function recover(){clearTimeout(poll);poll=setTimeout(async()=>{if(!active())return;if(state.busy){recover();return;}try{await send("fan_status");}catch(error){message(error.message,true);recover();}},2000);}
+ function recover(){clearTimeout(poll);poll=setTimeout(async()=>{if(!active())return;if(state.busy){recover();return;}try{await send("fan_status");}catch(error){if(cancellation.isCancelled(error))return;message(error.message,true);recover();}},2000);}
  async function send(action,payload={}){
   const requestId=`fan-ui-${++sequence}`,version=pushVersion;
-  const raw=await window.adsk.fusionSendData(action,JSON.stringify({protocol:1,requestId,...payload}));
+  const raw=await cancellation.wait(window.adsk.fusionSendData(action,JSON.stringify({protocol:1,requestId,...payload})));
   let r;try{r=typeof raw==="string"?JSON.parse(raw):raw;}catch(_){throw Error("Invalid Fusion response.");}
   if(!r?.ok||r.requestId!==requestId)throw Error(r?.message||r?.error||"Fusion could not complete the fan request.");
   if(r.fanState&&(!payload.sessionId||payload.sessionId===identity()||state.expecting)&&!(version!==pushVersion&&!state.expecting&&r.fanState.revision<=hostRevision))apply(r.fanState);
   return r;
  }
  function action(name,extra={}){if(!identity())throw Error("Start a fan session first.");const p={sessionId:identity(),...extra};if(["fan_update","fan_preview","fan_commit"].includes(name))Object.assign(p,{revision:state.revision,settings:clone(state.settings)});return send(name,p);}
- function run(work){queue=queue.then(async()=>{state.busy=true;render();try{await work();}catch(error){state.error=true;message(error.message,true);}finally{state.busy=false;render();if(queued){queued=false;schedule();}}});return queue;}
+ const cancellation=window.PartelierCancellation.create({
+  busy(value){state.busy=value;render();},
+  error(error){state.error=true;message(error.message,true);},
+  finished(){if(queued){queued=false;schedule();}}
+ });
+ function run(work){return cancellation.run(work);}
+ function cancelNow(){
+  if(!identity())return;
+  clearTimeout(timer);clearTimeout(poll);queued=false;
+  return cancellation.cancel(()=>action("fan_cancel"),identity());
+ }
  const computingCurrent=()=>state.session?.phase==="computing"&&state.session.revision===state.revision;
- function schedule(){clearTimeout(timer);if(!ready()||!valid()||current()||computingCurrent()||state.session.phase==="opening")return;if(state.busy||previewFlight){queued=true;return;}timer=setTimeout(refresh,400);}
+ function schedule(){if(cancellation.cancelling)return;clearTimeout(timer);if(!ready()||!valid()||current()||computingCurrent()||state.session.phase==="opening")return;if(state.busy||previewFlight){queued=true;return;}timer=setTimeout(refresh,400);}
  async function refresh(){
   if(!ready()||!valid()||current()||computingCurrent())return;if(previewFlight){queued=true;return;}previewFlight=true;const rev=state.revision;
-  try{await action("fan_preview");}catch(error){state.error=true;message(error.message,true);render();}finally{previewFlight=false;if(queued||rev!==state.revision){queued=false;schedule();}}
+  try{await action("fan_preview");}catch(error){if(cancellation.isCancelled(error))return;state.error=true;message(error.message,true);render();}finally{previewFlight=false;if(queued||rev!==state.revision){queued=false;schedule();}}
  }
  function visible(name){
   const s=state.settings,coupon=s.output==="hub_test";
@@ -80,7 +90,7 @@
   $("fan-availability").hidden=supported;$("fan-availability").textContent=state.connected?"Restart Partelier to enable Fans & Propellers.":standalone?"Open Partelier in Fusion to build the guard.":"Open Partelier in Fusion to build the rotor.";
   $("fan-new").hidden=active();$("fan-edit").hidden=active();$("fan-new").disabled=!supported||state.busy||other()||!valid();$("fan-edit").disabled=!supported||!state.caps.has("fan-edit")||active()||state.busy||other();
   for(const role of ["circle","outline"]){const b=$("fan-pick-"+role),picked=state.session?.selections?.[role]?.selected;b.classList.toggle("is-selected",!!picked);b.textContent=(role==="circle"?"Fit circular opening":"Use sketch outline")+(picked?" · ✓":"");b.disabled=!supported||state.busy||opening||computing||other()||(role==="outline"&&state.settings.style==="blower");}
-  $("fan-reset").disabled=!identity()||state.busy||opening;$("fan-cancel").disabled=!identity()||state.busy||opening;
+  $("fan-reset").disabled=!identity()||state.busy||opening;$("fan-cancel").disabled=!identity()||cancellation.cancelling;
   $("fan-create").disabled=!supported||!ready()||!current()||!valid()||state.busy;$("fan-create").textContent=state.session?.editing?(standalone?"Rebuild guard":"Rebuild fan"):(standalone?"Create guard":"Create fan");
   $("fan-retry").hidden=!ready()||current();$("fan-retry").disabled=state.busy||opening||computing||!valid();
   $("fan-status").textContent="Live preview · "+(!supported?"Fusion required":opening?"creating…":computing?"computing…":state.error?"needs attention":current()?"up to date":ready()?"waiting for update":standalone?"choose design, then New guard":"choose preset, then New fan");
@@ -128,7 +138,7 @@
  for(const target of ["circle","outline"])$("fan-pick-"+target).addEventListener("click",()=>run(async()=>{if(!identity())await begin(false);clearTimeout(timer);queued=false;await action("fan_focus",{target});schedule();}));
  $("fan-retry").addEventListener("click",refresh);$("fan-create").addEventListener("click",()=>run(()=>action("fan_commit")));
  const reset=()=>run(async()=>{clearTimeout(timer);queued=false;await action("fan_reset");});
- $("fan-reset").addEventListener("click",reset);$("fan-cancel").addEventListener("click",()=>run(async()=>{clearTimeout(timer);clearTimeout(poll);queued=false;await action("fan_cancel");}));
+ $("fan-reset").addEventListener("click",reset);$("fan-cancel").addEventListener("click",cancelNow);
  $("fan-help-close").addEventListener("click",()=>$("fan-help-dialog").close());$("fan-help-dialog").addEventListener("close",()=>helpTrigger?.focus());
  window.PartelierSelectionUI?.register("fan",{active,busy:()=>state.busy,reset});
  window.PartelierFans=Object.freeze({matches:id=>id==="fan",isActive:active,isBusy:()=>state.busy,

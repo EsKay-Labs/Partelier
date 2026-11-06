@@ -60,7 +60,7 @@ const window = { setTimeout: (fn, ms) => { if (ms === 30000) { timeoutCount++; r
 } } };
 const sandbox = { window, document, console, setTimeout, clearTimeout };
 vm.createContext(sandbox);
-for (const file of ["catalog.js", "illustrations.js", "palette.js"]) vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), sandbox, { filename: file });
+for (const file of ["cancellation.js","catalog.js", "illustrations.js", "palette.js"]) vm.runInContext(fs.readFileSync(path.join(root, file), "utf8"), sandbox, { filename: file });
 const flush = async () => { for (let i = 0; i < 8; i++) await new Promise(resolve => setImmediate(resolve)); };
 const settleLivePreview = async () => { const queued=[...liveTimers]; liveTimers.clear(); for(const [,callback] of queued) callback(); await flush(); };
 const input = async (name, value, settle = true) => { const control = byId(`hinge-${name}`); if (control.type === "checkbox") control.checked = value; else control.value = value; for (const listener of byId("hinge-settings").listeners.input) listener({ target: control }); await flush(); if (settle) await settleLivePreview(); };
@@ -289,7 +289,7 @@ const input = async (name, value, settle = true) => { const control = byId(`hing
     for (const target of ["face_a", "face_b", "axis_edge"]) { await byId(`select-${target}`).emit("click"); await flush(); }
     await byId("create-hinge-button").emit("click"); await flush();
     assert.equal(byId("create-hinge-button").disabled, true, "queued native commit must block another commit");
-    assert.equal(byId("cancel-hinge-button").disabled, true);
+    assert.equal(byId("cancel-hinge-button").disabled, false, "Cancel can interrupt a queued native commit");
     assert.equal(byId("select-face_a").disabled, true);
     assert.equal(byId("hinge-length_mm").disabled, true);
     assert.notEqual(byId("operation-status").textContent, "Hinge created.");
@@ -326,7 +326,7 @@ const input = async (name, value, settle = true) => { const control = byId(`hing
     const recoveryById = id => { assert(recoveryIds.has(id), "Missing recovery element " + id); return recoveryIds.get(id); };
     for (const child of byId("hinge-settings").children) recoveryById("hinge-settings").append(recoveryById(child.id));
     const recoveryDocument = { getElementById: recoveryById, createElement: recoveryElement, querySelector: () => recoveryElement("a"), querySelectorAll: () => [], addEventListener() {} };
-    const recoveryWindow = { PartelierCatalog: window.PartelierCatalog, PartelierIllustrations: window.PartelierIllustrations, setTimeout: window.setTimeout, clearTimeout: window.clearTimeout, adsk: { fusionSendData(action, raw) {
+    const recoveryWindow = { PartelierCancellation:window.PartelierCancellation, PartelierCatalog: window.PartelierCatalog, PartelierIllustrations: window.PartelierIllustrations, setTimeout: window.setTimeout, clearTimeout: window.clearTimeout, adsk: { fusionSendData(action, raw) {
         assert.equal(action, "ready");
         const request = JSON.parse(raw);
         return JSON.stringify({ protocol: 1, requestId: request.requestId, ok: true, capabilities: ["hinge-create", "hinge-edit", "hinge-palette"], hingeState: retiredEditPreview });

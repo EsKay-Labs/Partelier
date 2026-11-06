@@ -69,9 +69,10 @@ class DetailCommands(lifecycle.PatternCommands):
                 session.faces=tuple(entities);session.validate()
             else:self.pick(session,'edit_target' if editing else 'face_a')
         except ValueError as error:
-            session.phase='error';session.message=str(error)
+            if not session.closed:
+                session.phase='error';session.message=str(error)
         finally:self._busy=False
-        session.offer_sides()
+        if not session.closed:session.offer_sides()
         return self.publish(session)
 
     def reset(self,session):

@@ -5,7 +5,7 @@
  const choices={style:D.styles,mode:[["engrave","Cut inward"],["emboss","Raised outward"]],top_finish:finishes,bottom_finish:[["none","None"],["chamfer","Chamfer"],["fillet","Fillet · 45° start"]]};
  const terminal=new Set(["idle","cancelled","created"]),retired=new Set();
  const state={selected:false,settings:clone(defaults),session:null,revision:0,connected:false,caps:new Set(),busy:false,expecting:false,error:false};
- let lastBorder=1,sequence=0,hostRevision=-1,pushVersion=0,timer,poll,previewFlight=false,queued=false,queue=Promise.resolve(),helpTrigger;
+ let lastBorder=1,sequence=0,hostRevision=-1,pushVersion=0,timer,poll,previewFlight=false,queued=false,helpTrigger;
  const active=()=>!!state.session?.sessionId&&!terminal.has(state.session.phase),identity=()=>active()?state.session.sessionId:null;
  const other=()=>!!window.PartelierHingeActive||[window.PartelierSnap,window.PartelierPatterns,window.PartelierDetails,window.PartelierFans,window.PartelierMechanisms,window.PartelierFinishing,window.PartelierThreads].some(m=>m?.isActive()||m?.isBusy());
  const ready=()=>!!identity()&&!state.session?.pickingTarget&&!!state.session?.selections?.surface?.selected;
@@ -20,7 +20,7 @@
   const old=state.session?.sessionId,id=snapshot.sessionId,ended=snapshot.endedSessionId;
   if(id&&retired.has(id)||ended&&active()&&ended!==old||active()&&id&&id!==old&&!state.expecting||id===old&&snapshot.revision<hostRevision)return false;
   if(old&&(id!==old||terminal.has(snapshot.phase)))retired.add(old);
-  state.session=snapshot;hostRevision=snapshot.revision;
+  cancellation.confirm(snapshot);state.session=snapshot;hostRevision=snapshot.revision;
   // Closed sessions report status only. Their old borders must not overwrite
   // fresh defaults on palette startup; active sessions (including Edit) own settings.
   if(snapshot.settings&&!terminal.has(snapshot.phase)&&(snapshot.revision>=state.revision||state.expecting||id&&id!==old)){state.settings=clone(snapshot.settings);state.revision=snapshot.revision;sync();}
@@ -28,22 +28,32 @@
   if(["computing","opening"].includes(snapshot.phase))recover();
   return true;
  }
- function recover(){clearTimeout(poll);poll=setTimeout(async()=>{if(!active())return;if(state.busy){recover();return;}try{await send("knurling_status");}catch(error){message(error.message,true);recover();}},2000);}
+ function recover(){clearTimeout(poll);poll=setTimeout(async()=>{if(!active())return;if(state.busy){recover();return;}try{await send("knurling_status");}catch(error){if(cancellation.isCancelled(error))return;message(error.message,true);recover();}},2000);}
  async function send(action,payload={}){
   const requestId=`knurling-ui-${++sequence}`,version=pushVersion;
-  const raw=await window.adsk.fusionSendData(action,JSON.stringify({protocol:1,requestId,...payload}));
+  const raw=await cancellation.wait(window.adsk.fusionSendData(action,JSON.stringify({protocol:1,requestId,...payload})));
   let r;try{r=typeof raw==="string"?JSON.parse(raw):raw;}catch(_){throw Error("Invalid Fusion response.");}
   if(!r?.ok||r.requestId!==requestId)throw Error(r?.message||r?.error||"Fusion could not complete the knurling request.");
   if(r.knurlingState&&(!payload.sessionId||payload.sessionId===identity()||state.expecting)&&!(version!==pushVersion&&!state.expecting&&r.knurlingState.revision<=hostRevision))apply(r.knurlingState);
   return r;
  }
  function action(name,extra={}){if(!identity())throw Error("Start a knurling session first.");const p={sessionId:identity(),...extra};if(["knurling_update","knurling_preview","knurling_commit"].includes(name))Object.assign(p,{revision:state.revision,settings:clone(state.settings)});return send(name,p);}
- function run(work){queue=queue.then(async()=>{state.busy=true;render();try{await work();}catch(error){state.error=true;message(error.message,true);}finally{state.busy=false;render();if(queued){queued=false;schedule();}}});return queue;}
+ const cancellation=window.PartelierCancellation.create({
+  busy(value){state.busy=value;render();},
+  error(error){state.error=true;message(error.message,true);},
+  finished(){if(queued){queued=false;schedule();}}
+ });
+ function run(work){return cancellation.run(work);}
+ function cancelNow(){
+  if(!identity())return;
+  clearTimeout(timer);clearTimeout(poll);queued=false;
+  return cancellation.cancel(()=>action("knurling_cancel"),identity());
+ }
  const computingCurrent=()=>state.session?.phase==="computing"&&state.session.revision===state.revision;
- function schedule(){clearTimeout(timer);if(!ready()||!valid()||current()||computingCurrent()||state.session.phase==="opening")return;if(state.busy||previewFlight){queued=true;return;}timer=setTimeout(refresh,400);}
+ function schedule(){if(cancellation.cancelling)return;clearTimeout(timer);if(!ready()||!valid()||current()||computingCurrent()||state.session.phase==="opening")return;if(state.busy||previewFlight){queued=true;return;}timer=setTimeout(refresh,400);}
  async function refresh(){
   if(!ready()||!valid()||current()||computingCurrent())return;if(previewFlight){queued=true;return;}previewFlight=true;const rev=state.revision;
-  try{await action("knurling_preview");}catch(error){state.error=true;message(error.message,true);render();}finally{previewFlight=false;if(queued||rev!==state.revision){queued=false;schedule();}}
+  try{await action("knurling_preview");}catch(error){if(cancellation.isCancelled(error))return;state.error=true;message(error.message,true);render();}finally{previewFlight=false;if(queued||rev!==state.revision){queued=false;schedule();}}
  }
  function render(){
   const supported=state.connected&&state.caps.has("knurling-palette"),opening=state.session?.phase==="opening",computing=state.session?.phase==="computing";
@@ -63,7 +73,7 @@
   b.classList.toggle("is-selected",!!picked);b.classList.toggle("is-next",!picked);
   b.disabled=!supported||state.busy||opening||computing||other()||!!state.session?.editing;
   window.PartelierSelectionUI?.decorate?.(b,0,"face_a",state.session,["face_a"]);
-  $("knurling-reset").disabled=!identity()||state.busy||opening;$("knurling-cancel").disabled=!identity()||state.busy||opening;
+  $("knurling-reset").disabled=!identity()||state.busy||opening;$("knurling-cancel").disabled=!identity()||cancellation.cancelling;
   $("knurling-create").disabled=!supported||!ready()||!current()||!valid()||state.busy;$("knurling-create").textContent=state.session?.editing?"Rebuild knurling":"Create knurling";
   $("knurling-retry").hidden=!ready()||current();$("knurling-retry").disabled=state.busy||opening||computing||!valid();
   $("knurling-status").textContent="Live preview · "+(!supported?"Fusion required":opening?"creating…":computing?"computing…":state.error?"needs attention":current()?"up to date":ready()?"waiting for update":"select outer cylinder");
@@ -100,7 +110,7 @@
  for(const target of ["face_a"])$("knurling-pick-"+target).addEventListener("click",()=>run(async()=>{if(!identity()){await begin(false);return;}clearTimeout(timer);queued=false;await action("knurling_focus",{target});schedule();}));
  $("knurling-retry").addEventListener("click",refresh);$("knurling-create").addEventListener("click",()=>run(()=>action("knurling_commit")));
  const reset=()=>run(async()=>{clearTimeout(timer);queued=false;await action("knurling_reset");});
- $("knurling-reset").addEventListener("click",reset);$("knurling-cancel").addEventListener("click",()=>run(async()=>{clearTimeout(timer);clearTimeout(poll);queued=false;await action("knurling_cancel");}));
+ $("knurling-reset").addEventListener("click",reset);$("knurling-cancel").addEventListener("click",cancelNow);
  $("knurling-help-close").addEventListener("click",()=>$("knurling-help-dialog").close());$("knurling-help-dialog").addEventListener("close",()=>helpTrigger?.focus());
  window.PartelierSelectionUI?.register("knurling",{active,busy:()=>state.busy,reset});
  window.PartelierKnurling=Object.freeze({matches:id=>id==="knurling",isActive:active,isBusy:()=>state.busy,

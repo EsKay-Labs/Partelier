@@ -22,7 +22,7 @@
     // Page-local only: a reopened page can recover the host's active session.
     const retiredSessionIds = new Set();
     const state = { selected: "hinge", exploded: false, favorites: new Set(), connected: false, capabilities: new Set(), busy: false, dirty: false, hingeSettings: { ...hingeDefaults }, session: null, revision: 0, expectingSession: false, liveError: false };
-    let serial = 0, pendingActions = 0, actionQueue = Promise.resolve(), updateQueued = false, updateTimer;
+    let serial = 0, pendingActions = 0, updateQueued = false, updateTimer;
     let pushedStateVersion = 0;
     const livePreviewDelay = 160;
 
@@ -214,7 +214,7 @@
         $("edit-hinge-button").disabled = !hinge || busy || active || detailLocked || !state.capabilities.has("hinge-edit");
         $("preview-hinge-button").hidden = legacyMode() || !ready || (!state.liveError && currentPreview()); $("cancel-hinge-button").hidden = legacyMode();
         $("preview-hinge-button").disabled = !hinge || !valid || !ready || busy;
-        $("cancel-hinge-button").disabled = !sessionId() || busy;
+        $("cancel-hinge-button").disabled = !sessionId() || cancellation.cancelling;
         $("create-hinge-button").disabled = !hinge || !valid || busy || (palette ? !ready || !currentPreview() : !state.capabilities.has("hinge-create"));
         $("create-hinge-button").textContent = legacyMode() ? "Set up hinge in Fusion" : state.session?.editing ? "Rebuild hinge" : "Create hinge";
         $("create-hint").textContent = !hinge ? "This tool is planned; creation is not available." : !state.connected ? "Open Partelier in Fusion to select geometry and create a hinge." : palette ? "Live preview follows your changes. Create confirms the result; Cancel clears the preview." : "Restart the add-in to use the latest palette workflow.";
@@ -238,6 +238,7 @@
     function applyHingeState(snapshot) {
         if (!snapshot || !Number.isInteger(snapshot.revision) || typeof snapshot.phase !== "string") return false;
         const previous = state.session;
+        if(snapshot.endedSessionId && activeSession() && snapshot.endedSessionId!==previous?.sessionId)return false;
         if (snapshot.sessionId && retiredSessionIds.has(snapshot.sessionId)) return false;
         if (snapshot.sessionId && previous?.sessionId && snapshot.sessionId !== previous.sessionId && activeSession() && !state.expectingSession) return false;
         if (snapshot.sessionId && snapshot.sessionId === previous?.sessionId && snapshot.revision < previous.revision) return false;
@@ -246,7 +247,7 @@
             if (previous?.sessionId) retiredSessionIds.add(previous.sessionId);
             if (snapshot.sessionId) retiredSessionIds.add(snapshot.sessionId);
         }
-        state.session = snapshot;
+        cancellation.confirm(snapshot);state.session = snapshot;
         if (!newerEdits && ["preview", "error"].includes(snapshot.phase)) state.liveError = snapshot.phase === "error";
         if (snapshot.sessionId) state.expectingSession = false;
         if (!newerEdits && snapshot.settings) { state.hingeSettings = { ...hingeDefaults, ...snapshot.settings }; state.revision = snapshot.revision; syncHingeFields(); }
@@ -295,7 +296,7 @@
     async function send(action, payload = {}) {
         const requestId = `ui-${++serial}`;
         const stateVersionAtRequest = pushedStateVersion;
-        const response = Promise.resolve().then(() => window.adsk.fusionSendData(action, JSON.stringify({ protocol: 1, requestId, ...payload })));
+        const response = cancellation.wait(Promise.resolve().then(() => window.adsk.fusionSendData(action, JSON.stringify({ protocol: 1, requestId, ...payload }))));
         // Picks wait for the user; native geometry may also outlive a short
         // bridge timeout. Neither should report failure while Fusion is active.
         let timer, raw;
@@ -316,11 +317,15 @@
         }
         return result;
     }
-    function runAction(task) {
-        pendingActions++; state.busy = true; updateActions();
-        const running = actionQueue.then(task);
-        actionQueue = running.catch(error => { state.liveError = true; operationStatus(error.message, true); });
-        return actionQueue.finally(() => { pendingActions--; state.busy = pendingActions > 0; updateActions(); });
+    const cancellation=window.PartelierCancellation.create({
+        busy(value,count){pendingActions=count;state.busy=value;updateActions();},
+        error(error){state.liveError=true;operationStatus(error.message,true);}
+    });
+    function runAction(task) { return cancellation.run(task); }
+    function cancelNow() {
+        if(!sessionId())return;
+        cancelPendingUpdate();updateQueued=false;
+        return cancellation.cancel(()=>sessionAction("hinge_cancel"),sessionId());
     }
     async function sessionAction(action, extra = {}) {
         const identity = sessionId();
@@ -370,7 +375,7 @@
             const result = await send("ready"); state.connected = true; state.capabilities = new Set(Array.isArray(result.capabilities) ? result.capabilities : []);
             if (!state.dirty && result.hingeDefaults && !result.hingeState?.settings) { state.hingeSettings = { ...hingeDefaults, ...result.hingeDefaults }; syncHingeFields(); }
             $("connection-status").classList.add("connected"); $("connection-status").setAttribute("aria-label","Fusion connected"); $("connection-status").setAttribute("title","Fusion connected"); $("connection-status").replaceChildren(); $("connection-status").append(document.createElement("i"), "Fusion connected");
-            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.34.1";
+            $("input-check-button").disabled = !state.capabilities.has("input-check"); $("bridge-message").textContent = "The foundation check opens a native Fusion dialog."; $("model-status").textContent = "Partelier 0.34.2";
             if (window.PartelierSnap?.connect(result)) { state.selected = "snap"; renderToolMenu(); renderDetail(); }
             const patternAlias = window.PartelierPatterns?.connect(result);
             if (patternAlias) { state.selected = patternAlias; renderToolMenu(); renderDetail(); }
@@ -421,7 +426,7 @@
     $("edit-hinge-button").addEventListener("click", () => runAction(async () => { if (paletteMode()) await beginHinge(true); else { await send("hinge_edit"); operationStatus("Select an existing hinge result in Fusion."); } }));
     $("preview-hinge-button").addEventListener("click", () => { if ($("hinge-settings").reportValidity()) runAction(async () => { cancelPendingUpdate(); await refreshLivePreview(); }); });
     $("create-hinge-button").addEventListener("click", () => { if ($("hinge-settings").reportValidity()) runAction(async () => { if (paletteMode()) { cancelPendingUpdate(); await sessionAction("hinge_commit"); } else { await send("hinge_create", { settings: state.hingeSettings }); operationStatus("The native hinge dialog opened."); } }); });
-    $("cancel-hinge-button").addEventListener("click", () => runAction(async () => { cancelPendingUpdate(); await sessionAction("hinge_cancel"); }));
+    $("cancel-hinge-button").addEventListener("click", cancelNow);
     $("about-button").addEventListener("click", () => $("about-dialog").showModal());
     $("input-check-button").addEventListener("click", async () => { $("input-check-button").disabled = true; try { await send("open_input_check"); $("about-dialog").close(); } catch (error) { $("bridge-message").textContent = error.message; } finally { $("input-check-button").disabled = !state.connected; } });
     document.addEventListener("keydown", event => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); $("tool-select").focus(); } });

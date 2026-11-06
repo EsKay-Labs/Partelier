@@ -70,7 +70,7 @@ function fixture(options = {}) {
         return Promise.resolve(result);
     }}};
     const context=vm.createContext({window,document,console,setTimeout,clearTimeout});
-    for(const file of ["catalog.js","illustrations.js","pattern-help.js","snap.js","patterns.js","palette.js"])vm.runInContext(fs.readFileSync(path.join(ui,file),"utf8"),context,{filename:file});
+    for(const file of ["cancellation.js","catalog.js","illustrations.js","pattern-help.js","snap.js","patterns.js","palette.js"])vm.runInContext(fs.readFileSync(path.join(ui,file),"utf8"),context,{filename:file});
     const flush=async()=>{for(let i=0;i<8;i++)await new Promise(resolve=>setImmediate(resolve));};
     const advance=async ms=>{const pending=[...timers.entries()].filter(([,timer])=>timer.ms===ms);pending.forEach(([id])=>timers.delete(id));pending.forEach(([,timer])=>timer.fn());await flush();};
     const settle=()=>advance(160);
@@ -516,7 +516,7 @@ function fixture(options = {}) {
     for(const phase of ["preview","error","cancelled"]){
         const lost=fixture();await lost.flush();await lost.select("honeycomb");await lost.begin();
         lost.config.holdPreview=true;lost.config.queuedPreview=true;await lost.click("pattern-select-surface");lost.$("pattern-finish-faces").emit("click");await lost.flush();
-        const computing=lost.snapshot();assert.equal(lost.window.PartelierPatterns.isBusy(),true);assert.equal(lost.$("cancel-pattern-button").disabled,true);
+        const computing=lost.snapshot();assert.equal(lost.window.PartelierPatterns.isBusy(),true);assert.equal(lost.$("cancel-pattern-button").disabled,false,"Cancel stays available while a preview acknowledgment is pending");
         lost.push({...computing,sessionId:"d28c515a-66dc-4c66-a57b-888888888888",phase});await lost.flush();assert.equal(lost.window.PartelierPatterns.isBusy(),true,"another session cannot settle the pending preview");
         const completed={...computing,phase,previewCurrent:phase==="preview",message:phase==="error"?"Native preview failed.":"24 cells"};
         if(phase==="preview"){completed.revision++;completed.settings={...completed.settings,pitch_mm:9};}
@@ -564,9 +564,9 @@ function fixture(options = {}) {
     const previousContext=Object.fromEntries(Array.from({length:32},(_,index)=>["field"+index,index])),previousAt=123456;
     const replayed=fixture({storageSeed:{"Partelier.patternTrace.v1":JSON.stringify([{event:"click",at:previousAt,context:previousContext}])}});await replayed.flush();await drainTrace(replayed);
     assert(entries(replayed).some(entry=>entry.event==="click"&&entry.at===previousAt&&entry.context.replayed===true&&Object.keys(entry.context).length<=32),"validated saved events are replayed with their original time");
-    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.34.1"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
+    assert(entries(replayed).some(entry=>entry.event==="boot"&&entry.at!==previousAt&&entry.context.build==="0.34.2"&&!entry.context.replayed),"the current page boot remains distinct from replayed history");
     const logged=fixture();await logged.flush();await logged.select("honeycomb");logged.emitDocument("pointerdown",{target:logged.$("create-pattern-button")});await drainTrace(logged);
-    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.34.1"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
+    assert(entries(logged).some(entry=>entry.event==="boot"&&entry.context.build==="0.34.2"));assert(entries(logged).some(entry=>entry.event==="pointerdown"&&entry.context.control==="create-pattern-button"&&entry.context.disabled===true));
     await logged.begin();await logged.click("pattern-select-surface");await logged.click("pattern-finish-faces");await drainTrace(logged);logged.config.failPreview=true;await logged.input("pitch_mm",9);await logged.click("preview-pattern-button");await logged.click("cancel-pattern-button");await drainTrace(logged);
     logged.config.completePick=true;await logged.begin();const loggedCurrent=logged.snapshot();logged.push({...loggedCurrent,revision:loggedCurrent.revision-1});await logged.click("create-pattern-button");logged.emitWindow("error",{error:{name:"TypeError"},lineno:123,colno:4});logged.emitWindow("unhandledrejection",{reason:{name:"RangeError"}});await drainTrace(logged);
     const traceEntries=entries(logged),events=new Set(traceEntries.map(entry=>entry.event));
